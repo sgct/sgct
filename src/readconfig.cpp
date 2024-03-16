@@ -9,7 +9,6 @@
 #include <sgct/readconfig.h>
 
 #include <sgct/error.h>
-#include <sgct/log.h>
 #include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
@@ -242,9 +241,9 @@ void from_json(const nlohmann::json& j, sgct::quat& q) {
     auto itYaw = j.find("yaw");
     auto itRoll = j.find("roll");
     if (itPitch != j.end() && itYaw != j.end() && itRoll != j.end()) {
-        float x = itPitch->get<float>();
-        float y = -itYaw->get<float>();
-        float z = -itRoll->get<float>();
+        const float x = itPitch->get<float>();
+        const float y = -itYaw->get<float>();
+        const float z = -itRoll->get<float>();
 
         glm::quat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
         quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
@@ -341,10 +340,10 @@ void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        quat q = it->get<quat>();
+        const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
         sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
         u.transformation = o;
     }
 
@@ -461,7 +460,7 @@ void to_json(nlohmann::json& j, const Settings& s) {
 void from_json(const nlohmann::json& j, Capture& c) {
     parseValue(j, "path", c.path);
     if (auto it = j.find("format");  it != j.end()) {
-        std::string format = it->get<std::string>();
+        const std::string format = it->get<std::string>();
         c.format = parseImageFormat(format);
     }
 
@@ -582,10 +581,10 @@ void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "offset", t.offset);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        quat q = it->get<quat>();
+        const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
         sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
         t.transformation = o;
     }
     parseValue(j, "scale", t.scale);
@@ -620,8 +619,9 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     auto itRight = j.find("right");
     auto itUp = j.find("up");
 
-    bool hasHorizontal = itHFov != j.end() || (itLeft != j.end() && itRight != j.end());
-    bool hasVertical = itVFov != j.end() || (itDown != j.end() && itUp != j.end());
+    const bool hasHorizontal =
+        itHFov != j.end() || (itLeft != j.end() && itRight != j.end());
+    const bool hasVertical = itVFov != j.end() || (itDown != j.end() && itUp != j.end());
     if (!hasHorizontal || !hasVertical) {
         throw Err(6000, "Missing specification of field-of-view values");
     }
@@ -629,13 +629,13 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     // First we extract the potentially existing hFov and vFov values and **then** the
     // more specific left/right/up/down ones which would overwrite the first set
     if (itHFov != j.end()) {
-        float hFov = itHFov->get<float>();
+        const float hFov = itHFov->get<float>();
         f.left = hFov / 2.f;
         f.right = hFov / 2.f;
     }
 
     if (itVFov != j.end()) {
-        float vFov = itVFov->get<float>();
+        const float vFov = itVFov->get<float>();
         f.down = vFov / 2.f;
         f.up = vFov / 2.f;
     }
@@ -720,12 +720,12 @@ void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     parseValue(j, "fov", p.fov);
 
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
     if (auto it = j.find("interpolation");  it != j.end()) {
-        std::string interpolation = it->get<std::string>();
+        const std::string interpolation = it->get<std::string>();
         p.interpolation = parseInterpolation(interpolation);
     }
     parseValue(j, "diameter", p.diameter);
@@ -819,7 +819,7 @@ void to_json(nlohmann::json& j, const FisheyeProjection& p) {
 
 void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
@@ -876,7 +876,7 @@ void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
 
 void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
@@ -885,7 +885,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     }
 
     if (auto it = j.find("mapping");  it != j.end()) {
-        std::string mapping = it->get<std::string>();
+        const std::string mapping = it->get<std::string>();
         p.mapping = parseMapping(mapping);
     }
 
@@ -1033,7 +1033,7 @@ void to_json(nlohmann::json& j, const SpoutFlatProjection& p) {
 
 void from_json(const nlohmann::json& j, CylindricalProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
@@ -1064,7 +1064,7 @@ void to_json(nlohmann::json& j, const CylindricalProjection& p) {
 
 void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 }
@@ -1115,7 +1115,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "tracked", v.isTracked);
 
     if (auto it = j.find("eye");  it != j.end()) {
-        std::string eye = it->get<std::string>();
+        const std::string eye = it->get<std::string>();
         v.eye = parseEye(eye);
     }
 
@@ -1277,7 +1277,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "tags", w.tags);
 
     if (auto it = j.find("bufferbitdepth");  it != j.end()) {
-        std::string bbd = it->get<std::string>();
+        const std::string bbd = it->get<std::string>();
         w.bufferBitDepth = parseBufferColorBitDepth(bbd);
     }
 
@@ -1581,7 +1581,7 @@ void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 namespace sgct {
 
 config::Cluster readConfig(const std::string& filename,
-                           const std::string additionalErrorDescription)
+                           const std::string& additionalError)
 {
     Log::Debug(fmt::format("Parsing config '{}'", filename));
     if (filename.empty()) {
@@ -1597,30 +1597,31 @@ config::Cluster readConfig(const std::string& filename,
     }
 
     // First save the old current working directory, set the new one
-    std::filesystem::path oldPwd = std::filesystem::current_path();
-    std::filesystem::path configFolder = std::filesystem::path(name).parent_path();
+    const std::filesystem::path oldPwd = std::filesystem::current_path();
+    const std::filesystem::path configFolder = std::filesystem::path(name).parent_path();
     if (!configFolder.empty()) {
         std::filesystem::current_path(configFolder);
     }
 
     // Then load the cluster
-    config::Cluster cluster = [&additionalErrorDescription](std::filesystem::path path) {
+    using namespace config;
+    const Cluster cluster = [&additionalError](const std::filesystem::path& path) {
         try {
-            std::ifstream f(path);
-            std::string contents = std::string(
-                (std::istreambuf_iterator<char>(f)),
+            std::ifstream f = std::ifstream(path);
+            const std::string contents = std::string(
+                std::istreambuf_iterator<char>(f),
                 std::istreambuf_iterator<char>()
             );
             return readJsonConfig(contents);
         }
         catch (const nlohmann::json::exception& e) {
-            if (!additionalErrorDescription.empty()) {
+            if (!additionalError.empty()) {
                 throw Err(
                     6082,
                     fmt::format(
                         "Importing of this configuration file failed with the "
                         "message:\n\n{}:\n\n{}",
-                        additionalErrorDescription, e.what()
+                        additionalError, e.what()
                     )
                 );
             }
@@ -1738,12 +1739,12 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
             fmt::format("Could not find schema file '{}'", schemaName)
         );
     }
-    std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
-    std::string cfgString = stringifyJsonFile(std::string(config));
+    const std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
+    const std::string cfgString = stringifyJsonFile(std::string(config));
     bool validationSuccessful = false;
     try {
         // The schema is defined based upon string from file
-        std::string schemaString = stringifyJsonFile(schema);
+        const std::string schemaString = stringifyJsonFile(schema);
         validationSuccessful = validateConfigAgainstSchema(
             cfgString,
             schemaString,
@@ -1764,15 +1765,15 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
 
 bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
                                  const std::string& stringifiedSchema,
-                                 std::filesystem::path& schemaDir)
+                                 const std::filesystem::path& schemaDir)
 {
-    nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
-    nlohmann::json_schema::json_validator validator(
+    const nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
+    const nlohmann::json_schema::json_validator validator(
         schemaInput,
         [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
             std::string loadPath = schemaDir.string() + std::string("/") +
                 id.to_string();
-            size_t lbIndex = loadPath.find("#");
+            const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);
             }
@@ -1783,7 +1784,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
             }
             if (std::filesystem::exists(loadPath)) {
                 Log::Debug(fmt::format("Loading schema file '{}'", loadPath));
-                std::string newSchema = stringifyJsonFile(loadPath);
+                const std::string newSchema = stringifyJsonFile(loadPath);
                 value = nlohmann::json::parse(newSchema);
             }
             else {
@@ -1794,7 +1795,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
             }
         }
     );
-    nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
+    const nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
     validator.validate(sgct_cfg);
     return true;
 }
@@ -1832,10 +1833,10 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         );
     }
 
-    config::GeneratorVersion genVersion = [](std::filesystem::path path) {
+    config::GeneratorVersion genVersion = [](const std::filesystem::path& path) {
         if (path.extension() == ".json") {
             try {
-                std::ifstream f(path);
+                const std::ifstream f = std::ifstream(path);
                 return readJsonGeneratorVersion(path.string());
             }
             catch (const std::runtime_error& e) {
@@ -1873,7 +1874,7 @@ sgct::config::Meta readMeta(const std::string& filename) {
     }
 
     try {
-        std::ifstream f(name);
+        const std::ifstream f = std::ifstream(name);
         nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(name.string()));
         if (auto it = j.find("meta");  it != j.end()) {
             sgct::config::Meta meta;

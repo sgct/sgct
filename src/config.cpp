@@ -12,7 +12,7 @@
 #include <sgct/error.h>
 #include <sgct/profiling.h>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <functional>
 #include <iterator>
 #include <numeric>
@@ -142,7 +142,7 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
         throw Error(1065, "Diameter must be positive");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1066, "All background color components have to be positive");
         }
@@ -159,7 +159,7 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
         throw Error(1071, "Quality setting only allows powers of two");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1072, "All background color components have to be positive");
         }
@@ -176,7 +176,7 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
         throw Error(1081, "Quality value must be positive");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1083, "All background color components have to be positive");
         }
@@ -197,7 +197,7 @@ void validateSpoutFlatProjection(const SpoutFlatProjection& p) {
         throw Error(1086, "Height value must be positive");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1088, "All background color components have to be positive");
         }

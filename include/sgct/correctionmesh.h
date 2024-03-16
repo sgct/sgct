@@ -35,7 +35,7 @@ public:
      *
      * \throw std::runtime_error if mesh was not loaded successfully
      */
-    void loadMesh(std::string path, BaseViewport& parent,
+    void loadMesh(const std::string& path, BaseViewport& parent,
         bool needsMaskGeometry = false, bool textureRenderMode = false);
 
     /**

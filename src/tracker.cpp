@@ -55,14 +55,14 @@ TrackingDevice* Tracker::deviceBySensorId(int id) const {
 }
 
 void Tracker::setOrientation(quat q) {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
 
     // create inverse rotation matrix
     glm::mat4 orientation = glm::inverse(glm::mat4_cast(glm::make_quat(&q.x)));
-    std::memcpy(&_orientation, glm::value_ptr(orientation), sizeof(float[16]));
+    std::memcpy(&_orientation, glm::value_ptr(orientation), 16 * sizeof(float));
 
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x));
-    std::memcpy(&_transform, glm::value_ptr(transMat), sizeof(float[16]));
+    std::memcpy(&_transform, glm::value_ptr(transMat), 16 * sizeof(float));
 }
 
 void Tracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -74,33 +74,33 @@ void Tracker::setOrientation(float xRot, float yRot, float zRot) {
 }
 
 void Tracker::setOffset(vec3 offset) {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     _offset = std::move(offset);
     glm::mat4 trans =
         glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x)) *
         glm::make_mat4(_orientation.values);
-    std::memcpy(&_transform, glm::value_ptr(trans), sizeof(float[16]));
+    std::memcpy(&_transform, glm::value_ptr(trans), 16 * sizeof(float));
 }
 
 void Tracker::setScale(double scaleVal) {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     if (scaleVal > 0.0) {
         _scale = scaleVal;
     }
 }
 
 void Tracker::setTransform(mat4 mat) {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     _transform = std::move(mat);
 }
 
 mat4 Tracker::getTransform() const {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     return _transform;
 }
 
 double Tracker::scale() const {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     return _scale;
 }
 

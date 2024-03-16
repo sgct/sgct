@@ -17,11 +17,11 @@
 
 namespace {
     bool checkLinkStatus(GLint programId, const std::string& name) {
-        GLint linkStatus;
+        GLint linkStatus = 0;
         glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
 
         if (linkStatus == 0) {
-            GLint logLength;
+            GLint logLength = 0;
             glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
 
             std::vector<GLchar> log(logLength);
@@ -44,11 +44,11 @@ namespace {
     }
 
     void checkCompilationStatus(GLenum type, GLint id) {
-        GLint compilationStatus;
+        GLint compilationStatus = 0;
         glGetShaderiv(id, GL_COMPILE_STATUS, &compilationStatus);
 
         if (compilationStatus == 0) {
-            GLint logLength;
+            GLint logLength = 0;
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 
             if (logLength == 0) {
@@ -93,7 +93,7 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
 }
 
 void ShaderProgram::deleteProgram() {
-    for (unsigned int shader : _shaders) {
+    for (const unsigned int shader : _shaders) {
         glDetachShader(_programId, shader);
         glDeleteShader(shader);
     }
@@ -107,7 +107,7 @@ void ShaderProgram::addShaderSource(std::string_view src, GLenum type) {
     // Prepare source code for shader
     constexpr char Null = '\0';
 
-    unsigned int id = glCreateShader(type);
+    const unsigned int id = glCreateShader(type);
     
     const char* shaderSrc[] = { src.data(), &Null };
     glShaderSource(id, 1, shaderSrc, nullptr);
@@ -137,11 +137,11 @@ void ShaderProgram::createAndLinkProgram() {
     createProgram();
 
     // Link shaders
-    for (unsigned int shader : _shaders) {
+    for (const unsigned int shader : _shaders) {
         glAttachShader(_programId, shader);
     }
     glLinkProgram(_programId);
-    bool isLinked = checkLinkStatus(_programId, _name);
+    const bool isLinked = checkLinkStatus(_programId, _name);
     if (!isLinked) {
         throw Err(7011, fmt::format("Error linking the program '{}'", _name));
     }

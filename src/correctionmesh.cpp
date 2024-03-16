@@ -173,7 +173,7 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     }
 }
 
-void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
+void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
                               bool needsMaskGeometry, bool textureRenderMode)
 {
     ZoneScoped;
@@ -185,7 +185,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
     // generate unwarped mask
     {
         ZoneScopedN("Create simple mask");
-        Buffer buf = setupSimpleMesh(parentPos, parentSize);
+        const Buffer buf = setupSimpleMesh(parentPos, parentSize);
         createMesh(_quadGeometry, buf);
     }
 
@@ -194,20 +194,20 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
         ZoneScopedN("Create unwarped mask");
         Log::Debug("CorrectionMesh: Creating mask mesh");
 
-        Buffer buf = setupMaskMesh(parentPos, parentSize);
+        const Buffer buf = setupMaskMesh(parentPos, parentSize);
         createMesh(_maskGeometry, buf);
     }
 
     // fallback if no mesh is provided
     if (path.empty()) {
-        Buffer buf = setupSimpleMesh(parentPos, parentSize);
+        const Buffer buf = setupSimpleMesh(parentPos, parentSize);
         createMesh(_warpGeometry, buf);
         return;
     }
 
     Buffer buf;
 
-    std::string ext = path.substr(path.rfind('.') + 1);
+    const std::string ext = path.substr(path.rfind('.') + 1);
     // find a suitable format
     if (ext == "sgc") {
         buf = generateScissMesh(path, parent);
@@ -264,8 +264,8 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
 
     if (Settings::instance().exportWarpingMeshes()) {
         const size_t found = path.find_last_of('.');
-        std::string filename = path.substr(0, found) + "_export.obj";
-        exportMesh(_warpGeometry.type, std::move(filename), buf);
+        const std::string filename = path.substr(0, found) + "_export.obj";
+        exportMesh(_warpGeometry.type, filename, buf);
     }
 }
 

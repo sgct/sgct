@@ -71,7 +71,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
         _isTracked = *viewport.isTracked;
     }
     if (viewport.eye) {
-        Frustum::Mode eye = [](config::Viewport::Eye e) {
+        const Frustum::Mode eye = [](config::Viewport::Eye e) {
             using Mode = Frustum::Mode;
             switch (e) {
                 case config::Viewport::Eye::Mono: return Mode::MonoEye;
@@ -145,7 +145,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
         fishProj->setCubemapResolution(*proj.quality);
     }
     if (proj.interpolation) {
-        NonLinearProjection::InterpolationMode interp =
+        const NonLinearProjection::InterpolationMode interp =
             [](config::FisheyeProjection::Interpolation i) {
                 switch (i) {
                     case config::FisheyeProjection::Interpolation::Linear:
@@ -164,7 +164,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
         fishProj->setDomeDiameter(*proj.diameter);
     }
     if (proj.crop) {
-        config::FisheyeProjection::Crop crop = *proj.crop;
+        const config::FisheyeProjection::Crop crop = *proj.crop;
         fishProj->setCropFactors(crop.left, crop.right, crop.bottom, crop.top);
     }
     if (proj.offset) {

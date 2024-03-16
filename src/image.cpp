@@ -133,7 +133,7 @@ void Image::save(const std::string& file) {
         throw Err(9002, "Filename not set for saving image");
     }
 
-    FormatType type = getFormatType(file);
+    const FormatType type = getFormatType(file);
     if (type == FormatType::Unknown) {
         throw Err(9003, fmt::format("Cannot save file '{}'", file));
     }
@@ -152,14 +152,21 @@ void Image::save(const std::string& file) {
 
     stbi_flip_vertically_on_write(1);
     if (type == FormatType::JPEG) {
-        int r = stbi_write_jpg(file.c_str(), _size.x, _size.y, _nChannels, _data, 100);
+        const int r = stbi_write_jpg(
+            file.c_str(),
+            _size.x,
+            _size.y,
+            _nChannels,
+            _data,
+            100
+        );
         if (r == 0) {
             throw Err(9004, fmt::format("Could not save file '{}' as JPG", file));
         }
         return;
     }
     if (type == FormatType::TGA) {
-        int r = stbi_write_tga(file.c_str(), _size.x, _size.y, _nChannels, _data);
+        const int r = stbi_write_tga(file.c_str(), _size.x, _size.y, _nChannels, _data);
         if (r == 0) {
             throw Err(9005, fmt::format("Could not save file '{}' as TGA", file));
 
@@ -179,7 +186,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
         throw Err(9007, fmt::format("Cannot save {} bit", _bytesPerChannel * 8));
     }
 
-    double t0 = time();
+    const double t0 = time();
 
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
@@ -300,7 +307,7 @@ void Image::setBytesPerChannel(int bpc) {
 }
 
 void Image::allocateOrResizeData() {
-    double t0 = time();
+    const double t0 = time();
 
     const unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
     if (dataSize == 0) {

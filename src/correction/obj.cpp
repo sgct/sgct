@@ -58,8 +58,8 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             continue;
         }
 
-        std::string_view v = line;
-        size_t separator = v.find(' ');
+        const std::string_view v = line;
+        const size_t separator = v.find(' ');
         std::string_view first = v.substr(0, separator);
         std::string_view rest = v.substr(separator + 1);
 
@@ -73,7 +73,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                     )
                 );
             }
-            std::string_view v1 = rest.substr(0, sep);
+            const std::string_view v1 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
@@ -85,11 +85,11 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                     )
                 );
             }
-            std::string_view v2 = rest.substr(0, sep);
+            const std::string_view v2 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
-            std::string_view v3 = rest;
-            float z = std::stof(std::string(v3));
+            const std::string_view v3 = rest;
+            const float z = std::stof(std::string(v3));
             if (z != 0.f) {
                 Log::Warning(fmt::format(
                     "Vertex in '{}' was using z coordinate which is not supported", path
@@ -103,11 +103,11 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         }
         else if (first == "vt") {
             size_t sep = rest.find(' ');
-            std::string_view v1 = rest.substr(0, sep);
+            const std::string_view v1 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
-            std::string_view v2 = rest.substr(0, sep);
+            const std::string_view v2 = rest.substr(0, sep);
 
             Texture t;
             t.s = std::stof(std::string(v1));
@@ -124,7 +124,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                     )
                 );
             }
-            std::string_view f1 = rest.substr(0, sep);
+            const std::string_view f1 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
@@ -136,11 +136,11 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                     )
                 );
             }
-            std::string_view f2 = rest.substr(0, sep);
+            const std::string_view f2 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
-            std::string_view f3 =
+            const std::string_view f3 =
                 sep == std::string_view::npos ?
                 rest :
                 rest.substr(0, sep);
@@ -152,12 +152,12 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             f.f1 = std::stoi(std::string(f1.substr(0, f1.find('/'))));
             f.f2 = std::stoi(std::string(f2.substr(0, f2.find('/'))));
             f.f3 = std::stoi(std::string(f3.substr(0, f3.find('/'))));
-            faces.push_back(f);
+            faces.emplace_back(f);
         }
         else if (first == "vn") {
             if (std::find(reported.begin(), reported.end(), "vn") == reported.end()) {
                 Log::Warning(fmt::format("Ignoring normals in mesh '{}'", path));
-                reported.push_back("vn");
+                reported.emplace_back("vn");
             }
         }
         else if (first == "vp") {
@@ -165,19 +165,19 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 Log::Warning(
                     fmt::format("Ignoring parameter space values in mesh '{}'", path)
                 );
-                reported.push_back("vp");
+                reported.emplace_back("vp");
             }
         }
         else if (first == "l") {
             if (std::find(reported.begin(), reported.end(), "l") == reported.end()) {
                 Log::Warning(fmt::format("Ignoring line elements in mesh '{}'", path));
-                reported.push_back("l");
+                reported.emplace_back("l");
             }
         }
         else if (first == "mtllib") {
             if (std::find(reported.begin(), reported.end(), "mtllib") == reported.end()) {
                 Log::Warning(fmt::format("Ignoring material library in mesh '{}'", path));
-                reported.push_back("mtllib");
+                reported.emplace_back("mtllib");
             }
         }
         else if (first == "usemtl") {
@@ -185,7 +185,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 Log::Warning(
                     fmt::format("Ignoring material specification in mesh '{}'", path)
                 );
-                reported.push_back("usemtl");
+                reported.emplace_back("usemtl");
             }
         }
         else if (first == "o") {
@@ -193,7 +193,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 Log::Warning(
                     fmt::format("Ignoring object specification in mesh '{}'", path)
                 );
-                reported.push_back("o");
+                reported.emplace_back("o");
             }
         }
         else if (first == "g") {
@@ -201,7 +201,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 Log::Warning(
                     fmt::format("Ignoring object group specification in mesh '{}'", path)
                 );
-                reported.push_back("g");
+                reported.emplace_back("g");
             }
         }
         else if (first == "s") {
@@ -209,7 +209,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 Log::Warning(
                     fmt::format("Ignoring shading specification in mesh '{}'", path)
                 );
-                reported.push_back("s");
+                reported.emplace_back("s");
             }
         }
         else {
@@ -217,7 +217,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 Log::Warning(fmt::format(
                     "Encounted unsupported value type '{}' in mesh '{}'", first, path
                 ));
-                reported.push_back(std::string(first));
+                reported.emplace_back(first);
             }
         }
     }
@@ -234,7 +234,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         const int nPositions = static_cast<int>(positions.size());
         // OBJ uses 1-based indices, so we need to allow for one bigger than the number
         // of positions
-        bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;
+        const bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;
         if (invalid) {
             throw Error(
                 Error::Component::OBJ, 2032,

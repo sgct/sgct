@@ -16,7 +16,7 @@
 #include <sstream>
 
 namespace {
-    std::string stringify(const std::string filename) {
+    std::string stringify(const std::string& filename) {
         std::ifstream myfile;
         myfile.open(filename);
         std::stringstream buffer;
@@ -24,10 +24,10 @@ namespace {
         return buffer.str();
     }
 
-    void attemptValidation(const std::string cfgString) {
-        std::string schemaString =
+    void attemptValidation(const std::string& cfgString) {
+        const std::string schemaString =
             stringify(std::string(BASE_PATH) + "/sgct.schema.json");
-        std::filesystem::path schemaDir =
+        const std::filesystem::path schemaDir =
             std::filesystem::u8path(std::string(BASE_PATH));
         sgct::validateConfigAgainstSchema(cfgString, schemaString, schemaDir);
     }

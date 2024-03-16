@@ -140,30 +140,30 @@ NetworkManager::NetworkManager(NetworkMode nm,
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_CANONNAME;
 
-    addrinfo* info;
+    addrinfo* info = nullptr;
     {
         ZoneScopedN("getaddrinfo");
         //TODO: micah - why does getaddrinfo fail for 'macbookpro.local'
-        #ifdef __APPLE__
-            int result = getaddrinfo("localhost", "http", &hints, &info);
-        #else
-            int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
-        #endif // __APPLE__
+#ifdef __APPLE__
+            const int result = getaddrinfo("localhost", "http", &hints, &info);
+#else
+            const int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
+#endif // __APPLE__
     if (result != 0) {
             std::string err = std::to_string(Network::lastError());
             throw Error(5028, fmt::format("Failed to get address info: {}", err));
         }
     }
     std::vector<std::string> dnsNames;
-    char addr_str[INET_ADDRSTRLEN];
+    std::array<char, INET_ADDRSTRLEN> addr;
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
         ZoneScopedN("inet_ntop");
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
-        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr.data(), INET_ADDRSTRLEN);
         if (p->ai_canonname) {
             dnsNames.emplace_back(p->ai_canonname);
         }
-        _localAddresses.emplace_back(addr_str);
+        _localAddresses.emplace_back(addr.begin(), addr.end());
     }
 
     freeaddrinfo(info);
@@ -464,17 +464,17 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 }
 
 unsigned int NetworkManager::activeConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _nActiveConnections;
 }
 
 int NetworkManager::connectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_networkConnections.size());
 }
 
 int NetworkManager::syncConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_syncConnections.size());
 }
 
@@ -537,8 +537,8 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_isServer) {
         mutex::DataSync.lock();
         // local copy (thread safe)
-        bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
-                                (nConnectedDataTransfer == totalNTransferConnections);
+        const bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
+                                    (nConnectedDataTransfer == totalNTransferConnections);
         _allNodesConnected = allNodesConnected;
         mutex::DataSync.unlock();
 
@@ -578,10 +578,11 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 }
 
 void NetworkManager::setAllNodesConnected() {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
 
     if (!_isServer) {
-        unsigned int nConn = static_cast<unsigned int>(_dataTransferConnections.size());
+        const unsigned int nConn =
+            static_cast<unsigned int>(_dataTransferConnections.size());
         _allNodesConnected = (_nActiveSyncConnections == 1) &&
                              (_nActiveDataTransferConnections == nConn);
     }
@@ -644,12 +645,12 @@ bool NetworkManager::isComputerServer() const {
 }
 
 bool NetworkManager::isRunning() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _isRunning;
 }
 
 bool NetworkManager::areAllNodesConnected() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _allNodesConnected;
 }
 

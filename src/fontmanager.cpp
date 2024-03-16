@@ -91,7 +91,7 @@ void FontManager::destroy() {
 }
 
 FontManager::FontManager() {
-    FT_Error error = FT_Init_FreeType(&_library);
+    const FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
         Log::Error("Could not initiate Freetype library");
@@ -147,9 +147,9 @@ bool FontManager::addFont(std::string name, std::string file) {
 }
 
 Font* FontManager::font(const std::string& fontName, unsigned int height) {
-    if (_fontMap.count({ fontName, height }) == 0) {
+    if (!_fontMap.contains({ fontName, height })) {
         std::unique_ptr<Font> f = createFont(fontName, height);
-        if (f == nullptr) {
+        if (!f) {
             return nullptr;
         }
         _fontMap[{ fontName, height }] = std::move(f);
@@ -159,7 +159,7 @@ Font* FontManager::font(const std::string& fontName, unsigned int height) {
 }
 
 std::unique_ptr<Font> FontManager::createFont(const std::string& name, int height) {
-    std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
+    const auto it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
         Log::Error(fmt::format("No font file specified for font '{}'", name));
@@ -173,8 +173,8 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         return nullptr;
     }
 
-    FT_Face face;
-    FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
+    FT_Face face = nullptr;
+    const FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
         Log::Error(fmt::format(
@@ -187,7 +187,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         return nullptr;
     }
 
-    FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
+    const FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
         Log::Error(fmt::format("Could not set pixel size for font '{}'", name));
         return nullptr;

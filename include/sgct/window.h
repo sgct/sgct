@@ -97,8 +97,8 @@ public:
 
     static void makeSharedContextCurrent();
 
-    Window();
-    ~Window();
+    Window() = default;
+    ~Window() = default;
 
     Window(const Window&) = delete;
     Window(Window&&) = delete;
@@ -120,7 +120,7 @@ public:
     /**
      * Swap previous data and current data. This is done at the end of the render loop.
      */
-    void swap(bool takeScreenshot);
+    void swapBuffers(bool takeScreenshot);
     void updateResolutions();
 
     void update();

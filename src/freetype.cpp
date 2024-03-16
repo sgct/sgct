@@ -16,21 +16,19 @@
 #include <sgct/opengl.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <sstream>
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <glm/gtc/type_ptr.hpp>
 #include <cstdarg>
+#include <sstream>
 
 namespace {
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {
-        sgct::vec2 res = sgct::vec2{
+        const sgct::vec2 res = sgct::vec2{
             static_cast<float>(win.resolution().x),
             static_cast<float>(win.resolution().y)
         };
-        sgct::vec2 size = vp.size();
-        sgct::vec2 scale = win.scale();
+        const sgct::vec2 size = vp.size();
+        const sgct::vec2 scale = win.scale();
         return glm::ortho(0.f, size.x * res.x * scale.x, 0.f, size.y * res.y * scale.y);
     }
 
@@ -50,12 +48,12 @@ namespace {
         // figure out width
         float lineWidth = 0.f;
         for (size_t j = 0; j < line.length() - 1; j++) {
-            char c = line.c_str()[j];
+            const char c = line.c_str()[j];
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
             lineWidth += ffd.distToNextChar;
         }
         // add last char width
-        char c = line.c_str()[line.length() - 1];
+        const char c = line.c_str()[line.length() - 1];
         const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
         lineWidth += ffd.size.x;
 
@@ -73,7 +71,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
     }
 
     std::vector<std::string> lines = split(std::move(text), '\n');
-    glm::mat4 orthoMatrix = setupOrthoMat(window, viewport);
+    const glm::mat4 orthoMatrix = setupOrthoMat(window, viewport);
 
     const float h = font.height() * 1.59f;
 
@@ -101,7 +99,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-            glm::mat4 trans = glm::translate(
+            const glm::mat4 trans = glm::translate(
                 orthoMatrix,
                 glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );

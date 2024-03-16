@@ -205,7 +205,7 @@ Box::~Box() {
     glDeleteBuffers(1, &_vbo);
 }
 
-void Box::draw() {
+void Box::draw() const {
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);

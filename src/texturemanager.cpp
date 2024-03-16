@@ -18,7 +18,7 @@ namespace {
     unsigned int uploadImage(const sgct::Image& img, bool interpolate, int mipmap,
                              float anisotropicFilterSize)
     {
-        unsigned int tex;
+        unsigned int tex = 0;
         glGenTextures(1, &tex);
         glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -40,7 +40,7 @@ namespace {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        GLenum format = GL_UNSIGNED_BYTE;
+        constexpr GLenum Format = GL_UNSIGNED_BYTE;
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -49,7 +49,7 @@ namespace {
             img.size().y,
             0,
             type,
-            format,
+            Format,
             img.data()
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
@@ -139,7 +139,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
 unsigned int TextureManager::loadTexture(const Image& img, bool interpolate,
                                          float anisotropicFilterSize, int mipmapLevels)
 {
-    GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
+    const GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
     _textures.push_back(t);
 
     return t;

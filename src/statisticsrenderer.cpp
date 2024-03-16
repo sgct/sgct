@@ -65,27 +65,27 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     };
     std::vector<sVertex> vs;
     vs.emplace_back(0.f, 0.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);
     vs.emplace_back(0.f, 1.f / 30.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 30.f);
 
     // Static 1 ms lines
     _lines.staticDraw.nLines = 0;
     for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
         vs.emplace_back(0.f, f);
-        vs.emplace_back(static_cast<float>(_statistics.HistoryLength), f);
+        vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), f);
         _lines.staticDraw.nLines++;
     }
 
     // Static 0, 30 & 60 FPS lines
     vs.emplace_back(0.f, 0.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);
 
     vs.emplace_back(0.f, 1.f / 30.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 30.f);
 
     vs.emplace_back(0.f, 1.f / 60.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 60.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 60.f);
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
@@ -95,7 +95,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     _shader.bind();
     _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
     _colorLoc = glGetUniformLocation(_shader.id(), "col");
-    _shader.unbind();
+    ShaderProgram::unbind();
 
     // OpenGL objects for lines
     glGenVertexArrays(1, &_lines.staticDraw.vao);
@@ -205,7 +205,7 @@ void StatisticsRenderer::update() {
     {
         std::fill(hValues.begin(), hValues.end(), 0);
 
-        for (double d : sValues) {
+        for (const double d : sValues) {
             // convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
             const double dp = d / scale;
             const int dpScaled = static_cast<int>(dp * Histogram::Bins);
@@ -270,7 +270,7 @@ void StatisticsRenderer::update() {
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
     ZoneScoped;
 
-    ivec2 res = window.framebufferResolution();
+    const ivec2 res = window.framebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(
         0.f,
         static_cast<float>(res.x),
@@ -289,7 +289,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         _shader.bind();
 
         const glm::vec2 size = glm::vec2(
-            res.x / static_cast<float>(_statistics.HistoryLength),
+            res.x / static_cast<float>(Engine::Statistics::HistoryLength),
             res.y * 15.f
         );
 
@@ -336,7 +336,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 
         glBindVertexArray(0);
-        _shader.unbind();
+        ShaderProgram::unbind();
 
 #ifdef SGCT_HAS_TEXT
         constexpr glm::vec2 Pos = glm::vec2(15.f, 50.f);

@@ -55,8 +55,8 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     // get the mesh dimensions
     std::optional<glm::ivec2> meshSize;
     if (std::getline(meshFile, line)) {
-        int valX;
-        int valY;
+        int valX = 0;
+        int valY = 0;
         auto r = scn::scan_default(line, valX, valY);
         if (!r) {
             throw Error(
@@ -69,7 +69,11 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     }
 
     // get all data
-    float x, y, s, t, intensity;
+    float x = 0.f;
+    float y = 0.f;
+    float s = 0.f;
+    float t = 0.f;
+    float intensity = 0.f;
     while (std::getline(meshFile, line)) {
         auto r = scn::scan_default(line, x, y, s, t, intensity);
         if (r) {

@@ -17,7 +17,7 @@
 namespace sgct {
 
 SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(const std::string& filename,
-    const std::string additionalErrorDescription = "");
+    const std::string& additionalError = "");
 
 SGCT_EXPORT [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 
@@ -36,7 +36,7 @@ SGCT_EXPORT bool loadFileAndSchemaThenValidate(const std::string& config,
     const std::string& schema, const std::string& validationTypeExplanation);
 
 SGCT_EXPORT bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
-    const std::string& stringifiedSchema, std::filesystem::path& schemaDir);
+    const std::string& stringifiedSchema, const std::filesystem::path& schemaDir);
 
 SGCT_EXPORT [[noreturn]] void convertToSgctExceptionAndThrow(const std::string& schema,
     const std::string& validationTypeExplanation, const std::string& exceptionMessage);

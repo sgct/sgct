@@ -14,6644 +14,6478 @@
 #include <filesystem>
 
 TEST_CASE("Default constructed", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("Cluster/DebugLog", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.debugLog = std::nullopt;
+        sgct::config::Cluster input = {
+            .success = true,
+            .debugLog = std::nullopt
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.debugLog = false;
+        sgct::config::Cluster input = {
+            .success = true,
+            .debugLog = false
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.debugLog = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .debugLog = true
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Cluster/SetThreadAffinity", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.setThreadAffinity = std::nullopt;
+        sgct::config::Cluster input = {
+            .success = true,
+            .setThreadAffinity = std::nullopt
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.setThreadAffinity = false;
+        sgct::config::Cluster input = {
+            .success = true,
+            .setThreadAffinity = false
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.setThreadAffinity = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .setThreadAffinity = true
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Cluster/FirmSync", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.firmSync = std::nullopt;
+        sgct::config::Cluster input = {
+            .success = true,
+            .firmSync = std::nullopt
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.firmSync = false;
+        sgct::config::Cluster input = {
+            .success = true,
+            .firmSync = false
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.firmSync = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .firmSync = true
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Scene", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.scene = std::nullopt;
+        sgct::config::Cluster input = {
+            .success = true,
+            .scene = std::nullopt
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.scene = sgct::config::Scene();
+        sgct::config::Cluster input = {
+            .success = true,
+            .scene = sgct::config::Scene()
+        };
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.scene = sgct::config::Scene();
+        sgct::config::Cluster input = {
+            .success = true,
+            .scene = sgct::config::Scene(),
+        };
         input.scene->offset = sgct::vec3(1.f, 2.f, 3.f);
         
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.scene = sgct::config::Scene();
+        sgct::config::Cluster input = {
+            .success = true,
+            .scene = sgct::config::Scene()
+        };
         input.scene->orientation = sgct::quat(1.f, 2.f, 3.f, 4.f);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.scene = sgct::config::Scene();
+        sgct::config::Cluster input = {
+            .success = true,
+            .scene = sgct::config::Scene()
+        };
         input.scene->scale = 1.f;
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.scene = sgct::config::Scene();
-        input.scene->offset = sgct::vec3(1.f, 2.f, 3.f);
-        input.scene->orientation = sgct::quat(1.f, 2.f, 3.f, 4.f);
-        input.scene->scale = 1.f;
+        sgct::config::Cluster input = {
+            .success = true,
+            .scene = sgct::config::Scene()
+        };
+        input.scene = {
+            .offset = sgct::vec3(1.f, 2.f, 3.f),
+            .orientation = sgct::quat(1.f, 2.f, 3.f, 4.f),
+            .scale = 1.f
+        };
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Node", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
+    sgct::config::Cluster input = {
+        .success = true,
+    };
+    input.nodes.push_back({
+        .address = "abc",
+        .port = 1
+    });
 
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-    input.nodes.push_back(node);
-
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("Node/DataTransferPort", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.nodes.push_back({
+            .address = "abc",
+            .port = 1,
+            .dataTransferPort = std::nullopt
+        });
 
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-        node.dataTransferPort = std::nullopt;
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.nodes.push_back({
+            .address = "abc",
+            .port = 1,
+            .dataTransferPort = 0
+        });
 
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-        node.dataTransferPort = 0;
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.nodes.push_back({
+            .address = "abc",
+            .port = 1,
+            .dataTransferPort = 1
+        });
 
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-        node.dataTransferPort = 1;
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Node/SwapLock", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.nodes.push_back({
+            .address = "abc",
+            .port = 1,
+            .swapLock = std::nullopt
+        });
 
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-        node.swapLock = std::nullopt;
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.nodes.push_back({
+            .address = "abc",
+            .port = 1,
+            .swapLock = false
+        });
 
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-        node.swapLock = false;
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.nodes.push_back({
+            .address = "abc",
+            .port = 1,
+            .swapLock = true
+        });
 
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-        node.swapLock = true;
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-        
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         node.windows.push_back(sgct::config::Window());
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.id = 1;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .id = 1
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window1;
-        window1.id = 1;
-        node.windows.push_back(window1);
-
-        sgct::config::Window window2;
-        window2.id = 2;
-        node.windows.push_back(window2);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .id = 1
+        });
+        node.windows.push_back({
+            .id = 2
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Name", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.name = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .name = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.name = "abc";
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .name = "abc"
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.name = "def";
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .name = "def"
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Tags", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.tags = std::vector<std::string>();
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .tags = std::vector<std::string>()
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.tags.push_back("abc");
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .tags = { "abc" }
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.tags.push_back("abc");
-        window.tags.push_back("def");
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .tags = { "abc", "def" }
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/BufferBitDepth", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth8;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth8
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16Float;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16Float
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth32Float;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth32Float
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16Int;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16Int
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth32Int;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth32Int
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16UInt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth16UInt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth32UInt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .bufferBitDepth = sgct::config::Window::ColorBitDepth::Depth32UInt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/IsFullScreen", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isFullScreen = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isFullScreen = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isFullScreen = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isFullScreen = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isFullScreen = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isFullScreen = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/ShouldAutoIconify", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.shouldAutoiconify = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .shouldAutoiconify = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.shouldAutoiconify = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .shouldAutoiconify = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.shouldAutoiconify = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .shouldAutoiconify = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/HideMouseCursor", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.hideMouseCursor = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .hideMouseCursor = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.hideMouseCursor = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .hideMouseCursor = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.hideMouseCursor = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .hideMouseCursor = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/IsFloating", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isFloating = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isFloating = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isFloating = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isFloating = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isFloating = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isFloating = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/AlwaysRender", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.alwaysRender = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .alwaysRender = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.alwaysRender = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .alwaysRender = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.alwaysRender = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .alwaysRender = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/IsHidden", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isHidden = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isHidden = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isHidden = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isHidden = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isHidden = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isHidden = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/DoubleBuffered", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.doubleBuffered = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .doubleBuffered = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.doubleBuffered = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .doubleBuffered = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.doubleBuffered = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .doubleBuffered = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/MSAA", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.msaa = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .msaa = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.msaa = 0;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .msaa = 0
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.msaa = 1;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .msaa = 1
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/UseFXAA", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.useFxaa = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .useFxaa = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.useFxaa = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .useFxaa = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.useFxaa = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .useFxaa = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/IsDecorated", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isDecorated = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isDecorated = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isDecorated = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isDecorated = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isDecorated = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isDecorated = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/IsResizable", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isResizable = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isResizable = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isResizable = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isResizable = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isResizable = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isResizable = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Draw2D", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.draw2D = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .draw2D = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.draw2D = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .draw2D = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.draw2D = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .draw2D = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Draw3D", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.draw3D = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .draw3D = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.draw3D = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .draw3D = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.draw3D = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .draw3D = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/IsMirrored", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isMirrored = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isMirrored = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isMirrored = false;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isMirrored = false
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.isMirrored = true;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .isMirrored = true
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/BlitWindowId", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.blitWindowId = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .blitWindowId = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.blitWindowId = 0;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .blitWindowId = 0
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.blitWindowId = 1;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .blitWindowId = 1
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Monitor", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.monitor = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .monitor = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.monitor = 0;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .monitor = 0
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.monitor = 1;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .monitor = 1
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Stereo", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::NoStereo;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::NoStereo
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::Active;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::Active
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::AnaglyphRedCyan;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::AnaglyphRedCyan
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::AnaglyphAmberBlue;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::AnaglyphAmberBlue
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::Checkerboard;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::Checkerboard
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::CheckerboardInverted;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::CheckerboardInverted
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::VerticalInterlaced;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::VerticalInterlaced
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::VerticalInterlacedInverted;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::VerticalInterlacedInverted
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::Dummy;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::Dummy
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::SideBySide;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::SideBySide
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::SideBySideInverted;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::SideBySideInverted
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::TopBottom;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::TopBottom
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.stereo = sgct::config::Window::StereoMode::TopBottomInverted;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .stereo = sgct::config::Window::StereoMode::TopBottomInverted
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Pos", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.pos = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .pos = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.pos = sgct::ivec2(1, 2);
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .pos = sgct::ivec2(1, 2)
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.pos = sgct::ivec2(3, 4);
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .pos = sgct::ivec2(3, 4)
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Size", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.size = sgct::ivec2(1, 2);
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .size = sgct::ivec2(1, 2)
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.size = sgct::ivec2(3, 4);
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .size = sgct::ivec2(3, 4)
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Window/Resolution", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.resolution = std::nullopt;
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .resolution = std::nullopt
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.resolution = sgct::ivec2(1, 2);
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .resolution = sgct::ivec2(1, 2)
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.resolution = sgct::ivec2(3, 4);
-        node.windows.push_back(window);
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        node.windows.push_back({
+            .resolution = sgct::ivec2(3, 4)
+        });
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
     window.viewports.push_back(sgct::config::Viewport());
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("Viewport/User", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.user = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .user = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.user = "abc";
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .user = "abc"
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.user = "def";
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .user = "def"
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/OverlayTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.overlayTexture = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .overlayTexture = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.overlayTexture = std::filesystem::absolute("abc").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .overlayTexture = std::filesystem::absolute("abc").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.overlayTexture = std::filesystem::absolute("def").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .overlayTexture = std::filesystem::absolute("def").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/BlendMaskTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.blendMaskTexture = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .blendMaskTexture = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.blendMaskTexture = std::filesystem::absolute("abc").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .blendMaskTexture = std::filesystem::absolute("abc").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.blendMaskTexture = std::filesystem::absolute("def").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .blendMaskTexture = std::filesystem::absolute("def").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/BlackLevelMaskTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.blackLevelMaskTexture = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .blackLevelMaskTexture = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.blackLevelMaskTexture = std::filesystem::absolute("abc").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .blackLevelMaskTexture = std::filesystem::absolute("abc").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.blackLevelMaskTexture = std::filesystem::absolute("def").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .blackLevelMaskTexture = std::filesystem::absolute("def").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/CorrectionMeshTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.correctionMeshTexture = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .correctionMeshTexture = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.correctionMeshTexture = std::filesystem::absolute("abc").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .correctionMeshTexture = std::filesystem::absolute("abc").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.correctionMeshTexture = std::filesystem::absolute("def").string();
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .correctionMeshTexture = std::filesystem::absolute("def").string()
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/IsTracked", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.isTracked = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .isTracked = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.isTracked = false;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .isTracked = false
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.isTracked = true;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .isTracked = true
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/Eye", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.eye = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .eye = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.eye = sgct::config::Viewport::Eye::Mono;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .eye = sgct::config::Viewport::Eye::Mono
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.eye = sgct::config::Viewport::Eye::StereoLeft;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .eye = sgct::config::Viewport::Eye::StereoLeft
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.eye = sgct::config::Viewport::Eye::StereoRight;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .eye = sgct::config::Viewport::Eye::StereoRight
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/Position", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.position = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .position = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.position = sgct::vec2(1.f, 2.f);
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .position = sgct::vec2(1.f, 2.f)
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.position = sgct::vec2(3.f, 4.f);
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .position = sgct::vec2(3.f, 4.f)
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Viewport/Size", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.size = std::nullopt;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .size = std::nullopt
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.size = sgct::vec2(1.f, 2.f);
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .size = sgct::vec2(1.f, 2.f)
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        viewport.size = sgct::vec2(3.f, 4.f);
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .size = sgct::vec2(3.f, 4.f)
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("NoProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::NoProjection projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::NoProjection()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("CylindricalProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::CylindricalProjection projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::CylindricalProjection()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("CylindricalProjection/Quality", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.quality = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .quality = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.quality = 256;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection{
+                .quality = 256
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.quality = 512;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection{
+                .quality = 512
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("CylindricalProjection/Rotation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.rotation = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection{
+                .rotation = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.rotation = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .rotation = 1.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.rotation = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .rotation = 2.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("CylindricalProjection/HeightOffset", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.heightOffset = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .heightOffset = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.heightOffset = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .heightOffset = 1.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.heightOffset = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .heightOffset = 2.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("CylindricalProjection/Radi", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.radius = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .radius = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.radius = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .radius = 1.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::CylindricalProjection projection;
-        projection.radius = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::CylindricalProjection {
+                .radius = 2.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("EquirectangularProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::EquirectangularProjection projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::EquirectangularProjection()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("EquirectangularProjection/Quality", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::EquirectangularProjection projection;
-        projection.quality = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::EquirectangularProjection {
+                .quality = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::EquirectangularProjection projection;
-        projection.quality = 256;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::EquirectangularProjection {
+                .quality = 256
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::EquirectangularProjection projection;
-        projection.quality = 512;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::EquirectangularProjection {
+                .quality = 512
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::FisheyeProjection projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::FisheyeProjection()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("FisheyeProjection/FOV", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.fov = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .fov = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.fov = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .fov = 1.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.fov = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .fov = 2.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Quality", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.quality = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .quality = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.quality = 256;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .quality = 256
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.quality = 512;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .quality = 512
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Interpolation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.interpolation = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .interpolation = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.interpolation = sgct::config::FisheyeProjection::Interpolation::Linear;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .interpolation = sgct::config::FisheyeProjection::Interpolation::Linear
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.interpolation = sgct::config::FisheyeProjection::Interpolation::Cubic;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .interpolation = sgct::config::FisheyeProjection::Interpolation::Cubic
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Tilt", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.tilt = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .tilt = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.tilt = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .tilt = 1.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.tilt = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .tilt = 2.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Diameter", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.diameter = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .diameter = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.diameter = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .diameter = 1.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.diameter = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .diameter = 2.f
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Crop", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.crop = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .crop = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.crop = sgct::config::FisheyeProjection::Crop{ 1.f, 2.f, 3.f, 4.f };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .crop = sgct::config::FisheyeProjection::Crop{ 1.f, 2.f, 3.f, 4.f }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.crop = sgct::config::FisheyeProjection::Crop{ 5.f, 6.f, 7.f, 8.f };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .crop = sgct::config::FisheyeProjection::Crop{ 5.f, 6.f, 7.f, 8.f }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/KeepAspectRatio", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.keepAspectRatio = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .keepAspectRatio = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.keepAspectRatio = false;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .keepAspectRatio = false
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.keepAspectRatio = true;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .keepAspectRatio = true
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Offset", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.offset = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .offset = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.offset = sgct::vec3(1.f, 2.f, 3.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .offset = sgct::vec3(1.f, 2.f, 3.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.offset = sgct::vec3(4.f, 5.f, 6.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .offset = sgct::vec3(4.f, 5.f, 6.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("FisheyeProjection/Background", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.background = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .background = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.background = sgct::vec4(1.f, 2.f, 3.f, 4.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .background = sgct::vec4(1.f, 2.f, 3.f, 4.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::FisheyeProjection projection;
-        projection.background = sgct::vec4(5.f, 6.f, 7.f, 8.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::FisheyeProjection {
+                .background = sgct::vec4(5.f, 6.f, 7.f, 8.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("PlanarProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
+    sgct::config::Cluster input = {
+        .success = true
+    };
 
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
 
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::PlanarProjection projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::PlanarProjection()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("PlanarProjection/FOV", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::PlanarProjection projection;
-    projection.fov = sgct::config::PlanarProjection::FOV{ 1.f, 2.f, 3.f, 4.f };
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::PlanarProjection {
+            .fov = sgct::config::PlanarProjection::FOV { 1.f, 2.f, 3.f, 4.f }
+        }
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("PlanarProjection/Orientation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::PlanarProjection projection;
-        projection.orientation = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::PlanarProjection {
+                .orientation = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::PlanarProjection projection;
-        projection.orientation = sgct::quat(1.f, 2.f, 3.f, 4.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::PlanarProjection {
+                .orientation = sgct::quat(1.f, 2.f, 3.f, 4.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::PlanarProjection projection;
-        projection.orientation = sgct::quat(5.f, 6.f, 7.f, 8.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::PlanarProjection {
+                .orientation = sgct::quat(5.f, 6.f, 7.f, 8.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("PlanarProjection/Offset", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::PlanarProjection projection;
-        projection.offset = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::PlanarProjection {
+                .offset = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::PlanarProjection projection;
-        projection.offset = sgct::vec3(1.f, 2.f, 3.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::PlanarProjection {
+                .offset = sgct::vec3(1.f, 2.f, 3.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::PlanarProjection projection;
-        projection.offset = sgct::vec3(4.f, 5.f, 6.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::PlanarProjection {
+                .offset = sgct::vec3(4.f, 5.f, 6.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("ProjectionPlane", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::ProjectionPlane projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::ProjectionPlane()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("ProjectionPlane/LowerLeft", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::ProjectionPlane projection;
-    projection.lowerLeft = sgct::vec3(1.f, 2.f, 3.f);
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::ProjectionPlane {
+            .lowerLeft = sgct::vec3(1.f, 2.f, 3.f)
+        }
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("ProjectionPlane/UpperLeft", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::ProjectionPlane projection;
-    projection.upperLeft = sgct::vec3(1.f, 2.f, 3.f);
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::ProjectionPlane {
+            .upperLeft = sgct::vec3(1.f, 2.f, 3.f)
+        }
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("ProjectionPlane/UpperRight", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::ProjectionPlane projection;
-    projection.upperRight = sgct::vec3(1.f, 2.f, 3.f);
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::ProjectionPlane {
+            .upperRight = sgct::vec3(1.f, 2.f, 3.f)
+        }
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("SphericalMirrorProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::SphericalMirrorProjection projection;
-    projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::SphericalMirrorProjection {
+            .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+        }
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("SphericalMirrorProjection/Quality", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.quality = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .quality = std::nullopt,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.quality = 256;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .quality = 256,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.quality = 512;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .quality = 512,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SphericalMirrorProjection/Tilt", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.tilt = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .tilt = std::nullopt,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.tilt = 1.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .tilt = 1.f,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.tilt = 2.f;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .tilt = 2.f,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SphericalMirrorProjection/Background", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.background = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .background = std::nullopt,
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.background = sgct::vec4(1.f, 2.f, 3.f, 4.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .background = sgct::vec4(1.f, 2.f, 3.f, 4.f),
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SphericalMirrorProjection projection;
-        projection.mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" };
-        projection.background = sgct::vec4(5.f, 6.f, 7.f, 8.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SphericalMirrorProjection {
+                .background = sgct::vec4(5.f, 6.f, 7.f, 8.f),
+                .mesh = { .bottom = "abc", .left = "def", .right = "ghi", .top = "jkl" }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SpoutOutputProjection", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::SpoutOutputProjection projection;
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::SpoutOutputProjection()
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("SpoutOutputProjection/Quality", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.quality = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .quality = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.quality = 256;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .quality = 256
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.quality = 512;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .quality = 512
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SpoutOutputProjection/Mapping", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.mapping = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .mapping = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.mapping = sgct::config::SpoutOutputProjection::Mapping::Fisheye;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .mapping = sgct::config::SpoutOutputProjection::Mapping::Fisheye
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.mapping =
-            sgct::config::SpoutOutputProjection::Mapping::Equirectangular;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .mapping = sgct::config::SpoutOutputProjection::Mapping::Equirectangular
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SpoutOutputProjection/MappingSpoutName", "[roundtrip]") {
-    sgct::config::Cluster input;
-    input.success = true;
-
-    sgct::config::Node node;
-    node.address = "abc";
-    node.port = 1;
-
+    sgct::config::Cluster input = {
+        .success = true
+    };
+    sgct::config::Node node = {
+        .address = "abc",
+        .port = 1
+    };
     sgct::config::Window window;
-
-    sgct::config::Viewport viewport;
-    sgct::config::SpoutOutputProjection projection;
-    projection.mappingSpoutName = "abc";
-    viewport.projection = projection;
-    window.viewports.push_back(viewport);
+    window.viewports.push_back({
+        .projection = sgct::config::SpoutOutputProjection {
+            .mappingSpoutName = "abc"
+        }
+    });
     node.windows.push_back(window);
     input.nodes.push_back(node);
 
-    std::string str = sgct::serializeConfig(input);
-    sgct::config::Cluster output = sgct::readJsonConfig(str);
+    const std::string str = sgct::serializeConfig(input);
+    const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
 }
 
 TEST_CASE("SpoutOutputProjection/Background", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.background = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .background = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.background = sgct::vec4(1.f, 2.f, 3.f, 4.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .background = sgct::vec4(1.f, 2.f, 3.f, 4.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.background = sgct::vec4(5.f, 6.f, 7.f, 8.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .background = sgct::vec4(5.f, 6.f, 7.f, 8.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = false,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = false,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = false,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = false,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = false,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = false,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = false,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = false,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = false,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = false,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = false
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = false
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.channels = {
-            .right = true,
-            .zLeft = true,
-            .bottom = true,
-            .top = true,
-            .left = true,
-            .zRight = true
+        sgct::config::Cluster input = {
+            .success = true
         };
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
+        sgct::config::Window window;
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .channels = sgct::config::SpoutOutputProjection::Channels {
+                    .right = true,
+                    .zLeft = true,
+                    .bottom = true,
+                    .top = true,
+                    .left = true,
+                    .zRight = true
+                }
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("SpoutOutputProjection/Orientation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.orientation = std::nullopt;
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .orientation = std::nullopt
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.orientation = sgct::vec3(1.f, 2.f, 3.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .orientation = sgct::vec3(1.f, 2.f, 3.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        sgct::config::Node node = {
+            .address = "abc",
+            .port = 1
+        };
         sgct::config::Window window;
-
-        sgct::config::Viewport viewport;
-        sgct::config::SpoutOutputProjection projection;
-        projection.orientation = sgct::vec3(4.f, 5.f, 6.f);
-        viewport.projection = projection;
-        window.viewports.push_back(viewport);
+        window.viewports.push_back({
+            .projection = sgct::config::SpoutOutputProjection {
+                .orientation = sgct::vec3(4.f, 5.f, 6.f)
+            }
+        });
         node.windows.push_back(window);
         input.nodes.push_back(node);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("User", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.emplace_back();
 
-        input.users.push_back(sgct::config::User());
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.emplace_back();
+        input.users.emplace_back();
 
-        input.users.push_back(sgct::config::User());
-        input.users.push_back(sgct::config::User());
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.emplace_back();
+        input.users.emplace_back();
+        input.users.emplace_back();
 
-        input.users.push_back(sgct::config::User());
-        input.users.push_back(sgct::config::User());
-        input.users.push_back(sgct::config::User());
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("User/Name", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .name = std::nullopt
+        });
 
-        sgct::config::User user;
-        user.name = std::nullopt;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .name = "abc"
+        });
 
-        sgct::config::User user;
-        user.name = "abc";
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .name = "def"
+        });
 
-        sgct::config::User user;
-        user.name = "def";
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("User/EyeSeparation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .eyeSeparation = std::nullopt
+        });
 
-        sgct::config::User user;
-        user.eyeSeparation = std::nullopt;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .eyeSeparation = 1.f
+        });
 
-        sgct::config::User user;
-        user.eyeSeparation = 1.f;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .eyeSeparation = 2.f
+        });
 
-        sgct::config::User user;
-        user.eyeSeparation = 2.f;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("User/Position", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .position = std::nullopt
+        });
 
-        sgct::config::User user;
-        user.position = std::nullopt;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .position = sgct::vec3(1.f, 2.f, 3.f)
+        });
 
-        sgct::config::User user;
-        user.position = sgct::vec3(1.f, 2.f, 3.f);
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .position = sgct::vec3(4.f, 5.f, 6.f)
+        });
 
-        sgct::config::User user;
-        user.position = sgct::vec3(4.f, 5.f, 6.f);
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("User/Transformation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .transformation = std::nullopt
+        });
 
-        sgct::config::User user;
-        user.transformation = std::nullopt;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::User user;
         user.transformation = sgct::mat4();
         user.transformation->values[0] = 1.f;
@@ -6672,15 +6506,15 @@ TEST_CASE("User/Transformation", "[roundtrip]") {
         user.transformation->values[15] = 16.f;
         input.users.push_back(user);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::User user;
         user.transformation = sgct::mat4();
         user.transformation->values[0] = 17.f;
@@ -6701,380 +6535,390 @@ TEST_CASE("User/Transformation", "[roundtrip]") {
         user.transformation->values[15] = 32.f;
         input.users.push_back(user);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("User/Tracking", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .tracking = std::nullopt
+        });
 
-        sgct::config::User user;
-        user.tracking = std::nullopt;
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .tracking = sgct::config::User::Tracking { .tracker = "abc", .device = "def" }
+        });
 
-        sgct::config::User user;
-        user.tracking = { .tracker = "abc", .device = "def" };
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.users.push_back({
+            .tracking = sgct::config::User::Tracking {.tracker = "ghi", .device = "jkl" }
+        });
 
-        sgct::config::User user;
-        user.tracking = { .tracker = "ghi", .device = "jkl" };
-        input.users.push_back(user);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Capture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = std::nullopt
+        };
 
-        input.capture = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture()
+        };
 
-        input.capture = sgct::config::Capture();
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Capture/Path", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .path = std::nullopt
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->path = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .path = "abc"
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->path = "abc";
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .path = "def"
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->path = "def";
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Capture/Format", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .format = std::nullopt
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->format = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .format = sgct::config::Capture::Format::PNG
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->format = sgct::config::Capture::Format::PNG;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .format = sgct::config::Capture::Format::JPG
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->format = sgct::config::Capture::Format::JPG;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .format = sgct::config::Capture::Format::TGA
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->format = sgct::config::Capture::Format::TGA;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Capture/ScreenShotRange", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .range = std::nullopt
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->range = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .range = sgct::config::Capture::ScreenShotRange { 1, 2 }
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->range = { 1, 2 };
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .capture = sgct::config::Capture {
+                .range = sgct::config::Capture::ScreenShotRange { 3, 4 }
+            }
+        };
 
-        input.capture = sgct::config::Capture();
-        input.capture->range = { 3, 4 };
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.emplace_back();
 
-        input.trackers.push_back(sgct::config::Tracker());
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.emplace_back();
+        input.trackers.emplace_back();
 
-        input.trackers.push_back(sgct::config::Tracker());
-        input.trackers.push_back(sgct::config::Tracker());
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.emplace_back();
+        input.trackers.emplace_back();
+        input.trackers.emplace_back();
 
-        input.trackers.push_back(sgct::config::Tracker());
-        input.trackers.push_back(sgct::config::Tracker());
-        input.trackers.push_back(sgct::config::Tracker());
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Name", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.push_back({
+            .name = "abc"
+        });
 
-        sgct::config::Tracker tracker;
-        tracker.name = "abc";
-        input.trackers.push_back(tracker);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.push_back({
+            .name = "def"
+        });
 
-        sgct::config::Tracker tracker;
-        tracker.name = "def";
-        input.trackers.push_back(tracker);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        tracker.devices.push_back(sgct::config::Device());
+        tracker.devices.emplace_back();
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        tracker.devices.push_back(sgct::config::Device());
-        tracker.devices.push_back(sgct::config::Device());
+        tracker.devices.emplace_back();
+        tracker.devices.emplace_back();
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        tracker.devices.push_back(sgct::config::Device());
-        tracker.devices.push_back(sgct::config::Device());
-        tracker.devices.push_back(sgct::config::Device());
+        tracker.devices.emplace_back();
+        tracker.devices.emplace_back();
+        tracker.devices.emplace_back();
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device/Name", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        sgct::config::Device device;
-        device.name = "abc";
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({
+            .name = "abc"
+        });
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        sgct::config::Device device;
-        device.name = "def";
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({
+            .name = "def"
+        });
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device/Sensors", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.sensors.push_back({ "abc", 1 });
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({});
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.sensors.push_back({ "def", 2 });
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.sensors.push_back({ "abc", 1 });
@@ -7082,47 +6926,47 @@ TEST_CASE("Tracker/Device/Sensors", "[roundtrip]") {
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device/Buttons", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.buttons.push_back({ "abc", 1 });
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.buttons.push_back({ "def", 2 });
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.buttons.push_back({ "abc", 1 });
@@ -7130,47 +6974,47 @@ TEST_CASE("Tracker/Device/Buttons", "[roundtrip]") {
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device/Axes", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.axes.push_back({ "abc", 1 });
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.axes.push_back({ "def", 2 });
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.axes.push_back({ "abc", 1 });
@@ -7178,79 +7022,80 @@ TEST_CASE("Tracker/Device/Axes", "[roundtrip]") {
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device/Offset", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        sgct::config::Device device;
-        device.offset = std::nullopt;
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({
+            .offset = std::nullopt
+        });
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        sgct::config::Device device;
-        device.offset = { 1.f, 2.f, 3.f };
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({
+            .offset = sgct::vec3 { 1.f, 2.f, 3.f }
+        });
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
 
         sgct::config::Tracker tracker;
-        sgct::config::Device device;
-        device.offset = { 4.f, 5.f, 6.f };
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({
+            .offset = sgct::vec3 { 4.f, 5.f, 6.f }
+        });
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Device/Transformation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
-        sgct::config::Device device;
-        device.offset = std::nullopt;
-        tracker.devices.push_back(device);
+        tracker.devices.push_back({
+            .offset = std::nullopt
+        });
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.transformation = sgct::mat4();
@@ -7273,15 +7118,15 @@ TEST_CASE("Tracker/Device/Transformation", "[roundtrip]") {
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         sgct::config::Device device;
         device.transformation = sgct::mat4();
@@ -7304,71 +7149,71 @@ TEST_CASE("Tracker/Device/Transformation", "[roundtrip]") {
         tracker.devices.push_back(device);
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Offset", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.push_back({
+            .offset = std::nullopt
+        });
 
-        sgct::config::Tracker tracker;
-        tracker.offset = std::nullopt;
-        input.trackers.push_back(tracker);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.push_back({
+            .offset = sgct::vec3 { 1.f, 2.f, 3.f }
+        });
 
-        sgct::config::Tracker tracker;
-        tracker.offset = { 1.f, 2.f, 3.f };
-        input.trackers.push_back(tracker);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.push_back({
+            .offset = sgct::vec3 { 4.f, 5.f, 6.f }
+        });
 
-        sgct::config::Tracker tracker;
-        tracker.offset = { 4.f, 5.f, 6.f };
-        input.trackers.push_back(tracker);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Tracker/Transformation", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true
+        };
+        input.trackers.push_back({
+            .transformation = std::nullopt
+        });
 
-        sgct::config::Tracker tracker;
-        tracker.transformation = std::nullopt;
-        input.trackers.push_back(tracker);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         tracker.transformation = sgct::mat4();
         tracker.transformation->values[0] = 1.f;
@@ -7389,15 +7234,15 @@ TEST_CASE("Tracker/Transformation", "[roundtrip]") {
         tracker.transformation->values[15] = 16.f;
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
-
+        sgct::config::Cluster input = {
+            .success = true
+        };
         sgct::config::Tracker tracker;
         tracker.transformation = sgct::mat4();
         tracker.transformation->values[0] = 17.f;
@@ -7418,305 +7263,333 @@ TEST_CASE("Tracker/Transformation", "[roundtrip]") {
         tracker.transformation->values[15] = 32.f;
         input.trackers.push_back(tracker);
 
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Settings", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = std::nullopt
+        };
 
-        input.settings = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings()
+        };
 
-        input.settings = sgct::config::Settings();
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Settings/UseDepthTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .useDepthTexture = std::nullopt
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->useDepthTexture = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .useDepthTexture = false
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->useDepthTexture = false;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .useDepthTexture = true
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->useDepthTexture = true;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Settings/UseNormalTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .useNormalTexture = std::nullopt
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->useNormalTexture = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .useNormalTexture = false
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->useNormalTexture = false;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .useNormalTexture = true
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->useNormalTexture = true;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Settings/UsePositionTexture", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .usePositionTexture = std::nullopt
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->usePositionTexture = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .usePositionTexture = false
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->usePositionTexture = false;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .usePositionTexture = true
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->usePositionTexture = true;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Settings/BufferFloatPrecision", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .bufferFloatPrecision = std::nullopt
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->bufferFloatPrecision = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .bufferFloatPrecision =
+                    sgct::config::Settings::BufferFloatPrecision::Float16Bit
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->bufferFloatPrecision =
-            sgct::config::Settings::BufferFloatPrecision::Float16Bit;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .bufferFloatPrecision =
+                    sgct::config::Settings::BufferFloatPrecision::Float32Bit
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->bufferFloatPrecision =
-            sgct::config::Settings::BufferFloatPrecision::Float32Bit;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }
 
 TEST_CASE("Settings/Display", "[roundtrip]") {
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = std::nullopt
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display()
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .swapInterval = std::nullopt
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->swapInterval = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .swapInterval = 1
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->swapInterval = 1;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .swapInterval = 2
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->swapInterval = 2;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .refreshRate = std::nullopt
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->refreshRate = std::nullopt;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .refreshRate = 1
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->refreshRate = 1;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .refreshRate = 2
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->refreshRate = 2;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 
 
     {
-        sgct::config::Cluster input;
-        input.success = true;
+        sgct::config::Cluster input = {
+            .success = true,
+            .settings = sgct::config::Settings {
+                .display = sgct::config::Settings::Display {
+                    .swapInterval = 1,
+                    .refreshRate = 2
+                }
+            }
+        };
 
-        input.settings = sgct::config::Settings();
-        input.settings->display = sgct::config::Settings::Display();
-        input.settings->display->swapInterval = 1;
-        input.settings->display->refreshRate = 2;
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        const std::string str = sgct::serializeConfig(input);
+        const sgct::config::Cluster output = sgct::readJsonConfig(str);
         REQUIRE(input == output);
     }
 }

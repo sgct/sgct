@@ -142,7 +142,7 @@ private:
     ClusterManager& operator=(const ClusterManager&) = delete;
     ClusterManager& operator=(ClusterManager&&) = delete;
 
-    ~ClusterManager();
+    ~ClusterManager() = default;
 
     static ClusterManager* _instance;
 

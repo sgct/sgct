@@ -41,9 +41,9 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
             const float theta = glm::two_pi<float>() *
                 (static_cast<float>(i) / static_cast<float>(_resolution));
 
-            verts[pos] = radius * sin(elevationAngle) * cos(theta);
-            verts[pos + 1] = radius * cos(elevationAngle);
-            verts[pos + 2] = radius * sin(elevationAngle) * sin(theta);
+            verts[pos] = radius * std::sin(elevationAngle) * std::cos(theta);
+            verts[pos + 1] = radius * std::cos(elevationAngle);
+            verts[pos + 2] = radius * std::sin(elevationAngle) * std::sin(theta);
             pos += 3;
         }
     }
@@ -57,9 +57,9 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
             const float elevationAngle = glm::radians<float>(FOV / 2.f) *
                 (static_cast<float>(i) / static_cast<float>(_resolution / 4));
 
-            verts[pos] = radius * sin(elevationAngle) * cos(theta);
-            verts[pos + 1] = radius * cos(elevationAngle);
-            verts[pos + 2] = radius * sin(elevationAngle) * sin(theta);
+            verts[pos] = radius * std::sin(elevationAngle) * std::cos(theta);
+            verts[pos + 1] = radius * std::cos(elevationAngle);
+            verts[pos + 2] = radius * std::sin(elevationAngle) * std::sin(theta);
             pos += 3;
         }
     }
@@ -83,7 +83,7 @@ DomeGrid::~DomeGrid() {
     glDeleteBuffers(1, &_vbo);
 }
 
-void DomeGrid::draw() {
+void DomeGrid::draw() const {
     glBindVertexArray(_vao);
 
     for (int r = 0; r < _rings; r++) {

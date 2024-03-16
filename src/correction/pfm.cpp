@@ -79,7 +79,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     for (int i = 0; i < numCorrectionValues; i++) {
         meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
         meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
-        float dumpValue;
+        float dumpValue = 0.f;
         meshFile.read(reinterpret_cast<char*>(&dumpValue), sizeof(float));
 
         if (!meshFile.good()) {
@@ -90,7 +90,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         }
     }
 
-    unsigned int nEyes = textureRenderMode ? 1 : 2;
+    const unsigned int nEyes = textureRenderMode ? 1 : 2;
     nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
@@ -117,8 +117,8 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
                 // @TODO (abock, 2020-01-10) Not sure about this one; it will always be
                 // true for the loop but it looks like a fork for the e==0 and e==1 paths
-                float x = xcorrections[i + (e * nCols)];
-                float y = ycorrections[i + (e * nCols)];
+                const float x = xcorrections[i + (e * nCols)];
+                const float y = ycorrections[i + (e * nCols)];
 
                 // convert to [-1, 1]
                 if (textureRenderMode) {

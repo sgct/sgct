@@ -54,7 +54,7 @@ void SharedData::decode(const char* receivedData, int receivedLength) {
     ZoneScoped;
 
     {
-        std::unique_lock lk(mutex::DataSync);
+        const std::unique_lock lk(mutex::DataSync);
 
         // reset
         _dataBlock.clear();

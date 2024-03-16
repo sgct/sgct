@@ -559,6 +559,7 @@ void Engine::initialize() {
                 win,
                 [](GLFWwindow*, int count, const char** paths) {
                     std::vector<std::string_view> p;
+                    p.reserve(count);
                     for (int i = 0; i < count; i++) {
                         p.emplace_back(paths[i]);
                     }
@@ -789,7 +790,7 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
     assert(majorVersion > 0);
     assert(minorVersion > 0);
 
-    int ver[3];
+    std::array<int, 3> ver;
     glfwGetVersion(&ver[0], &ver[1], &ver[2]);
     Log::Info(fmt::format("Using GLFW version {}.{}.{}", ver[0], ver[1], ver[2]));
 
@@ -946,8 +947,8 @@ void Engine::exec() {
 
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
-    while (!(_shouldTerminate || thisNode.closeAllWindows() ||
-           !NetworkManager::instance().isRunning()))
+    while (!_shouldTerminate && !thisNode.closeAllWindows() &&
+           NetworkManager::instance().isRunning())
     {
 #ifdef SGCT_HAS_VRPN
         if (isMaster()) {

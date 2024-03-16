@@ -75,7 +75,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     }
 
     // read file version
-    uint8_t fileVersion;
+    uint8_t fileVersion = 0;
     file.read(reinterpret_cast<char*>(&fileVersion), sizeof(uint8_t));
     if (!file.good()) {
         throw Error(2072, fmt::format("Error parsing file version from file '{}'", path));
@@ -84,7 +84,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     Log::Debug(fmt::format("SCISS file version '{}'", fileVersion));
 
     // read mapping type
-    unsigned int type;
+    unsigned int type = 0;
     file.read(reinterpret_cast<char*>(&type), sizeof(unsigned int));
     if (!file.good()) {
         throw Error(2073, fmt::format("Error parsing type from file '{}'", path));
@@ -108,10 +108,10 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
 
     // Switching the Euler angles to switch from a right-handed coordinate system to
     // a left-handed one
-    glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
-    double yaw = -angles.x;
-    double pitch = angles.y;
-    double roll = -angles.z;
+    const glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
+    const double yaw = -angles.x;
+    const double pitch = angles.y;
+    const double roll = -angles.z;
 
     Log::Debug(fmt::format(
         "Rotation quat = [{} {} {} {}]. yaw = {}, pitch = {}, roll = {}",

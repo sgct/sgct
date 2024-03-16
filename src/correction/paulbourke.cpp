@@ -69,7 +69,11 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     }
 
     // get all data
-    float x, y, s, t, intensity;
+    float x = 0.f;
+    float y = 0.f;
+    float s = 0.f;
+    float t = 0.f;
+    float intensity = 0.f;
     while (std::getline(meshFile, line)) {
         auto r = scn::scan_default(line, x, y, s, t, intensity);
         if (r) {

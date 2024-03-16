@@ -6312,7 +6312,7 @@ TEST_CASE("User", "[roundtrip]") {
         sgct::config::Cluster input = {
             .success = true
         };
-        input.users.emplace_back(sgct::config::User());
+        input.users.emplace_back();
 
         const std::string str = sgct::serializeConfig(input);
         const sgct::config::Cluster output = sgct::readJsonConfig(str);
@@ -6323,8 +6323,8 @@ TEST_CASE("User", "[roundtrip]") {
         sgct::config::Cluster input = {
             .success = true
         };
-        input.users.emplace_back(sgct::config::User());
-        input.users.emplace_back(sgct::config::User());
+        input.users.emplace_back();
+        input.users.emplace_back();
 
         const std::string str = sgct::serializeConfig(input);
         const sgct::config::Cluster output = sgct::readJsonConfig(str);
@@ -6335,9 +6335,9 @@ TEST_CASE("User", "[roundtrip]") {
         sgct::config::Cluster input = {
             .success = true
         };
-        input.users.emplace_back(sgct::config::User());
-        input.users.emplace_back(sgct::config::User());
-        input.users.emplace_back(sgct::config::User());
+        input.users.emplace_back();
+        input.users.emplace_back();
+        input.users.emplace_back();
 
         const std::string str = sgct::serializeConfig(input);
         const sgct::config::Cluster output = sgct::readJsonConfig(str);
@@ -6747,7 +6747,7 @@ TEST_CASE("Tracker", "[roundtrip]") {
         sgct::config::Cluster input = {
             .success = true
         };
-        input.trackers.emplace_back(sgct::config::Tracker());
+        input.trackers.emplace_back();
 
         const std::string str = sgct::serializeConfig(input);
         const sgct::config::Cluster output = sgct::readJsonConfig(str);
@@ -6758,8 +6758,8 @@ TEST_CASE("Tracker", "[roundtrip]") {
         sgct::config::Cluster input = {
             .success = true
         };
-        input.trackers.emplace_back(sgct::config::Tracker());
-        input.trackers.emplace_back(sgct::config::Tracker());
+        input.trackers.emplace_back();
+        input.trackers.emplace_back();
 
         const std::string str = sgct::serializeConfig(input);
         const sgct::config::Cluster output = sgct::readJsonConfig(str);
@@ -6770,9 +6770,9 @@ TEST_CASE("Tracker", "[roundtrip]") {
         sgct::config::Cluster input = {
             .success = true
         };
-        input.trackers.emplace_back(sgct::config::Tracker());
-        input.trackers.emplace_back(sgct::config::Tracker());
-        input.trackers.emplace_back(sgct::config::Tracker());
+        input.trackers.emplace_back();
+        input.trackers.emplace_back();
+        input.trackers.emplace_back();
 
         const std::string str = sgct::serializeConfig(input);
         const sgct::config::Cluster output = sgct::readJsonConfig(str);
@@ -6814,7 +6814,7 @@ TEST_CASE("Tracker/Device", "[roundtrip]") {
             .success = true
         };
         sgct::config::Tracker tracker;
-        tracker.devices.emplace_back(sgct::config::Device());
+        tracker.devices.emplace_back();
         input.trackers.push_back(tracker);
 
         const std::string str = sgct::serializeConfig(input);
@@ -6827,8 +6827,8 @@ TEST_CASE("Tracker/Device", "[roundtrip]") {
             .success = true
         };
         sgct::config::Tracker tracker;
-        tracker.devices.emplace_back(sgct::config::Device());
-        tracker.devices.emplace_back(sgct::config::Device());
+        tracker.devices.emplace_back();
+        tracker.devices.emplace_back();
         input.trackers.push_back(tracker);
 
         const std::string str = sgct::serializeConfig(input);
@@ -6841,9 +6841,9 @@ TEST_CASE("Tracker/Device", "[roundtrip]") {
             .success = true
         };
         sgct::config::Tracker tracker;
-        tracker.devices.emplace_back(sgct::config::Device());
-        tracker.devices.emplace_back(sgct::config::Device());
-        tracker.devices.emplace_back(sgct::config::Device());
+        tracker.devices.emplace_back();
+        tracker.devices.emplace_back();
+        tracker.devices.emplace_back();
         input.trackers.push_back(tracker);
 
         const std::string str = sgct::serializeConfig(input);

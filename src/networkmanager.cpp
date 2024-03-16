@@ -155,15 +155,15 @@ NetworkManager::NetworkManager(NetworkMode nm,
         }
     }
     std::vector<std::string> dnsNames;
-    char addr_str[INET_ADDRSTRLEN];
+    std::array<char, INET_ADDRSTRLEN> addr;
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
         ZoneScopedN("inet_ntop");
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
-        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr.data(), INET_ADDRSTRLEN);
         if (p->ai_canonname) {
             dnsNames.emplace_back(p->ai_canonname);
         }
-        _localAddresses.emplace_back(addr_str);
+        _localAddresses.emplace_back(addr.begin(), addr.end());
     }
 
     freeaddrinfo(info);

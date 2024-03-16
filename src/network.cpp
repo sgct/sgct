@@ -357,12 +357,12 @@ void Network::pushClientMessage() {
     const int currentFrame = iterateFrameCounter();
     uint32_t localSyncHeaderSize = 0;
 
-    char data[HeaderSize];
+    std::array<char, HeaderSize> data;
     data[0] = Network::DataId;
-    std::memcpy(data + 1, &currentFrame, sizeof(currentFrame));
-    std::memcpy(data + 5, &localSyncHeaderSize, sizeof(localSyncHeaderSize));
-    std::memset(data + 9, DefaultId, 4);
-    sendData(data, HeaderSize);
+    std::memcpy(data.data() + 1, &currentFrame, sizeof(currentFrame));
+    std::memcpy(data.data() + 5, &localSyncHeaderSize, sizeof(localSyncHeaderSize));
+    std::memset(data.data() + 9, DefaultId, 4);
+    sendData(data.data(), HeaderSize);
 }
 
 int Network::sendFrameCurrent() const {
@@ -640,8 +640,8 @@ void Network::communicationHandler() {
     }
 
     // init buffers
-    char RecvHeader[HeaderSize];
-    std::memset(RecvHeader, DefaultId, HeaderSize);
+    std::array<char, HeaderSize> RecvHeader;
+    std::memset(RecvHeader.data(), DefaultId, HeaderSize);
 
     {
         const std::unique_lock lk(_connectionMutex);
@@ -668,7 +668,7 @@ void Network::communicationHandler() {
         if (type() == ConnectionType::SyncConnection) {
             int32_t syncFrameNumber = -1;
             iResult = readSyncMessage(
-                RecvHeader,
+                RecvHeader.data(),
                 syncFrameNumber,
                 dataSize,
                 uncompressedDataSize
@@ -676,7 +676,7 @@ void Network::communicationHandler() {
         }
         else if (type() == ConnectionType::DataTransfer) {
             iResult = readDataTransferMessage(
-                RecvHeader,
+                RecvHeader.data(),
                 packageId,
                 dataSize,
                 uncompressedDataSize
@@ -701,7 +701,7 @@ void Network::communicationHandler() {
 
         if (type() == ConnectionType::SyncConnection) {
             // handle sync disconnect
-            if (isDisconnectPackage(RecvHeader)) {
+            if (isDisconnectPackage(RecvHeader.data())) {
                 setConnectedStatus(false);
 
                 // Terminate client only. The server only resets the connection,
@@ -729,7 +729,7 @@ void Network::communicationHandler() {
         // handle data transfer communication
         else if (type() == ConnectionType::DataTransfer) {
             // Disconnect if requested
-            if (isDisconnectPackage(RecvHeader)) {
+            if (isDisconnectPackage(RecvHeader.data())) {
                 setConnectedStatus(false);
                 Log::Info(fmt::format("File connection {} terminated", _id));
             }
@@ -740,11 +740,11 @@ void Network::communicationHandler() {
 
                     // send acknowledge
                     uint32_t pLength = 0;
-                    char sendBuff[HeaderSize];
-                    sendBuff[0] = Ack;
-                    std::memcpy(sendBuff + 1, &packageId, sizeof(packageId));
-                    std::memcpy(sendBuff + 5, &pLength, sizeof(pLength));
-                    sendData(sendBuff, HeaderSize);
+                    std::array<char, HeaderSize> sendBuffer;
+                    sendBuffer[0] = Ack;
+                    std::memcpy(sendBuffer.data() + 1, &packageId, sizeof(packageId));
+                    std::memcpy(sendBuffer.data() + 5, &pLength, sizeof(pLength));
+                    sendData(sendBuffer.data(), HeaderSize);
 
                     {
                         // Clear the buffers
@@ -830,10 +830,10 @@ void Network::initShutdown() {
     ZoneScoped;
 
     if (_isConnected) {
-        constexpr const char GameOver[9] = {
+        constexpr std::array<char, 9> GameOver = {
             DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0', DefaultId
         };
-        sendData(GameOver, HeaderSize);
+        sendData(GameOver.data(), HeaderSize);
     }
 
     Log::Info(fmt::format("Closing connection {}", _id));

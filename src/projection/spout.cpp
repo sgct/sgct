@@ -128,8 +128,8 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         GLint saveFrameBuffer = 0;
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &saveFrameBuffer);
 
-        GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-        _spoutFBO->bind(false, 1, buffers); // bind no multi-sampled
+        std::array<GLenum, 1> buffers = { GL_COLOR_ATTACHMENT0 };
+        _spoutFBO->bind(false, 1, buffers.data()); // bind no multi-sampled
         _spoutFBO->attachColorTexture(_mappingTexture, GL_COLOR_ATTACHMENT0);
 
         _shader.bind();
@@ -199,7 +199,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         buffers[0] = saveBuffer;
         glBindTexture(GL_TEXTURE_2D, saveTexture);
         glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
-        glDrawBuffers(1, buffers);
+        glDrawBuffers(1, buffers.data());
     }
     else {
         GLint saveTexture = 0;
@@ -247,8 +247,8 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance().useDepthTexture()) {
-            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+            std::array<GLenum, 1> buffers = { GL_COLOR_ATTACHMENT0 };
+            _cubeMapFbo->bind(false, 1, buffers.data()); // bind no multi-sampled
 
             _cubeMapFbo->attachCubeMapTexture(
                 _textures.cubeMapColor,

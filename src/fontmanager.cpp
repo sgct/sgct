@@ -147,9 +147,9 @@ bool FontManager::addFont(std::string name, std::string file) {
 }
 
 Font* FontManager::font(const std::string& fontName, unsigned int height) {
-    if (_fontMap.count({ fontName, height }) == 0) {
+    if (!_fontMap.contains({ fontName, height })) {
         std::unique_ptr<Font> f = createFont(fontName, height);
-        if (f == nullptr) {
+        if (!f) {
             return nullptr;
         }
         _fontMap[{ fontName, height }] = std::move(f);

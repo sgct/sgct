@@ -790,9 +790,13 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
     assert(majorVersion > 0);
     assert(minorVersion > 0);
 
-    std::array<int, 3> ver;
-    glfwGetVersion(&ver[0], &ver[1], &ver[2]);
-    Log::Info(fmt::format("Using GLFW version {}.{}.{}", ver[0], ver[1], ver[2]));
+    {
+        int major = 0;
+        int minor = 0;
+        int release = 0;
+        glfwGetVersion(&major, &minor, &release);
+        Log::Info(fmt::format("Using GLFW version {}.{}.{}", major, minor, release));
+    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);

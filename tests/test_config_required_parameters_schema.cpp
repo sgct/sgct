@@ -24,7 +24,7 @@ namespace {
         return buffer.str();
     }
 
-    void attemptValidation(const std::string cfgString) {
+    void attemptValidation(const std::string& cfgString) {
         const std::string schemaString =
             stringify(std::string(BASE_PATH) + "/sgct.schema.json");
         const std::filesystem::path schemaDir =

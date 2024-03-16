@@ -270,7 +270,7 @@ void Font::setStrokeSize(int size) {
 }
 
 const Font::FontFaceData& Font::fontFaceData(char c) {
-    if (_fontFaceData.count(c) == 0) {
+    if (!_fontFaceData.contains(c)) {
         // check if c does not exist in map
         createCharacter(c);
     }

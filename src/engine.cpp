@@ -1134,7 +1134,7 @@ void Engine::exec() {
                 // the if statement above
                 shouldTakeScreenshot = (it != _shouldTakeScreenshotIds.end());
             }
-            window->swap(shouldTakeScreenshot);
+            window->swapBuffers(shouldTakeScreenshot);
         }
 
         TracyGpuCollect;

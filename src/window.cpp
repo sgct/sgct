@@ -421,7 +421,7 @@ void Window::setFramebufferResolution(ivec2 resolution) {
     }
 }
 
-void Window::swap(bool takeScreenshot) {
+void Window::swapBuffers(bool takeScreenshot) {
     if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
     }

@@ -120,7 +120,7 @@ public:
     /**
      * Swap previous data and current data. This is done at the end of the render loop.
      */
-    void swap(bool takeScreenshot);
+    void swapBuffers(bool takeScreenshot);
     void updateResolutions();
 
     void update();

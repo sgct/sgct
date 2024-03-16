@@ -16,12 +16,10 @@
 #include <sgct/opengl.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <sstream>
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <glm/gtc/type_ptr.hpp>
 #include <cstdarg>
+#include <sstream>
 
 namespace {
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {
@@ -50,12 +48,12 @@ namespace {
         // figure out width
         float lineWidth = 0.f;
         for (size_t j = 0; j < line.length() - 1; j++) {
-            char c = line.c_str()[j];
+            const char c = line.c_str()[j];
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
             lineWidth += ffd.distToNextChar;
         }
         // add last char width
-        char c = line.c_str()[line.length() - 1];
+        const char c = line.c_str()[line.length() - 1];
         const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
         lineWidth += ffd.size.x;
 

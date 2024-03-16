@@ -67,7 +67,7 @@ void Settings::applyCapture(const config::Capture& capture) {
         setCapturePath(*capture.path);
     }
     if (capture.format) {
-        CaptureFormat f = [](config::Capture::Format format) {
+        const CaptureFormat f = [](config::Capture::Format format) {
             switch (format) {
                 case config::Capture::Format::PNG: return CaptureFormat::PNG;
                 case config::Capture::Format::JPG: return CaptureFormat::JPG;

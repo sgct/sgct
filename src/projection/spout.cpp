@@ -585,7 +585,7 @@ void SpoutOutputProjection::initViewports() {
 
     // main
     {
-        float angleCorrection = _mappingType == Mapping::Fisheye ? 0.f : -90.f;
+        const float angleCorrection = _mappingType == Mapping::Fisheye ? 0.f : -90.f;
         _mainViewport.setPos(vec2{ 0.f, 0.f });
         _mainViewport.setSize(vec2{ 1.f, 1.f });
 

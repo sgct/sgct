@@ -91,7 +91,7 @@ void FontManager::destroy() {
 }
 
 FontManager::FontManager() {
-    FT_Error error = FT_Init_FreeType(&_library);
+    const FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
         Log::Error("Could not initiate Freetype library");
@@ -159,7 +159,7 @@ Font* FontManager::font(const std::string& fontName, unsigned int height) {
 }
 
 std::unique_ptr<Font> FontManager::createFont(const std::string& name, int height) {
-    std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
+    const auto it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
         Log::Error(fmt::format("No font file specified for font '{}'", name));
@@ -174,7 +174,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     }
 
     FT_Face face = nullptr;
-    FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
+    const FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
         Log::Error(fmt::format(

@@ -57,14 +57,14 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         if (line.empty()) {
             continue;
         }
+        else if (line.back() == '\r') {
+            line.pop_back();
+        }
 
         std::string_view v = line;
         size_t separator = v.find(' ');
         std::string_view first = v.substr(0, separator);
         std::string_view rest = v.substr(separator + 1);
-        if (!rest.empty() && rest.back() == '\r') {
-            rest.pop_back();
-        }
 
         if (first == "v") {
             size_t sep = rest.find(' ');

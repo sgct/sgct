@@ -61,10 +61,10 @@ namespace {
     }
 
     bool isDisconnectPackage(const char* header) {
-        constexpr const char rhs[] = {
+        constexpr std::array<const char, 8> rhs = {
             sgct::Network::DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0'
         };
-        return std::string_view(header, 8) == std::string_view(rhs, 8);
+        return std::string_view(header, 8) == std::string_view(rhs.data(), 8);
     }
 } // namespace
 
@@ -490,14 +490,16 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
     return static_cast<int>(iResult);
 }
 
-void Network::updateBuffer(std::vector<char>& buf, uint32_t reqSize, uint32_t& currSize) {
+void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
+                           uint32_t& currSize)
+{
     // only grow
     if (reqSize <= currSize) {
         return;
     }
 
     const std::unique_lock lock(_connectionMutex);
-    buf.resize(reqSize);
+    buffer.resize(reqSize);
     currSize = reqSize;
 }
 

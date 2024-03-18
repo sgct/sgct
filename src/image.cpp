@@ -128,19 +128,19 @@ void Image::load(unsigned char* data, int length) {
     }
 }
 
-void Image::save(const std::string& file) {
-    if (file.empty()) {
+void Image::save(const std::string& filename) {
+    if (filename.empty()) {
         throw Err(9002, "Filename not set for saving image");
     }
 
-    const FormatType type = getFormatType(file);
+    const FormatType type = getFormatType(filename);
     if (type == FormatType::Unknown) {
-        throw Err(9003, fmt::format("Cannot save file '{}'", file));
+        throw Err(9003, fmt::format("Cannot save file '{}'", filename));
     }
     if (type == FormatType::PNG) {
         // We use libPNG instead of stb as libPNG is faster and we care about how fast
         // PNGs are written to disk in production
-        savePNG(file);
+        savePNG(filename);
         return;
     }
 
@@ -153,7 +153,7 @@ void Image::save(const std::string& file) {
     stbi_flip_vertically_on_write(1);
     if (type == FormatType::JPEG) {
         const int r = stbi_write_jpg(
-            file.c_str(),
+            filename.c_str(),
             _size.x,
             _size.y,
             _nChannels,
@@ -161,14 +161,20 @@ void Image::save(const std::string& file) {
             100
         );
         if (r == 0) {
-            throw Err(9004, fmt::format("Could not save file '{}' as JPG", file));
+            throw Err(9004, fmt::format("Could not save file '{}' as JPG", filename));
         }
         return;
     }
     if (type == FormatType::TGA) {
-        const int r = stbi_write_tga(file.c_str(), _size.x, _size.y, _nChannels, _data);
+        const int r = stbi_write_tga(
+            filename.c_str(),
+            _size.x,
+            _size.y,
+            _nChannels,
+            _data
+        );
         if (r == 0) {
-            throw Err(9005, fmt::format("Could not save file '{}' as TGA", file));
+            throw Err(9005, fmt::format("Could not save file '{}' as TGA", filename));
 
         }
         return;

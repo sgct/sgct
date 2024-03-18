@@ -13,6 +13,11 @@
 #include <nlohmann/json.hpp>
 #include <filesystem>
 
+// clang-tidy is convinced that it is possible to use emplace_back instead of push_back
+// for the projection types, but I haven't been able to convince the Visual Studio
+// compiler to agree
+// NOLINTBEGIN(modernize-use-emplace)
+
 TEST_CASE("Default constructed", "[roundtrip]") {
     sgct::config::Cluster input = {
         .success = true
@@ -7593,3 +7598,5 @@ TEST_CASE("Settings/Display", "[roundtrip]") {
         REQUIRE(input == output);
     }
 }
+
+// NOLINTEND(modernize-use-emplace)

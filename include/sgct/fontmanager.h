@@ -133,11 +133,11 @@ private:
     /**
      * Creates font textures with a specific height if a path to the font exists.
      *
-     * \param fontName Name of the font
+     * \param name Name of the font
      * \param height Height of the font in pixels
      * \return Pointer to the newly created font, nullptr if something went wrong
      */
-    std::unique_ptr<Font> createFont(const std::string& fontName, int height);
+    std::unique_ptr<Font> createFont(const std::string& name, int height);
 
     static FontManager* _instance;
 

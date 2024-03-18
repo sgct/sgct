@@ -146,16 +146,16 @@ bool FontManager::addFont(std::string name, std::string file) {
     return inserted;
 }
 
-Font* FontManager::font(const std::string& fontName, unsigned int height) {
-    if (!_fontMap.contains({ fontName, height })) {
-        std::unique_ptr<Font> f = createFont(fontName, height);
+Font* FontManager::font(const std::string& name, unsigned int height) {
+    if (!_fontMap.contains({ name, height })) {
+        std::unique_ptr<Font> f = createFont(name, height);
         if (!f) {
             return nullptr;
         }
-        _fontMap[{ fontName, height }] = std::move(f);
+        _fontMap[{ name, height }] = std::move(f);
     }
 
-    return _fontMap[{ fontName, height }].get();
+    return _fontMap[{ name, height }].get();
 }
 
 std::unique_ptr<Font> FontManager::createFont(const std::string& name, int height) {

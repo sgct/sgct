@@ -23,7 +23,7 @@ class ProjectionPlane;
 class SGCT_EXPORT Projection {
 public:
     void calculateProjection(vec3 base, const ProjectionPlane& proj, float nearClip,
-        float farClip, vec3 viewOffset = vec3{ 0.f, 0.f, 0.f });
+        float farClip, vec3 offset = vec3{ 0.f, 0.f, 0.f });
 
     const mat4& viewProjectionMatrix() const;
     const mat4& viewMatrix() const;

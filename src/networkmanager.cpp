@@ -143,7 +143,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     addrinfo* info = nullptr;
     {
         ZoneScopedN("getaddrinfo");
-        //TODO: micah - why does getaddrinfo fail for 'macbookpro.local'
+        //TODO(micah) why does getaddrinfo fail for 'macbookpro.local'
 #ifdef __APPLE__
             const int result = getaddrinfo("localhost", "http", &hints, &info);
 #else

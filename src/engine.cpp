@@ -1287,15 +1287,16 @@ void Engine::renderFBOTexture(Window& window) {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::TextureIndex ti)
+void Engine::renderViewports(Window& window, Frustum::Mode frustum,
+                             Window::TextureIndex ti)
 {
     ZoneScoped;
 
-    prepareBuffer(win, ti);
+    prepareBuffer(window, ti);
 
-    const Window::StereoMode sm = win.stereoMode();
+    const Window::StereoMode sm = window.stereoMode();
     // render all viewports for selected eye
-    for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
         if (!vp->isEnabled()) {
             continue;
         }
@@ -1317,8 +1318,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                 );
             }
 
-            if (win.shouldCallDraw3DFunction()) {
-                vp->nonLinearProjection()->render(win, *vp, frustum);
+            if (window.shouldCallDraw3DFunction()) {
+                vp->nonLinearProjection()->render(window, *vp, frustum);
             }
         }
         else {
@@ -1328,29 +1329,29 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             }
 
             // check if we want to blit the previous window before we do anything else
-            if (win.blitWindowId() >= 0) {
+            if (window.blitWindowId() >= 0) {
                 const std::vector<std::unique_ptr<Window>>& wins = windows();
                 auto it = std::find_if(
                     wins.cbegin(), wins.cend(),
-                    [id = win.blitWindowId()](const std::unique_ptr<Window>& w) {
+                    [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
                         return w->id() == id;
                     }
                 );
                 assert(it != wins.cend());
-                blitWindowViewport(**it, win, *vp, frustum);
+                blitWindowViewport(**it, window, *vp, frustum);
             }
 
-            if (win.shouldCallDraw3DFunction()) {
+            if (window.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
-                setupViewport(win, *vp, frustum);
+                setupViewport(window, *vp, frustum);
                 glEnable(GL_SCISSOR_TEST);
-                setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+                setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
                 glDisable(GL_SCISSOR_TEST);
 
                 if (_drawFn) {
                     ZoneScopedN("[SGCT] Draw");
                     const RenderData renderData(
-                        win,
+                        window,
                         *vp,
                         frustum,
                         ClusterManager::instance().sceneTransform(),
@@ -1358,7 +1359,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                         vp->projection(frustum).projectionMatrix(),
                         vp->projection(frustum).viewProjectionMatrix() *
                             ClusterManager::instance().sceneTransform(),
-                        win.finalFBODimensions()
+                        window.finalFBODimensions()
                     );
                     _drawFn(renderData);
                 }
@@ -1367,16 +1368,16 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    const int blitId = win.blitWindowId();
-    if (!win.shouldCallDraw3DFunction() && blitId == -1) {
-        setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+    const int blitId = window.blitWindowId();
+    if (!window.shouldCallDraw3DFunction() && blitId == -1) {
+        setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
     }
     else {
         if (blitId != -1) {
             const std::vector<std::unique_ptr<Window>>& wins = windows();
             auto it = std::find_if(
                 wins.cbegin(), wins.cend(),
-                [id = win.blitWindowId()](const std::unique_ptr<Window>& w) {
+                [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
                     return w->id() == id;
                 }
             );
@@ -1384,7 +1385,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             const Window& srcWin = **it;
 
             if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
-                setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+                setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
             }
         }
     }
@@ -1399,26 +1400,26 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     if (!isSplitScreen || frustum != Frustum::Mode::StereoLeftEye) {
         ZoneScopedN("PostFX/Blit");
 
-        updateRenderingTargets(win, ti);
-        if (win.useFXAA()) {
-            renderFXAA(win, ti);
+        updateRenderingTargets(window, ti);
+        if (window.useFXAA()) {
+            renderFXAA(window, ti);
         }
 
-        render2D(win, frustum);
+        render2D(window, frustum);
         if (isSplitScreen) {
             // render left eye info and graph to render 2D items after post fx
-            render2D(win, Frustum::Mode::StereoLeftEye);
+            render2D(window, Frustum::Mode::StereoLeftEye);
         }
     }
 
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D(const Window& win, Frustum::Mode frustum) {
+void Engine::render2D(const Window& window, Frustum::Mode frustum) {
     ZoneScoped;
 
     // draw viewport overlays if any
-    drawOverlays(win, frustum);
+    drawOverlays(window, frustum);
 
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
@@ -1427,21 +1428,21 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
         return;
     }
 
-    for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
         if (!vp->isEnabled()) {
             continue;
         }
-        setupViewport(win, *vp, frustum);
+        setupViewport(window, *vp, frustum);
 
         if (_statisticsRenderer) {
-            _statisticsRenderer->render(win, *vp);
+            _statisticsRenderer->render(window, *vp);
         }
 
         // Check if we should call the use defined draw2D function
-        if (_draw2DFn && win.shouldCallDraw2DFunction()) {
+        if (_draw2DFn && window.shouldCallDraw2DFunction()) {
             ZoneScopedN("[SGCT] Draw 2D");
             const RenderData renderData(
-                win,
+                window,
                 *vp,
                 frustum,
                 ClusterManager::instance().sceneTransform(),
@@ -1449,7 +1450,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                 vp->projection(frustum).projectionMatrix(),
                 vp->projection(frustum).viewProjectionMatrix() *
                     ClusterManager::instance().sceneTransform(),
-                win.finalFBODimensions()
+                window.finalFBODimensions()
             );
 
             _draw2DFn(renderData);
@@ -1714,9 +1715,10 @@ float Engine::farClipPlane() const {
     return _farClipPlane;
 }
 
-void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
-    _nearClipPlane = nearClip;
-    _farClipPlane = farClip;
+void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane)
+{
+    _nearClipPlane = nearClippingPlane;
+    _farClipPlane = farClippingPlane;
     updateFrustums();
 }
 

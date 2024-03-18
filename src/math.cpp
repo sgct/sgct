@@ -30,4 +30,4 @@ vec3 operator*(const quat& q, const vec3& v) {
     return vec3(r.x, r.y, r.z);
 }
 
-} // namespace
+} // namespace sgct

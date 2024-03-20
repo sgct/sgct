@@ -415,12 +415,12 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     }
 }
 
-void drop(int count, const char** paths) {
+void drop(const std::vector<std::string_view>& paths) {
     if (Engine::instance().isMaster()) {
         std::vector<std::string> pathStrings;
-        for (int i = 0; i < count; i++) {
+        for (const std::string_view path : paths) {
             // simply pick the first path to transmit
-            std::string tmpStr(paths[i]);
+            std::string tmpStr = std::string(path);
 
             // transform to lowercase
             std::transform(

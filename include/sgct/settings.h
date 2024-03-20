@@ -11,6 +11,7 @@
 
 #include <sgct/sgctexports.h>
 #include <algorithm>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <thread>

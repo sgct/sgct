@@ -398,13 +398,13 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     }
 }
 
-void drop(int, const char** paths) {
+void drop(const std::vector<std::string_view>& path) {
     if (!Engine::instance().isMaster()) {
         return;
     }
 
     // simply pick the first path to transmit
-    std::string tmpStr(paths[0]);
+    std::string tmpStr = std::string(path[0]);
 
     // transform to lowercase
     std::transform(
@@ -418,7 +418,7 @@ void drop(int, const char** paths) {
     const bool foundJpeg = tmpStr.find(".jpeg") != std::string::npos;
     const bool foundPng = tmpStr.find(".png") != std::string::npos;
     if (foundJpg || foundJpeg || foundPng) {
-        imagePaths.push_back(paths[0]);
+        imagePaths.push_back(std::string(path[0]));
         transfer = true;
     }
 }

@@ -173,7 +173,7 @@ target_precompile_headers(sgct PRIVATE
   <sgct/opengl.h>
   <glm/glm.hpp>
 
-  <scn/scn.h>
+  <scn/scan.h>
 
   <algorithm>
   <array>

@@ -14,7 +14,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
-#include <scn/scn.h>
+#include <scn/scan.h>
 #include <algorithm>
 #include <fstream>
 
@@ -41,15 +41,12 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
     unsigned int nRows = 0;
     std::string line;
     while (std::getline(meshFile, line)) {
-        float x = 0.f;
-        float y = 0.f;
-        float u = 0.f;
-        float v = 0.f;
-        unsigned int col = 0;
-        unsigned int row = 0;
-
-        auto r = scn::scan(line, "{};{};{};{};{};{}", x, y, u, v, col, row);
+        auto r = scn::scan<float, float, float, float, unsigned int, unsigned int>(
+            line, "{};{};{};{};{};{}"
+        );
         if (r) {
+            auto [x, y, u, v, col, row] = r->values();
+
             // init to max intensity (opaque white)
             Buffer::Vertex vertex;
             vertex.r = 1.f;

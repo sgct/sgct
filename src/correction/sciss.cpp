@@ -17,6 +17,7 @@
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <fstream>
 

@@ -14,7 +14,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
-#include <scn/scn.h>
+#include <scn/scan.h>
 #include <fstream>
 
 namespace sgct::correction {
@@ -45,24 +45,21 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     std::getline(meshFile, dims, '\n');
     std::getline(meshFile, endiannessIndicator, '\n');
 
-    unsigned int nCols = 0;
-    unsigned int nRows = 0;
-    float endiannessValue = 0;
-    auto result = scn::scan(dims, "{} {}", nCols, nRows);
+    auto result = scn::scan<unsigned int, unsigned int>(dims, "{} {}");
     if (!result) {
         throw Error(
             Error::Component::Pfm, 2052,
             fmt::format("Invalid header syntax in file '{}'", path)
         );
     }
-    result = scn::scan(endiannessIndicator, "{}", endiannessValue);
-    if (!result) {
+    auto [nCols, nRows] = result->values();
+    auto result2 = scn::scan<float>(endiannessIndicator, "{}");
+    if (!result2) {
         throw Error(
             Error::Component::Pfm, 2052,
             fmt::format("Invalid endianness value in file '{}'", path)
         );
     }
-
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         throw Error(
             Error::Component::Pfm, 2053,

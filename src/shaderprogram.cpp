@@ -28,7 +28,7 @@ namespace {
             glGetProgramInfoLog(programId, logLength, nullptr, log.data());
 
             sgct::Log::Error(
-                fmt::format("Shader '{}' linking error: {}", name, log.data())
+                std::format("Shader '{}' linking error: {}", name, log.data())
             );
         }
         return linkStatus != 0;
@@ -52,14 +52,14 @@ namespace {
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 
             if (logLength == 0) {
-                sgct::Log::Error(fmt::format(
+                sgct::Log::Error(std::format(
                     "{} compile error: Unknown error", shaderTypeName(type)
                 ));
             }
 
             std::vector<GLchar> log(logLength);
             glGetShaderInfoLog(id, logLength, nullptr, log.data());
-            sgct::Log::Error(fmt::format(
+            sgct::Log::Error(std::format(
                 "{} compile error: {}", shaderTypeName(type), log.data()
             ));
         }
@@ -129,7 +129,7 @@ void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
         throw Err(
             7010,
-            fmt::format("No shaders have been added to the program '{}'", _name)
+            std::format("No shaders have been added to the program '{}'", _name)
         );
     }
 
@@ -143,7 +143,7 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     const bool isLinked = checkLinkStatus(_programId, _name);
     if (!isLinked) {
-        throw Err(7011, fmt::format("Error linking the program '{}'", _name));
+        throw Err(7011, std::format("Error linking the program '{}'", _name));
     }
 }
 
@@ -151,7 +151,7 @@ void ShaderProgram::createProgram() {
     if (_programId > 0) {
         throw Err(
             7012,
-            fmt::format("Failed to create shader program '{}': Already created", _name)
+            std::format("Failed to create shader program '{}': Already created", _name)
         );
     }
 
@@ -159,7 +159,7 @@ void ShaderProgram::createProgram() {
     if (_programId == 0) {
         throw Err(
             7013,
-            fmt::format("Failed to create shader program '{}': Unknown error", _name)
+            std::format("Failed to create shader program '{}': Unknown error", _name)
         );
     }
 }

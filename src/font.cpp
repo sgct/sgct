@@ -291,7 +291,7 @@ void Font::createCharacter(char c) {
         _fontFaceData[c] = std::move(*ffd);
     }
     else {
-        Log::Error(fmt::format("Error creating character {}", c));
+        Log::Error(std::format("Error creating character {}", c));
     }
 }
 

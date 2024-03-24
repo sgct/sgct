@@ -240,22 +240,22 @@ void Window::close() {
 
     makeSharedContextCurrent();
 
-    Log::Info(fmt::format("Deleting screen capture data for window {}", _id));
+    Log::Info(std::format("Deleting screen capture data for window {}", _id));
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        Log::Info(fmt::format("Releasing OpenGL buffers for window {}", _id));
+        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Log::Info(fmt::format("Deleting VBOs for window {}", _id));
+    Log::Info(std::format("Deleting VBOs for window {}", _id));
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Log::Info(fmt::format("Deleting VAOs for window {}", _id));
+    Log::Info(std::format("Deleting VAOs for window {}", _id));
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -482,7 +482,7 @@ void Window::updateResolutions() {
         // adjusting only the horizontal (x) values
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
             ));
         }
@@ -493,7 +493,7 @@ void Window::updateResolutions() {
             glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Resolution changed to {}x{} in window {}", _windowRes.x, _windowRes.y, _id
         ));
         _pendingWindowRes = std::nullopt;
@@ -502,7 +502,7 @@ void Window::updateResolutions() {
     if (_pendingFramebufferRes.has_value()) {
         _framebufferRes = *_pendingFramebufferRes;
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Framebuffer resolution changed to {}x{} for window {}",
             _framebufferRes.x, _framebufferRes.y, _id
         ));
@@ -517,7 +517,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Log::Debug(fmt::format("HFOV changed to {} for window {}", hFovDeg, _id));
+    Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
 void Window::initWindowResolution(ivec2 resolution) {
@@ -695,7 +695,7 @@ void Window::setFixResolution(bool state) {
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "FXAA status: {} for window {}", state ? "enabled" : "disabled", _id
     ));
 }
@@ -704,21 +704,21 @@ void Window::setUseQuadbuffer(bool state) {
     _useQuadBuffer = state;
     if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Log::Info(fmt::format("Window {}: Enabling quadbuffered rendering", _id));
+        Log::Info(std::format("Window {}: Enabling quadbuffered rendering", _id));
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        Log::Info(fmt::format("Window {}: Draw 2D function disabled", _id));
+        Log::Info(std::format("Window {}: Draw 2D function disabled", _id));
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        Log::Info(fmt::format("Window {}: Draw 3D function disabled", _id));
+        Log::Info(std::format("Window {}: Draw 3D function disabled", _id));
     }
 }
 
@@ -726,7 +726,7 @@ void Window::setBlitWindowId(int id) {
     _blitWindowId = id;
     if (_blitWindowId >= 0) {
         Log::Info(
-            fmt::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
+            std::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
         );
     }
 }
@@ -769,7 +769,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         else {
             mon = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                Log::Info(fmt::format(
+                Log::Info(std::format(
                     "Window({}): Invalid monitor index ({}). Computer has {} monitors",
                     _id, _monitorIndex, count
                 ));
@@ -856,7 +856,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
     }
 
-    const std::string title = fmt::format(
+    const std::string title = std::format(
         "SGCT node: {} ({}: {})",
         ClusterManager::instance().thisNode().address(),
         (NetworkManager::instance().isComputerServer() ? "server" : "client"),
@@ -886,14 +886,14 @@ void Window::initNvidiaSwapGroups() {
         if (res == GL_FALSE) {
             throw Err(3006, "Error requesting maximum number of swap groups");
         }
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "WGL_NV_swap_group extension is supported. Max number of groups: {}. "
             "Max number of barriers: {}", maxGroup, maxBarrier
         ));
 
         if (maxGroup > 0) {
             _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-            Log::Info(fmt::format(
+            Log::Info(std::format(
                 "Joining swapgroup 1 [{}]", _useSwapGroups ? "ok" : "failed"
             ));
         }
@@ -990,7 +990,7 @@ void Window::createTextures() {
     GLint max = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Window {}: Requested framebuffer too big (Max: {})", _id, max
         ));
         return;
@@ -1015,7 +1015,7 @@ void Window::createTextures() {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    Log::Debug(fmt::format("Targets initialized successfully for window {}", _id));
+    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1054,7 +1054,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         std::get<2>(formats),
         nullptr
     );
-    Log::Debug(fmt::format("{}x{} texture generated for window {}", res.x, res.y, id));
+    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1069,7 +1069,7 @@ void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
 
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Window {}: FBO initiated successfully. Number of samples: {}",
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     ));

@@ -29,7 +29,7 @@ void Tracker::setEnabled(bool state) {
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-    Log::Info(fmt::format("{}: Adding device '{}'", _name, name));
+    Log::Info(std::format("{}: Adding device '{}'", _name, name));
 }
 
 const std::vector<std::unique_ptr<TrackingDevice>>& Tracker::devices() const {

@@ -11,10 +11,10 @@
 #include <sgct/fmt.h>
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
+#include <cstdarg>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <cstdarg>
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -64,10 +64,10 @@ void Log::printv(Level level, std::string message) {
         timeInfoPtr = localtime(&now);
         strftime(timeBuffer.data(), TimeBufferSize, "%X", timeInfoPtr);
 
-        message = fmt::format("{} | {}", timeBuffer.data(), message);
+        message = std::format("{} | {}", timeBuffer.data(), message);
     }
     if (_showLevel) {
-        message = fmt::format("({}) {}", levelToString(level), message);
+        message = std::format("({}) {}", levelToString(level), message);
     }
 
     if (_logToConsole) {

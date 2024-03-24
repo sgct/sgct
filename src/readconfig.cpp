@@ -19,9 +19,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <unordered_map>
-#include <iostream>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
@@ -46,7 +46,7 @@ namespace {
         if (t == "top_bottom") { return M::TopBottom; }
         if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
-        throw Err(6085, fmt::format("Unknown stereo mode {}", t));
+        throw Err(6085, std::format("Unknown stereo mode {}", t));
     }
 
     std::string_view toString(sgct::config::Window::StereoMode mode) {
@@ -94,7 +94,7 @@ namespace {
         if (type == "16ui") { return sgct::config::Window::ColorBitDepth::Depth16UInt; }
         if (type == "32ui") { return sgct::config::Window::ColorBitDepth::Depth32UInt; }
 
-        throw Err(6086, fmt::format("Unknown color bit depth {}", type));
+        throw Err(6086, std::format("Unknown color bit depth {}", type));
     }
 
     int cubeMapResolutionForQuality(std::string_view quality) {
@@ -109,7 +109,7 @@ namespace {
         if (quality == "32k" || quality == "32768") { return 32768; }
         if (quality == "64k" || quality == "65536") { return 65536; }
 
-        throw Err(6087, fmt::format("Unknown resolution {} for cube map", quality));
+        throw Err(6087, std::format("Unknown resolution {} for cube map", quality));
     }
 
     sgct::config::Capture::Format parseImageFormat(std::string_view format) {
@@ -146,7 +146,7 @@ namespace {
         }
         if (mapping == "cubemap") { return SpoutOutputProjection::Mapping::Cubemap; }
 
-        throw Err(6086, fmt::format("Unknown spout output mapping: {}", mapping));
+        throw Err(6086, std::format("Unknown spout output mapping: {}", mapping));
     }
 } // namespace
 
@@ -302,7 +302,7 @@ void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
             res = T();
         }
         else {
-            throw std::runtime_error(fmt::format(
+            throw std::runtime_error(std::format(
                 "Could not find required key '{}'", key)
             );
         }
@@ -407,7 +407,7 @@ void from_json(const nlohmann::json& j, Settings& s) {
             s.bufferFloatPrecision = Settings::BufferFloatPrecision::Float32Bit;
         }
         else {
-            throw Err(6050, fmt::format("Wrong buffer precision value {}", precision));
+            throw Err(6050, std::format("Wrong buffer precision value {}", precision));
         }
     }
 
@@ -1157,7 +1157,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
                 v.projection = it->get<ProjectionPlane>();
             }
             else {
-                throw Err(6089, fmt::format("Unknown projection type '{}'", type));
+                throw Err(6089, std::format("Unknown projection type '{}'", type));
             }
         }
     }
@@ -1583,7 +1583,7 @@ namespace sgct {
 config::Cluster readConfig(const std::string& filename,
                            const std::string& additionalError)
 {
-    Log::Debug(fmt::format("Parsing config '{}'", filename));
+    Log::Debug(std::format("Parsing config '{}'", filename));
     if (filename.empty()) {
         throw Err(6080, "No configuration file provided");
     }
@@ -1592,7 +1592,7 @@ config::Cluster readConfig(const std::string& filename,
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", name)
+            std::format("Could not find configuration file: {}", name)
         );
     }
 
@@ -1618,7 +1618,7 @@ config::Cluster readConfig(const std::string& filename,
             if (!additionalError.empty()) {
                 throw Err(
                     6082,
-                    fmt::format(
+                    std::format(
                         "Importing of this configuration file failed with the "
                         "message:\n\n{}:\n\n{}",
                         additionalError, e.what()
@@ -1634,12 +1634,12 @@ config::Cluster readConfig(const std::string& filename,
     // and reset the current working directory to the old value
     std::filesystem::current_path(oldPwd);
 
-    Log::Debug(fmt::format("Config file '{}' read successfully", name));
-    Log::Info(fmt::format("Number of nodes in cluster: {}", cluster.nodes.size()));
+    Log::Debug(std::format("Config file '{}' read successfully", name));
+    Log::Info(std::format("Number of nodes in cluster: {}", cluster.nodes.size()));
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const config::Node& node = cluster.nodes[i];
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "\tNode ({}) address: {} [{}]", i, node.address, node.port
         ));
     }
@@ -1689,7 +1689,7 @@ void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
                                  const std::string &message)
 {
     nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-    mErrMessage = fmt::format(
+    mErrMessage = std::format(
         "Validation of config file failed '{}'\nat entry in JSON file: {}",
         message, instance.dump()
     );
@@ -1707,7 +1707,7 @@ std::string stringifyJsonFile(const std::string& filename) {
     std::ifstream myfile;
     myfile.open(filename);
     if (myfile.fail()) {
-        throw Err(6082, fmt::format("Failed to open '{}'", filename));
+        throw Err(6082, std::format("Failed to open '{}'", filename));
     }
     std::stringstream buffer;
     buffer << myfile.rdbuf();
@@ -1718,7 +1718,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
                                    const std::string& schema,
                                    const std::string& validationTypeExplanation)
 {                                 
-    Log::Debug(fmt::format("Validating config '{}' against schema '{}'", config, schema));
+    Log::Debug(std::format("Validating config '{}' against schema '{}'", config, schema));
     if (config.empty()) {
         throw Err(6080, "No configuration file provided");
     }
@@ -1729,14 +1729,14 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
     if (!std::filesystem::exists(configName)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file '{}'", configName)
+            std::format("Could not find configuration file '{}'", configName)
         );
     }
     std::string schemaName = std::filesystem::absolute(schema).string();
     if (!std::filesystem::exists(schemaName)) {
         throw Err(
             6081,
-            fmt::format("Could not find schema file '{}'", schemaName)
+            std::format("Could not find schema file '{}'", schemaName)
         );
     }
     const std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
@@ -1783,14 +1783,14 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
                 loadPath = loadPath.substr(0, strEnd + 1);
             }
             if (std::filesystem::exists(loadPath)) {
-                Log::Debug(fmt::format("Loading schema file '{}'", loadPath));
+                Log::Debug(std::format("Loading schema file '{}'", loadPath));
                 const std::string newSchema = stringifyJsonFile(loadPath);
                 value = nlohmann::json::parse(newSchema);
             }
             else {
                 throw Err(
                     6081,
-                    fmt::format("Could not find schema file to load: {}", loadPath)
+                    std::format("Could not find schema file to load: {}", loadPath)
                 );
             }
         }
@@ -1806,7 +1806,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
 {
     throw Err(
         6089,
-        fmt::format("Checking this configuration file against schema '{}' failed.\n\n"
+        std::format("Checking this configuration file against schema '{}' failed.\n\n"
             "{}.\n\nSchema validator provided the following error message:\n\n{}",
             schema, validationTypeExplanation, exceptionMessage
         )
@@ -1829,7 +1829,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file '{}'", name)
+            std::format("Could not find configuration file '{}'", name)
         );
     }
 
@@ -1849,12 +1849,12 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         else {
             throw Err(
                 6088,
-                fmt::format("Unsupported file extension '{}'", path.extension())
+                std::format("Unsupported file extension '{}'", path.extension())
             );
         }
     }(name);
 
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Config file '{}' read for generator version '{}' version {}.{}",
         name, genVersion.name, genVersion.major, genVersion.minor
     ));
@@ -1869,7 +1869,7 @@ sgct::config::Meta readMeta(const std::string& filename) {
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file '{}'", name)
+            std::format("Could not find configuration file '{}'", name)
         );
     }
 

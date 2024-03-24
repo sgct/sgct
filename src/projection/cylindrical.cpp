@@ -10,7 +10,6 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/fmt.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>

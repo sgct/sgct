@@ -109,7 +109,7 @@ void SpoutFlatProjection::setSpoutDrawMain(bool drawMain) {
 
 void SpoutFlatProjection::initTextures() {
     generateMap(_textureIdentifiers.spoutColor, _texInternalFormat, _texFormat, _texType);
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "{0}x{1} color spout texture (id: {2}) generated",
         _resolutionX, _resolutionY, _textureIdentifiers.spoutColor
     ));
@@ -121,7 +121,7 @@ void SpoutFlatProjection::initTextures() {
             GL_DEPTH_COMPONENT,
             GL_FLOAT
         );
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "{0}x{1} depth spout texture (id: {2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutDepth
         ));
@@ -134,7 +134,7 @@ void SpoutFlatProjection::initTextures() {
                 GL_DEPTH_COMPONENT,
                 GL_FLOAT
             );
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "{0}x{1} depth swap map texture (id: {2}) generated",
                 _resolutionX, _resolutionY, _textureIdentifiers.depthSwap
             ));
@@ -145,7 +145,7 @@ void SpoutFlatProjection::initTextures() {
                 _texFormat,
                 _texType
             );
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "{0}x{1} color swap map texture (id: {2}) generated",
                 _resolutionX, _resolutionY, _textureIdentifiers.colorSwap
             ));
@@ -159,7 +159,7 @@ void SpoutFlatProjection::initTextures() {
             GL_RGB,
             GL_FLOAT
         );
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "{0}x{1} normal spout texture (id: {2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutNormals
         ));
@@ -172,7 +172,7 @@ void SpoutFlatProjection::initTextures() {
             GL_RGB,
             GL_FLOAT
         );
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "{0}x{1} position spout texture ({2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutPositions
         ));
@@ -180,7 +180,7 @@ void SpoutFlatProjection::initTextures() {
 
 
 #ifdef SGCT_HAS_SPOUT
-    Log::Debug(fmt::format("SpoutFlat initTextures"));
+    Log::Debug(std::format("SpoutFlat initTextures"));
     _mappingHandle = GetSpout();
     if (_mappingHandle) {
         bool success = _mappingHandle->CreateSender(
@@ -189,7 +189,7 @@ void SpoutFlatProjection::initTextures() {
             _resolutionY
         );
         if (!success) {
-            Log::Error(fmt::format("Error creating SPOUT handle for {}", _mappingName));
+            Log::Error(std::format("Error creating SPOUT handle for {}", _mappingName));
         }
     }
 #endif // SGCT_HAS_SPOUT
@@ -221,7 +221,7 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
     GLint maxMapRes = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
     if (_resolutionX > maxMapRes || _resolutionY > maxMapRes) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Requested size is too big ({} > {}) || ({} > {})",
             _resolutionX, maxMapRes, _resolutionY, maxMapRes
         ));
@@ -324,7 +324,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
         _resolutionY
     );
     if (!s) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Error sending texture '{}'", _textureIdentifiers.spoutColor
         ));
     }

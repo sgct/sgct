@@ -220,7 +220,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
                 _mappingHeight
             );
             if (!s) {
-                Log::Error(fmt::format(
+                Log::Error(std::format(
                     "Error sending texture '{}' for face {}", _spout[i].texture, i
                 ));
             }
@@ -376,7 +376,7 @@ void SpoutOutputProjection::initTextures() {
 
         for (int i = 0; i < NFaces; i++) {
 #ifdef SGCT_HAS_SPOUT
-            Log::Debug(fmt::format("SpoutOutputProjection initTextures {}", i));
+            Log::Debug(std::format("SpoutOutputProjection initTextures {}", i));
             if (!_spout[i].enabled) {
                 continue;
             }
@@ -389,7 +389,7 @@ void SpoutOutputProjection::initTextures() {
                     _mappingHeight
                 );
                 if (!success) {
-                    Log::Error(fmt::format(
+                    Log::Error(std::format(
                         "Error creating SPOUT handle for {}", CubeMapFaceName[i]
                     ));
                 }
@@ -432,7 +432,7 @@ void SpoutOutputProjection::initTextures() {
                 _mappingHeight
             );
             if (!success) {
-                Log::Error(fmt::format(
+                Log::Error(std::format(
                     "Error creating SPOUT sender for '{}'", _mappingName
                 ));
             }
@@ -474,7 +474,7 @@ void SpoutOutputProjection::initTextures() {
                 _mappingHeight
             );
             if (!success) {
-                Log::Error(fmt::format(
+                Log::Error(std::format(
                     "Error creating SPOUT handle for '{}'", _mappingName
                 ));
             }

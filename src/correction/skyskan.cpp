@@ -32,11 +32,11 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading SkySkan mesh data from '{}'", path));
+    Log::Info(std::format("Reading SkySkan mesh data from '{}'", path));
 
     std::ifstream meshFile(path);
     if (!meshFile.good()) {
-        throw Error(2090, fmt::format("Failed to open file '{}'", path));
+        throw Error(2090, std::format("Failed to open file '{}'", path));
     }
 
     std::optional<float> azimuth;
@@ -122,7 +122,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
         !hFov.has_value() || *hFov <= 0.f)
     {
-        throw Error(2091, fmt::format("Data reading error in file '{}'", path));
+        throw Error(2091, std::format("Data reading error in file '{}'", path));
     }
 
     // create frustums and projection matrices
@@ -133,7 +133,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(std::atan(hh));
 
-        Log::Info(fmt::format("HFOV: {} VFOV: {}", *hFov, *vFov));
+        Log::Info(std::format("HFOV: {} VFOV: {}", *hFov, *vFov));
     }
 
     if (fovTweaks.x > 0.f) {

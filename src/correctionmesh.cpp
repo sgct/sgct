@@ -98,7 +98,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
         throw Error(
             2000,
-            fmt::format("Failed to export '{}'. Geometry type not supported", path)
+            std::format("Failed to export '{}'. Geometry type not supported", path)
         );
     }
 
@@ -106,7 +106,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
     if (!file.is_open()) {
         throw Error(
             2001,
-            fmt::format("Failed to export '{}'. Failed to open", path)
+            std::format("Failed to export '{}'. Failed to open", path)
         );
     }
 
@@ -116,23 +116,23 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 
     // export vertices
     for (const sgct::correction::Buffer::Vertex& vertex : buf.vertices) {
-        file << fmt::format("v {} {} 0\n", vertex.x, vertex.y);
+        file << std::format("v {} {} 0\n", vertex.x, vertex.y);
     }
 
     // export texture coords
     for (const sgct::correction::Buffer::Vertex& vertex : buf.vertices) {
-        file << fmt::format("vt {} {} 0\n", vertex.s, vertex.t);
+        file << std::format("vt {} {} 0\n", vertex.s, vertex.t);
     }
 
     // export generated normals
     file.write("vn 0 0 1\n", buf.vertices.size());
 
-    file << fmt::format("# Number of faces: {}\n", buf.indices.size() / 3);
+    file << std::format("# Number of faces: {}\n", buf.indices.size() / 3);
 
     // export face indices
     if (type == GL_TRIANGLES) {
         for (size_t i = 0; i < buf.indices.size(); i += 3) {
-            file << fmt::format(
+            file << std::format(
                 "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
                 buf.indices[i] + 1, buf.indices[i + 1] + 1, buf.indices[i + 2] + 1
             );
@@ -140,20 +140,20 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
     }
     else {
         // first base triangle
-        file << fmt::format(
+        file << std::format(
             "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
             buf.indices[0] + 1, buf.indices[1] + 1, buf.indices[2] + 1
         );
 
         for (size_t i = 2; i < buf.indices.size(); i++) {
-            file << fmt::format(
+            file << std::format(
                 "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
                 buf.indices[i], buf.indices[i - 1] + 1, buf.indices[i - 2] + 1
             );
         }
     }
 
-    Log::Info(fmt::format("Mesh '{}' exported successfully", path));
+    Log::Info(std::format("Mesh '{}' exported successfully", path));
 }
 
 } // namespace
@@ -257,7 +257,7 @@ void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
 
     createMesh(_warpGeometry, buf);
 
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "CorrectionMesh read successfully. Vertices={}, Indices={}",
         buf.vertices.size(), buf.indices.size()
     ));

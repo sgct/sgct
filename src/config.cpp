@@ -308,7 +308,7 @@ void validateNode(const Node& n) {
         if (std::find(usedIds.begin(), usedIds.end(), win.id) != usedIds.end()) {
             throw Error(
                 1107,
-                fmt::format(
+                std::format(
                     "Window id must be non-negative and unique. {} used multiple times",
                     win.id
                 )
@@ -324,7 +324,7 @@ void validateNode(const Node& n) {
             if (it == n.windows.cend()) {
                 throw Error(
                     1108,
-                    fmt::format(
+                    std::format(
                         "Tried to configure window {} to be blitted from window {}, but "
                         "no such window was specified", win.id, *win.blitWindowId
                     )
@@ -333,7 +333,7 @@ void validateNode(const Node& n) {
             if (win.id == *win.blitWindowId) {
                 throw Error(
                     1109,
-                    fmt::format(
+                    std::format(
                         "Window {} tried to blit from itself, which cannot work", win.id
                     )
                 );

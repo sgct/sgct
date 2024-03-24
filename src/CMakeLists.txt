@@ -14,14 +14,14 @@ add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 generate_export_header(sgct
   EXPORT_FILE_NAME include/sgct/sgctexports.h
-)  
+)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h @ONLY
 )
 
-target_include_directories(sgct 
+target_include_directories(sgct
   PUBLIC $<INSTALL_INTERFACE:include>
 )
 
@@ -30,7 +30,7 @@ target_sources(
   PUBLIC
   FILE_SET HEADERS
   TYPE HEADERS
-  BASE_DIRS 
+  BASE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}/include
     ${PROJECT_SOURCE_DIR}/include
   FILES
@@ -191,7 +191,6 @@ target_precompile_headers(sgct PRIVATE
 
 target_include_directories(sgct PUBLIC "../../ext/json-schema-validator/src")
 
-find_package(fmt REQUIRED)
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
@@ -220,7 +219,6 @@ endif ()
 
 target_link_libraries(sgct
   PUBLIC
-    fmt::fmt
     glad::glad
     glfw
     ${OPENGL_gl_LIBRARY}

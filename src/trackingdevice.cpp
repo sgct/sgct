@@ -62,7 +62,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
 #endif
 
     if (parent == nullptr) {
-        Log::Error(fmt::format("Error getting handle to tracker for device '{}'", _name));
+        Log::Error(std::format("Error getting handle to tracker for device '{}'", _name));
         return;
     }
 

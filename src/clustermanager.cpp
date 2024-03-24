@@ -84,7 +84,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             name = *u.name;
             auto usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            Log::Info(fmt::format("Adding user '{}'", *u.name));
+            Log::Info(std::format("Adding user '{}'", *u.name));
         }
         else {
             name = "default";

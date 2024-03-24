@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 
     joyStick1Name = glfwGetJoystickName(static_cast<int>(Joystick::Joystick1));
     if (joyStick1Name) {
-        Log::Info(fmt::format("Joystick 1 '{}' is present", joyStick1Name));
+        Log::Info(std::format("Joystick 1 '{}' is present", joyStick1Name));
 
         int numberOfAxes = 0;
         glfwGetJoystickAxes(static_cast<int>(Joystick::Joystick1), &numberOfAxes);
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
         int numberOfButtons = 0;
         glfwGetJoystickButtons(static_cast<int>(Joystick::Joystick1), &numberOfButtons);
 
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "Number of axes {}\nNumber of buttons {}", numberOfAxes, numberOfButtons
         ));
     }

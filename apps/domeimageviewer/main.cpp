@@ -180,7 +180,7 @@ void uploadTexture() {
         // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "Texture id %d loaded ({}x{}x{})",
             tex, transImages[i]->size().x, transImages[i]->size().y,
             transImages[i]->channels()
@@ -377,7 +377,7 @@ void keyboard(Key key, Modifier, Action action, int, Window*) {
 void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
                          int clientIndex)
 {
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Decoding {} bytes in transfer id: {} on node {}",
         receivedLength, packageId, clientIndex
     ));
@@ -390,13 +390,13 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
 }
 
 void dataTransferStatus(bool connected, int clientIndex) {
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Transfer node {} is {}", clientIndex, connected ? "connected" : "disconnected"
     ));
 }
 
 void dataTransferAcknowledge(int packageId, int clientIndex) {
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Transfer id: {} is completed on node {}", packageId, clientIndex
     ));
 
@@ -407,7 +407,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
             clientsUploadDone = true;
             counter = 0;
 
-            Log::Info(fmt::format(
+            Log::Info(std::format(
                 "Time to distribute and upload textures on cluster: {} ms",
                 (time() - sendTimer) * 1000.0
             ));
@@ -415,12 +415,12 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     }
 }
 
-void drop(int count, const char** paths) {
+void drop(const std::vector<std::string_view>& paths) {
     if (Engine::instance().isMaster()) {
         std::vector<std::string> pathStrings;
-        for (int i = 0; i < count; i++) {
+        for (const std::string_view path : paths) {
             // simply pick the first path to transmit
-            std::string tmpStr(paths[i]);
+            std::string tmpStr = std::string(path);
 
             // transform to lowercase
             std::transform(

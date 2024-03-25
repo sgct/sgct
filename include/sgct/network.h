@@ -47,9 +47,9 @@ public:
      * \param port The network port (TCP)
      * \param address The hostname, IPv4 address or ip6 address
      * \param isServer Indicates if this connection is a server or client
-     * \param type The type of connection
+     * \param t The type of connection
      */
-    Network(int port, std::string address, bool isServer, ConnectionType type);
+    Network(int port, const std::string& address, bool isServer, ConnectionType t);
     Network(const Network&) = delete;
     Network(Network&&) = delete;
     Network& operator=(const Network&) = delete;
@@ -67,7 +67,7 @@ public:
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
 
     void setConnectedStatus(bool state);
-    void setOptions(SGCT_SOCKET* socketPtr);
+    void setOptions(SGCT_SOCKET* socket) const;
     void closeSocket(SGCT_SOCKET lSocket);
 
     ConnectionType type() const;
@@ -94,7 +94,7 @@ public:
      * \return `true` if updates has been received
      */
     bool isUpdated() const;
-    void sendData(const void* data, int length);
+    void sendData(const void* data, int length) const;
 
     /**
      * \return The last error code

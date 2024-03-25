@@ -10,7 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
@@ -147,7 +147,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        RenderData renderData(
+        const RenderData renderData(
             window,
             bv,
             frustumMode,
@@ -188,7 +188,7 @@ void SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat, _texFormat, _texType);
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "{}x{} cube face texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, texture
         ));
@@ -220,7 +220,7 @@ void SphericalMirrorProjection::initViewports() {
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
     // tilt
-    glm::mat4 tiltMat = glm::rotate(
+    const glm::mat4 tiltMat = glm::rotate(
         glm::mat4(1.f),
         glm::radians(45.f - _tilt),
         glm::vec3(1.f, 0.f, 0.f)
@@ -228,10 +228,14 @@ void SphericalMirrorProjection::initViewports() {
 
     // Right
     {
-        glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::mat4 r = glm::rotate(
+            tiltMat,
+            glm::radians(-90.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.right.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -241,10 +245,14 @@ void SphericalMirrorProjection::initViewports() {
 
     // left
     {
-        glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::mat4 r = glm::rotate(
+            tiltMat,
+            glm::radians(90.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.left.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -257,10 +265,14 @@ void SphericalMirrorProjection::initViewports() {
 
     // top
     {
-        glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::mat4 r = glm::rotate(
+            tiltMat,
+            glm::radians(90.f),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.top.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -270,9 +282,9 @@ void SphericalMirrorProjection::initViewports() {
 
     // front
     {
-        glm::vec3 ll = glm::vec3(tiltMat * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(tiltMat * upperLeftBase);
-        glm::vec3 ur = glm::vec3(tiltMat * upperRightBase);
+        const glm::vec3 ll = glm::vec3(tiltMat * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(tiltMat * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(tiltMat * upperRightBase);
         _subViewports.front.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),

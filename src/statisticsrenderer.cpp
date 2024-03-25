@@ -65,27 +65,27 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     };
     std::vector<sVertex> vs;
     vs.emplace_back(0.f, 0.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);
     vs.emplace_back(0.f, 1.f / 30.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 30.f);
 
     // Static 1 ms lines
     _lines.staticDraw.nLines = 0;
     for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
         vs.emplace_back(0.f, f);
-        vs.emplace_back(static_cast<float>(_statistics.HistoryLength), f);
+        vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), f);
         _lines.staticDraw.nLines++;
     }
 
     // Static 0, 30 & 60 FPS lines
     vs.emplace_back(0.f, 0.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);
 
     vs.emplace_back(0.f, 1.f / 30.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 30.f);
 
     vs.emplace_back(0.f, 1.f / 60.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 60.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 60.f);
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
@@ -95,7 +95,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     _shader.bind();
     _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
     _colorLoc = glGetUniformLocation(_shader.id(), "col");
-    _shader.unbind();
+    ShaderProgram::unbind();
 
     // OpenGL objects for lines
     glGenVertexArrays(1, &_lines.staticDraw.vao);
@@ -168,23 +168,23 @@ void StatisticsRenderer::update() {
 
     // Lines rendering
     // The statistics are stored as 1D double arrays, but we need 2D float arrays
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.frametimes[i].x = static_cast<float>(i);
         _lines.buffer.frametimes[i].y = static_cast<float>(_statistics.frametimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.drawTimes[i].x = static_cast<float>(i);
         _lines.buffer.drawTimes[i].y = static_cast<float>(_statistics.drawTimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.syncTimes[i].x = static_cast<float>(i);
         _lines.buffer.syncTimes[i].y = static_cast<float>(_statistics.syncTimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.loopTimeMin[i].x = static_cast<float>(i);
         _lines.buffer.loopTimeMin[i].y = static_cast<float>(_statistics.loopTimeMin[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.loopTimeMax[i].x = static_cast<float>(i);
         _lines.buffer.loopTimeMax[i].y = static_cast<float>(_statistics.loopTimeMax[i]);
     }
@@ -205,7 +205,7 @@ void StatisticsRenderer::update() {
     {
         std::fill(hValues.begin(), hValues.end(), 0);
 
-        for (double d : sValues) {
+        for (const double d : sValues) {
             // convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
             const double dp = d / scale;
             const int dpScaled = static_cast<int>(dp * Histogram::Bins);
@@ -231,7 +231,7 @@ void StatisticsRenderer::update() {
     auto convertValues = [&](std::array<Vertex, 6 * Histogram::Bins>& buffer,
                             const std::array<int, Histogram::Bins>& values, int maxBinVal)
     {
-        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); i++) {
             const int val = values[i];
 
             const float x0 = static_cast<float>(i) / Histogram::Bins;
@@ -270,7 +270,7 @@ void StatisticsRenderer::update() {
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
     ZoneScoped;
 
-    ivec2 res = window.framebufferResolution();
+    const ivec2 res = window.framebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(
         0.f,
         static_cast<float>(res.x),
@@ -289,7 +289,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         _shader.bind();
 
         const glm::vec2 size = glm::vec2(
-            res.x / static_cast<float>(_statistics.HistoryLength),
+            res.x / static_cast<float>(Engine::Statistics::HistoryLength),
             res.y * 15.f
         );
 
@@ -336,7 +336,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 
         glBindVertexArray(0);
-        _shader.unbind();
+        ShaderProgram::unbind();
 
 #ifdef SGCT_HAS_TEXT
         constexpr glm::vec2 Pos = glm::vec2(15.f, 50.f);
@@ -353,7 +353,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 7 * Offset,
             vec4{ 1.f, 0.8f, 0.8f, 1.f },
-            fmt::format("Frame number: {}", Engine::instance().currentFrameNumber())
+            std::format("Frame number: {}", Engine::instance().currentFrameNumber())
         );
         text::print(
             window,
@@ -362,7 +362,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 4 * Offset,
             ColorFrameTime,
-            fmt::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
+            std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
         );
         text::print(
             window,
@@ -371,7 +371,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 3 * Offset,
             ColorDrawTime,
-            fmt::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
+            std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
         );
         text::print(
             window,
@@ -380,7 +380,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 2 * Offset,
             ColorSyncTime,
-            fmt::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
+            std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
         );
         text::print(
             window,
@@ -389,7 +389,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + Offset,
             ColorLoopTimeMin,
-            fmt::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
+            std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
         );
         text::print(
             window,
@@ -398,7 +398,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y,
             ColorLoopTimeMax,
-            fmt::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
+            std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
         );
 #endif // SGCT_HAS_TEXT
     }
@@ -466,7 +466,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y,
             vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            fmt::format(
+            std::format(
                 "Histogram Scale (frametime, drawtime): {:.0f} ms",
                 HistogramScaleFrame * 1000.0
             )
@@ -478,7 +478,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 12.f,
             vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            fmt::format(
+            std::format(
                 "Histogram Scale (sync time): {:.0f} ms",
                 HistogramScaleSync * 1000.0
             )

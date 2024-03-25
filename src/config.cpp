@@ -8,11 +8,11 @@
 
 #include <sgct/config.h>
 
-#include <sgct/fmt.h>
 #include <sgct/error.h>
+#include <sgct/format.h>
 #include <sgct/profiling.h>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <functional>
 #include <iterator>
 #include <numeric>
@@ -114,6 +114,12 @@ void validatePlanarProjection(const PlanarProjection& p) {
     }
 }
 
+void validateTextureProjection(const TextureMappedProjection& p) {
+    ZoneScoped;
+
+    validatePlanarProjection(p);
+}
+
 void validateFisheyeProjection(const FisheyeProjection& p) {
     ZoneScoped;
 
@@ -136,7 +142,7 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
         throw Error(1065, "Diameter must be positive");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1066, "All background color components have to be positive");
         }
@@ -153,7 +159,7 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
         throw Error(1071, "Quality setting only allows powers of two");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1072, "All background color components have to be positive");
         }
@@ -170,7 +176,7 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
         throw Error(1081, "Quality value must be positive");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1083, "All background color components have to be positive");
         }
@@ -191,7 +197,7 @@ void validateSpoutFlatProjection(const SpoutFlatProjection& p) {
         throw Error(1086, "Height value must be positive");
     }
     if (p.background) {
-        vec4 b = *p.background;
+        const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1088, "All background color components have to be positive");
         }
@@ -203,8 +209,6 @@ void validateCylindricalProjection(const CylindricalProjection&) {}
 void validateEquirectangularProjection(const EquirectangularProjection&) {}
 
 void validateProjectionPlane(const ProjectionPlane&) {}
-
-void validateMpcdiProjection(const MpcdiProjection&) {}
 
 void validateViewport(const Viewport& v, bool /*draw3D*/) {
     ZoneScoped;
@@ -236,6 +240,7 @@ void validateViewport(const Viewport& v, bool /*draw3D*/) {
             validateEquirectangularProjection(p);
         },
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
+        [](const TextureMappedProjection& p) { validateTextureProjection(p); },
 
         [v/*, draw3D*/](const NoProjection&) {
             // This is currently commented out due to the fact that some of the meshes
@@ -270,19 +275,6 @@ void validateWindow(const Window& w) {
     if (w.monitor && *w.monitor < -1) {
         throw Error(1103, "Monitor index must be non-negative or -1");
     }
-    if (w.mpcdi && w.mpcdi->empty()) {
-        throw Error(1104, "MPCDI file must not be empty");
-    }
-    if (!w.mpcdi && w.viewports.empty()) {
-        // A viewport must exist except when we load an MPCDI file
-        throw Error(1105, "Window must contain at least one viewport");
-    }
-    if (w.mpcdi && !w.viewports.empty()) {
-        throw Error(
-            1106,
-            "Cannot use an MPCDI file and explicitly add viewports simultaneously"
-        );
-    }
 
     for (const Viewport& vp : w.viewports) {
         const bool draw3D = w.draw3D.value_or(true);
@@ -306,8 +298,7 @@ void validateNode(const Node& n) {
         throw Error(1113, "Every node must contain at least one window");
     }
     std::vector<int> usedIds;
-    for (size_t i = 0; i < n.windows.size(); ++i) {
-        const Window& win = n.windows[i];
+    for (const Window& win : n.windows) {
         validateWindow(win);
 
         if (win.id < 0) {
@@ -317,7 +308,7 @@ void validateNode(const Node& n) {
         if (std::find(usedIds.begin(), usedIds.end(), win.id) != usedIds.end()) {
             throw Error(
                 1107,
-                fmt::format(
+                std::format(
                     "Window id must be non-negative and unique. {} used multiple times",
                     win.id
                 )
@@ -333,7 +324,7 @@ void validateNode(const Node& n) {
             if (it == n.windows.cend()) {
                 throw Error(
                     1108,
-                    fmt::format(
+                    std::format(
                         "Tried to configure window {} to be blitted from window {}, but "
                         "no such window was specified", win.id, *win.blitWindowId
                     )
@@ -342,7 +333,7 @@ void validateNode(const Node& n) {
             if (win.id == *win.blitWindowId) {
                 throw Error(
                     1109,
-                    fmt::format(
+                    std::format(
                         "Window {} tried to blit from itself, which cannot work", win.id
                     )
                 );

@@ -135,7 +135,7 @@ Sphere::~Sphere() {
     glDeleteBuffers(1, &_ibo);
 }
 
-void Sphere::draw() {
+void Sphere::draw() const {
     glBindVertexArray(_vao);
     glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);

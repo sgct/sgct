@@ -9,6 +9,7 @@
 #include <sgct/user.h>
 
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -33,15 +34,16 @@ void User::setTransform(mat4 transform) {
 }
 
 void User::setOrientation(float x, float y, float z) {
-    glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::make_vec3(&_posMono.x));
-    glm::mat4 c = trans * glm::eulerAngleX(x) * glm::eulerAngleY(y) * glm::eulerAngleZ(z);
+    const glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::make_vec3(&_posMono.x));
+    const glm::mat4 c =
+        trans * glm::eulerAngleX(x) * glm::eulerAngleY(y) * glm::eulerAngleZ(z);
     std::memcpy(&_transform, glm::value_ptr(c), sizeof(sgct::mat4));
     updateEyeTransform();
 }
 
 void User::setOrientation(quat q) {
-    glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::make_vec3(&_posMono.x));
-    glm::mat4 c = trans * glm::mat4_cast(glm::make_quat(&q.x));
+    const glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::make_vec3(&_posMono.x));
+    const glm::mat4 c = trans * glm::mat4_cast(glm::make_quat(&q.x));
     std::memcpy(&_transform, glm::value_ptr(c), sizeof(sgct::mat4));
     updateEyeTransform();
 }
@@ -69,9 +71,9 @@ void User::updateEyeTransform() {
 
     const glm::mat4 trans = glm::make_mat4(_transform.values);
 
-    glm::vec4 mono = trans * posMono;
-    glm::vec4 left = trans * posLeft;
-    glm::vec4 right = trans * posRight;
+    const glm::vec4 mono = trans * posMono;
+    const glm::vec4 left = trans * posLeft;
+    const glm::vec4 right = trans * posRight;
     _posMono = vec3(mono.x, mono.y, mono.z);
     _posLeftEye = vec3(left.x, left.y, left.z);
     _posRightEye = vec3(right.x, right.y, right.z);

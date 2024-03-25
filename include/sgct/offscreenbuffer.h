@@ -46,7 +46,7 @@ public:
     /**
      * Bind framebuffer, auto-set multisampling and draw buffers.
      */
-    void bind();
+    void bind() const;
 
     /**
      * Bind framebuffer.
@@ -55,9 +55,9 @@ public:
      * \param n Number of color buffers
      * \param bufs Array with color buffers (`GL_COLOR_ATTACHMENT`n)
      */
-    void bind(bool isMultisampled, int n, const unsigned int* bufs);
-    void bindBlit();
-    void blit();
+    void bind(bool isMultisampled, int n, const unsigned int* bufs) const;
+    void bindBlit() const;
+    void blit() const;
     bool isMultiSampled() const;
 
 private:

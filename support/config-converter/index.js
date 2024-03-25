@@ -334,7 +334,6 @@ function convert(obj) {
         toBoolean(window, "draw3d");
         toNumber(window, "blitWindowId", "blitwindowid");
         toNumber(window, "monitor");
-        toString(window, "mpcdi");
 
         // The stereo value was stored as the "type" parameter before, but we can compress
         // that value down
@@ -370,6 +369,50 @@ function convert(obj) {
           if ("PlanarProjection" in viewport) {
             toObject(viewport, "PlanarProjection", "projection");
             viewport.projection.type = "PlanarProjection";
+
+            // FOV -> fov
+            toObject(viewport.projection, "FOV", "fov");
+            if ("fov" in viewport.projection) {
+              Object.keys(viewport.projection.fov).forEach((key, _) => {
+                toNumber(viewport.projection.fov, key);
+              });
+
+              if (viewport.projection.fov.left === viewport.projection.fov.right) {
+                viewport.projection.fov.hfov =
+                  viewport.projection.fov.left + viewport.projection.fov.right;
+
+                delete viewport.projection.fov.left;
+                delete viewport.projection.fov.right;
+              }
+
+              if (viewport.projection.fov.down === viewport.projection.fov.up) {
+                viewport.projection.fov.vfov =
+                  viewport.projection.fov.down + viewport.projection.fov.up;
+
+                delete viewport.projection.fov.down;
+                delete viewport.projection.fov.up;
+              }
+            }
+
+            // Orientation -> orientation
+            toObject(viewport.projection, "Orientation", "orientation");
+            if ("orientation" in viewport.projection) {
+              Object.keys(viewport.projection.orientation).forEach((key, _) => {
+                toNumber(viewport.projection.orientation, key);
+              });
+            }
+
+            // Offset -> offset
+            toObject(viewport.projection, "Offset", "offset");
+            if ("offset" in viewport.projection) {
+              Object.keys(viewport.projection.offset).forEach((key, _) => {
+                toNumber(viewport.projection.offset, key);
+              });
+            }
+          }
+          else if ("TextureMappedProjection" in viewport) {
+            toObject(viewport, "TextureMappedProjection", "projection");
+            viewport.projection.type = "TextureMappedProjection";
 
             // FOV -> fov
             toObject(viewport.projection, "FOV", "fov");

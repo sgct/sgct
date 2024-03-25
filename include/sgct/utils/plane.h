@@ -24,7 +24,7 @@ public:
     Plane(float width, float height);
     ~Plane();
 
-    void draw();
+    void draw() const;
 
 private:
     unsigned int _vao = 0;

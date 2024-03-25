@@ -9,7 +9,7 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
@@ -49,8 +49,6 @@ ClusterManager::ClusterManager(int clusterID) : _thisNodeId(clusterID) {
     _users.push_back(std::make_unique<User>("default"));
 }
 
-ClusterManager::~ClusterManager() {}
-
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     ZoneScoped;
 
@@ -86,7 +84,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             name = *u.name;
             auto usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            Log::Info(fmt::format("Adding user '{}'", *u.name));
+            Log::Info(std::format("Adding user '{}'", *u.name));
         }
         else {
             name = "default";
@@ -107,7 +105,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
 
-    for (size_t i = 0; i < cluster.nodes.size(); ++i) {
+    for (size_t i = 0; i < cluster.nodes.size(); i++) {
         ZoneScopedN("Create Node");
 
         auto n = std::make_unique<Node>();

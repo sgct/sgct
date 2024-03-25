@@ -11,6 +11,8 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/keys.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/screencapture.h>
 #include <sgct/window.h>
 #include <string>
 #include <vector>

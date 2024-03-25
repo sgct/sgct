@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <png.h>
 #include <zlib.h>
@@ -100,7 +100,7 @@ void Image::load(const std::string& filename) {
     _data = stbi_load(filename.c_str(), &_size.x, &_size.y, &_nChannels, 0);
     if (_data == nullptr) {
         throw Err(
-            9001, fmt::format("Could not open file '{}' for loading image", filename)
+            9001, std::format("Could not open file '{}' for loading image", filename)
         );
     }
     _bytesPerChannel = 1;
@@ -128,19 +128,19 @@ void Image::load(unsigned char* data, int length) {
     }
 }
 
-void Image::save(const std::string& file) {
-    if (file.empty()) {
+void Image::save(const std::string& filename) {
+    if (filename.empty()) {
         throw Err(9002, "Filename not set for saving image");
     }
 
-    FormatType type = getFormatType(file);
+    const FormatType type = getFormatType(filename);
     if (type == FormatType::Unknown) {
-        throw Err(9003, fmt::format("Cannot save file '{}'", file));
+        throw Err(9003, std::format("Cannot save file '{}'", filename));
     }
     if (type == FormatType::PNG) {
         // We use libPNG instead of stb as libPNG is faster and we care about how fast
         // PNGs are written to disk in production
-        savePNG(file);
+        savePNG(filename);
         return;
     }
 
@@ -152,16 +152,29 @@ void Image::save(const std::string& file) {
 
     stbi_flip_vertically_on_write(1);
     if (type == FormatType::JPEG) {
-        int r = stbi_write_jpg(file.c_str(), _size.x, _size.y, _nChannels, _data, 100);
+        const int r = stbi_write_jpg(
+            filename.c_str(),
+            _size.x,
+            _size.y,
+            _nChannels,
+            _data,
+            100
+        );
         if (r == 0) {
-            throw Err(9004, fmt::format("Could not save file '{}' as JPG", file));
+            throw Err(9004, std::format("Could not save file '{}' as JPG", filename));
         }
         return;
     }
     if (type == FormatType::TGA) {
-        int r = stbi_write_tga(file.c_str(), _size.x, _size.y, _nChannels, _data);
+        const int r = stbi_write_tga(
+            filename.c_str(),
+            _size.x,
+            _size.y,
+            _nChannels,
+            _data
+        );
         if (r == 0) {
-            throw Err(9005, fmt::format("Could not save file '{}' as TGA", file));
+            throw Err(9005, std::format("Could not save file '{}' as TGA", filename));
 
         }
         return;
@@ -176,14 +189,14 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     if (_bytesPerChannel > 2) {
-        throw Err(9007, fmt::format("Can't save {} bit", _bytesPerChannel * 8));
+        throw Err(9007, std::format("Cannot save {} bit", _bytesPerChannel * 8));
     }
 
-    double t0 = time();
+    const double t0 = time();
 
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        throw Err(9008, fmt::format("Can't create PNG file '{}'", filename));
+        throw Err(9008, std::format("Cannot create PNG file '{}'", filename));
     }
 
     // initialize stuff
@@ -264,7 +277,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     fclose(fp);
 
     const double t = (time() - t0) * 1000.0;
-    Log::Debug(fmt::format("'{}' was saved successfully ({:.2f} ms)", filename, t));
+    Log::Debug(std::format("'{}' was saved successfully ({:.2f} ms)", filename, t));
 }
 
 unsigned char* Image::data() {
@@ -300,14 +313,14 @@ void Image::setBytesPerChannel(int bpc) {
 }
 
 void Image::allocateOrResizeData() {
-    double t0 = time();
+    const double t0 = time();
 
     const unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
     if (dataSize == 0) {
         std::string s =
             std::to_string(_size.x) + 'x' + std::to_string(_size.y) + ' ' +
             std::to_string(_nChannels);
-        throw Err(9012, fmt::format("Invalid image size {} channels", s));
+        throw Err(9012, std::format("Invalid image size {} channels", s));
     }
 
     if (_data && _dataSize != dataSize) {
@@ -321,7 +334,7 @@ void Image::allocateOrResizeData() {
         _data = new unsigned char[dataSize];
         _dataSize = dataSize;
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Allocated {} bytes for image data ({:.2f} ms)",
             _dataSize, (time() - t0) * 1000.0
         ));

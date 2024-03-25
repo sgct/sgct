@@ -18,8 +18,6 @@ namespace {
             case sgct::Error::Component::DomeProjection: return "DomeProjection";
             case sgct::Error::Component::Engine: return "Engine";
             case sgct::Error::Component::Image: return "Image";
-            case sgct::Error::Component::MPCDI: return "MPCDI";
-            case sgct::Error::Component::MPCDIMesh: return "MPCDIMesh";
             case sgct::Error::Component::Network: return "Network";
             case sgct::Error::Component::OBJ: return "OBJ";
             case sgct::Error::Component::PaulBourke: return "PaulBourke";

@@ -59,7 +59,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "Spout: Initing {}x{} texture from '{}'", width, height, sender
         ));
         initialized = true;

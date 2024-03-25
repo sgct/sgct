@@ -9,12 +9,12 @@
 #include <sgct/correction/domeprojection.h>
 
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
-#include <scn/scn.h>
+#include <scn/scan.h>
 #include <algorithm>
 #include <fstream>
 
@@ -25,13 +25,13 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
 {
     ZoneScoped;
 
-    Log::Info(fmt::format("Reading DomeProjection mesh data from '{}'", path));
+    Log::Info(std::format("Reading DomeProjection mesh data from '{}'", path));
 
     std::ifstream meshFile(path);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::DomeProjection, 2010,
-            fmt::format("Failed to open {}", path)
+            std::format("Failed to open '{}'", path)
         );
     }
 
@@ -41,15 +41,12 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
     unsigned int nRows = 0;
     std::string line;
     while (std::getline(meshFile, line)) {
-        float x;
-        float y;
-        float u;
-        float v;
-        unsigned int col;
-        unsigned int row;
-
-        auto r = scn::scan(line, "{};{};{};{};{};{}", x, y, u, v, col, row);
+        auto r = scn::scan<float, float, float, float, unsigned int, unsigned int>(
+            line, "{};{};{};{};{};{}"
+        );
         if (r) {
+            auto [x, y, u, v, col, row] = r->values();
+
             // init to max intensity (opaque white)
             Buffer::Vertex vertex;
             vertex.r = 1.f;

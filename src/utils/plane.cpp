@@ -59,7 +59,7 @@ Plane::~Plane() {
     glDeleteVertexArrays(1, &_vao);
 }
 
-void Plane::draw() {
+void Plane::draw() const {
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);

@@ -11,6 +11,7 @@
 
 #include <sgct/sgctexports.h>
 #include <algorithm>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <thread>
@@ -92,7 +93,7 @@ public:
      *
      * \param path The path including filename without suffix
      */
-    void setCapturePath(std::string path);
+    void setCapturePath(std::filesystem::path path);
 
     /**
      * Set the screenshot capture format.
@@ -128,7 +129,7 @@ public:
     /**
      * Get the capture/screenshot path.
      */
-    const std::string& capturePath() const;
+    const std::filesystem::path& capturePath() const;
 
     /**
      * Get swap interval for all windows.
@@ -243,7 +244,7 @@ private:
     bool _exportWarpingMeshes = false;
 
     struct Capture {
-        std::string capturePath;
+        std::filesystem::path capturePath;
         std::string prefix;
         bool addNodeName = false;
         bool addWindowName = true;

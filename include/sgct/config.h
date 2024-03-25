@@ -132,6 +132,11 @@ SGCT_EXPORT void validatePlanarProjection(const PlanarProjection& proj);
 
 
 
+struct SGCT_EXPORT TextureMappedProjection : PlanarProjection { };
+SGCT_EXPORT void validateTextureProjection(const TextureMappedProjection& proj);
+
+
+
 struct SGCT_EXPORT FisheyeProjection {
     enum class Interpolation { Linear, Cubic };
     struct Crop {
@@ -231,29 +236,10 @@ SGCT_EXPORT void validateProjectionPlane(const ProjectionPlane& proj);
 
 
 
-struct SGCT_EXPORT MpcdiProjection {
-    struct Frustum {
-        float down;
-        float up;
-        float left;
-        float right;
-    };
-    std::optional<std::string> id;
-    std::optional<vec2> position;
-    std::optional<vec2> size;
-    std::optional<vec2> resolution;
-    std::optional<Frustum> frustum;
-    std::optional<float> distance;
-    std::optional<quat> orientation;
-    std::optional<vec3> offset;
-};
-SGCT_EXPORT void validateMpcdiProjection(const MpcdiProjection& proj);
-
-
-
 using Projections = std::variant<NoProjection, CylindricalProjection,
     EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
-    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection>;
+    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection,
+    TextureMappedProjection>;
 
 
 
@@ -325,7 +311,6 @@ struct SGCT_EXPORT Window {
     std::optional<bool> isMirrored;
     std::optional<int> blitWindowId;
     std::optional<int> monitor;
-    std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };

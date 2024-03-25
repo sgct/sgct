@@ -38,6 +38,7 @@ bool operator==(const Device& lhs, const Device& rhs);
 bool operator==(const Tracker& lhs, const Tracker& rhs);
 bool operator==(const NoProjection& lhs, const NoProjection& rhs);
 bool operator==(const PlanarProjection& lhs, const PlanarProjection& rhs);
+bool operator==(const TextureMappedProjection& lhs, const TextureMappedProjection& rhs);
 bool operator==(const FisheyeProjection::Crop& lhs, const FisheyeProjection::Crop& rhs);
 bool operator==(const FisheyeProjection& lhs, const FisheyeProjection& rhs);
 bool operator==(const SphericalMirrorProjection& lhs,
@@ -49,8 +50,6 @@ bool operator==(const CylindricalProjection& lhs, const CylindricalProjection& r
 bool operator==(const EquirectangularProjection& lhs,
     const EquirectangularProjection& rhs);
 bool operator==(const ProjectionPlane& lhs, const ProjectionPlane& rhs);
-bool operator==(const MpcdiProjection::Frustum& lhs, const MpcdiProjection::Frustum& rhs);
-bool operator==(const MpcdiProjection& lhs, const MpcdiProjection& rhs);
 bool operator==(const Viewport& lhs, const Viewport& rhs);
 bool operator==(const Window& lhs, const Window& rhs);
 bool operator==(const Node& lhs, const Node& rhs);

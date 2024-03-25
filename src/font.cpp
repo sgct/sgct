@@ -10,7 +10,7 @@
 
 #include <sgct/font.h>
 
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 
@@ -51,15 +51,15 @@ namespace {
         PixelDataResult res;
 
         // Move the face's glyph into a Glyph object
-        FT_Error glyphErr = FT_Get_Glyph(face->glyph, &res.gd.glyph);
-        FT_Error strokeErr = FT_Get_Glyph(face->glyph, &res.gd.strokeGlyph);
+        const FT_Error glyphErr = FT_Get_Glyph(face->glyph, &res.gd.glyph);
+        const FT_Error strokeErr = FT_Get_Glyph(face->glyph, &res.gd.strokeGlyph);
         if (glyphErr || strokeErr) {
             res.success = false;
             return res;
         }
 
         res.gd.stroker = nullptr;
-        FT_Error error = FT_Stroker_New(library, &res.gd.stroker);
+        const FT_Error error = FT_Stroker_New(library, &res.gd.stroker);
         if (!error) {
             FT_Stroker_Set(
                 res.gd.stroker,
@@ -99,8 +99,8 @@ namespace {
         // and whatever is the the Freetype bitmap otherwise
         const int offsetWidth = (res.gd.strokeBitmap->width - res.gd.bitmap->width) / 2;
         const int offsetRows = (res.gd.strokeBitmap->rows - res.gd.bitmap->rows) / 2;
-        for (int j = 0; j < res.height; ++j) {
-            for (int i = 0; i < res.width; ++i) {
+        for (int j = 0; j < res.height; j++) {
+            for (int i = 0; i < res.width; i++) {
                 const int k = i - offsetWidth;
                 const int l = j - offsetRows;
 
@@ -121,8 +121,10 @@ namespace {
                 const bool strokeInRange =
                     i >= static_cast<int>(res.gd.strokeBitmap->width) ||
                     j >= static_cast<int>(res.gd.strokeBitmap->rows);
-                unsigned char stroke = strokeInRange ?
-                    0 : res.gd.strokeBitmap->buffer[i + res.gd.strokeBitmap->width * j];
+                const unsigned char stroke =
+                    strokeInRange ?
+                    0 :
+                    res.gd.strokeBitmap->buffer[i + res.gd.strokeBitmap->width * j];
 
                 res.pixels[idx + 1] = stroke < res.pixels[idx] ?
                     res.pixels[idx] :
@@ -135,7 +137,7 @@ namespace {
     }
 
     unsigned int generateTexture(int w, int h, const std::vector<unsigned char>& buffer) {
-        unsigned int tex;
+        unsigned int tex = 0;
         glGenTextures(1, &tex);
         glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -172,18 +174,18 @@ namespace {
         // Hints:
         // www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_LOAD_XXX
 
-        FT_UInt charIndex = FT_Get_Char_Index(face, static_cast<FT_ULong>(c));
+        const FT_UInt charIndex = FT_Get_Char_Index(face, static_cast<FT_ULong>(c));
         if (charIndex == 0) {
             return std::nullopt;
         }
 
-        FT_Error loadError = FT_Load_Glyph(face, charIndex, FT_LOAD_FORCE_AUTOHINT);
+        const FT_Error loadError = FT_Load_Glyph(face, charIndex, FT_LOAD_FORCE_AUTOHINT);
         if (loadError) {
             return std::nullopt;
         }
 
         // load pixel data
-        PixelDataResult res = getPixelData(library, face, strokeSize);
+        const PixelDataResult res = getPixelData(library, face, strokeSize);
         if (!res.success) {
             return std::nullopt;
         }
@@ -268,7 +270,7 @@ void Font::setStrokeSize(int size) {
 }
 
 const Font::FontFaceData& Font::fontFaceData(char c) {
-    if (_fontFaceData.count(c) == 0) {
+    if (!_fontFaceData.contains(c)) {
         // check if c does not exist in map
         createCharacter(c);
     }
@@ -289,7 +291,7 @@ void Font::createCharacter(char c) {
         _fontFaceData[c] = std::move(*ffd);
     }
     else {
-        Log::Error(fmt::format("Error creating character {}", c));
+        Log::Error(std::format("Error creating character {}", c));
     }
 }
 

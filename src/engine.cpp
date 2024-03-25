@@ -10,9 +10,9 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
+#include <sgct/format.h>
 #include <sgct/freetype.h>
 #include <sgct/internalshaders.h>
 #include <sgct/networkmanager.h>
@@ -67,7 +67,7 @@ namespace {
     std::function<void(MouseButton, Modifier, Action, Window*)> gMouseButtonCallback = nullptr;
     std::function<void(double, double, Window*)> gMousePosCallback = nullptr;
     std::function<void(double, double, Window*)> gMouseScrollCallback = nullptr;
-    std::function<void(int, const char**)> gDropCallback = nullptr;
+    std::function<void(std::vector<std::string_view>)> gDropCallback = nullptr;
 
     // For feedback: breaks a frame lock wait condition every time interval
     // (FrameLockTimeout) in order to print waiting message.
@@ -199,8 +199,8 @@ double Engine::Statistics::avgDt() const {
         [](double d) { return d != 0.0; }
     ));
     // We must take the frame counter into account as the history might not be filled yet
-    unsigned int frameCounter = Engine::instance().currentFrameNumber();
-    unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
+    const unsigned int frameCounter = Engine::instance().currentFrameNumber();
+    const unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
     return accFT / f;
 }
 
@@ -236,7 +236,7 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
     // created and are calling Engine::instance from they registered callbacks. If this
     // client code is executed from the constructor, the _instance variable has not yet
     // been set and will therefore cause the logic_error in the instance() function.
-    _instance = new Engine(cluster, callbacks, arg);
+    _instance = new Engine(std::move(cluster), std::move(callbacks), arg);
     _instance->initialize();
 }
 
@@ -342,7 +342,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         Log::instance().setNotifyLevel(*config.logLevel);
     }
     if (config.showHelpText) {
-        std::cout << helpMessage() << std::endl;
+        std::cout << helpMessage() << '\n';
         std::exit(0);
     }
     if (config.firmSync) {
@@ -387,7 +387,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     {
         ZoneScopedN("GLFW initialization");
         glfwSetErrorCallback([](int error, const char* desc) {
-            throw Err(3010, fmt::format("GLFW error ({}): {}", error, desc));
+            throw Err(3010, std::format("GLFW error ({}): {}", error, desc));
         });
         const int res = glfwInit();
         if (res == GLFW_FALSE) {
@@ -395,7 +395,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         }
     }
 
-    Log::Info(fmt::format("SGCT version: {}", Version));
+    Log::Info(std::format("SGCT version: {}", Version));
 
     Log::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
@@ -416,10 +416,10 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (netMode == NetworkManager::NetworkMode::Remote) {
         Log::Debug("Matching ip address to find node in configuration");
 
-        for (size_t i = 0; i < cluster.nodes.size(); ++i) {
+        for (size_t i = 0; i < cluster.nodes.size(); i++) {
             if (NetworkManager::instance().matchesAddress(cluster.nodes[i].address)) {
                 clusterId = static_cast<int>(i);
-                Log::Debug(fmt::format("Running in cluster mode as node {}", i));
+                Log::Debug(std::format("Running in cluster mode as node {}", i));
                 break;
             }
         }
@@ -433,7 +433,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
                 );
             }
             clusterId = *config.nodeId;
-            Log::Debug(fmt::format("Running locally as node {}", clusterId));
+            Log::Debug(std::format("Running locally as node {}", clusterId));
         }
         else {
             throw Err(3002, "When running locally, a node ID needs to be specified");
@@ -452,7 +452,8 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 void Engine::initialize() {
     ZoneScoped;
 
-    int major, minor;
+    int major = 0;
+    int minor = 0;
     {
         ZoneScopedN("OpenGL Version");
 
@@ -476,7 +477,7 @@ void Engine::initialize() {
         glfwDestroyWindow(offscreen);
         glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
     }
-    Log::Info(fmt::format("Detected OpenGL version: {}.{}", major, minor));
+    Log::Info(std::format("Detected OpenGL version: {}.{}", major, minor));
 
     initWindows(major, minor);
 
@@ -557,7 +558,12 @@ void Engine::initialize() {
             glfwSetDropCallback(
                 win,
                 [](GLFWwindow*, int count, const char** paths) {
-                    gDropCallback(count, paths);
+                    std::vector<std::string_view> p;
+                    p.reserve(count);
+                    for (int i = 0; i < count; i++) {
+                        p.emplace_back(paths[i]);
+                    }
+                    gDropCallback(std::move(p));
                 }
             );
         }
@@ -565,23 +571,27 @@ void Engine::initialize() {
 
     // Get OpenGL version from the first window as there has to be one
     GLFWwindow* winHandle = wins[0]->windowHandle();
-    int v[] = {
+    const std::array<int, 3> v = {
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION)
     };
-    Log::Info(fmt::format("OpenGL version {}.{}.{} core profile", v[0], v[1], v[2]));
+    Log::Info(std::format("OpenGL version {}.{}.{} core profile", v[0], v[1], v[2]));
 
     std::string vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    Log::Info(fmt::format("Vendor: {}", vendor));
+    Log::Info(std::format("Vendor: {}", vendor));
     std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    Log::Info(fmt::format("Renderer: {}", renderer));
+    Log::Info(std::format("Renderer: {}", renderer));
 
     Window::makeSharedContextCurrent();
 
     //
     // Load Shaders
-    bool needsFxaa = std::any_of(wins.begin(), wins.end(), std::mem_fn(&Window::useFXAA));
+    const bool needsFxaa = std::any_of(
+        wins.begin(),
+        wins.end(),
+        std::mem_fn(&Window::useFXAA)
+    );
     if (needsFxaa) {
         ZoneScopedN("FXAA Shader");
 
@@ -780,9 +790,13 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
     assert(majorVersion > 0);
     assert(minorVersion > 0);
 
-    int ver[3];
-    glfwGetVersion(&ver[0], &ver[1], &ver[2]);
-    Log::Info(fmt::format("Using GLFW version {}.{}.{}", ver[0], ver[1], ver[2]));
+    {
+        int major = 0;
+        int minor = 0;
+        int release = 0;
+        glfwGetVersion(&major, &minor, &release);
+        Log::Info(std::format("Using GLFW version {}.{}.{}", major, minor, release));
+    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
@@ -799,7 +813,7 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
 
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
-    for (size_t i = 0; i < windows.size(); ++i) {
+    for (size_t i = 0; i < windows.size(); i++) {
         ZoneScopedN("Creating Window");
 
         GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
@@ -862,7 +876,7 @@ void Engine::frameLockPreStage() {
         // more than a second
         const Network& c = nm.syncConnection(0);
         if (_printSyncMessage && !c.isUpdated()) {
-            Log::Info(fmt::format(
+            Log::Info(std::format(
                 "Waiting for master. frame send {} != recv {}\n\tSwap groups: {}\n\t"
                 "Swap barrier: {}\n\tUniversal frame number: {}\n\tSGCT frame number: {}",
                 c.sendFrameCurrent(), c.recvFramePrevious(),
@@ -874,7 +888,7 @@ void Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             const std::string s = std::to_string(_syncTimeout);
-            throw Err(3004, fmt::format("No sync signal from master after {} s", s));
+            throw Err(3004, std::format("No sync signal from master after {} s", s));
         }
     }
 
@@ -889,7 +903,7 @@ void Engine::frameLockPreStage() {
 void Engine::frameLockPostStage() {
     ZoneScoped;
 
-    NetworkManager& nm = NetworkManager::instance();
+    const NetworkManager& nm = NetworkManager::instance();
     // post stage
     if (ClusterManager::instance().ignoreSync() || !nm.isComputerServer()) {
         return;
@@ -904,9 +918,9 @@ void Engine::frameLockPostStage() {
             continue;
         }
         // more than a second
-        for (int i = 0; i < nm.syncConnectionsCount(); ++i) {
+        for (int i = 0; i < nm.syncConnectionsCount(); i++) {
             if (_printSyncMessage && !nm.connection(i).isUpdated()) {
-                Log::Info(fmt::format(
+                Log::Info(std::format(
                     "Waiting for IG{}: send frame {} != recv frame {}\n\tSwap groups: {}"
                     "\n\tSwap barrier: {}\n\tUniversal frame number: {}\n\t"
                     "SGCT frame number: {}", i, nm.connection(i).sendFrameCurrent(),
@@ -920,7 +934,7 @@ void Engine::frameLockPostStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             const std::string s = std::to_string(_syncTimeout);
-            throw Err(3005, fmt::format("No sync signal from clients after {} s", s));
+            throw Err(3005, std::format("No sync signal from clients after {} s", s));
         }
     }
 
@@ -937,8 +951,8 @@ void Engine::exec() {
 
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
-    while (!(_shouldTerminate || thisNode.closeAllWindows() ||
-           !NetworkManager::instance().isRunning()))
+    while (!_shouldTerminate && !thisNode.closeAllWindows() &&
+           NetworkManager::instance().isRunning())
     {
 #ifdef SGCT_HAS_VRPN
         if (isMaster()) {
@@ -996,7 +1010,7 @@ void Engine::exec() {
                 continue;
             }
 
-            Window::StereoMode sm = win->stereoMode();
+            const Window::StereoMode sm = win->stereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
             for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
@@ -1008,7 +1022,7 @@ void Engine::exec() {
 
                 NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
                 if (sm == Window::StereoMode::NoStereo) {
-                    // for mono viewports frustum mode can be selected by user or xml
+                    // for mono viewports frustum mode can be selected by user or config
                     nonLinearProj->renderCubemap(*win, vp->eye());
                 }
                 else {
@@ -1093,9 +1107,9 @@ void Engine::exec() {
             }
 
             // get the query results
-            GLuint64 timerStart;
+            GLuint64 timerStart = 0;
             glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
-            GLuint64 timerEnd;
+            GLuint64 timerEnd = 0;
             glGetQueryObjectui64v(timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
 
             const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
@@ -1124,7 +1138,7 @@ void Engine::exec() {
                 // the if statement above
                 shouldTakeScreenshot = (it != _shouldTakeScreenshotIds.end());
             }
-            window->swap(shouldTakeScreenshot);
+            window->swapBuffers(shouldTakeScreenshot);
         }
 
         TracyGpuCollect;
@@ -1177,8 +1191,10 @@ void Engine::renderFBOTexture(Window& window) {
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Frustum::Mode frustum = (window.stereoMode() == Window::StereoMode::Active) ?
-        Frustum::Mode::StereoLeftEye : Frustum::Mode::MonoEye;
+    const Frustum::Mode frustum =
+        (window.stereoMode() == Window::StereoMode::Active) ?
+        Frustum::Mode::StereoLeftEye :
+        Frustum::Mode::MonoEye;
 
     const ivec2 size = ivec2{
         static_cast<int>(std::ceil(window.scale().x * window.resolution().x)),
@@ -1188,7 +1204,7 @@ void Engine::renderFBOTexture(Window& window) {
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(window, BufferMode::BackBufferBlack, frustum);
 
-    Window::StereoMode sm = window.stereoMode();
+    const Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
@@ -1271,15 +1287,16 @@ void Engine::renderFBOTexture(Window& window) {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::TextureIndex ti)
+void Engine::renderViewports(Window& window, Frustum::Mode frustum,
+                             Window::TextureIndex ti)
 {
     ZoneScoped;
 
-    prepareBuffer(win, ti);
+    prepareBuffer(window, ti);
 
-    Window::StereoMode sm = win.stereoMode();
+    const Window::StereoMode sm = window.stereoMode();
     // render all viewports for selected eye
-    for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
         if (!vp->isEnabled()) {
             continue;
         }
@@ -1301,8 +1318,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                 );
             }
 
-            if (win.shouldCallDraw3DFunction()) {
-                vp->nonLinearProjection()->render(win, *vp, frustum);
+            if (window.shouldCallDraw3DFunction()) {
+                vp->nonLinearProjection()->render(window, *vp, frustum);
             }
         }
         else {
@@ -1312,29 +1329,29 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             }
 
             // check if we want to blit the previous window before we do anything else
-            if (win.blitWindowId() >= 0) {
+            if (window.blitWindowId() >= 0) {
                 const std::vector<std::unique_ptr<Window>>& wins = windows();
                 auto it = std::find_if(
                     wins.cbegin(), wins.cend(),
-                    [id = win.blitWindowId()](const std::unique_ptr<Window>& w) {
+                    [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
                         return w->id() == id;
                     }
                 );
                 assert(it != wins.cend());
-                blitWindowViewport(**it, win, *vp, frustum);
+                blitWindowViewport(**it, window, *vp, frustum);
             }
 
-            if (win.shouldCallDraw3DFunction()) {
+            if (window.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
-                setupViewport(win, *vp, frustum);
+                setupViewport(window, *vp, frustum);
                 glEnable(GL_SCISSOR_TEST);
-                setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+                setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
                 glDisable(GL_SCISSOR_TEST);
 
                 if (_drawFn) {
                     ZoneScopedN("[SGCT] Draw");
-                    RenderData renderData(
-                        win,
+                    const RenderData renderData(
+                        window,
                         *vp,
                         frustum,
                         ClusterManager::instance().sceneTransform(),
@@ -1342,7 +1359,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                         vp->projection(frustum).projectionMatrix(),
                         vp->projection(frustum).viewProjectionMatrix() *
                             ClusterManager::instance().sceneTransform(),
-                        win.finalFBODimensions()
+                        window.finalFBODimensions()
                     );
                     _drawFn(renderData);
                 }
@@ -1351,16 +1368,16 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    const int blitId = win.blitWindowId();
-    if (!win.shouldCallDraw3DFunction() && blitId == -1) {
-        setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+    const int blitId = window.blitWindowId();
+    if (!window.shouldCallDraw3DFunction() && blitId == -1) {
+        setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
     }
     else {
         if (blitId != -1) {
             const std::vector<std::unique_ptr<Window>>& wins = windows();
             auto it = std::find_if(
                 wins.cbegin(), wins.cend(),
-                [id = win.blitWindowId()](const std::unique_ptr<Window>& w) {
+                [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
                     return w->id() == id;
                 }
             );
@@ -1368,7 +1385,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             const Window& srcWin = **it;
 
             if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
-                setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+                setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
             }
         }
     }
@@ -1380,29 +1397,29 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
 
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
-    if (!(isSplitScreen && frustum == Frustum::Mode::StereoLeftEye)) {
+    if (!isSplitScreen || frustum != Frustum::Mode::StereoLeftEye) {
         ZoneScopedN("PostFX/Blit");
 
-        updateRenderingTargets(win, ti);
-        if (win.useFXAA()) {
-            renderFXAA(win, ti);
+        updateRenderingTargets(window, ti);
+        if (window.useFXAA()) {
+            renderFXAA(window, ti);
         }
 
-        render2D(win, frustum);
+        render2D(window, frustum);
         if (isSplitScreen) {
             // render left eye info and graph to render 2D items after post fx
-            render2D(win, Frustum::Mode::StereoLeftEye);
+            render2D(window, Frustum::Mode::StereoLeftEye);
         }
     }
 
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D(const Window& win, Frustum::Mode frustum) {
+void Engine::render2D(const Window& window, Frustum::Mode frustum) {
     ZoneScoped;
 
     // draw viewport overlays if any
-    drawOverlays(win, frustum);
+    drawOverlays(window, frustum);
 
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
@@ -1411,21 +1428,21 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
         return;
     }
 
-    for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
         if (!vp->isEnabled()) {
             continue;
         }
-        setupViewport(win, *vp, frustum);
+        setupViewport(window, *vp, frustum);
 
         if (_statisticsRenderer) {
-            _statisticsRenderer->render(win, *vp);
+            _statisticsRenderer->render(window, *vp);
         }
 
         // Check if we should call the use defined draw2D function
-        if (_draw2DFn && win.shouldCallDraw2DFunction()) {
+        if (_draw2DFn && window.shouldCallDraw2DFunction()) {
             ZoneScopedN("[SGCT] Draw 2D");
-            RenderData renderData(
-                win,
+            const RenderData renderData(
+                window,
                 *vp,
                 frustum,
                 ClusterManager::instance().sceneTransform(),
@@ -1433,7 +1450,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                 vp->projection(frustum).projectionMatrix(),
                 vp->projection(frustum).viewProjectionMatrix() *
                     ClusterManager::instance().sceneTransform(),
-                win.finalFBODimensions()
+                window.finalFBODimensions()
             );
 
             _draw2DFn(renderData);
@@ -1453,7 +1470,7 @@ void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
         GL_COLOR_ATTACHMENT0
     );
 
-    ivec2 framebufferSize = window.framebufferResolution();
+    const ivec2 framebufferSize = window.framebufferResolution();
     glViewport(0, 0, framebufferSize.x, framebufferSize.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -1563,7 +1580,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     }
 }
 
-void Engine::updateFrustums() {
+void Engine::updateFrustums() const {
     ZoneScoped;
 
     const Node& thisNode = ClusterManager::instance().thisNode();
@@ -1606,7 +1623,7 @@ void Engine::blitWindowViewport(Window& prevWindow, Window& window,
     _overlay.bind();
 
     glActiveTexture(GL_TEXTURE0);
-    Window::TextureIndex m = [](Frustum::Mode v) {
+    const Window::TextureIndex m = [](Frustum::Mode v) {
         switch (v) {
             // @TODO (abock, 2019-09-27) Yep, I'm confused about this mapping, too. But I
             // just took the enumerations values as they were and I assume that it was an
@@ -1636,7 +1653,7 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
         static_cast<int>(viewport.size().y * res.y)
     };
 
-    Window::StereoMode sm = window.stereoMode();
+    const Window::StereoMode sm = window.stereoMode();
     if (frustum == Frustum::Mode::StereoLeftEye) {
         switch (sm) {
             case Window::StereoMode::SideBySide:
@@ -1698,9 +1715,10 @@ float Engine::farClipPlane() const {
     return _farClipPlane;
 }
 
-void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
-    _nearClipPlane = nearClip;
-    _farClipPlane = farClip;
+void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane)
+{
+    _nearClipPlane = nearClippingPlane;
+    _farClipPlane = farClippingPlane;
     updateFrustums();
 }
 

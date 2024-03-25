@@ -2,16 +2,20 @@ def checkoutGit() {
   def url = 'https://github.com/sgct/SGCT';
   def branch = env.BRANCH_NAME
 
+  checkout scm;
+
   if (isUnix()) {
-    sh "git clone --recursive --depth 1 ${url} --branch ${branch} --single-branch ."
+    sh(
+      script: "git submodule update --init",
+      label: "Init submodules"
+    )
   }
   else {
-    bat "git clone --recursive --depth 1 ${url} --branch ${branch} --single-branch ."
+    bat(
+      script: "git submodule update --init",
+      label: "Init submodules"
+    )
   }
-}
-
-def createDirectory(dir) {
-  cmake([installation: 'InSearchPath', arguments: "-E make_directory ${dir}"])
 }
 
 def cmakeOptions() {
@@ -50,15 +54,16 @@ parallel tools: {
       deleteDir();
       checkoutGit();
     }
-    stage('tools/cppcheck') {
-      createDirectory('build');
+    stage('tools/cppcheck/run') {
       sh(
-        script: 'cppcheck --enable=all --xml --xml-version=2 --suppressions-list=support/cppcheck/suppressions.txt -i config -i ext -i support include src 2> build/cppcheck.xml',
+        script: 'cppcheck --enable=all --xml --xml-version=2 --suppressions-list=support/cppcheck/suppressions.txt -i config -i ext -i support include src 2> cppcheck.xml',
         label: 'CPPCheck'
       )
+    }
+    stage("tools/cppcheck/record") {
       recordIssues(
         id: 'tools-cppcheck',
-        tool: cppCheck(pattern: 'build/cppcheck.xml')
+        tool: cppCheck(pattern: 'cppcheck.xml')
       )
     }
     cleanWs()

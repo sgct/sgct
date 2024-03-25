@@ -8,7 +8,7 @@
 
 #include <sgct/offscreenbuffer.h>
 
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/settings.h>
@@ -70,14 +70,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
 
     // create a multisampled buffer
     if (_isMultiSampled) {
-        GLint maxSamples;
+        GLint maxSamples = 0;
         glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
         samples = std::max(samples, maxSamples);
         if (maxSamples < 2) {
             samples = 0;
         }
 
-        Log::Debug(fmt::format("Max samples supported: {}", maxSamples));
+        Log::Debug(std::format("Max samples supported: {}", maxSamples));
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -183,14 +183,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
     );
 
     if (_isMultiSampled) {
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Created {}x{} buffers: FBO id={}  Multisample FBO id={}"
             "RBO depth buffer id={}  RBO color buffer id={}", width, height,
             _frameBuffer, _multiSampledFrameBuffer, _depthBuffer, _colorBuffer
         ));
     }
     else {
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Created {}x{} buffers: FBO id={}  RBO Depth buffer id={}",
             width, height, _frameBuffer, _depthBuffer
         ));
@@ -216,7 +216,7 @@ void OffScreenBuffer::setInternalColorFormat(unsigned int internalFormat) {
     _internalColorFormat = internalFormat;
 }
 
-void OffScreenBuffer::bind() {
+void OffScreenBuffer::bind() const {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -230,7 +230,7 @@ void OffScreenBuffer::bind() {
     setDrawBuffers();
 }
 
-void OffScreenBuffer::bind(bool isMultisampled, int n, const unsigned int* bufs) {
+void OffScreenBuffer::bind(bool isMultisampled, int n, const unsigned int* bufs) const {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -244,7 +244,7 @@ void OffScreenBuffer::bind(bool isMultisampled, int n, const unsigned int* bufs)
     glDrawBuffers(n, bufs);
 }
 
-void OffScreenBuffer::bindBlit() {
+void OffScreenBuffer::bindBlit() const {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _multiSampledFrameBuffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frameBuffer);
     setDrawBuffers();
@@ -254,9 +254,9 @@ void OffScreenBuffer::unbind() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void OffScreenBuffer::blit() {
-    ivec2 src0 = ivec2{ 0, 0 };
-    ivec2 src1 = ivec2{ _size.x, _size.y };
+void OffScreenBuffer::blit() const {
+    const ivec2 src0 = ivec2{ 0, 0 };
+    const ivec2 src1 = ivec2{ _size.x, _size.y };
     ivec2 dst0 = ivec2{ 0, 0 };
     ivec2 dst1 = ivec2{ _size.x, _size.y };
 

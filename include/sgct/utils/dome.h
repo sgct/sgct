@@ -28,7 +28,7 @@ public:
      */
     ~Dome();
 
-    void draw();
+    void draw() const;
 
 private:
     const int _elevationSteps;

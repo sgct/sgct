@@ -10,7 +10,6 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/fmt.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
@@ -187,9 +186,9 @@ void CylindricalProjection::initViewports() {
         glm::vec4 upperRight = upperRightBase;
         upperRight.x = radius;
 
-        glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-        glm::vec3 ur = glm::vec3(rotMat * upperRight);
+        const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(rotMat * upperRight);
         _subViewports.right.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -213,9 +212,9 @@ void CylindricalProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         upperLeft.x = -radius;
 
-        glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
-        glm::vec3 ul = glm::vec3(rotMat * upperLeft);
-        glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+        const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
+        const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
+        const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
         _subViewports.left.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -237,9 +236,9 @@ void CylindricalProjection::initViewports() {
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.y = -radius;
 
-        glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
-        glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-        glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+        const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
+        const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
         _subViewports.bottom.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -262,9 +261,9 @@ void CylindricalProjection::initViewports() {
         glm::vec4 upperRight = upperRightBase;
         upperRight.y = radius;
 
-        glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(rotMat * upperLeft);
-        glm::vec3 ur = glm::vec3(rotMat * upperRight);
+        const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
+        const glm::vec3 ur = glm::vec3(rotMat * upperRight);
         _subViewports.top.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -274,9 +273,9 @@ void CylindricalProjection::initViewports() {
 
     // +Z face
     {
-        glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
-        glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
+        const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
         _subViewports.front.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),

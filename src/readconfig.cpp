@@ -9,11 +9,9 @@
 #include <sgct/readconfig.h>
 
 #include <sgct/error.h>
-#include <sgct/log.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
-#include <sgct/tinyxml.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <nlohmann/json.hpp>
@@ -21,9 +19,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <unordered_map>
-#include <iostream>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
@@ -48,7 +46,7 @@ namespace {
         if (t == "top_bottom") { return M::TopBottom; }
         if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
-        throw Err(6085, fmt::format("Unknown stereo mode {}", t));
+        throw Err(6085, std::format("Unknown stereo mode {}", t));
     }
 
     std::string_view toString(sgct::config::Window::StereoMode mode) {
@@ -96,7 +94,7 @@ namespace {
         if (type == "16ui") { return sgct::config::Window::ColorBitDepth::Depth16UInt; }
         if (type == "32ui") { return sgct::config::Window::ColorBitDepth::Depth32UInt; }
 
-        throw Err(6086, fmt::format("Unknown color bit depth {}", type));
+        throw Err(6086, std::format("Unknown color bit depth {}", type));
     }
 
     int cubeMapResolutionForQuality(std::string_view quality) {
@@ -111,7 +109,7 @@ namespace {
         if (quality == "32k" || quality == "32768") { return 32768; }
         if (quality == "64k" || quality == "65536") { return 65536; }
 
-        throw Err(6087, fmt::format("Unknown resolution {} for cube map", quality));
+        throw Err(6087, std::format("Unknown resolution {} for cube map", quality));
     }
 
     sgct::config::Capture::Format parseImageFormat(std::string_view format) {
@@ -148,885 +146,9 @@ namespace {
         }
         if (mapping == "cubemap") { return SpoutOutputProjection::Mapping::Cubemap; }
 
-        throw Err(6086, fmt::format("Unknown spout output mapping: {}", mapping));
+        throw Err(6086, std::format("Unknown spout output mapping: {}", mapping));
     }
 } // namespace
-
-namespace xmlconfig {
-
-sgct::quat parseOrientationNode(tinyxml2::XMLElement& element) {
-    float x = 0.f;
-    float y = 0.f;
-    float z = 0.f;
-
-    bool eulerMode = false;
-    bool quatMode = false;
-
-    glm::quat quat = glm::quat(1.f, 0.f, 0.f, 0.f);
-
-    float value;
-    if (element.QueryFloatAttribute("w", &value) == tinyxml2::XML_SUCCESS) {
-        quat.w = value;
-        quatMode = true;
-    }
-
-    if (element.QueryFloatAttribute("y", &value) == tinyxml2::XML_SUCCESS) {
-        y = value;
-        eulerMode = true;
-    }
-
-    if (element.QueryFloatAttribute("yaw", &value) == tinyxml2::XML_SUCCESS) {
-        y = -value;
-    }
-
-    if (element.QueryFloatAttribute("heading", &value) == tinyxml2::XML_SUCCESS) {
-        y = -value;
-    }
-
-    if (element.QueryFloatAttribute("azimuth", &value) == tinyxml2::XML_SUCCESS) {
-        y = -value;
-    }
-
-    if (element.QueryFloatAttribute("x", &value) == tinyxml2::XML_SUCCESS) {
-        x = value;
-        eulerMode = true;
-    }
-
-    if (element.QueryFloatAttribute("pitch", &value) == tinyxml2::XML_SUCCESS) {
-        x = value;
-    }
-
-    if (element.QueryFloatAttribute("elevation", &value) == tinyxml2::XML_SUCCESS) {
-        x = value;
-    }
-
-    if (element.QueryFloatAttribute("z", &value) == tinyxml2::XML_SUCCESS) {
-        z = value;
-        eulerMode = true;
-    }
-
-    if (element.QueryFloatAttribute("roll", &value) == tinyxml2::XML_SUCCESS) {
-        z = -value;
-    }
-
-    if (element.QueryFloatAttribute("bank", &value) == tinyxml2::XML_SUCCESS) {
-        z = -value;
-    }
-
-    if (quatMode) {
-        quat.x = x;
-        quat.y = y;
-        quat.z = z;
-    }
-    else {
-        if (eulerMode) {
-            quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
-        }
-        else {
-            quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
-        }
-    }
-
-    return sgct::quat(quat.x, quat.y, quat.z, quat.w);
-}
-
-std::optional<sgct::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
-    sgct::ivec2 value;
-    bool xe = e.QueryIntAttribute("x", &value.x) == tinyxml2::XML_SUCCESS;
-    bool ye = e.QueryIntAttribute("y", &value.y) == tinyxml2::XML_SUCCESS;
-    return (xe && ye) ? std::optional(value) : std::nullopt;
-}
-
-std::optional<sgct::vec2> parseValueVec2(const tinyxml2::XMLElement& e) {
-    sgct::vec2 value;
-    bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_SUCCESS;
-    bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_SUCCESS;
-    return (xe && ye) ? std::optional(value) : std::nullopt;
-}
-
-std::optional<sgct::vec3> parseValueVec3(const tinyxml2::XMLElement& e) {
-    sgct::vec3 value;
-    bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_SUCCESS;
-    bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_SUCCESS;
-    bool ze = e.QueryFloatAttribute("z", &value.z) == tinyxml2::XML_SUCCESS;
-    return (xe && ye && ze) ? std::optional(value) : std::nullopt;
-}
-
-std::optional<sgct::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
-    sgct::vec4 value;
-    bool re = e.QueryFloatAttribute("r", &value.x) == tinyxml2::XML_SUCCESS;
-    bool ge = e.QueryFloatAttribute("g", &value.y) == tinyxml2::XML_SUCCESS;
-    bool be = e.QueryFloatAttribute("b", &value.z) == tinyxml2::XML_SUCCESS;
-    bool ae = e.QueryFloatAttribute("a", &value.w) == tinyxml2::XML_SUCCESS;
-    return (re && ge && be && ae) ? std::optional(value) : std::nullopt;
-}
-
-std::optional<sgct::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
-    sgct::mat4 r;
-    std::array<bool, 16> err = {
-        e.QueryFloatAttribute("x0", &r.values[0]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("y0", &r.values[1]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("z0", &r.values[2]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("w0", &r.values[3]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("x1", &r.values[4]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("y1", &r.values[5]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("z1", &r.values[6]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("w1", &r.values[7]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("x2", &r.values[8]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("y2", &r.values[9]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("z2", &r.values[10]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("w2", &r.values[11]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("x3", &r.values[12]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("y3", &r.values[13]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("z3", &r.values[14]) == tinyxml2::XML_SUCCESS,
-        e.QueryFloatAttribute("w3", &r.values[15]) == tinyxml2::XML_SUCCESS
-    };
-
-    bool suc = std::all_of(err.begin(), err.end(), [](bool v) { return v; });
-    return suc ? std::optional(r) : std::nullopt;
-}
-
-template <typename T>
-std::optional<T> parseValue(const tinyxml2::XMLElement& e, const char* name) {
-    if (e.Attribute(name) == nullptr) {
-        // The attribute does not exist, in which case we want to silently return
-        return std::nullopt;
-    }
-
-    T value;
-    tinyxml2::XMLError err;
-    if constexpr (std::is_same_v<T, float>) {
-        err = e.QueryFloatAttribute(name, &value);
-    }
-    else if constexpr (std::is_same_v<T, bool>) {
-        err = e.QueryBoolAttribute(name, &value);
-    }
-    else if constexpr (std::is_same_v<T, int>) {
-        err = e.QueryIntAttribute(name, &value);
-    }
-    else if constexpr (std::is_same_v<T, unsigned int>) {
-        err = e.QueryUnsignedAttribute(name, &value);
-    }
-    else if constexpr (std::is_same_v<T, double>) {
-        err = e.QueryDoubleAttribute(name, &value);
-    }
-
-    if (err == tinyxml2::XML_SUCCESS) {
-        return value;
-    }
-    else {
-        sgct::Log::Error(fmt::format("Error extracting value '{}'", name));
-        return std::nullopt;
-    }
-}
-
-sgct::config::PlanarProjection parsePlanarProjection(tinyxml2::XMLElement& element) {
-    sgct::config::PlanarProjection proj;
-    tinyxml2::XMLElement* fovElement = element.FirstChildElement("FOV");
-    if (fovElement == nullptr) {
-        throw Err(6000, "Missing specification of field-of-view values");
-    }
-
-    std::optional<float> down = parseValue<float>(*fovElement, "down");
-    std::optional<float> left = parseValue<float>(*fovElement, "left");
-    std::optional<float> right = parseValue<float>(*fovElement, "right");
-    std::optional<float> up = parseValue<float>(*fovElement, "up");
-
-    if (down && left && right && up) {
-        // The negative signs here were lifted up from the viewport class. I think it is
-        // nicer to store them in negative values and consider the fact that the down and
-        // left fovs are inverted to be a detail of the XML specification
-        proj.fov.down = -*down;
-        proj.fov.left = -*left;
-        proj.fov.right = *right;
-        proj.fov.up = *up;
-    }
-    else {
-        throw Err(6001, "Failed to parse planar projection FOV");
-    }
-    proj.fov.distance = parseValue<float>(*fovElement, "distance");
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-        proj.orientation = parseOrientationNode(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Offset"); e) {
-        proj.offset = parseValueVec3(*e);
-    }
-
-    return proj;
-}
-
-sgct::config::FisheyeProjection parseFisheyeProjection(tinyxml2::XMLElement& elem) {
-    sgct::config::FisheyeProjection proj;
-
-    proj.fov = parseValue<float>(elem, "fov");
-    if (const char* a = elem.Attribute("quality"); a) {
-        proj.quality = cubeMapResolutionForQuality(a);
-    }
-    if (const char* a = elem.Attribute("interpolation"); a) {
-        proj.interpolation = parseInterpolation(a);
-    }
-    proj.diameter = parseValue<float>(elem, "diameter");
-    proj.tilt = parseValue<float>(elem, "tilt");
-
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Crop"); e) {
-        sgct::config::FisheyeProjection::Crop crop;
-        if (std::optional<float> v = parseValue<float>(*e, "left"); v) {
-            crop.left = *v;
-        }
-        if (std::optional<float> v = parseValue<float>(*e, "right"); v) {
-            crop.right = *v;
-        }
-        if (std::optional<float> v = parseValue<float>(*e, "bottom"); v) {
-            crop.bottom = *v;
-        }
-        if (std::optional<float> v = parseValue<float>(*e, "top"); v) {
-            crop.top = *v;
-        }
-        proj.crop = crop;
-    }
-
-    proj.keepAspectRatio = parseValue<bool>(elem, "keepAspectRatio");
-
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Offset"); e) {
-        proj.offset = parseValueVec3(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Background"); e) {
-        proj.background = parseValueColor(*e);
-    }
-
-    return proj;
-}
-
-sgct::config::SphericalMirrorProjection parseSphericalMirrorProjection(
-                                                            tinyxml2::XMLElement& element)
-{
-    sgct::config::SphericalMirrorProjection proj;
-    if (const char* v = element.Attribute("quality"); v) {
-        proj.quality = cubeMapResolutionForQuality(v);
-    }
-
-    proj.tilt = parseValue<float>(element, "tilt");
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Background"); e) {
-        proj.background = parseValueColor(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Geometry"); e) {
-        if (const char* a = e->Attribute("bottom"); a) {
-            proj.mesh.bottom = a;
-        }
-        if (const char* a = e->Attribute("left"); a) {
-            proj.mesh.left = a;
-        }
-        if (const char* a = e->Attribute("right"); a) {
-            proj.mesh.right = a;
-        }
-        if (const char* a = e->Attribute("top"); a) {
-            proj.mesh.top = a;
-        }
-    }
-    else {
-        throw Err(6100, "Missing geometry paths");
-    }
-
-    return proj;
-}
-
-sgct::config::SpoutOutputProjection parseSpoutOutputProjection(
-                                                            tinyxml2::XMLElement& element)
-{
-    sgct::config::SpoutOutputProjection proj;
-
-    if (const char* a = element.Attribute("quality"); a) {
-        try {
-            proj.quality = cubeMapResolutionForQuality(a);
-        }
-        catch (const sgct::Error&) {
-            proj.quality = element.IntAttribute("quality");
-        }
-    }
-    if (const char* a = element.Attribute("drawMain"); a) {
-        proj.drawMain = element.BoolAttribute("drawMain");
-    }
-    if (const char* a = element.Attribute("mapping"); a) {
-        proj.mapping = parseMapping(a);
-    }
-    if (const char* a = element.Attribute("mappingSpoutName"); a) {
-        proj.mappingSpoutName = a;
-    }
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Background"); e) {
-        proj.background = parseValueColor(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Channels"); e) {
-        sgct::config::SpoutOutputProjection::Channels c;
-        c.right = *parseValue<bool>(*e, "Right");
-        c.zLeft = *parseValue<bool>(*e, "zLeft");
-        c.bottom = *parseValue<bool>(*e, "Bottom");
-        c.top = *parseValue<bool>(*e, "Top");
-        c.left = *parseValue<bool>(*e, "Left");
-        c.zRight = *parseValue<bool>(*e, "zRight");
-        proj.channels = c;
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("RigOrientation"); e) {
-        proj.orientation = sgct::vec3{
-            *parseValue<float>(*e, "pitch"),
-            *parseValue<float>(*e, "yaw"),
-            *parseValue<float>(*e, "roll")
-        };
-    }
-
-    return proj;
-}
-
-sgct::config::SpoutFlatProjection parseSpoutFlatProjection(tinyxml2::XMLElement& element)
-{
-    sgct::config::SpoutFlatProjection proj;
-
-    if (const char* a = element.Attribute("width"); a) {
-        proj.width = element.IntAttribute("width");
-    }
-    if (const char* a = element.Attribute("height"); a) {
-        proj.height = element.IntAttribute("height");
-    }
-    if (const char* a = element.Attribute("mappingSpoutName"); a) {
-        proj.mappingSpoutName = a;
-    }
-    if (const char* a = element.Attribute("drawMain"); a) {
-        proj.drawMain = element.BoolAttribute("drawMain");
-    }
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Background"); e) {
-        proj.background = parseValueColor(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("PlanarProjection"); e) {
-        proj.proj = parsePlanarProjection(*e);
-    }
-
-    return proj;
-}
-
-sgct::config::CylindricalProjection parseCylindricalProjection(
-                                                            tinyxml2::XMLElement& element)
-{
-    sgct::config::CylindricalProjection proj;
-
-    if (const char* a = element.Attribute("quality"); a) {
-        proj.quality = cubeMapResolutionForQuality(a);
-    }
-    proj.rotation = parseValue<float>(element, "rotation");
-    proj.heightOffset = parseValue<float>(element, "heightOffset");
-    proj.radius = parseValue<float>(element, "radius");
-
-    return proj;
-}
-
-sgct::config::EquirectangularProjection parseEquirectangularProjection(
-                                                            tinyxml2::XMLElement& element)
-{
-    sgct::config::EquirectangularProjection proj;
-    if (const char* a = element.Attribute("quality"); a) {
-        proj.quality = cubeMapResolutionForQuality(a);
-    }
-
-    return proj;
-}
-
-sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement& element) {
-    tinyxml2::XMLElement* elem = element.FirstChildElement();
-    // There should be exactly three positions in this child
-    tinyxml2::XMLElement* c1 = elem;
-    tinyxml2::XMLElement* c2 = elem->NextSiblingElement();
-    if (!c2) {
-        throw Err(6010, "Failed parsing coordinates. Missing XML children");
-    }
-    tinyxml2::XMLElement* c3 = c2->NextSiblingElement();
-    if (!c3) {
-        throw Err(6010, "Failed parsing coordinates. Missing XML children");
-    }
-    std::optional<sgct::vec3> p1 = parseValueVec3(*c1);
-    std::optional<sgct::vec3> p2 = parseValueVec3(*c2);
-    std::optional<sgct::vec3> p3 = parseValueVec3(*c3);
-    if (!(p1 && p2 && p3)) {
-        throw Err(6011, "Failed parsing ProjectionPlane coordinates. Type error");
-    }
-
-    sgct::config::ProjectionPlane proj;
-    proj.lowerLeft = *p1;
-    proj.upperLeft = *p2;
-    proj.upperRight = *p3;
-    return proj;
-}
-
-sgct::config::Viewport parseViewport(tinyxml2::XMLElement& elem) {
-    sgct::config::Viewport viewport;
-    if (const char* a = elem.Attribute("user"); a) {
-        viewport.user = a;
-    }
-    if (const char* a = elem.Attribute("overlay"); a) {
-        viewport.overlayTexture = std::filesystem::absolute(a).string();
-    }
-    if (const char* a = elem.Attribute("mask"); a) {
-        viewport.blendMaskTexture = std::filesystem::absolute(a).string();
-    }
-    if (const char* a = elem.Attribute("BlendMask"); a) {
-        viewport.blendMaskTexture = std::filesystem::absolute(a).string();
-    }
-    if (const char* a = elem.Attribute("BlackLevelMask"); a) {
-        viewport.blackLevelMaskTexture = std::filesystem::absolute(a).string();
-    }
-    if (const char* a = elem.Attribute("mesh"); a) {
-        viewport.correctionMeshTexture = std::filesystem::absolute(a).string();
-    }
-
-    viewport.isTracked = parseValue<bool>(elem, "tracked");
-
-    // get eye if set
-    if (const char* a = elem.Attribute("eye"); a) {
-        viewport.eye = parseEye(a);
-    }
-
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Pos"); e) {
-        if (std::optional<sgct::vec2> pos = parseValueVec2(*e); pos) {
-            viewport.position = *pos;
-        }
-        else {
-            throw Err(6021, "Failed to parse position. Type error");
-        }
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
-        if (std::optional<sgct::vec2> size = parseValueVec2(*e); size) {
-            viewport.size = *size;
-        }
-        else {
-            throw Err(6022, "Failed to parse size. Type error");
-        }
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("PlanarProjection"); e) {
-        viewport.projection = parsePlanarProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("FisheyeProjection"); e) {
-        viewport.projection = parseFisheyeProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("SphericalMirrorProjection"); e)
-    {
-        viewport.projection = parseSphericalMirrorProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("SpoutOutputProjection"); e) {
-        viewport.projection = parseSpoutOutputProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("SpoutFlatProjection"); e) {
-        viewport.projection = parseSpoutFlatProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("CylindricalProjection"); e) {
-        viewport.projection = parseCylindricalProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("EquirectangularProjection"); e)
-    {
-        viewport.projection = parseEquirectangularProjection(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Viewplane"); e) {
-        viewport.projection = parseProjectionPlane(*e);
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Projectionplane"); e) {
-        viewport.projection = parseProjectionPlane(*e);
-    }
-
-    return viewport;
-}
-
-sgct::config::Scene parseScene(tinyxml2::XMLElement& element) {
-    sgct::config::Scene scene;
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Offset"); e) {
-        scene.offset = parseValueVec3(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-        scene.orientation = parseOrientationNode(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Scale"); e) {
-        scene.scale = parseValue<float>(*e, "value");
-    }
-
-    return scene;
-}
-
-sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
-    sgct::config::Window window;
-
-    std::optional<int> id = parseValue<int>(elem, "id");
-    window.id = id.value_or(count);
-
-    if (const char* a = elem.Attribute("name"); a) {
-        window.name = a;
-    }
-    if (const char* a = elem.Attribute("tags"); a) {
-        std::string tags = a;
-        std::stringstream ss(tags);
-        std::string part;
-        while (std::getline(ss, part, ',')) {
-            window.tags.push_back(part);
-        }
-    }
-    if (const char* a = elem.Attribute("bufferBitDepth"); a) {
-        window.bufferBitDepth = parseBufferColorBitDepth(a);
-    }
-
-    window.isFullScreen = parseValue<bool>(elem, "fullscreen");
-    window.shouldAutoiconify = parseValue<bool>(elem, "autoiconify");
-    window.hideMouseCursor = parseValue<bool>(elem, "hideMouseCursor");
-    window.isFloating = parseValue<bool>(elem, "floating");
-    window.alwaysRender = parseValue<bool>(elem, "alwaysRender");
-    window.isHidden = parseValue<bool>(elem, "hidden");
-    window.doubleBuffered = parseValue<bool>(elem, "dbuffered");
-
-    window.msaa = parseValue<int>(elem, "msaa");
-    window.useFxaa = parseValue<bool>(elem, "fxaa");
-
-    window.isDecorated = parseValue<bool>(elem, "decorated");
-    window.isDecorated = parseValue<bool>(elem, "border");
-    window.isResizable = parseValue<bool>(elem, "resizable");
-    window.isMirrored = parseValue<bool>(elem, "mirror");
-    window.draw2D = parseValue<bool>(elem, "draw2D");
-    window.draw3D = parseValue<bool>(elem, "draw3D");
-    window.blitWindowId = parseValue<int>(elem, "blitWindowId");
-    window.monitor = parseValue<int>(elem, "monitor");
-
-    if (const char* a = elem.Attribute("mpcdi"); a) {
-        window.mpcdi = std::filesystem::absolute(a).string();
-    }
-
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Stereo"); e) {
-        window.stereo = parseStereoType(e->Attribute("type"));
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Pos"); e) {
-        if (std::optional<sgct::ivec2> s = parseValueIVec2(*e); s) {
-            window.pos = *s;
-        }
-        else {
-            throw Err(6030, "Could not parse window position. Type error");
-        }
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
-        if (std::optional<sgct::ivec2> s = parseValueIVec2(*e); s) {
-            window.size = *s;
-        }
-        else {
-            throw Err(6031, "Could not parse window size. Type error");
-        }
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Res"); e) {
-        if (std::optional<sgct::ivec2> s = parseValueIVec2(*e); s) {
-            window.resolution = *s;
-        }
-        else {
-            throw Err(6032, "Could not parse window resolution. Type error");
-        }
-    }
-
-    tinyxml2::XMLElement* vp = elem.FirstChildElement("Viewport");
-    while (vp) {
-        window.viewports.push_back(parseViewport(*vp));
-        vp = vp->NextSiblingElement("Viewport");
-    }
-
-    return window;
-}
-
-sgct::config::Node parseNode(tinyxml2::XMLElement& elem) {
-    sgct::config::Node node;
-    if (const char* a = elem.Attribute("address"); a) {
-        node.address = a;
-    }
-    else {
-        throw Err(6040, "Missing field address in node");
-    }
-    if (std::optional<int> a = parseValue<int>(elem, "port"); a) {
-        node.port = *a;
-    }
-    else {
-        throw Err(6041, "Missing field port in node");
-    }
-    node.dataTransferPort = parseValue<int>(elem, "dataTransferPort");
-    node.swapLock = parseValue<bool>(elem, "swapLock");
-
-    tinyxml2::XMLElement* wnd = elem.FirstChildElement("Window");
-    int count = 0;
-    while (wnd) {
-        sgct::config::Window window = parseWindow(*wnd, count);
-        node.windows.push_back(window);
-        wnd = wnd->NextSiblingElement("Window");
-        ++count;
-    }
-
-    return node;
-}
-
-sgct::config::User parseUser(tinyxml2::XMLElement& element) {
-    sgct::config::User user;
-    if (const char* a = element.Attribute("name"); a) {
-        user.name = a;
-    }
-    user.eyeSeparation = parseValue<float>(element, "eyeSeparation");
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Pos"); e) {
-        user.position = parseValueVec3(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-        sgct::quat orientation = parseOrientationNode(*e);
-        glm::mat4 q = glm::mat4_cast(glm::make_quat(&orientation.x));
-
-        sgct::mat4 q2;
-        std::memcpy(&q2, glm::value_ptr(q), sizeof(float[16]));
-        user.transformation = q2;
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
-        user.transformation = parseValueMat4(*e);
-        if (user.transformation) {
-            if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                glm::mat4 m = glm::transpose(glm::make_mat4(user.transformation->values));
-                sgct::mat4 r;
-                std::memcpy(&r, glm::value_ptr(m), sizeof(float[16]));
-                user.transformation = r;
-            }
-        }
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Tracking"); e) {
-        sgct::config::User::Tracking tracking;
-        tracking.tracker = e->Attribute("tracker");
-        tracking.device = e->Attribute("device");
-        user.tracking = tracking;
-    }
-
-    return user;
-}
-
-sgct::config::Settings parseSettings(tinyxml2::XMLElement& elem) {
-    sgct::config::Settings settings;
-
-    settings.useDepthTexture = parseValue<bool>(elem, "DepthBufferTexture");
-    settings.useNormalTexture = parseValue<bool>(elem, "NormalTexture");
-    settings.usePositionTexture = parseValue<bool>(elem, "PositionTexture");
-
-    std::optional<float> f = parseValue<float>(elem, "Precision");
-    if (f && *f == 16.f) {
-        settings.bufferFloatPrecision =
-            sgct::config::Settings::BufferFloatPrecision::Float16Bit;
-    }
-    else if (f && *f == 32.f) {
-        settings.bufferFloatPrecision =
-            sgct::config::Settings::BufferFloatPrecision::Float32Bit;
-    }
-    else if (f) {
-        throw Err(6050, fmt::format("Wrong buffer precision value {}", *f));
-    }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("Display"); e) {
-        sgct::config::Settings::Display display;
-        display.swapInterval = parseValue<int>(*e, "swapInterval");
-        display.refreshRate = parseValue<int>(*e, "refreshRate");
-        settings.display = display;
-    }
-
-    return settings;
-}
-
-sgct::config::Capture parseCapture(tinyxml2::XMLElement& element) {
-    sgct::config::Capture res;
-    if (const char* a = element.Attribute("path"); a) {
-        res.path = a;
-    }
-    if (const char* a = element.Attribute("format"); a) {
-        res.format = parseImageFormat(a);
-    }
-    std::optional<int> rangeBeg = parseValue<int>(element, "range-begin");
-    std::optional<int> rangeEnd = parseValue<int>(element, "range-end");
-
-    if (rangeBeg || rangeEnd) {
-        res.range = sgct::config::Capture::ScreenShotRange();
-    }
-
-    if (rangeBeg) {
-        res.range->first = *rangeBeg;
-    }
-    if (rangeEnd) {
-        res.range->last = *rangeEnd;
-    }
-    return res;
-}
-
-sgct::config::Device parseDevice(tinyxml2::XMLElement& element) {
-    sgct::config::Device device;
-    device.name = element.Attribute("name");
-
-    tinyxml2::XMLElement* sensorElem = element.FirstChildElement("Sensor");
-    while (sensorElem) {
-        sgct::config::Device::Sensors sensors;
-        sensors.vrpnAddress = sensorElem->Attribute("vrpnAddress");
-        sensors.identifier = *parseValue<int>(*sensorElem, "id");
-        device.sensors.push_back(sensors);
-        sensorElem = sensorElem->NextSiblingElement("Sensor");
-    }
-    tinyxml2::XMLElement* buttonElem = element.FirstChildElement("Buttons");
-    while (buttonElem) {
-        sgct::config::Device::Buttons buttons;
-        buttons.vrpnAddress = buttonElem->Attribute("vrpnAddress");
-        buttons.count = *parseValue<int>(*buttonElem, "count");
-        device.buttons.push_back(buttons);
-        buttonElem = buttonElem->NextSiblingElement("Buttons");
-    }
-    tinyxml2::XMLElement* axesElem = element.FirstChildElement("Axes");
-    while (axesElem) {
-        sgct::config::Device::Axes axes;
-        axes.vrpnAddress = axesElem->Attribute("vrpnAddress");
-        axes.count = *parseValue<int>(*axesElem, "count");
-        device.axes.push_back(axes);
-        axesElem = axesElem->NextSiblingElement("Axes");
-
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Offset"); e) {
-        device.offset = parseValueVec3(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-        sgct::quat orientation = parseOrientationNode(*e);
-        glm::mat4 m = glm::mat4_cast(glm::make_quat(&orientation.x));
-        sgct::mat4 r;
-        std::memcpy(&r, glm::value_ptr(m), sizeof(float[16]));
-        device.transformation = r;
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
-        device.transformation = parseValueMat4(*e);
-        if (device.transformation) {
-            if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                glm::mat4 m =
-                    glm::transpose(glm::make_mat4(device.transformation->values));
-                sgct::mat4 r;
-                std::memcpy(&r, glm::value_ptr(m), sizeof(float[16]));
-                device.transformation = r;
-            }
-        }
-    }
-
-    return device;
-}
-
-sgct::config::Tracker parseTracker(tinyxml2::XMLElement& element) {
-    sgct::config::Tracker tracker;
-    if (const char* a = element.Attribute("name"); a) {
-        tracker.name = a;
-    }
-    else {
-        throw Err(6070, "Tracker is missing 'name'");
-    }
-
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Device"); e) {
-        sgct::config::Device device = parseDevice(*e);
-        tracker.devices.push_back(device);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Offset"); e) {
-        tracker.offset = parseValueVec3(*e);
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-        sgct::quat orientation = parseOrientationNode(*e);
-        glm::mat4 m = glm::mat4_cast(glm::make_quat(&orientation.x));
-        sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
-        tracker.transformation = o;
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Scale"); e) {
-        tracker.scale = parseValue<double>(*e, "value");
-    }
-    if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
-        tracker.transformation = parseValueMat4(*e);
-        if (tracker.transformation) {
-            if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                glm::mat4 m =
-                    glm::transpose(glm::make_mat4(tracker.transformation->values));
-                sgct::mat4 o;
-                std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
-                tracker.transformation = o;
-            }
-        }
-    }
-
-    return tracker;
-}
-
-sgct::config::Cluster readXMLFile(const std::filesystem::path& path) {
-    sgct::Log::Warning(
-        "Loading XML files is deprecated and will be removed in a future version of "
-        "SGCT. You can use the NodeJS script in support/config-converter to convert "
-        "existing XML configuration files"
-    );
-
-    tinyxml2::XMLDocument xmlDoc;
-    tinyxml2::XMLError err = xmlDoc.LoadFile(path.string().c_str());
-    if (err != tinyxml2::XML_SUCCESS) {
-        std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
-        std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
-        throw Err(
-            6082,
-            fmt::format(
-                "Error loading XML file '{}'. {} {}", path.string(), s1, s2
-            )
-        );
-    }
-
-    sgct::config::Cluster cluster;
-    tinyxml2::XMLElement* xmlRoot = xmlDoc.FirstChildElement("Cluster");
-    if (xmlRoot == nullptr) {
-        throw Err(6083, "Cannot find 'Cluster' node");
-    }
-    tinyxml2::XMLElement& root = *xmlRoot;
-
-    if (const char* a = root.Attribute("masterAddress"); a) {
-        cluster.masterAddress = a;
-    }
-    else {
-        throw Err(6084, "Cannot find master address");
-    }
-
-    cluster.setThreadAffinity = parseValue<int>(root, "setThreadAffinity");
-    cluster.debugLog = parseValue<bool>(root, "debugLog");
-    cluster.firmSync = parseValue<bool>(root, "firmSync");
-
-    if (tinyxml2::XMLElement* e = root.FirstChildElement("Scene"); e) {
-        cluster.scene = parseScene(*e);
-    }
-    tinyxml2::XMLElement* u = root.FirstChildElement("User");
-    while (u) {
-        sgct::config::User user = parseUser(*u);
-        cluster.users.push_back(user);
-        u = u->NextSiblingElement("User");
-    }
-    if (tinyxml2::XMLElement* e = root.FirstChildElement("Settings"); e) {
-        cluster.settings = parseSettings(*e);
-    }
-    if (tinyxml2::XMLElement* e = root.FirstChildElement("Capture"); e) {
-        cluster.capture = parseCapture(*e);
-    }
-
-    tinyxml2::XMLElement* trackerElem = root.FirstChildElement("Tracker");
-    while (trackerElem) {
-        sgct::config::Tracker tracker = parseTracker(*trackerElem);
-        cluster.trackers.push_back(tracker);
-        trackerElem = trackerElem->NextSiblingElement("Tracker");
-    }
-
-    tinyxml2::XMLElement* nodeElem = root.FirstChildElement("Node");
-    while (nodeElem) {
-        sgct::config::Node node = parseNode(*nodeElem);
-        cluster.nodes.push_back(node);
-        nodeElem = nodeElem->NextSiblingElement("Node");
-    }
-
-    cluster.success = true;
-    return cluster;
-}
-} // namespace xmlconfig
 
 // Define the JSON version functions that will make our live easier
 namespace sgct {
@@ -1119,9 +241,9 @@ void from_json(const nlohmann::json& j, sgct::quat& q) {
     auto itYaw = j.find("yaw");
     auto itRoll = j.find("roll");
     if (itPitch != j.end() && itYaw != j.end() && itRoll != j.end()) {
-        float x = itPitch->get<float>();
-        float y = -itYaw->get<float>();
-        float z = -itRoll->get<float>();
+        const float x = itPitch->get<float>();
+        const float y = -itYaw->get<float>();
+        const float z = -itRoll->get<float>();
 
         glm::quat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
         quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
@@ -1180,7 +302,7 @@ void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
             res = T();
         }
         else {
-            throw std::runtime_error(fmt::format(
+            throw std::runtime_error(std::format(
                 "Could not find required key '{}'", key)
             );
         }
@@ -1218,10 +340,10 @@ void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        quat q = it->get<quat>();
+        const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
         sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
         u.transformation = o;
     }
 
@@ -1285,7 +407,7 @@ void from_json(const nlohmann::json& j, Settings& s) {
             s.bufferFloatPrecision = Settings::BufferFloatPrecision::Float32Bit;
         }
         else {
-            throw Err(6050, fmt::format("Wrong buffer precision value {}", precision));
+            throw Err(6050, std::format("Wrong buffer precision value {}", precision));
         }
     }
 
@@ -1338,7 +460,7 @@ void to_json(nlohmann::json& j, const Settings& s) {
 void from_json(const nlohmann::json& j, Capture& c) {
     parseValue(j, "path", c.path);
     if (auto it = j.find("format");  it != j.end()) {
-        std::string format = it->get<std::string>();
+        const std::string format = it->get<std::string>();
         c.format = parseImageFormat(format);
     }
 
@@ -1459,10 +581,10 @@ void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "offset", t.offset);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        quat q = it->get<quat>();
+        const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
         sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
         t.transformation = o;
     }
     parseValue(j, "scale", t.scale);
@@ -1497,8 +619,9 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     auto itRight = j.find("right");
     auto itUp = j.find("up");
 
-    bool hasHorizontal = itHFov != j.end() || (itLeft != j.end() && itRight != j.end());
-    bool hasVertical = itVFov != j.end() || (itDown != j.end() && itUp != j.end());
+    const bool hasHorizontal =
+        itHFov != j.end() || (itLeft != j.end() && itRight != j.end());
+    const bool hasVertical = itVFov != j.end() || (itDown != j.end() && itUp != j.end());
     if (!hasHorizontal || !hasVertical) {
         throw Err(6000, "Missing specification of field-of-view values");
     }
@@ -1506,13 +629,13 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     // First we extract the potentially existing hFov and vFov values and **then** the
     // more specific left/right/up/down ones which would overwrite the first set
     if (itHFov != j.end()) {
-        float hFov = itHFov->get<float>();
+        const float hFov = itHFov->get<float>();
         f.left = hFov / 2.f;
         f.right = hFov / 2.f;
     }
 
     if (itVFov != j.end()) {
-        float vFov = itVFov->get<float>();
+        const float vFov = itVFov->get<float>();
         f.down = vFov / 2.f;
         f.up = vFov / 2.f;
     }
@@ -1535,7 +658,7 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
 
     // The negative signs here were lifted up from the viewport class. I think it is nicer
     // to store them in negative values and consider the fact that the down and left fovs
-    // are inverted to be a detail of the XML specification
+    // are inverted to be a detail of the JSON configuration specification
     f.down *= -1.f;
     f.left *= -1.f;
 
@@ -1597,12 +720,12 @@ void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     parseValue(j, "fov", p.fov);
 
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
     if (auto it = j.find("interpolation");  it != j.end()) {
-        std::string interpolation = it->get<std::string>();
+        const std::string interpolation = it->get<std::string>();
         p.interpolation = parseInterpolation(interpolation);
     }
     parseValue(j, "diameter", p.diameter);
@@ -1696,7 +819,7 @@ void to_json(nlohmann::json& j, const FisheyeProjection& p) {
 
 void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
@@ -1753,7 +876,7 @@ void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
 
 void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
@@ -1762,7 +885,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     }
 
     if (auto it = j.find("mapping");  it != j.end()) {
-        std::string mapping = it->get<std::string>();
+        const std::string mapping = it->get<std::string>();
         p.mapping = parseMapping(mapping);
     }
 
@@ -1910,7 +1033,7 @@ void to_json(nlohmann::json& j, const SpoutFlatProjection& p) {
 
 void from_json(const nlohmann::json& j, CylindricalProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
@@ -1941,7 +1064,7 @@ void to_json(nlohmann::json& j, const CylindricalProjection& p) {
 
 void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
-        std::string quality = it->get<std::string>();
+        const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 }
@@ -1992,21 +1115,25 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "tracked", v.isTracked);
 
     if (auto it = j.find("eye");  it != j.end()) {
-        std::string eye = it->get<std::string>();
+        const std::string eye = it->get<std::string>();
         v.eye = parseEye(eye);
     }
 
     parseValue(j, "pos", v.position);
     parseValue(j, "size", v.size);
 
+    std::string type;
     if (auto it = j.find("projection");  it != j.end()) {
         if (it->is_null()) {
             v.projection = sgct::config::NoProjection();
         }
         else {
-            std::string type = it->at("type").get<std::string>();
+            type = it->at("type").get<std::string>();
             if (type == "PlanarProjection") {
                 v.projection = it->get<PlanarProjection>();
+            }
+            else if (type == "TextureMappedProjection") {
+                v.projection = it->get<TextureMappedProjection>();
             }
             else if (type == "FisheyeProjection") {
                 v.projection = it->get<FisheyeProjection>();
@@ -2030,8 +1157,14 @@ void from_json(const nlohmann::json& j, Viewport& v) {
                 v.projection = it->get<ProjectionPlane>();
             }
             else {
-                throw Err(6089, fmt::format("Unknown projection type '{}'", type));
+                throw Err(6089, std::format("Unknown projection type '{}'", type));
             }
+        }
+    }
+
+    if (type == "TextureMappedProjection") {
+        if (!v.correctionMeshTexture) {
+            throw Err(6110, "Missing correction mesh for TextureMappedProjection");
         }
     }
 }
@@ -2092,6 +1225,11 @@ void to_json(nlohmann::json& j, const Viewport& v) {
             proj["type"] = "PlanarProjection";
             return proj;
         },
+        [](const config::TextureMappedProjection& p) {
+            nlohmann::json proj = p;
+            proj["type"] = "TextureMappedProjection";
+            return proj;
+        },
         [](const config::FisheyeProjection& p) {
             nlohmann::json proj = p;
             proj["type"] = "FisheyeProjection";
@@ -2139,7 +1277,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "tags", w.tags);
 
     if (auto it = j.find("bufferbitdepth");  it != j.end()) {
-        std::string bbd = it->get<std::string>();
+        const std::string bbd = it->get<std::string>();
         w.bufferBitDepth = parseBufferColorBitDepth(bbd);
     }
 
@@ -2161,10 +1299,6 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "draw3d", w.draw3D);
     parseValue(j, "blitwindowid", w.blitWindowId);
     parseValue(j, "monitor", w.monitor);
-
-    if (auto it = j.find("mpcdi");  it != j.end()) {
-        w.mpcdi = std::filesystem::absolute(it->get<std::string>()).string();
-    }
 
     if (auto it = j.find("stereo");  it != j.end()) {
         w.stereo = parseStereoType(it->get<std::string>());
@@ -2279,10 +1413,6 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.monitor.has_value()) {
         j["monitor"] = *w.monitor;
-    }
-
-    if (w.mpcdi.has_value()) {
-        j["mpcdi"] = *w.mpcdi;
     }
 
     if (w.stereo.has_value()) {
@@ -2451,9 +1581,9 @@ void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 namespace sgct {
 
 config::Cluster readConfig(const std::string& filename,
-                           const std::string additionalErrorDescription)
+                           const std::string& additionalError)
 {
-    Log::Debug(fmt::format("Parsing XML config '{}'", filename));
+    Log::Debug(std::format("Parsing config '{}'", filename));
     if (filename.empty()) {
         throw Err(6080, "No configuration file provided");
     }
@@ -2462,63 +1592,54 @@ config::Cluster readConfig(const std::string& filename,
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", name)
+            std::format("Could not find configuration file: {}", name)
         );
     }
 
     // First save the old current working directory, set the new one
-    std::filesystem::path oldPwd = std::filesystem::current_path();
-    std::filesystem::path configFolder = std::filesystem::path(name).parent_path();
+    const std::filesystem::path oldPwd = std::filesystem::current_path();
+    const std::filesystem::path configFolder = std::filesystem::path(name).parent_path();
     if (!configFolder.empty()) {
         std::filesystem::current_path(configFolder);
     }
 
     // Then load the cluster
-    config::Cluster cluster = [&additionalErrorDescription](std::filesystem::path path) {
-        if (path.extension() == ".xml") {
-            return xmlconfig::readXMLFile(path);
-        }
-        else if (path.extension() == ".json") {
-            try {
-                std::ifstream f(path);
-                std::string contents = std::string(
-                    (std::istreambuf_iterator<char>(f)),
-                    std::istreambuf_iterator<char>()
-                );
-                return readJsonConfig(contents);
-            }
-            catch (const nlohmann::json::exception& e) {
-                if (!additionalErrorDescription.empty()) {
-                    throw Err(
-                        6082,
-                        fmt::format("Importing of this configuration file failed with "
-                            "the message:\n\n{}:\n\n{}",
-                            additionalErrorDescription, e.what()
-                        )
-                    );
-                }
-                else {
-                    throw Err(6082, e.what());
-                }
-            }
-        }
-        else {
-            throw Err(
-                6088,
-                fmt::format("Unsupported file extension {}", path.extension().string())
+    using namespace config;
+    const Cluster cluster = [&additionalError](const std::filesystem::path& path) {
+        try {
+            std::ifstream f = std::ifstream(path);
+            const std::string contents = std::string(
+                std::istreambuf_iterator<char>(f),
+                std::istreambuf_iterator<char>()
             );
+            return readJsonConfig(contents);
+        }
+        catch (const nlohmann::json::exception& e) {
+            if (!additionalError.empty()) {
+                throw Err(
+                    6082,
+                    std::format(
+                        "Importing of this configuration file failed with the "
+                        "message:\n\n{}:\n\n{}",
+                        additionalError, e.what()
+                    )
+                );
+            }
+            else {
+                throw Err(6082, e.what());
+            }
         }
     }(name);
 
     // and reset the current working directory to the old value
     std::filesystem::current_path(oldPwd);
 
-    Log::Debug(fmt::format("Config file '{}' read successfully", name));
-    Log::Info(fmt::format("Number of nodes in cluster: {}", cluster.nodes.size()));
+    Log::Debug(std::format("Config file '{}' read successfully", name));
+    Log::Info(std::format("Number of nodes in cluster: {}", cluster.nodes.size()));
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const config::Node& node = cluster.nodes[i];
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "\tNode ({}) address: {} [{}]", i, node.address, node.port
         ));
     }
@@ -2568,8 +1689,10 @@ void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
                                  const std::string &message)
 {
     nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-    mErrMessage = fmt::format("Validation of config file failed against schema '{}'"
-        "\nat entry in json file: {}", message, instance.dump());
+    mErrMessage = std::format(
+        "Validation of config file failed '{}'\nat entry in JSON file: {}",
+        message, instance.dump()
+    );
 }
 
 bool custom_error_handler::validationSucceeded() {
@@ -2584,7 +1707,7 @@ std::string stringifyJsonFile(const std::string& filename) {
     std::ifstream myfile;
     myfile.open(filename);
     if (myfile.fail()) {
-        throw Err(6082, fmt::format("Failed to open '{}'.", filename));
+        throw Err(6082, std::format("Failed to open '{}'", filename));
     }
     std::stringstream buffer;
     buffer << myfile.rdbuf();
@@ -2595,7 +1718,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
                                    const std::string& schema,
                                    const std::string& validationTypeExplanation)
 {                                 
-    Log::Debug(fmt::format("Validating config '{}' against schema '{}'", config, schema));
+    Log::Debug(std::format("Validating config '{}' against schema '{}'", config, schema));
     if (config.empty()) {
         throw Err(6080, "No configuration file provided");
     }
@@ -2606,22 +1729,22 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
     if (!std::filesystem::exists(configName)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", configName)
+            std::format("Could not find configuration file '{}'", configName)
         );
     }
     std::string schemaName = std::filesystem::absolute(schema).string();
     if (!std::filesystem::exists(schemaName)) {
         throw Err(
             6081,
-            fmt::format("Could not find schema file: {}", schemaName)
+            std::format("Could not find schema file '{}'", schemaName)
         );
     }
-    std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
-    std::string cfgString = stringifyJsonFile(std::string(config));
+    const std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
+    const std::string cfgString = stringifyJsonFile(std::string(config));
     bool validationSuccessful = false;
     try {
         // The schema is defined based upon string from file
-        std::string schemaString = stringifyJsonFile(schema);
+        const std::string schemaString = stringifyJsonFile(schema);
         validationSuccessful = validateConfigAgainstSchema(
             cfgString,
             schemaString,
@@ -2642,15 +1765,15 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
 
 bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
                                  const std::string& stringifiedSchema,
-                                 std::filesystem::path& schemaDir)
+                                 const std::filesystem::path& schemaDir)
 {
-    nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
-    nlohmann::json_schema::json_validator validator(
+    const nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
+    const nlohmann::json_schema::json_validator validator(
         schemaInput,
         [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
             std::string loadPath = schemaDir.string() + std::string("/") +
                 id.to_string();
-            size_t lbIndex = loadPath.find("#");
+            const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);
             }
@@ -2660,19 +1783,19 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
                 loadPath = loadPath.substr(0, strEnd + 1);
             }
             if (std::filesystem::exists(loadPath)) {
-                Log::Debug(fmt::format("Loading schema file '{}'.", loadPath));
-                std::string newSchema = stringifyJsonFile(loadPath);
+                Log::Debug(std::format("Loading schema file '{}'", loadPath));
+                const std::string newSchema = stringifyJsonFile(loadPath);
                 value = nlohmann::json::parse(newSchema);
             }
             else {
                 throw Err(
                     6081,
-                    fmt::format("Could not find schema file to load: {}", loadPath)
+                    std::format("Could not find schema file to load: {}", loadPath)
                 );
             }
         }
     );
-    nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
+    const nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
     validator.validate(sgct_cfg);
     return true;
 }
@@ -2683,9 +1806,10 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
 {
     throw Err(
         6089,
-        fmt::format("Checking this configuration file against schema '{}' failed.\n\n"
+        std::format("Checking this configuration file against schema '{}' failed.\n\n"
             "{}.\n\nSchema validator provided the following error message:\n\n{}",
-            schema, validationTypeExplanation, exceptionMessage)
+            schema, validationTypeExplanation, exceptionMessage
+        )
     );
 }
 
@@ -2705,14 +1829,14 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", name)
+            std::format("Could not find configuration file '{}'", name)
         );
     }
 
-    config::GeneratorVersion genVersion = [](std::filesystem::path path) {
+    config::GeneratorVersion genVersion = [](const std::filesystem::path& path) {
         if (path.extension() == ".json") {
             try {
-                std::ifstream f(path);
+                const std::ifstream f = std::ifstream(path);
                 return readJsonGeneratorVersion(path.string());
             }
             catch (const std::runtime_error& e) {
@@ -2725,14 +1849,15 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         else {
             throw Err(
                 6088,
-                fmt::format("Unsupported file extension {}", path.extension().string())
+                std::format("Unsupported file extension '{}'", path.extension())
             );
         }
     }(name);
 
-    Log::Debug(fmt::format("Config file '{}' read for generator version:"
-                           "'{}' version {}.{}", name, genVersion.name, genVersion.major,
-                           genVersion.minor));
+    Log::Debug(std::format(
+        "Config file '{}' read for generator version '{}' version {}.{}",
+        name, genVersion.name, genVersion.major, genVersion.minor
+    ));
 
     return genVersion;
 }
@@ -2744,12 +1869,12 @@ sgct::config::Meta readMeta(const std::string& filename) {
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", name)
+            std::format("Could not find configuration file '{}'", name)
         );
     }
 
     try {
-        std::ifstream f(name);
+        const std::ifstream f = std::ifstream(name);
         nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(name.string()));
         if (auto it = j.find("meta");  it != j.end()) {
             sgct::config::Meta meta;

@@ -11,10 +11,9 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
@@ -92,9 +91,6 @@ bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-Window::Window() {}
-Window::~Window() {}
-
 void Window::applyWindow(const config::Window& window) {
     ZoneScoped;
 
@@ -107,7 +103,7 @@ void Window::applyWindow(const config::Window& window) {
         setTags(window.tags);
     }
     if (window.bufferBitDepth) {
-        ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
+        const ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
             using CBD = config::Window::ColorBitDepth;
             switch (cbd) {
                 case CBD::Depth8: return ColorBitDepth::Depth8;
@@ -171,25 +167,8 @@ void Window::applyWindow(const config::Window& window) {
     if (window.monitor) {
         setFullScreenMonitorIndex(*window.monitor);
     }
-    if (window.mpcdi) {
-        ZoneScopedN("MPCDI");
-
-        mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
-        setWindowPosition(ivec2{ 0, 0 });
-        initWindowResolution(r.resolution);
-        setFramebufferResolution(r.resolution);
-        setFixResolution(true);
-
-        for (const mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
-            auto v = std::make_unique<Viewport>(this);
-            v->applySettings(vp.proj);
-            v->setMpcdiWarpMesh(vp.meshData);
-            addViewport(std::move(v));
-        }
-        return;
-    }
     if (window.stereo) {
-        StereoMode sm = [](config::Window::StereoMode mode) {
+        const StereoMode sm = [](config::Window::StereoMode mode) {
             using SM = config::Window::StereoMode;
             switch (mode) {
                 case SM::NoStereo: return StereoMode::NoStereo;
@@ -261,22 +240,22 @@ void Window::close() {
 
     makeSharedContextCurrent();
 
-    Log::Info(fmt::format("Deleting screen capture data for window {}", _id));
+    Log::Info(std::format("Deleting screen capture data for window {}", _id));
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        Log::Info(fmt::format("Releasing OpenGL buffers for window {}", _id));
+        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Log::Info(fmt::format("Deleting VBOs for window {}", _id));
+    Log::Info(std::format("Deleting VBOs for window {}", _id));
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Log::Info(fmt::format("Deleting VAOs for window {}", _id));
+    Log::Info(std::format("Deleting VAOs for window {}", _id));
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -442,7 +421,7 @@ void Window::setFramebufferResolution(ivec2 resolution) {
     }
 }
 
-void Window::swap(bool takeScreenshot) {
+void Window::swapBuffers(bool takeScreenshot) {
     if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
     }
@@ -503,7 +482,7 @@ void Window::updateResolutions() {
         // adjusting only the horizontal (x) values
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
             ));
         }
@@ -514,7 +493,7 @@ void Window::updateResolutions() {
             glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Resolution changed to {}x{} in window {}", _windowRes.x, _windowRes.y, _id
         ));
         _pendingWindowRes = std::nullopt;
@@ -523,7 +502,7 @@ void Window::updateResolutions() {
     if (_pendingFramebufferRes.has_value()) {
         _framebufferRes = *_pendingFramebufferRes;
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Framebuffer resolution changed to {}x{} for window {}",
             _framebufferRes.x, _framebufferRes.y, _id
         ));
@@ -538,7 +517,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Log::Debug(fmt::format("HFOV changed to {} for window {}", hFovDeg, _id));
+    Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
 void Window::initWindowResolution(ivec2 resolution) {
@@ -716,7 +695,7 @@ void Window::setFixResolution(bool state) {
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "FXAA status: {} for window {}", state ? "enabled" : "disabled", _id
     ));
 }
@@ -725,21 +704,21 @@ void Window::setUseQuadbuffer(bool state) {
     _useQuadBuffer = state;
     if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Log::Info(fmt::format("Window {}: Enabling quadbuffered rendering", _id));
+        Log::Info(std::format("Window {}: Enabling quadbuffered rendering", _id));
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        Log::Info(fmt::format("Window {}: Draw 2D function disabled", _id));
+        Log::Info(std::format("Window {}: Draw 2D function disabled", _id));
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        Log::Info(fmt::format("Window {}: Draw 3D function disabled", _id));
+        Log::Info(std::format("Window {}: Draw 3D function disabled", _id));
     }
 }
 
@@ -747,7 +726,7 @@ void Window::setBlitWindowId(int id) {
     _blitWindowId = id;
     if (_blitWindowId >= 0) {
         Log::Info(
-            fmt::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
+            std::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
         );
     }
 }
@@ -781,7 +760,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     GLFWmonitor* mon = nullptr;
     if (_isFullScreen) {
         ZoneScopedN("Fullscreen Settings");
-        int count;
+        int count = 0;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
         if (_monitorIndex > 0 && _monitorIndex < count) {
@@ -790,7 +769,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         else {
             mon = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                Log::Info(fmt::format(
+                Log::Info(std::format(
                     "Window({}): Invalid monitor index ({}). Computer has {} monitors",
                     _id, _monitorIndex, count
                 ));
@@ -877,10 +856,12 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
     }
 
-    std::string title = "SGCT node: " +
-        ClusterManager::instance().thisNode().address() + " (" +
-        (NetworkManager::instance().isComputerServer() ? "server" : "client") +
-        ": " + std::to_string(_id) + ")";
+    const std::string title = std::format(
+        "SGCT node: {} ({}: {})",
+        ClusterManager::instance().thisNode().address(),
+        (NetworkManager::instance().isComputerServer() ? "server" : "client"),
+        _id
+    );
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
 
@@ -905,14 +886,14 @@ void Window::initNvidiaSwapGroups() {
         if (res == GL_FALSE) {
             throw Err(3006, "Error requesting maximum number of swap groups");
         }
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "WGL_NV_swap_group extension is supported. Max number of groups: {}. "
             "Max number of barriers: {}", maxGroup, maxBarrier
         ));
 
         if (maxGroup > 0) {
             _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-            Log::Info(fmt::format(
+            Log::Info(std::format(
                 "Joining swapgroup 1 [{}]", _useSwapGroups ? "ok" : "failed"
             ));
         }
@@ -942,8 +923,8 @@ void Window::initScreenCapture() {
             sc.setTextureTransferProperties(_colorDataType);
         }
 
-        Settings::CaptureFormat format = Settings::instance().captureFormat();
-        ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
+        const Settings::CaptureFormat format = Settings::instance().captureFormat();
+        const ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
             using CF = Settings::CaptureFormat;
             switch (f) {
                 case CF::PNG: return ScreenCapture::CaptureFormat::PNG;
@@ -975,15 +956,16 @@ void Window::initScreenCapture() {
 }
 
 unsigned int Window::swapGroupFrameNumber() {
-    unsigned int frameNumber = 0;
-
 #ifdef WIN32
+    unsigned int frameNumber = 0;
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
         HDC hDC = wglGetCurrentDC();
         wglQueryFrameCountNV(hDC, &frameNumber);
     }
-#endif
     return frameNumber;
+#else // ^^^^ WIN32 // !WIN32 vvvv
+    return 0;
+#endif
 }
 
 void Window::resetSwapGroupFrameNumber() {
@@ -1005,10 +987,10 @@ void Window::createTextures() {
     ZoneScoped;
     TracyGpuZone("Create Textures");
 
-    GLint max;
+    GLint max = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Window {}: Requested framebuffer too big (Max: {})", _id, max
         ));
         return;
@@ -1033,7 +1015,7 @@ void Window::createTextures() {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    Log::Debug(fmt::format("Targets initialized successfully for window {}", _id));
+    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1072,7 +1054,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         std::get<2>(formats),
         nullptr
     );
-    Log::Debug(fmt::format("{}x{} texture generated for window {}", res.x, res.y, id));
+    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1087,7 +1069,7 @@ void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
 
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Window {}: FBO initiated successfully. Number of samples: {}",
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     ));
@@ -1149,8 +1131,8 @@ void Window::loadShaders() {
     // reload shader program if it exists
     _stereo.shader.deleteProgram();
 
-    std::string_view stereoVertShader = shaders::BaseVert;
-    std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
+    const std::string_view stereoVertShader = shaders::BaseVert;
+    const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
         using SM = StereoMode;
         switch (mode) {
             case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;

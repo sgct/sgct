@@ -30,7 +30,7 @@ public:
      */
     ~Box();
 
-     void draw();
+     void draw() const;
 
 private:
     unsigned int _vao = 0;

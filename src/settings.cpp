@@ -40,7 +40,7 @@ void Settings::applySettings(const config::Settings& settings) {
         setUsePositionTexture(*settings.usePositionTexture);
     }
     if (settings.bufferFloatPrecision) {
-        BufferFloatPrecision p =
+        const BufferFloatPrecision p =
             [](config::Settings::BufferFloatPrecision pr) {
             switch (pr) {
                 case config::Settings::BufferFloatPrecision::Float16Bit:
@@ -67,7 +67,7 @@ void Settings::applyCapture(const config::Capture& capture) {
         setCapturePath(*capture.path);
     }
     if (capture.format) {
-        CaptureFormat f = [](config::Capture::Format format) {
+        const CaptureFormat f = [](config::Capture::Format format) {
             switch (format) {
                 case config::Capture::Format::PNG: return CaptureFormat::PNG;
                 case config::Capture::Format::JPG: return CaptureFormat::JPG;
@@ -161,7 +161,7 @@ Settings::DrawBufferType Settings::drawBufferType() const {
     }
 }
 
-void Settings::setCapturePath(std::string path) {
+void Settings::setCapturePath(std::filesystem::path path) {
     if (path != _screenshot.capturePath) {
         // If we set a new path, we want to start counting from 0 again
         Engine::instance().setScreenshotNumber(0);
@@ -177,7 +177,7 @@ void Settings::setScreenshotPrefix(std::string prefix) {
     _screenshot.prefix = std::move(prefix);
 }
 
-const std::string& Settings::capturePath() const {
+const std::filesystem::path& Settings::capturePath() const {
     return _screenshot.capturePath;
 }
 

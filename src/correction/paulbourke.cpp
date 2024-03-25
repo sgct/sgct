@@ -10,13 +10,13 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
-#include <scn/scn.h>
+#include <scn/scan.h>
 #include <fstream>
 
 namespace sgct::correction {
@@ -28,13 +28,13 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading Paul Bourke spherical mirror mesh from {}", path));
+    Log::Info(std::format("Reading Paul Bourke spherical mirror mesh from '{}'", path));
 
     std::ifstream meshFile(path);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::PaulBourke, 2040,
-            fmt::format("Failed to open {}", path)
+            std::format("Failed to open '{}'", path)
         );
     }
 
@@ -42,12 +42,11 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
 
     // get the first line containing the mapping type _id
     if (std::getline(meshFile, line)) {
-        int mappingType = -1;
-        auto r = scn::scan_default(line, mappingType);
+        auto r = scn::scan_value<int>(line);
         if (!r) {
             throw Error(
                 Error::Component::PaulBourke, 2041,
-                fmt::format("Error reading mapping type in file {}", path)
+                std::format("Error reading mapping type in file '{}'", path)
             );
         }
     }
@@ -55,24 +54,24 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     // get the mesh dimensions
     std::optional<glm::ivec2> meshSize;
     if (std::getline(meshFile, line)) {
-        int valX;
-        int valY;
-        auto r = scn::scan_default(line, valX, valY);
+        auto r = scn::scan<int, int>(line, "{} {}");
         if (!r) {
             throw Error(
                 Error::Component::PaulBourke, 2042,
-                fmt::format("Invalid data in file {}", path)
+                std::format("Invalid data in file '{}'", path)
             );
         }
+        auto [valX, valY] = r->values();
         buf.vertices.reserve(static_cast<size_t>(valX) * static_cast<size_t>(valY));
         meshSize = glm::ivec2(valX, valY);
     }
 
     // get all data
-    float x, y, s, t, intensity;
     while (std::getline(meshFile, line)) {
-        auto r = scn::scan_default(line, x, y, s, t, intensity);
+        auto r = scn::scan<float, float, float, float, float>(line, "{} {} {} {} {}");
         if (r) {
+            auto [x, y, s, t, intensity] = r->values();
+
             Buffer::Vertex vertex;
             vertex.x = x;
             vertex.y = y;

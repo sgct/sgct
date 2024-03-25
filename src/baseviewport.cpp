@@ -9,15 +9,15 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
-#include <stdexcept>
-#include <type_traits>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <stdexcept>
+#include <type_traits>
 
 namespace sgct {
 
@@ -100,7 +100,7 @@ void BaseViewport::linkUserName() {
             _user = user;
         }
         else {
-            Log::Warning(fmt::format("Could not find user with name '{}'", _userName));
+            Log::Warning(std::format("Could not find user with name '{}'", _userName));
         }
     }
 }

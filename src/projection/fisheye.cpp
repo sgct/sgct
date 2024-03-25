@@ -57,7 +57,7 @@ void FisheyeProjection::update(vec2 size) {
     float x = 1.f;
     float y = 1.f;
     if (_keepAspectRatio) {
-        float aspect = frameBufferAspect * cropAspect;
+        const float aspect = frameBufferAspect * cropAspect;
         if (aspect >= 1.f) {
             x = 1.f / aspect;
         }
@@ -297,9 +297,9 @@ void FisheyeProjection::initViewports() {
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
     // 250.5287794 degree FOV covers exactly five sides of a cube, larger FOV needs six
-    const float fiveFaceLimit = 2.f * glm::degrees(acos(-1.f / sqrt(3.f)));
+    const float fiveFaceLimit = 2.f * glm::degrees(std::acos(-1.f / std::sqrt(3.f)));
     // 109.4712206 degree FOV is needed to cover the entire top face
-    const float topFaceLimit = 2.f * glm::degrees(acos(1.f / sqrt(3.f)));
+    const float topFaceLimit = 2.f * glm::degrees(std::acos(1.f / std::sqrt(3.f)));
 
 
     // four faces doesn't cover more than 180 degrees
@@ -316,7 +316,7 @@ void FisheyeProjection::initViewports() {
         const float normalizedProjectionOffset =
             _fov < 180.f ?
                 1.f - _fov / 180.f :
-                sqrt((2.f * cosAngle * cosAngle) / (1.f - cosAngle * cosAngle));
+                std::sqrt((2.f * cosAngle * cosAngle) / (1.f - cosAngle * cosAngle));
 
         projectionOffset = normalizedProjectionOffset * radius;
         cropLevel = (1.f - normalizedProjectionOffset) / 2.f;
@@ -353,9 +353,9 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.x = projectionOffset;
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-            glm::vec3 ur = glm::vec3(rotMat * upperRight);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRight);
             _subViewports.right.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -379,9 +379,9 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperLeft = upperLeftBase;
             upperLeft.x = -projectionOffset;
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeft);
-            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.left.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -403,9 +403,9 @@ void FisheyeProjection::initViewports() {
             glm::vec4 lowerLeft = lowerLeftBase;
             lowerLeft.y = -projectionOffset;
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.bottom.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -428,9 +428,9 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.y = projectionOffset;
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeft);
-            glm::vec3 ur = glm::vec3(rotMat * upperRight);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRight);
             _subViewports.top.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -440,9 +440,9 @@ void FisheyeProjection::initViewports() {
 
         // +Z face
         {
-            glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
-            glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
+            const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
             _subViewports.front.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -462,9 +462,9 @@ void FisheyeProjection::initViewports() {
                     glm::vec3(0.f, 1.f, 0.f)
                 );
 
-                glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-                glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-                glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+                const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+                const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+                const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
                 _subViewports.back.projectionPlane().setCoordinates(
                     vec3(ll.x, ll.y, ll.z),
                     vec3(ul.x, ul.y, ul.z),
@@ -489,9 +489,9 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.right.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -510,9 +510,9 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.bottom.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -528,9 +528,9 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
-            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
-            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
+            const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.top.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -540,9 +540,9 @@ void FisheyeProjection::initViewports() {
 
         // +Z face
         {
-            glm::vec3 ll = glm::vec3(panRot * lowerLeftBase);
-            glm::vec3 ul = glm::vec3(panRot * upperLeftBase);
-            glm::vec3 ur = glm::vec3(panRot * upperRightBase);
+            const glm::vec3 ll = glm::vec3(panRot * lowerLeftBase);
+            const glm::vec3 ul = glm::vec3(panRot * upperLeftBase);
+            const glm::vec3 ur = glm::vec3(panRot * upperRightBase);
             _subViewports.front.projectionPlane().setCoordinates(
                 vec3(ll.x, ll.y, ll.z),
                 vec3(ul.x, ul.y, ul.z),
@@ -565,8 +565,8 @@ void FisheyeProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
-                                         Settings::DrawBufferType type)
+    const std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
+                                               Settings::DrawBufferType type)
     {
         // It would be nice to do a multidimensional switch statement -.-
 
@@ -632,7 +632,7 @@ void FisheyeProjection::initShaders() {
         Settings::instance().drawBufferType()
     );
 
-    std::string_view samplerShader =
+    const std::string_view samplerShader =
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
 
     _shader = ShaderProgram("FisheyeShader");

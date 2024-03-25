@@ -18,7 +18,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/node.h>
@@ -140,30 +140,30 @@ NetworkManager::NetworkManager(NetworkMode nm,
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_CANONNAME;
 
-    addrinfo* info;
+    addrinfo* info = nullptr;
     {
         ZoneScopedN("getaddrinfo");
-        //TODO: micah - why does getaddrinfo fail for 'macbookpro.local'
-        #ifdef __APPLE__
-            int result = getaddrinfo("localhost", "http", &hints, &info);
-        #else
-            int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
-        #endif // __APPLE__
+        //TODO(micah) why does getaddrinfo fail for 'macbookpro.local'
+#ifdef __APPLE__
+            const int result = getaddrinfo("localhost", "http", &hints, &info);
+#else
+            const int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
+#endif // __APPLE__
     if (result != 0) {
             std::string err = std::to_string(Network::lastError());
-            throw Error(5028, fmt::format("Failed to get address info: {}", err));
+            throw Error(5028, std::format("Failed to get address info: {}", err));
         }
     }
     std::vector<std::string> dnsNames;
-    char addr_str[INET_ADDRSTRLEN];
+    std::array<char, INET_ADDRSTRLEN> addr;
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
         ZoneScopedN("inet_ntop");
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
-        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr.data(), INET_ADDRSTRLEN);
         if (p->ai_canonname) {
             dnsNames.emplace_back(p->ai_canonname);
         }
-        _localAddresses.emplace_back(addr_str);
+        _localAddresses.emplace_back(addr.begin(), addr.end());
     }
 
     freeaddrinfo(info);
@@ -266,7 +266,7 @@ void NetworkManager::initialize() {
             {
                 throw Error(
                     5023,
-                    fmt::format(
+                    std::format(
                         "Port {} is already used by connection {}",
                         cm.thisNode().syncPort(), i
                     )
@@ -319,7 +319,7 @@ void NetworkManager::initialize() {
                     [](const char* data, int length) {
                         std::vector<char> d(data, data + length);
                         d.push_back('\0');
-                        Log::Info(fmt::format("[client]: {} [end]", d.data()));
+                        Log::Info(std::format("[client]: {} [end]", d.data()));
                     }
                 );
 
@@ -348,7 +348,7 @@ void NetworkManager::initialize() {
     }
 
     Log::Debug(
-        fmt::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
+        std::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
     );
 }
 
@@ -464,17 +464,17 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 }
 
 unsigned int NetworkManager::activeConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _nActiveConnections;
 }
 
 int NetworkManager::connectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_networkConnections.size());
 }
 
 int NetworkManager::syncConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_syncConnections.size());
 }
 
@@ -487,7 +487,7 @@ const Network& NetworkManager::syncConnection(int index) const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    Log::Debug(fmt::format("Updating status for connection {}", connection->id()));
+    Log::Debug(std::format("Updating status for connection {}", connection->id()));
 
     int nConnections = 0;
     int nConnectedSync = 0;
@@ -512,13 +512,13 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
     }
 
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Number of active connections {} of {}", nConnections, totalNConnections
     ));
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Number of connected sync nodes {} of {}", nConnectedSync, totalNSyncConnections
     ));
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Number of connected data transfer nodes {} of {}",
         nConnectedDataTransfer, totalNTransferConnections
     ));
@@ -537,8 +537,8 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_isServer) {
         mutex::DataSync.lock();
         // local copy (thread safe)
-        bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
-                                (nConnectedDataTransfer == totalNTransferConnections);
+        const bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
+                                    (nConnectedDataTransfer == totalNTransferConnections);
         _allNodesConnected = allNodesConnected;
         mutex::DataSync.unlock();
 
@@ -578,10 +578,11 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 }
 
 void NetworkManager::setAllNodesConnected() {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
 
     if (!_isServer) {
-        unsigned int nConn = static_cast<unsigned int>(_dataTransferConnections.size());
+        const unsigned int nConn =
+            static_cast<unsigned int>(_dataTransferConnections.size());
         _allNodesConnected = (_nActiveSyncConnections == 1) &&
                              (_nActiveDataTransferConnections == nConn);
     }
@@ -593,11 +594,11 @@ void NetworkManager::addConnection(int port, std::string address,
     ZoneScoped;
 
     if (port == 0) {
-        throw Error(5025, fmt::format("No port provided for connection to {}", address));
+        throw Error(5025, std::format("No port provided for connection to {}", address));
     }
 
     if (address.empty()) {
-        throw Error(5026, fmt::format("Empty address for connection to {}", port));
+        throw Error(5026, std::format("Empty address for connection to {}", port));
     }
 
     auto net = std::make_unique<Network>(
@@ -606,7 +607,7 @@ void NetworkManager::addConnection(int port, std::string address,
         _isServer,
         connectionType
     );
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Initiating connection {} at port {}", _networkConnections.size(), port
     ));
     net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
@@ -644,12 +645,12 @@ bool NetworkManager::isComputerServer() const {
 }
 
 bool NetworkManager::isRunning() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _isRunning;
 }
 
 bool NetworkManager::areAllNodesConnected() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _allNodesConnected;
 }
 

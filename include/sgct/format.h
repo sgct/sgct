@@ -6,17 +6,21 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__CORRECTION_MPCDIMESH__H__
-#define __SGCT__CORRECTION_MPCDIMESH__H__
+#ifndef __SGCT__FMT__H__
+#define __SGCT__FMT__H__
 
-#include <sgct/sgctexports.h>
-#include <sgct/correction/buffer.h>
+#include <filesystem>
+#include <format>
 
-namespace sgct::correction {
+template <>
+struct std::formatter<std::filesystem::path> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        return ctx.begin();
+    }
 
-SGCT_EXPORT Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh);
+    auto format(const std::filesystem::path& path, std::format_context& ctx) const {
+        return std::format_to(ctx.out(), "{}", path.string());
+    }
+};
 
-} // namespace sgct::correction
-
-#endif // __SGCT__CORRECTION_MPCDIMESH__H__
-
+#endif // __SGCT__FMT__H__

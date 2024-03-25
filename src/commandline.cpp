@@ -122,8 +122,8 @@ Configuration parseArguments(std::vector<std::string>& arg) {
 std::string helpMessage() {
     return R"(
 Parameters:
---config <filename.xml> or -c <filename.xml>
-    Set XML configuration file
+--config <filename.json> or -c <filename.json>
+    Set configuration file
 --help or -h
     Display help message and exit
 --local <integer> or -l <integer>

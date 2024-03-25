@@ -8,7 +8,7 @@
 
 #include <sgct/offscreenbuffer.h>
 
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/settings.h>

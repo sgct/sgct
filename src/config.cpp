@@ -8,8 +8,8 @@
 
 #include <sgct/config.h>
 
-#include <sgct/fmt.h>
 #include <sgct/error.h>
+#include <sgct/format.h>
 #include <sgct/profiling.h>
 #include <algorithm>
 #include <cassert>

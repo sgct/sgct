@@ -9,7 +9,7 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>

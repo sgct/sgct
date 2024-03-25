@@ -9,7 +9,7 @@
 #include <sgct/correction/pfm.h>
 
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>

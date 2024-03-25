@@ -10,9 +10,9 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
+#include <sgct/format.h>
 #include <sgct/freetype.h>
 #include <sgct/internalshaders.h>
 #include <sgct/networkmanager.h>

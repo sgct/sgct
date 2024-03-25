@@ -8,7 +8,7 @@
 
 #include <sgct/log.h>
 
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
 #include <cstdarg>

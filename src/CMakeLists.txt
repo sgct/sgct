@@ -45,7 +45,7 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
     ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
     ${PROJECT_SOURCE_DIR}/include/sgct/error.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/fmt.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/format.h
     ${PROJECT_SOURCE_DIR}/include/sgct/font.h
     ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
@@ -169,7 +169,7 @@ target_sources(
 target_precompile_headers(sgct PRIVATE
   <sgct/config.h>
   <sgct/engine.h>
-  <sgct/fmt.h>
+  <sgct/format.h>
   <sgct/opengl.h>
   <glm/glm.hpp>
 

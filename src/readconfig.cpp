@@ -9,7 +9,7 @@
 #include <sgct/readconfig.h>
 
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <glm/gtc/quaternion.hpp>

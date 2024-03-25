@@ -11,7 +11,7 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/networkmanager.h>

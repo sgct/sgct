@@ -58,7 +58,7 @@ option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
 option(SGCT_DEP_INCLUDE_SCN "Include SCN library" ON)
 option(SGCT_DEP_INCLUDE_STB "Include STB library" ON)
 option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
-option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" ON)
+option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" OFF)
 option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" OFF)
 option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 

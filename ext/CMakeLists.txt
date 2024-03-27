@@ -181,6 +181,10 @@ if (WIN32 AND SGCT_SPOUT_SUPPORT)
   set_property(TARGET spout PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.dll)
 endif ()
 
+if (TRACY_ENABLE)
+  set(SGCT_TRACY_SUPPORT ON CACHE BOOL "" FORCE)
+endif ()
+
 if (SGCT_TRACY_SUPPORT)
   if (SGCT_DEP_INCLUDE_TRACY)
     option(TRACY_ENABLE "Enable profiling" ON)

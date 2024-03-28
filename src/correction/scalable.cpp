@@ -114,6 +114,9 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         if (line.empty()) {
             continue;
         }
+        else if (line.back() == '\r') {
+            line.pop_back();
+        }
 
         const std::string_view v = line;
         const size_t separator = v.find(' ');

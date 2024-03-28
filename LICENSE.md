@@ -1,7 +1,7 @@
 SGCT
 Simple Graphics Cluster Toolkit
 
-Copyright (c) 2012-2023
+Copyright (c) 2012-2024
 Miroslav Andel, Linköping University
 Alexander Bock, Linköping University
 
@@ -32,5 +32,5 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABI
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-See the EXTERNAL_LICENSE.md for a list an acknowledgement of all external libraries that
+See the THIRD_PARTY_LICENSES.md for a list an acknowledgement of all external libraries that
 SGCT uses.

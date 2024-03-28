@@ -38,7 +38,10 @@ void operator delete(void* ptr) noexcept;
 #define TracyGpuContext
 #define TracyGpuCollect
 #define FrameMark
-
+#define ZoneText(text, length)
+#define TracyLockable(type, var) type var
+#define TracyAlloc(ptr, bytes)
+#define TracyAllocN(ptr, bytes, name)
 
 #endif // TRACY_ENABLE
 

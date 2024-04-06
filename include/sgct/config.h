@@ -11,6 +11,7 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/math.h>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <variant>
@@ -247,10 +248,10 @@ struct SGCT_EXPORT Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
     std::optional<std::string> user;
-    std::optional<std::string> overlayTexture;
-    std::optional<std::string> blendMaskTexture;
-    std::optional<std::string> blackLevelMaskTexture;
-    std::optional<std::string> correctionMeshTexture;
+    std::optional<std::filesystem::path> overlayTexture;
+    std::optional<std::filesystem::path> blendMaskTexture;
+    std::optional<std::filesystem::path> blackLevelMaskTexture;
+    std::optional<std::filesystem::path> correctionMeshTexture;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
     std::optional<vec2> position;

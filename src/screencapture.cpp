@@ -228,9 +228,9 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         }
     }(_format);
 
-    std::string file;
+    std::filesystem::path file;
     if (!Settings::instance().capturePath().empty()) {
-        file = Settings::instance().capturePath().string() + '/';
+        file = Settings::instance().capturePath() / "";
     }
     if (!Settings::instance().prefixScreenshot().empty()) {
         file += Settings::instance().prefixScreenshot();
@@ -239,12 +239,16 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     if (Settings::instance().addNodeNameToScreenshot() &&
         ClusterManager::instance().numberOfNodes() > 1)
     {
-        file += "node" + std::to_string(ClusterManager::instance().thisNodeId());
-        file += '_';
+        file += std::format("node{}_", ClusterManager::instance().thisNodeId());
     }
     if (Settings::instance().addWindowNameToScreenshot()) {
         const Window& w = *Engine::instance().windows()[_windowIndex];
-        file += w.name().empty() ? "win" + std::to_string(_windowIndex) : w.name();
+        if (w.name().empty()) {
+            file += std::format("win{}", _windowIndex);
+        }
+        else {
+            file += w.name();
+        }
         file += '_';
     }
 
@@ -252,7 +256,9 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return file + std::string(Buffer.begin(), Buffer.end()) + '.' + suffix;
+    return std::format(
+        "{}{}.{}", file, std::string(Buffer.begin(), Buffer.end()), suffix
+    );
 }
 
 int ScreenCapture::availableCaptureThread() {

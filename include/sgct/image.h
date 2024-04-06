@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/math.h>
-#include <string>
+#include <filesystem>
 
 namespace sgct {
 
@@ -23,13 +23,12 @@ public:
     ~Image();
 
     void allocateOrResizeData();
-    void load(const std::string& filename);
-    void load(unsigned char* data, int length);
+    void load(const std::filesystem::path& filename);
 
     /**
      * Save the buffer to file. Type is automatically set by filename suffix.
      */
-    void save(const std::string& filename);
+    void save(const std::filesystem::path& filename);
 
     unsigned char* data();
     const unsigned char* data() const;
@@ -49,7 +48,7 @@ private:
      *    1 = Best speed
      *    9 = Best compression
      */
-    void savePNG(std::string filename, int compressionLevel = -1);
+    void savePNG(const std::filesystem::path& filename, int compressionLevel = -1);
 
     int _nChannels = 0;
     ivec2 _size = ivec2{ 0, 0 };

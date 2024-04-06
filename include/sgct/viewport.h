@@ -12,6 +12,7 @@
 #include <sgct/sgctexports.h>
 #include <sgct/baseviewport.h>
 #include <sgct/correctionmesh.h>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -82,10 +83,10 @@ private:
     void applyTextureProjection(const config::TextureMappedProjection& proj);
 
     CorrectionMesh _mesh;
-    std::string _overlayFilename;
-    std::string _blendMaskFilename;
-    std::string _blackLevelMaskFilename;
-    std::string _meshFilename;
+    std::filesystem::path _overlayFilename;
+    std::filesystem::path _blendMaskFilename;
+    std::filesystem::path _blackLevelMaskFilename;
+    std::filesystem::path _meshFilename;
     bool _isTracked = false;
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;

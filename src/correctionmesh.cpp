@@ -94,7 +94,9 @@ correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
     return buff;
 }
 
-void exportMesh(GLenum type, const std::string& path, const correction::Buffer& buf) {
+void exportMesh(GLenum type, const std::filesystem::path& path,
+                const correction::Buffer& buf)
+{
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
         throw Error(
             2000,
@@ -102,7 +104,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
         );
     }
 
-    std::ofstream file(path, std::ios::out);
+    std::ofstream file = std::ofstream(path, std::ios::out);
     if (!file.is_open()) {
         throw Error(
             2001,
@@ -173,7 +175,7 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     }
 }
 
-void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
+void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& parent,
                               bool needsMaskGeometry, bool textureRenderMode)
 {
     ZoneScoped;
@@ -207,24 +209,23 @@ void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
 
     Buffer buf;
 
-    const std::string ext = path.substr(path.rfind('.') + 1);
     // find a suitable format
-    if (ext == "sgc") {
+    if (path.extension() == ".sgc") {
         buf = generateScissMesh(path, parent);
     }
-    else if (ext == "ol") {
+    else if (path.extension() == ".ol") {
         buf = generateScalableMesh(path, parent);
     }
-    else if (ext == "skyskan") {
+    else if (path.extension() == ".skyskan") {
         buf = generateSkySkanMesh(path, parent);
     }
-    else if (ext == "txt") {
+    else if (path.extension() == ".txt") {
         buf = generateSkySkanMesh(path, parent);
     }
-    else if (ext == "csv") {
+    else if (path.extension() == ".csv") {
         buf = generateDomeProjectionMesh(path, parentPos, parentSize);
     }
-    else if (ext == "data") {
+    else if (path.extension() == ".data") {
         const float aspectRatio = parent.window().aspectRatio();
         buf = generatePaulBourkeMesh(path, parentPos, parentSize, aspectRatio);
 
@@ -237,10 +238,10 @@ void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
             }
         }
     }
-    else if (ext == "obj") {
+    else if (path.extension() == ".obj") {
         buf = generateOBJMesh(path);
     }
-    else if (ext == "pfm") {
+    else if (path.extension() == ".pfm") {
         buf = generatePerEyeMeshFromPFMImage(
             path,
             parentPos,
@@ -248,7 +249,7 @@ void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
             textureRenderMode
         );
     }
-    else if (ext == "simcad") {
+    else if (path.extension() == ".simcad") {
         buf = generateSimCADMesh(path, parentPos, parentSize);
     }
     else {
@@ -263,9 +264,10 @@ void CorrectionMesh::loadMesh(const std::string& path, BaseViewport& parent,
     ));
 
     if (Settings::instance().exportWarpingMeshes()) {
-        const size_t found = path.find_last_of('.');
-        const std::string filename = path.substr(0, found) + "_export.obj";
-        exportMesh(_warpGeometry.type, filename, buf);
+        std::filesystem::path p = path;
+        p.replace_filename(std::format("{}_export", p.filename()));
+        p.replace_extension(".obj");
+        exportMesh(_warpGeometry.type, p, buf);
     }
 }
 

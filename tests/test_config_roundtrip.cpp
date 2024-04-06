@@ -2078,7 +2078,7 @@ TEST_CASE("Viewport/OverlayTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .overlayTexture = std::filesystem::absolute("abc").string()
+            .overlayTexture = std::filesystem::absolute("abc")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2098,7 +2098,7 @@ TEST_CASE("Viewport/OverlayTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .overlayTexture = std::filesystem::absolute("def").string()
+            .overlayTexture = std::filesystem::absolute("def")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2140,7 +2140,7 @@ TEST_CASE("Viewport/BlendMaskTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .blendMaskTexture = std::filesystem::absolute("abc").string()
+            .blendMaskTexture = std::filesystem::absolute("abc")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2160,7 +2160,7 @@ TEST_CASE("Viewport/BlendMaskTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .blendMaskTexture = std::filesystem::absolute("def").string()
+            .blendMaskTexture = std::filesystem::absolute("def")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2202,7 +2202,7 @@ TEST_CASE("Viewport/BlackLevelMaskTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .blackLevelMaskTexture = std::filesystem::absolute("abc").string()
+            .blackLevelMaskTexture = std::filesystem::absolute("abc")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2222,7 +2222,7 @@ TEST_CASE("Viewport/BlackLevelMaskTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .blackLevelMaskTexture = std::filesystem::absolute("def").string()
+            .blackLevelMaskTexture = std::filesystem::absolute("def")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2264,7 +2264,7 @@ TEST_CASE("Viewport/CorrectionMeshTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .correctionMeshTexture = std::filesystem::absolute("abc").string()
+            .correctionMeshTexture = std::filesystem::absolute("abc")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);
@@ -2284,7 +2284,7 @@ TEST_CASE("Viewport/CorrectionMeshTexture", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .correctionMeshTexture = std::filesystem::absolute("def").string()
+            .correctionMeshTexture = std::filesystem::absolute("def")
         });
         node.windows.push_back(window);
         input.nodes.push_back(node);

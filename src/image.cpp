@@ -16,6 +16,7 @@
 #include <zlib.h>
 #include <algorithm>
 #include <chrono>
+#include <string>
 
 #ifdef WIN32
 #include <CodeAnalysis/warnings.h>
@@ -59,24 +60,24 @@
 #define Err(code, msg) Error(Error::Component::Image, code, msg)
 
 namespace {
-    sgct::Image::FormatType getFormatType(std::string filename) {
+    sgct::Image::FormatType getFormatType(std::filesystem::path filename) {
+        // Convert the filename to all lower case for the extension checking
+        std::string s = filename.string();
         std::transform(
-            filename.cbegin(),
-            filename.cend(),
-            filename.begin(),
+            s.begin(),
+            s.end(),
+            s.begin(),
             [](char c) { return static_cast<char>(::tolower(c)); }
         );
+        filename = s;
 
-        if (filename.find(".png") != std::string::npos) {
+        if (filename.extension() == ".png") {
             return sgct::Image::FormatType::PNG;
         }
-        if (filename.find(".jpg") != std::string::npos) {
+        if (filename.extension() == ".jpg" || filename.extension() == ".jpeg") {
             return sgct::Image::FormatType::JPEG;
         }
-        if (filename.find(".jpeg") != std::string::npos) {
-            return sgct::Image::FormatType::JPEG;
-        }
-        if (filename.find(".tga") != std::string::npos) {
+        if (filename.extension() == ".tga") {
             return sgct::Image::FormatType::TGA;
         }
         return sgct::Image::FormatType::Unknown;
@@ -91,13 +92,14 @@ Image::~Image() {
     }
 }
 
-void Image::load(const std::string& filename) {
+void Image::load(const std::filesystem::path& filename) {
     if (filename.empty()) {
         throw Err(9000, "Cannot load empty filepath");
     }
 
     stbi_set_flip_vertically_on_load(1);
-    _data = stbi_load(filename.c_str(), &_size.x, &_size.y, &_nChannels, 0);
+    std::string name = filename.string();
+    _data = stbi_load(name.c_str(), &_size.x, &_size.y, &_nChannels, 0);
     if (_data == nullptr) {
         throw Err(
             9001, std::format("Could not open file '{}' for loading image", filename)
@@ -114,21 +116,7 @@ void Image::load(const std::string& filename) {
     }
 }
 
-void Image::load(unsigned char* data, int length) {
-    stbi_set_flip_vertically_on_load(1);
-    _data = stbi_load_from_memory(data, length, &_size.x, &_size.y, &_nChannels, 0);
-    _bytesPerChannel = 1;
-    _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
-
-    // Convert BGR to RGB
-    if (_nChannels >= 3) {
-        for (size_t i = 0; i < _dataSize; i += _nChannels) {
-            std::swap(_data[i], _data[i + 2]);
-        }
-    }
-}
-
-void Image::save(const std::string& filename) {
+void Image::save(const std::filesystem::path& filename) {
     if (filename.empty()) {
         throw Err(9002, "Filename not set for saving image");
     }
@@ -152,27 +140,16 @@ void Image::save(const std::string& filename) {
 
     stbi_flip_vertically_on_write(1);
     if (type == FormatType::JPEG) {
-        const int r = stbi_write_jpg(
-            filename.c_str(),
-            _size.x,
-            _size.y,
-            _nChannels,
-            _data,
-            100
-        );
+        std::string f = filename.string();
+        const int r = stbi_write_jpg(f.c_str(), _size.x, _size.y, _nChannels, _data, 100);
         if (r == 0) {
             throw Err(9004, std::format("Could not save file '{}' as JPG", filename));
         }
         return;
     }
     if (type == FormatType::TGA) {
-        const int r = stbi_write_tga(
-            filename.c_str(),
-            _size.x,
-            _size.y,
-            _nChannels,
-            _data
-        );
+        std::string f = filename.string();
+        const int r = stbi_write_tga(f.c_str(), _size.x, _size.y, _nChannels, _data);
         if (r == 0) {
             throw Err(9005, std::format("Could not save file '{}' as TGA", filename));
 
@@ -183,7 +160,7 @@ void Image::save(const std::string& filename) {
     throw std::logic_error("We should never get here");
 }
 
-void Image::savePNG(std::string filename, int compressionLevel) {
+void Image::savePNG(const std::filesystem::path& filename, int compressionLevel) {
     if (_data == nullptr) {
         throw Err(9006, "Missing image data to save PNG");
     }
@@ -194,7 +171,8 @@ void Image::savePNG(std::string filename, int compressionLevel) {
 
     const double t0 = time();
 
-    FILE* fp = fopen(filename.c_str(), "wb");
+    std::string f = filename.string();
+    FILE* fp = fopen(f.c_str(), "wb");
     if (fp == nullptr) {
         throw Err(9008, std::format("Cannot create PNG file '{}'", filename));
     }

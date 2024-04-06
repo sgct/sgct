@@ -1916,7 +1916,7 @@ TEST_CASE("Parse/SGCT: Spherical Mirror", "[parse]") {
     REQUIRE(v.correctionMeshTexture.has_value());
     REQUIRE(
         *v.correctionMeshTexture ==
-        std::filesystem::absolute("mesh/standard_16x9.data").string()
+        std::filesystem::absolute("mesh/standard_16x9.data")
     );
 
     REQUIRE(std::holds_alternative<FisheyeProjection>(v.projection));
@@ -3869,7 +3869,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror GUI", "[parse]") {
         REQUIRE(v.correctionMeshTexture.has_value());
         CHECK(
             *v.correctionMeshTexture ==
-            std::filesystem::absolute("mesh/standard_16x9.data").string()
+            std::filesystem::absolute("mesh/standard_16x9.data")
         );
         REQUIRE(v.position.has_value());
         CHECK(v.position->x == 0.f);
@@ -4022,7 +4022,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror", "[parse]") {
     REQUIRE(v.correctionMeshTexture.has_value());
     CHECK(
         *v.correctionMeshTexture ==
-        std::filesystem::absolute("mesh/standard_16x9.data").string()
+        std::filesystem::absolute("mesh/standard_16x9.data")
     );
     REQUIRE(v.position.has_value());
     CHECK(v.position->x == 0.f);

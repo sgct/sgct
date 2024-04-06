@@ -148,6 +148,16 @@ namespace {
 
         throw Err(6086, std::format("Unknown spout output mapping: {}", mapping));
     }
+
+    std::string stringifyJsonFile(const std::filesystem::path& filename) {
+        std::ifstream myfile = std::ifstream(filename);
+        if (myfile.fail()) {
+            throw Err(6082, std::format("Failed to open '{}'", filename));
+        }
+        std::stringstream buffer;
+        buffer << myfile.rdbuf();
+        return buffer.str();
+    }
 } // namespace
 
 // Define the JSON version functions that will make our live easier
@@ -1098,18 +1108,18 @@ void to_json(nlohmann::json& j, const ProjectionPlane& p) {
 void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "user", v.user);
     if (auto it = j.find("overlay");  it != j.end()) {
-        v.overlayTexture = std::filesystem::absolute(it->get<std::string>()).string();
+        v.overlayTexture = std::filesystem::absolute(it->get<std::string>());
     }
     if (auto it = j.find("blendmask");  it != j.end()) {
-        v.blendMaskTexture = std::filesystem::absolute(it->get<std::string>()).string();
+        v.blendMaskTexture = std::filesystem::absolute(it->get<std::string>());
     }
     if (auto it = j.find("blacklevelmask");  it != j.end()) {
         v.blackLevelMaskTexture =
-            std::filesystem::absolute(it->get<std::string>()).string();
+            std::filesystem::absolute(it->get<std::string>());
     }
     if (auto it = j.find("mesh");  it != j.end()) {
         v.correctionMeshTexture =
-            std::filesystem::absolute(it->get<std::string>()).string();
+            std::filesystem::absolute(it->get<std::string>());
     }
 
     parseValue(j, "tracked", v.isTracked);
@@ -1580,7 +1590,7 @@ void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 
 namespace sgct {
 
-config::Cluster readConfig(const std::string& filename,
+config::Cluster readConfig(const std::filesystem::path& filename,
                            const std::string& additionalError)
 {
     Log::Debug(std::format("Parsing config '{}'", filename));
@@ -1588,7 +1598,7 @@ config::Cluster readConfig(const std::string& filename,
         throw Err(6080, "No configuration file provided");
     }
 
-    std::string name = std::filesystem::absolute(filename).string();
+    std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
@@ -1703,19 +1713,8 @@ std::string& custom_error_handler::message() {
     return mErrMessage;
 }
 
-std::string stringifyJsonFile(const std::string& filename) {
-    std::ifstream myfile;
-    myfile.open(filename);
-    if (myfile.fail()) {
-        throw Err(6082, std::format("Failed to open '{}'", filename));
-    }
-    std::stringstream buffer;
-    buffer << myfile.rdbuf();
-    return buffer.str();
-}
-
-bool loadFileAndSchemaThenValidate(const std::string& config,
-                                   const std::string& schema,
+bool loadFileAndSchemaThenValidate(const std::filesystem::path& config,
+                                   const std::filesystem::path& schema,
                                    const std::string& validationTypeExplanation)
 {                                 
     Log::Debug(std::format("Validating config '{}' against schema '{}'", config, schema));
@@ -1725,14 +1724,14 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
     if (schema.empty()) {
         throw Err(6080, "No schema file provided");
     }
-    std::string configName = std::filesystem::absolute(config).string();
+    std::filesystem::path configName = std::filesystem::absolute(config);
     if (!std::filesystem::exists(configName)) {
         throw Err(
             6081,
             std::format("Could not find configuration file '{}'", configName)
         );
     }
-    std::string schemaName = std::filesystem::absolute(schema).string();
+    std::filesystem::path schemaName = std::filesystem::absolute(schema);
     if (!std::filesystem::exists(schemaName)) {
         throw Err(
             6081,
@@ -1740,7 +1739,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
         );
     }
     const std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
-    const std::string cfgString = stringifyJsonFile(std::string(config));
+    const std::string cfgString = stringifyJsonFile(config);
     bool validationSuccessful = false;
     try {
         // The schema is defined based upon string from file
@@ -1771,14 +1770,13 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     const nlohmann::json_schema::json_validator validator(
         schemaInput,
         [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
-            std::string loadPath = schemaDir.string() + std::string("/") +
-                id.to_string();
+            std::string loadPath = std::format("{}/{}", schemaDir, id.to_string());
             const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);
             }
-            //Remove trailing spaces
-            if(loadPath.length() > 0 ) {
+            // Remove trailing spaces
+            if (!loadPath.empty()) {
                 const size_t strEnd = loadPath.find_last_not_of(" #\t\r\n\0");
                 loadPath = loadPath.substr(0, strEnd + 1);
             }
@@ -1800,7 +1798,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     return true;
 }
 
-[[ noreturn ]] void convertToSgctExceptionAndThrow(const std::string& schema,
+[[ noreturn ]] void convertToSgctExceptionAndThrow(const std::filesystem::path& schema,
                                              const std::string& validationTypeExplanation,
                                                       const std::string& exceptionMessage)
 {
@@ -1813,7 +1811,9 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     );
 }
 
-sgct::config::GeneratorVersion readJsonGeneratorVersion(const std::string& configuration) {
+sgct::config::GeneratorVersion readJsonGeneratorVersion(
+                                               const std::filesystem::path& configuration)
+{
     nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(configuration));
     auto it = j.find("version");
     if (it == j.end()) {
@@ -1824,8 +1824,9 @@ sgct::config::GeneratorVersion readJsonGeneratorVersion(const std::string& confi
     return genVersion;
 }
 
-sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) {
-    std::string name = std::filesystem::absolute(filename).string();
+sgct::config::GeneratorVersion readConfigGenerator(const std::filesystem::path& filename)
+{
+    std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
@@ -1837,7 +1838,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         if (path.extension() == ".json") {
             try {
                 const std::ifstream f = std::ifstream(path);
-                return readJsonGeneratorVersion(path.string());
+                return readJsonGeneratorVersion(path);
             }
             catch (const std::runtime_error& e) {
                 throw Err(6082, e.what());
@@ -1862,8 +1863,8 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     return genVersion;
 }
 
-sgct::config::Meta readMeta(const std::string& filename) {
-    assert(std::filesystem::path(filename).extension() == ".json");
+sgct::config::Meta readMeta(const std::filesystem::path& filename) {
+    assert(filename.extension() == ".json");
 
     std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
@@ -1875,7 +1876,7 @@ sgct::config::Meta readMeta(const std::string& filename) {
 
     try {
         const std::ifstream f = std::ifstream(name);
-        nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(name.string()));
+        nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(name));
         if (auto it = j.find("meta");  it != j.end()) {
             sgct::config::Meta meta;
             from_json(j, meta);

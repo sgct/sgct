@@ -247,7 +247,7 @@ void Engine::destroy() {
     _instance = nullptr;
 }
 
-config::Cluster loadCluster(std::optional<std::string> path) {
+config::Cluster loadCluster(std::optional<std::filesystem::path> path) {
     ZoneScoped;
 
     if (path) {

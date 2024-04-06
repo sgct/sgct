@@ -1152,7 +1152,7 @@ TEST_CASE("Load: Spherical Mirror", "[parse]") {
         *v.correctionMeshTexture ==
         std::filesystem::absolute(
             std::string(BASE_PATH) + "/config/mesh/standard_16x9.data"
-        ).string()
+        )
     );
 
     REQUIRE(std::holds_alternative<FisheyeProjection>(v.projection));

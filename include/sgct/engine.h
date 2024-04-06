@@ -20,6 +20,7 @@
 #include <sgct/mouse.h>
 #include <sgct/window.h>
 #include <array>
+#include <filesystem>
 #include <functional>
 #include <optional>
 #include <thread>
@@ -44,7 +45,8 @@ class StatisticsRenderer;
  *            when providing no path
  * \pre The \p path, if it is provided, must be an existing file
  */
-SGCT_EXPORT config::Cluster loadCluster(std::optional<std::string> path = std::nullopt);
+SGCT_EXPORT config::Cluster loadCluster(
+    std::optional<std::filesystem::path> path = std::nullopt);
 
 /**
  * Returns the number of seconds since the program start. The resultion of this counter is

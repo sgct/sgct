@@ -10,7 +10,7 @@
 #define __SGCT__CORRECTION_MESH__H__
 
 #include <sgct/sgctexports.h>
-#include <string>
+#include <filesystem>
 #include <vector>
 
 namespace sgct {
@@ -35,7 +35,7 @@ public:
      *
      * \throw std::runtime_error if mesh was not loaded successfully
      */
-    void loadMesh(const std::string& path, BaseViewport& parent,
+    void loadMesh(const std::filesystem::path& path, BaseViewport& parent,
         bool needsMaskGeometry = false, bool textureRenderMode = false);
 
     /**

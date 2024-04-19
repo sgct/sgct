@@ -107,7 +107,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     // Get host info
     //
     // get name & local IPs. retrieves the standard host name for the local computer
-    std::array<char, 256> Buffer;
+    std::array<char, 256> Buffer = {};
     {
         ZoneScopedN("gethostname");
 #ifdef WIN32
@@ -155,7 +155,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         }
     }
     std::vector<std::string> dnsNames;
-    std::array<char, INET_ADDRSTRLEN> addr;
+    std::array<char, INET_ADDRSTRLEN> addr = {};
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
         ZoneScopedN("inet_ntop");
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
@@ -181,6 +181,11 @@ NetworkManager::NetworkManager(NetworkMode nm,
     // add the loop-back
     _localAddresses.emplace_back("127.0.0.1");
     _localAddresses.emplace_back("localhost");
+
+    Log::Debug("Detected local addresses:");
+    for (const std::string& address : _localAddresses) {
+        Log::Debug(std::format("  {}", address));
+    }
 }
 
 NetworkManager::~NetworkManager() {

@@ -99,7 +99,11 @@ void ShaderProgram::deleteProgram() {
     }
     _shaders.clear();
 
-    glDeleteProgram(_programId);
+    if (_programId) {
+        // Even though the delete program is allowing a 0 name, we might end up in here
+        // without having valid OpenGL context
+        glDeleteProgram(_programId);
+    }
     _programId = 0;
 }
 

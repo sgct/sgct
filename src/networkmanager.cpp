@@ -163,7 +163,8 @@ NetworkManager::NetworkManager(NetworkMode nm,
         if (p->ai_canonname) {
             dnsNames.emplace_back(p->ai_canonname);
         }
-        _localAddresses.emplace_back(addr.begin(), addr.end());
+        // Using .data() instead of .begin() + .end() as we want to stop at the first \0
+        _localAddresses.emplace_back(addr.data());
     }
 
     freeaddrinfo(info);

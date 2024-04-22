@@ -36,7 +36,8 @@ SGCT_EXPORT bool loadFileAndSchemaThenValidate(const std::filesystem::path& conf
 SGCT_EXPORT bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     const std::string& stringifiedSchema, const std::filesystem::path& schemaDir);
 
-SGCT_EXPORT [[noreturn]] void convertToSgctExceptionAndThrow(
+// Putting noreturn after SGCT_EXPORT fails to build on msvc with dynamic linking.
+[[noreturn]] SGCT_EXPORT void convertToSgctExceptionAndThrow(
     const std::filesystem::path& schema, const std::string& validationTypeExplanation,
     const std::string& exceptionMessage);
 

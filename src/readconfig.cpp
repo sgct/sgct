@@ -1798,7 +1798,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     return true;
 }
 
-[[ noreturn ]] void convertToSgctExceptionAndThrow(const std::filesystem::path& schema,
+[[noreturn]] void convertToSgctExceptionAndThrow(const std::filesystem::path& schema,
                                              const std::string& validationTypeExplanation,
                                                       const std::string& exceptionMessage)
 {

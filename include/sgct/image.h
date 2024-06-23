@@ -24,6 +24,7 @@ public:
 
     void allocateOrResizeData();
     void load(const std::filesystem::path& filename);
+    void load(unsigned char* data, int length);
 
     /**
      * Save the buffer to file. Type is automatically set by filename suffix.

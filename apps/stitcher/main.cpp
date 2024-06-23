@@ -11,8 +11,8 @@
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/user.h>
-#include <fmt/format.h>
 #include <cstring>
+#include <format>
 
 namespace {
     enum class Rotation { Deg0 = 0, Deg90, Deg180, Deg270 };

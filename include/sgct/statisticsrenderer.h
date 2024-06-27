@@ -26,6 +26,9 @@ public:
     void update();
     void render(const Window& window, const Viewport& viewport);
 
+    float scale() const;
+    void setScale(float scale);
+
 private:
     const Engine::Statistics& _statistics;
 
@@ -104,6 +107,8 @@ private:
         } dynamicDraw;
     };
     Histogram _histogram;
+
+    float _scale = 0.5f;
 };
 
 } // namespace sgct

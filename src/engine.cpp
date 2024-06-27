@@ -1750,6 +1750,16 @@ void Engine::setStatsGraphVisibility(bool value) {
     }
 }
 
+float Engine::statsGraphScale() const {
+    return _statisticsRenderer ? _statisticsRenderer->scale() : -1.f;
+}
+
+void Engine::setStatsGraphScale(float scale) {
+    if (_statisticsRenderer) {
+        _statisticsRenderer->setScale(scale);
+    }
+}
+
 void Engine::takeScreenshot(std::vector<int> windowIds) {
     _shouldTakeScreenshot = true;
     _shouldTakeScreenshotIds = std::move(windowIds);

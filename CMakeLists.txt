@@ -15,7 +15,6 @@ project(sgct VERSION 3.0.0)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-
 include(support/cmake/register_package.cmake)
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/pkg)
@@ -45,9 +44,7 @@ if (WIN32)
   option(SGCT_NDI_SUPPORT "SGCT NDI Support" ON)
 endif ()
 
-if (WIN32)
-  option(SGCT_GSTREAMER_SUPPORT "SGCT GStreamer support" ON)
-endif ()
+option(SGCT_GSTREAMER_SUPPORT "SGCT GStreamer support" ON)
 
 # Exceptions for external libraries
 option(SGCT_DEP_INCLUDE_CATCH2 "Include Catch2 library" ON)

@@ -16,6 +16,10 @@ generate_export_header(sgct
   EXPORT_FILE_NAME include/sgct/sgctexports.h
 )
 
+if (UNIX)
+  target_compile_definitions(sgct PUBLIC "UNIX")
+endif ()
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h @ONLY

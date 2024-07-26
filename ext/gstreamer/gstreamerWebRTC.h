@@ -1,9 +1,19 @@
+
+#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 // INCLUDE GSTREAMER
 #define GL_GLEXT_PROTOTYPES 1
-#define GLFW_EXPOSE_NATIVE_WIN32 1
-#define GLFW_EXPOSE_NATIVE_WGL 1
+#include <GLFW/glfw3.h>
+#ifdef WIN32
+  #define GLFW_EXPOSE_NATIVE_WIN32 1
+  #define GLFW_EXPOSE_NATIVE_WGL 1
+#elif defined UNIX
+  #define GLFW_EXPOSE_NATIVE_X11 1
+  #define GLFW_EXPOSE_NATIVE_GLX 1
+#endif
+
+#include <GLFW/glfw3native.h>
 
 #include <gstreamer-1.0/gst/gst.h>
 #include <gstreamer-1.0/gst/gl/gstgldisplay.h>
@@ -221,22 +231,52 @@ static gboolean checkGstPlugins()
 void initializeGstGl() {
 
     // Takes an existing OpenGL context, wraps into a GstGlContext.
+#ifdef WIN32
     guintptr gl_handle = (guintptr)wglGetCurrentContext();
-    glPipeline.gl_display = gst_gl_display_new();
-    glPipeline.gl_context = gst_gl_context_new_wrapped(glPipeline.gl_display,
-        gl_handle, GST_GL_PLATFORM_WGL, GST_GL_API_OPENGL);
+#elif defined UNIX
+    Display *currentDisplay = XOpenDisplay(NULL);
+    GLFWwindow* currentWindow = glfwGetCurrentContext();
+    guintptr gl_handle = (guintptr)glfwGetGLXContext(currentWindow);
+    GLXDrawable currentDrawable = glXGetCurrentDrawable();
+#endif
 
+    //https://gstreamer.freedesktop.org/documentation/gl/gstgldisplay.html?gi-language=c#GstGLDisplay
+    //Constructor for GstGLDisplay object
+    glPipeline.gl_display = gst_gl_display_new();
+
+    //https://gstreamer.freedesktop.org/documentation/gl/gstglcontext.html?gi-language=c#gst_gl_context_new_wrapped
+    //Wraps an existing OpenGL context into a GstGLContext.
+    // (GstGLDisplay, handle to the OpenGL context to wrap, GstGLPlatform context type of the handle, GstGLAPI)
+    glPipeline.gl_context = gst_gl_context_new_wrapped(
+        glPipeline.gl_display,
+        gl_handle,
+#ifdef WIN32
+        GST_GL_PLATFORM_WGL,
+#elif defined UNIX
+        GST_GL_PLATFORM_GLX,
+#endif
+        GST_GL_API_OPENGL
+    );
+
+#ifdef WIN32
     HGLRC oldContext = wglGetCurrentContext();
     HDC oldDevice = wglGetCurrentDC();
+#elif defined UNIX
+    GLXContext oldContext = glfwGetGLXContext(currentWindow);
+#endif
 
     // TODO: Right now the context is reset, can we copy it instead?
+#ifdef WIN32
     wglMakeCurrent(NULL, NULL);
+#elif defined UNIX
+    //glXMakeCurrent(NULL, GLXDrawable(), GLXContext());
+    glXMakeCurrent(currentDisplay, GLXDrawable(), GLXContext());
+#endif
 
     // Create the GstGlContext main_context
     GError* err = NULL;
     gboolean isCreated = gst_gl_display_create_context(glPipeline.gl_display,
         glPipeline.gl_context, &glPipeline.main_context, &err);
-
 
     if (!isCreated) {
         g_print("Failed to create GstGLContex context: %s\n",
@@ -258,8 +298,11 @@ void initializeGstGl() {
     gst_gl_context_activate(glPipeline.main_context, TRUE);
 
     // See, we put it back
+#ifdef WIN32
     wglMakeCurrent(oldDevice, oldContext);
-
+#elif defined UNIX
+    glXMakeCurrent(currentDisplay, currentDrawable, oldContext);
+#endif
     allocateGstGlMemory();
 
 }
@@ -908,7 +951,7 @@ static GstBuffer* wrapGlTexture()
     textureFormats[0] = GST_GL_RGBA8;
 
     // Connect GStreamer to the second window of SGCT. Configuration of this windows is done in the SGCT-config file for GStreamer
-    wrappedTextures[0] = (gpointer)Engine::instance().windows()[1]->frameBufferTexture(Window::TextureIndex::LeftEye);
+    wrappedTextures[0] = (gpointer)Engine::instance().windows()[1]->frameBufferTexture(sgct::Window::TextureIndex::LeftEye);
 
     // Wrap the texture into GLMemory
     gboolean isSetUp = gst_gl_memory_setup_buffer(allocator, buffer,

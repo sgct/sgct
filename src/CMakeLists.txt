@@ -189,13 +189,12 @@ target_precompile_headers(sgct PRIVATE
   <vector>
 )
 
-target_include_directories(sgct PUBLIC "../../ext/json-schema-validator/src")
-
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
-find_package(minizip REQUIRED)
+find_package(unofficial-minizip REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(nlohmann_json_schema_validator REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PNG REQUIRED)
 find_package(scn REQUIRED)
@@ -228,7 +227,7 @@ target_link_libraries(sgct
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
   PRIVATE
     ZLIB::ZLIB
-    minizip::minizip
+    unofficial::minizip::minizip
     glm::glm
     PNG::PNG
     scn::scn
@@ -236,7 +235,7 @@ target_link_libraries(sgct
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
-    nlohmann_json_schema_validator::nlohmann_json_schema_validator
+    nlohmann_json_schema_validator::validator
 )
 
 target_compile_definitions(sgct

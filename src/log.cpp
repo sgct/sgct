@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <array>
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN

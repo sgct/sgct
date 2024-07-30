@@ -91,6 +91,9 @@ bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
+Window::Window() = default;
+Window::~Window() = default;
+
 void Window::applyWindow(const config::Window& window) {
     ZoneScoped;
 

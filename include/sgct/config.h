@@ -311,6 +311,8 @@ struct SGCT_EXPORT Window {
     std::optional<bool> draw3D;
     std::optional<bool> isMirrored;
     std::optional<int> blitWindowId;
+    std::optional<bool> mirrorX;
+    std::optional<bool> mirrorY;
     std::optional<int> monitor;
     std::optional<StereoMode> stereo;
     std::optional<ivec2> pos;

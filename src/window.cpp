@@ -167,6 +167,9 @@ void Window::applyWindow(const config::Window& window) {
     if (window.monitor) {
         setFullScreenMonitorIndex(*window.monitor);
     }
+    _mirrorX = window.mirrorX.value_or(_mirrorX);
+    _mirrorY = window.mirrorY.value_or(_mirrorY);
+
     if (window.stereo) {
         const StereoMode sm = [](config::Window::StereoMode mode) {
             using SM = config::Window::StereoMode;
@@ -1309,6 +1312,14 @@ bool Window::shouldCallDraw3DFunction() const {
 
 int Window::blitWindowId() const {
     return _blitWindowId;
+}
+
+bool Window::flipX() const {
+    return _mirrorX;
+}
+
+bool Window::flipY() const {
+    return _mirrorY;
 }
 
 } // namespace sgct

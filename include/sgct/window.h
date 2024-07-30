@@ -439,6 +439,9 @@ public:
     bool shouldCallDraw3DFunction() const;
     int blitWindowId() const;
 
+    bool flipX() const;
+    bool flipY() const;
+
 private:
     enum class TextureType { Color, Depth, Normal, Position };
 
@@ -482,6 +485,8 @@ private:
     bool _hasCallDraw2DFunction = true;
     bool _hasCallDraw3DFunction = true;
     int _blitWindowId = -1;
+    bool _mirrorX = false;
+    bool _mirrorY = false;
     bool _useQuadBuffer = false;
     bool _isFullScreen = false;
     bool _shouldAutoiconify = false;

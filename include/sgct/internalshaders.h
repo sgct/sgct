@@ -36,8 +36,19 @@ constexpr std::string_view BaseFrag = R"(
 
   uniform sampler2D tex;
 
+  uniform int flipX = 0;
+  uniform int flipY = 0;
+
   void main() {
-    out_color = tr_color * texture(tex, tr_uv);
+    vec2 uv = tr_uv;
+    if (flipX != 0) {
+      uv.x = 1.0 - uv.x;
+    }
+    if (flipY != 0) {
+      uv.y = 1.0 - uv.y;
+    }
+
+    out_color = tr_color * texture(tex, uv);
   }
 )";
 

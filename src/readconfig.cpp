@@ -1309,6 +1309,8 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "draw3d", w.draw3D);
     parseValue(j, "blitwindowid", w.blitWindowId);
     parseValue(j, "monitor", w.monitor);
+    parseValue(j, "mirrorx", w.mirrorX);
+    parseValue(j, "mirrory", w.mirrorY);
 
     if (auto it = j.find("stereo");  it != j.end()) {
         w.stereo = parseStereoType(it->get<std::string>());

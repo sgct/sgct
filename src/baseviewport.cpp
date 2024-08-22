@@ -220,7 +220,7 @@ float BaseViewport::horizontalFieldOfViewDegrees() const {
     const float xDist = (_projPlane.coordinateUpperRight().x -
         _projPlane.coordinateUpperLeft().x) / 2.f;
     const float zDist = _projPlane.coordinateUpperRight().z;
-    return (glm::degrees(std::atan(std::fabs(xDist / zDist)))) * 2.f;
+    return (glm::degrees(std::atan(std::abs(xDist / zDist)))) * 2.f;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
@@ -228,13 +228,20 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
     const vec3 lowerLeft = _projPlane.coordinateLowerLeft();
     const vec3 upperRight = _projPlane.coordinateUpperRight();
 
-    const float ratio = hFov / horizontalFieldOfViewDegrees();
-    const float up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
-    const float down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
-    const float left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
-    const float right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
+    const double ratio = static_cast<double>(hFov) / horizontalFieldOfViewDegrees();
+    const double up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
+    const double down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
+    const double left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
+    const double right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
 
-    setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, std::fabs(upperLeft.z));
+    setViewPlaneCoordsUsingFOVs(
+        static_cast<float>(up),
+        static_cast<float>(down),
+        static_cast<float>(left),
+        static_cast<float>(right),
+        _rotation,
+        std::abs(upperLeft.z)
+    );
 }
 
 } // namespace sgct

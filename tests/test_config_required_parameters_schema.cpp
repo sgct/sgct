@@ -27,8 +27,7 @@ namespace {
     void attemptValidation(const std::string& cfgString) {
         const std::string schemaString =
             stringify(std::string(BASE_PATH) + "/sgct.schema.json");
-        const std::filesystem::path schemaDir =
-            std::filesystem::u8path(std::string(BASE_PATH));
+        const std::filesystem::path schemaDir = std::string(BASE_PATH);
         sgct::validateConfigAgainstSchema(cfgString, schemaString, schemaDir);
     }
 } // namespace

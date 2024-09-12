@@ -8,7 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <fmt/format.h>
+#include <format>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

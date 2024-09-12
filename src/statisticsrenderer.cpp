@@ -271,12 +271,34 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
     ZoneScoped;
 
     const ivec2 res = window.framebufferResolution();
-    const glm::mat4 orthoMat = glm::ortho(
+    const glm::vec2 scaleOffset = glm::vec2(res.x / 2.f, res.y / 2.f);
+
+    glm::mat4 orthoMat = glm::ortho(
         0.f,
         static_cast<float>(res.x),
         0.f,
         static_cast<float>(res.y)
     );
+    orthoMat = glm::scale(orthoMat, glm::vec3(_scale, _scale, 1.f));
+    orthoMat = glm::translate(
+        orthoMat,
+        // The extra `/ _scale` in this calculation is due to the glm::scale just above
+        // which means that every translation is scaled as well. Moving the division into
+        // the parantheses would make it harder to understand as we don't really care too
+        // much about the performance here
+        glm::vec3(
+            scaleOffset.x * (1.f - _scale) / _scale,
+            scaleOffset.y * (1.f - _scale) / _scale,
+            0.f
+        )
+    );
+
+    const glm::vec2 penPosition = glm::vec2(
+        15.f * _scale + scaleOffset.x * (1.f - _scale),
+        10.f * _scale + scaleOffset.y * (1.f - _scale)
+    );
+    const float penOffset = 20.f * _scale;
+
 
     glLineWidth(1.f);
 
@@ -294,7 +316,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         );
 
 
-        glm::mat4 m = glm::translate(orthoMat, glm::vec3(0.f, 250.f, 0.f));
+        glm::mat4 m = glm::translate(orthoMat, glm::vec3(0.f, 250.f * _scale, 0.f));
         m = glm::scale(m, glm::vec3(size.x, size.y, 1.f));
         glUniformMatrix4fv(_mvpLoc, 1, GL_FALSE, glm::value_ptr(m));
 
@@ -339,19 +361,19 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         ShaderProgram::unbind();
 
 #ifdef SGCT_HAS_TEXT
-        constexpr glm::vec2 Pos = glm::vec2(15.f, 50.f);
-        constexpr float Offset = 20.f;
         constexpr text::Alignment mode = text::Alignment::TopLeft;
 
-        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", 20);
-        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", 12);
+        const int f1Size = static_cast<int>(20 * _scale);
+        const int f2Size = static_cast<int>(12 * _scale);
+        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", f1Size);
+        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", f2Size);
 
         text::print(
             window,
             viewport,
             f1,
             mode,
-            Pos.x, Pos.y + 7 * Offset,
+            penPosition.x, penPosition.y + 9 * penOffset,
             vec4{ 1.f, 0.8f, 0.8f, 1.f },
             std::format("Frame number: {}", Engine::instance().currentFrameNumber())
         );
@@ -360,7 +382,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + 4 * Offset,
+            penPosition.x, penPosition.y + 6 * penOffset,
             ColorFrameTime,
             std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
         );
@@ -369,7 +391,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + 3 * Offset,
+            penPosition.x, penPosition.y + 5 * penOffset,
             ColorDrawTime,
             std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
         );
@@ -378,7 +400,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + 2 * Offset,
+            penPosition.x, penPosition.y + 4 * penOffset,
             ColorSyncTime,
             std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
         );
@@ -387,7 +409,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + Offset,
+            penPosition.x, penPosition.y + 3 * penOffset,
             ColorLoopTimeMin,
             std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
         );
@@ -396,7 +418,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y,
+            penPosition.x, penPosition.y + 2 * penOffset,
             ColorLoopTimeMax,
             std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
         );
@@ -411,26 +433,26 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         ZoneScopedN("Histogram");
 
         auto renderHistogram = [&](int i, const vec4& color) {
-            const auto [pos, size] = [](int j) -> std::tuple<glm::vec2, glm::vec2> {
-                constexpr glm::vec2 Pos(400.f, 10.f);
-                constexpr glm::vec2 Size(425.f, 200.f);
+            const auto [pos, size] = [this](int j) -> std::tuple<glm::vec2, glm::vec2> {
+                const glm::vec2 pos = glm::vec2(400.f * _scale, 10.f * _scale);
+                const glm::vec2 size = glm::vec2(425.f *_scale, 200.f * _scale);
 
                 if (j == 0) {
                     // Full size
-                    return { Pos, Size };
+                    return { pos, size };
                 }
                 else {
                     // Half size in a grid
                     const int idx = j - 1;
-                    const glm::vec2 tSize = Size / 2.f;
+                    const glm::vec2 tSize = size / 2.f;
                     const float iMod = static_cast<float>(idx % 2);
                     const float iDiv = static_cast<float>(idx / 2);
                     const glm::vec2 offset = glm::vec2(
                         (tSize.x + 10.f) * iMod,
                         (tSize.y + 10.f) * iDiv
                     );
-                    const glm::vec2 p = Pos + offset;
-                    return { p + glm::vec2(Size.x + 10.f, 0.f), tSize };
+                    const glm::vec2 p = pos + offset;
+                    return { p + glm::vec2(size.x + 10.f, 0.f), tSize };
                 }
             }(i);
 
@@ -455,36 +477,44 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         renderHistogram(4, ColorLoopTimeMax);
 
 #ifdef SGCT_HAS_TEXT
-        constexpr glm::vec2 Pos = glm::vec2(15.f, 10.f);
         constexpr text::Alignment mode = text::Alignment::TopLeft;
 
-        text::Font& f = *text::FontManager::instance().font("SGCTFont", 8);
+        const int fontSize = static_cast<int>(8 * _scale);
+        text::Font& f = *text::FontManager::instance().font("SGCTFont", fontSize);
         text::print(
             window,
             viewport,
             f,
             mode,
-            Pos.x, Pos.y,
-            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            std::format(
-                "Histogram Scale (frametime, drawtime): {:.0f} ms",
-                HistogramScaleFrame * 1000.0
-            )
-        );
-        text::print(
-            window,
-            viewport,
-            f,
-            mode,
-            Pos.x, Pos.y + 12.f,
+            penPosition.x, penPosition.y + penOffset,
             vec4{ 0.8f, 0.8f, 0.8f, 1.f },
             std::format(
                 "Histogram Scale (sync time): {:.0f} ms",
                 HistogramScaleSync * 1000.0
             )
         );
+        text::print(
+            window,
+            viewport,
+            f,
+            mode,
+            penPosition.x, penPosition.y,
+            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
+            std::format(
+                "Histogram Scale (frametime, drawtime): {:.0f} ms",
+                HistogramScaleFrame * 1000.0
+            )
+        );
 #endif // SGCT_HAS_TEXT
     }
+}
+
+float StatisticsRenderer::scale() const {
+    return _scale;
+}
+
+void StatisticsRenderer::setScale(float scale) {
+    _scale = scale;
 }
 
 } // namespace sgct

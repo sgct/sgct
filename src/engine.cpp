@@ -1225,6 +1225,19 @@ void Engine::renderFBOTexture(Window& window) {
         _fboQuad.bind();
         maskShaderSet = true;
 
+        if (window.flipX()) {
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 1);
+        }
+        else {
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 0);
+        }
+        if (window.flipY()) {
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 1);
+        }
+        else {
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 0);
+        }
+
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
 
         // render right eye in active stereo mode
@@ -1250,6 +1263,19 @@ void Engine::renderFBOTexture(Window& window) {
     if (window.hasAnyMasks()) {
         if (!maskShaderSet) {
             _fboQuad.bind();
+
+            if (window.flipX()) {
+                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 1);
+            }
+            else {
+                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 0);
+            }
+            if (window.flipY()) {
+                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 1);
+            }
+            else {
+                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 0);
+            }
         }
 
         glDrawBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
@@ -1747,6 +1773,16 @@ void Engine::setStatsGraphVisibility(bool value) {
     }
     if (!value && _statisticsRenderer) {
         _statisticsRenderer = nullptr;
+    }
+}
+
+float Engine::statsGraphScale() const {
+    return _statisticsRenderer ? _statisticsRenderer->scale() : -1.f;
+}
+
+void Engine::setStatsGraphScale(float scale) {
+    if (_statisticsRenderer) {
+        _statisticsRenderer->setScale(scale);
     }
 }
 

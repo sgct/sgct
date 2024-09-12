@@ -116,6 +116,20 @@ void Image::load(const std::filesystem::path& filename) {
     }
 }
 
+void Image::load(unsigned char* data, int length) {
+    stbi_set_flip_vertically_on_load(1);
+    _data = stbi_load_from_memory(data, length, &_size.x, &_size.y, &_nChannels, 0);
+    _bytesPerChannel = 1;
+    _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
+
+    // Convert BGR to RGB
+    if (_nChannels >= 3) {
+        for (size_t i = 0; i < _dataSize; i += _nChannels) {
+            std::swap(_data[i], _data[i + 2]);
+        }
+    }
+}
+
 void Image::save(const std::filesystem::path& filename) {
     if (filename.empty()) {
         throw Err(9002, "Filename not set for saving image");

@@ -235,7 +235,7 @@ private:
     CaptureFormat _captureFormat = CaptureFormat::PNG;
     int _swapInterval = 1;
     int _refreshRate = 0;
-    int _nCaptureThreads = std::max(std::thread::hardware_concurrency() - 1, 0u);
+    int _nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
 
     bool _useDepthTexture = false;
     bool _useNormalTexture = false;

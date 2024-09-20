@@ -12,6 +12,8 @@
 #include <sgct/sgctexports.h>
 #include <sgct/math.h>
 
+#include <string>
+
 namespace sgct {
     class BaseViewport;
     class Window;

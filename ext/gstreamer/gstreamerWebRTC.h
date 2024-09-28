@@ -103,8 +103,9 @@ static enum AppState app_state = APP_STATE_UNKNOWN;
 static const gchar* peer_id = "2";
 static const gchar* server_url = "ws://localhost:8443";
 static gboolean disable_ssl = FALSE;
-int frame_count = 0; // std::atomic<int> frame_count(0);
 bool signalingServerConnectionErrorLogged = false;
+//#define COUNT_STREAMING_FRAMES
+int frame_count = 0; // std::atomic<int> frame_count(0);
 
 
 using namespace sgct;
@@ -163,13 +164,19 @@ static gboolean registerWithServer(void);
 static void onServerMessage(SoupWebsocketConnection* conn, SoupWebsocketDataType type,
     GBytes* message, gpointer user_data);
 
-static void onServerConnected(SoupSession* session, GAsyncResult* res, SoupMessage* msg, gpointer p);
+static void onServerConnected(SoupSession* session, GAsyncResult* res, SoupMessage* msg,
+    gpointer p);
 
 static void connectToSignalingServer();
 
 static void initGST();
 
-static gboolean frameCountCallback(gpointer user_data);
+static gboolean gMainLoopTickCallback(gpointer user_data);
+
+#ifdef COUNT_STREAMING_FRAMES
+  static GstPadProbeReturn count_frames(GstPad* pad, GstPadProbeInfo* info,
+      gpointer user_data);
+#endif
 
 void initOGL(GLFWwindow*);
 
@@ -200,26 +207,28 @@ static void initGST() {
     checkGstPlugins();
     initializeGstGl();
 
-    // Start the WebRTC 
-    connectToSignalingServer();
-
     // Create empty loop
     glPipeline.loop = g_main_loop_new(NULL, FALSE);
-    g_timeout_add(2000, frameCountCallback, static_cast<gpointer>(&frame_count));
+    g_timeout_add(2000, gMainLoopTickCallback, static_cast<gpointer>(&frame_count));
 }
 
-gboolean frameCountCallback(gpointer user_data) {
+gboolean gMainLoopTickCallback(gpointer user_data) {
+#ifdef COUNT_STREAMING_FRAMES
     int frameCountFromUserData = static_cast<int>(*(static_cast<int*>(user_data)));
     g_print("Frame count: %d ; app_state = %d\n", frameCountFromUserData, app_state);
-/*    bool needToTryConnectingToSignalingServer = (
+#endif //COUNT_STREAMING_FRAMES
+    //Connect to the signaling server. If connect fails the first time, it will continue
+    //trying to establish a connection
+    bool needToTryConnectingToSignalingServer = (
         app_state == APP_STATE_UNKNOWN ||
         app_state == APP_STATE_ERROR ||
-        app_state == SERVER_CONNECTION_ERROR
+        app_state == SERVER_CONNECTION_ERROR ||
+        app_state == SERVER_CLOSED
     );
     if (needToTryConnectingToSignalingServer) {
-        g_print("Call connectToSignalingServer() from frameCountCallback.\n");
+        g_print("Call connectToSignalingServer() from gMainLoopTickCallback.\n");
         connectToSignalingServer();
-    }*/
+    }
     return TRUE;
 }
 
@@ -615,7 +624,8 @@ static void onServerClosed(SoupWebsocketConnection* conn G_GNUC_UNUSED,
     gpointer user_data G_GNUC_UNUSED)
 {
     app_state = SERVER_CLOSED;
-    quitLoop("Server connection closed", APP_STATE_UNKNOWN);
+    //Disable this call to allow for a signaling server restart
+    //quitLoop("Server connection closed", APP_STATE_UNKNOWN);
 }
 
 static gboolean setupCall(void)
@@ -791,14 +801,18 @@ std::vector<GstElement*> get_pipeline_elements(GstPipeline* pipeline) {
     return elements;
 }
 
-GstPad* encoder_sink_pad = nullptr;
-// Callback to count frames when a buffer is pushed to the encoder
-static GstPadProbeReturn count_frames(GstPad* pad, GstPadProbeInfo* info, gpointer user_data) {
-    // Increment the frame counter
-    int* ctr = static_cast<int*>(user_data);
-    *ctr = *ctr + 1;
-    return GST_PAD_PROBE_OK;
-}
+#ifdef COUNT_STREAMING_FRAMES
+    GstPad* encoder_sink_pad = nullptr;
+    // Callback to count frames when a buffer is pushed to the encoder
+    static GstPadProbeReturn count_frames(GstPad* pad, GstPadProbeInfo* info,
+                                                                      gpointer user_data)
+    {
+        // Increment the frame counter
+        int* ctr = static_cast<int*>(user_data);
+        *ctr = *ctr + 1;
+        return GST_PAD_PROBE_OK;
+    }
+#endif //#ifdef COUNT_STREAMING_FRAMES
 
 static gboolean startPipeline()
 {
@@ -845,12 +859,12 @@ static gboolean startPipeline()
         return FALSE;
     }
 
-    //Print individual elements
     std::vector<GstElement*> elements = get_pipeline_elements(glPipeline.pipeline);
-    // Print the names of the elements
     std::cout << "Elements in the pipeline:" << std::endl;
     for (GstElement* element : elements) {
+        // Print the names of the elements
         g_print("  %s", GST_ELEMENT_NAME(element));
+#ifdef COUNT_STREAMING_FRAMES
         if (std::strcmp(GST_ELEMENT_NAME(element), "nvh264enc0") == 0) {
             encoder_sink_pad = gst_element_get_static_pad(element, "sink");
             gulong probeId = gst_pad_add_probe(
@@ -868,6 +882,7 @@ static gboolean startPipeline()
                 g_print("  (add_probe attempt failed with return id 0)");
             }
         }
+#endif //#ifdef COUNT_STREAMING_FRAMES
         g_print("\n");
     }
 

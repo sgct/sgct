@@ -103,6 +103,9 @@ static enum AppState app_state = APP_STATE_UNKNOWN;
 static const gchar* peer_id = "2";
 static const gchar* server_url = "ws://localhost:8443";
 static gboolean disable_ssl = FALSE;
+int frame_count = 0; // std::atomic<int> frame_count(0);
+bool signalingServerConnectionErrorLogged = false;
+
 
 using namespace sgct;
 
@@ -166,6 +169,8 @@ static void connectToSignalingServer();
 
 static void initGST();
 
+static gboolean frameCountCallback(gpointer user_data);
+
 void initOGL(GLFWwindow*);
 
 void draw(const RenderData& data);
@@ -189,6 +194,9 @@ static void initGST() {
     glPipeline.width = Engine::instance().windows()[1]->resolution().x;
     glPipeline.height = Engine::instance().windows()[1]->resolution().y;
 
+    gst_debug_set_default_threshold(GST_LEVEL_WARNING);
+    gst_debug_set_active(TRUE);
+
     checkGstPlugins();
     initializeGstGl();
 
@@ -197,7 +205,22 @@ static void initGST() {
 
     // Create empty loop
     glPipeline.loop = g_main_loop_new(NULL, FALSE);
+    g_timeout_add(2000, frameCountCallback, static_cast<gpointer>(&frame_count));
+}
 
+gboolean frameCountCallback(gpointer user_data) {
+    int frameCountFromUserData = static_cast<int>(*(static_cast<int*>(user_data)));
+    g_print("Frame count: %d ; app_state = %d\n", frameCountFromUserData, app_state);
+/*    bool needToTryConnectingToSignalingServer = (
+        app_state == APP_STATE_UNKNOWN ||
+        app_state == APP_STATE_ERROR ||
+        app_state == SERVER_CONNECTION_ERROR
+    );
+    if (needToTryConnectingToSignalingServer) {
+        g_print("Call connectToSignalingServer() from frameCountCallback.\n");
+        connectToSignalingServer();
+    }*/
+    return TRUE;
 }
 
 // TODO: Rename this function as it also fetches the necessary plugins and not just checks them
@@ -363,7 +386,12 @@ static void onServerConnected(SoupSession* session, GAsyncResult* res,
     // Returns a SoupWebsocketConnection that can be used to communicate with the server
     ws_conn = soup_session_websocket_connect_finish(session, res, &error);
     if (error) {
-        quitLoop(error->message, SERVER_CONNECTION_ERROR); // Error handling
+        //quitLoop(error->message, SERVER_CONNECTION_ERROR); // Error handling
+        app_state = SERVER_CONNECTION_ERROR;
+        if (!signalingServerConnectionErrorLogged) {
+            g_printerr(error->message);
+            signalingServerConnectionErrorLogged = true;
+        }
         g_error_free(error);
         return;
     }
@@ -371,7 +399,7 @@ static void onServerConnected(SoupSession* session, GAsyncResult* res,
     g_assert_nonnull(ws_conn);
 
     app_state = SERVER_CONNECTED; // Our own enums -- should not be uppercase in OpenSpace
-    g_print("Connected to signalling server\n");
+    g_print("Connected to signaling server\n");
 
     // If the connection is closed - basically just quit_loop and change the app_state
     g_signal_connect(ws_conn, "closed", G_CALLBACK(onServerClosed), &p);
@@ -416,43 +444,45 @@ static void onServerMessage(SoupWebsocketConnection* conn, SoupWebsocketDataType
         g_printerr("Received unknown binary message, ignoring\n");
         g_bytes_unref(message);
         return;
+
     case SOUP_WEBSOCKET_DATA_TEXT:
         data = static_cast<gchar*>(g_bytes_unref_to_data(message, &size));
         /* Convert to NULL-terminated string */
         text = g_strndup(data, size);
         g_free(data);
         break;
+
     default:
+        g_printerr("Default case in onServerMessage()\n");
         g_assert_not_reached();
     }
 
 
     // Server has accepted our registration, we are ready to send commands 
     if (g_strcmp0(text, "REGISTER") == 0) {
-
         if (app_state != SERVER_REGISTERING) {
             quitLoop("ERROR: Received REGISTER when not registering",
                 APP_STATE_ERROR);
-            goto out;
+            g_free(text);
         }
-        app_state = SERVER_REGISTERED;
-        g_print("Registered with server\n");
+        else {
+            app_state = SERVER_REGISTERED;
+            g_print("Registered with server\n");
 
-        // Ask signalling server to connect us with a specific peer 
-        if (!setupCall()) {
-            quitLoop("ERROR: Failed to setup call", PEER_CALL_ERROR);
-            goto out;
+            // Ask signaling server to connect us with a specific peer 
+            if (!setupCall()) {
+                quitLoop("ERROR: Failed to setup call", PEER_CALL_ERROR);
+                g_free(text);
+            }
         }
-
         // Call has been setup by the server, now we can start negotiation
     }
     else if (g_strcmp0(text, "SESSION_OK") == 0) {
-        if (app_state != PEER_CONNECTING) {
+        /*if (app_state != PEER_CONNECTING) {
             quitLoop("ERROR: Received SESSION_OK when not calling",
                 PEER_CONNECTION_ERROR);
-            goto out;
-        }
-
+        }*/
+        //Allow this message if have already received it, and restart connection
         app_state = PEER_CONNECTED;
 
         // Start negotiation (exchange SDP and ICE candidates)
@@ -520,7 +550,7 @@ static void onServerMessage(SoupWebsocketConnection* conn, SoupWebsocketDataType
             gchar* sdpDesc = const_cast<char*>(sdpString.c_str()); // sdp contents
 
             if (sdpType == "offer") {
-                g_print("There is no support for sdp offers for this client");
+                g_print("There is no support for sdp offers for this client\n");
             }
             else if (sdpType == "answer") {
                 g_print("Received answer from %s:\n%s\n ", peer_id, sdpDesc);
@@ -548,7 +578,7 @@ static void onServerMessage(SoupWebsocketConnection* conn, SoupWebsocketDataType
 
             }
             else {
-                g_print("SDP type wasn't OFFER or ANSWER");
+                g_print("SDP type wasn't OFFER or ANSWER\n");
             }
         }
         else if (msgType == "ICE") {
@@ -579,9 +609,6 @@ static void onServerMessage(SoupWebsocketConnection* conn, SoupWebsocketDataType
             g_printerr("Ignoring unknown JSON message:\n%s\n", text);
         }
     }
-
-out:
-    g_free(text);
 }
 
 static void onServerClosed(SoupWebsocketConnection* conn G_GNUC_UNUSED,
@@ -603,7 +630,7 @@ static gboolean setupCall(void)
     if (!peer_id)
         return FALSE;
 
-    g_print("Setting up signalling server call with %s\n", peer_id);
+    g_print("Setting up signaling server call with %s\n", peer_id);
     app_state = PEER_CONNECTING;
 
     sendToSocket("SESSION", peer_id);
@@ -624,7 +651,7 @@ static void onNegotiationNeeded(GstElement* element, gpointer user_data)
 
 static void onOfferCreated(GstPromise* promise, gpointer user_data)
 {
-    g_print("On Offer Created");
+    g_print("On Offer Created\n");
     GstWebRTCSessionDescription* offer = NULL;
     const GstStructure* reply;
 
@@ -654,7 +681,7 @@ static void sendSdpOffer(GstWebRTCSessionDescription* offer)
     gchar* text;
 
     if (app_state < PEER_CALL_NEGOTIATING) {
-        quitLoop("Can't send offer, not in call", APP_STATE_ERROR);
+        quitLoop("ERROR: Can't send offer, not in call", APP_STATE_ERROR);
         return;
     }
 
@@ -683,7 +710,7 @@ static void sendIceCandidateMessage(GstElement* webrtc G_GNUC_UNUSED, guint mlin
 {
 
     if (app_state < PEER_CALL_NEGOTIATING) {
-        quitLoop("Can't send ICE, not in call", APP_STATE_ERROR);
+        quitLoop("ERROR: Can't send ICE, not in call", APP_STATE_ERROR);
         return;
     }
 
@@ -727,6 +754,52 @@ static void sendToSocket(const char* type, nlohmann::json content) {
     soup_websocket_connection_send_text(ws_conn, msgString);
 };
 
+std::vector<GstElement*> get_pipeline_elements(GstPipeline* pipeline) {
+    std::vector<GstElement*> elements;
+
+    // Ensure the pipeline is a bin (all pipelines are bins)
+    if (GST_IS_BIN(pipeline)) {
+        // Iterate through all elements in the pipeline
+        GstIterator* iter = gst_bin_iterate_elements(GST_BIN(pipeline));
+        GValue item = G_VALUE_INIT;
+        gboolean done = FALSE;
+
+        while (!done) {
+            switch (gst_iterator_next(iter, &item)) {
+            case GST_ITERATOR_OK: {
+                // Get the element and add it to the vector
+                GstElement* element = GST_ELEMENT(g_value_get_object(&item));
+                elements.push_back(element);
+
+                // Unset the GValue to release reference
+                g_value_unset(&item);
+                break;
+            }
+            case GST_ITERATOR_DONE:
+                done = TRUE;
+                break;
+            case GST_ITERATOR_ERROR:
+            case GST_ITERATOR_RESYNC:
+                gst_iterator_resync(iter);
+                break;
+            }
+        }
+
+        gst_iterator_free(iter);
+    }
+
+    return elements;
+}
+
+GstPad* encoder_sink_pad = nullptr;
+// Callback to count frames when a buffer is pushed to the encoder
+static GstPadProbeReturn count_frames(GstPad* pad, GstPadProbeInfo* info, gpointer user_data) {
+    // Increment the frame counter
+    int* ctr = static_cast<int*>(user_data);
+    *ctr = *ctr + 1;
+    return GST_PAD_PROBE_OK;
+}
+
 static gboolean startPipeline()
 {
     GstStateChangeReturn ret;
@@ -758,15 +831,44 @@ static gboolean startPipeline()
         " application/x-rtp, profile=main, media=video, encoding-name=H264, payload=96 ! "
         " webrtcbin name=sendrecv", NULL);
 
-    g_print("Pipeline desc: %s", pipelineDescription);
+    g_print("Pipeline desc: %s\n", pipelineDescription);
 
     glPipeline.pipeline = GST_PIPELINE(gst_parse_launch(pipelineDescription, &error));
 
     if (error) {
         g_printerr("Failed to parse launch: %s\n", error->message);
         g_error_free(error);
-        //TODO: Look into why 'goto err' gives error when uncommented
-        //goto err;
+        if (glPipeline.pipeline)
+            g_clear_object(&glPipeline.pipeline);
+        if (webrtc1)
+            webrtc1 = NULL;
+        return FALSE;
+    }
+
+    //Print individual elements
+    std::vector<GstElement*> elements = get_pipeline_elements(glPipeline.pipeline);
+    // Print the names of the elements
+    std::cout << "Elements in the pipeline:" << std::endl;
+    for (GstElement* element : elements) {
+        g_print("  %s", GST_ELEMENT_NAME(element));
+        if (std::strcmp(GST_ELEMENT_NAME(element), "nvh264enc0") == 0) {
+            encoder_sink_pad = gst_element_get_static_pad(element, "sink");
+            gulong probeId = gst_pad_add_probe(
+                encoder_sink_pad,
+                GST_PAD_PROBE_TYPE_BUFFER,
+                count_frames,
+                &frame_count,
+                nullptr
+            );
+            gst_object_unref(encoder_sink_pad);
+            if (probeId != 0) {
+                g_print("  (added probe with return id = %d)", probeId);
+            }
+            else {
+                g_print("  (add_probe attempt failed with return id 0)");
+            }
+        }
+        g_print("\n");
     }
 
     // Check that our source has been added properly
@@ -812,19 +914,17 @@ static gboolean startPipeline()
 
     g_print("Starting pipeline\n");
     ret = gst_element_set_state(GST_ELEMENT(glPipeline.pipeline), GST_STATE_PLAYING);
-    if (ret == GST_STATE_CHANGE_FAILURE)
-        //TODO: Look into why 'goto err' gives error when uncommented
-        //goto err;
+    if (ret == GST_STATE_CHANGE_FAILURE) {
+        g_print("Error: GST_STATE_CHANGE_FAILURE\n");
+        if (glPipeline.pipeline)
+            g_clear_object(&glPipeline.pipeline);
+        if (webrtc1)
+            webrtc1 = NULL;
+        return FALSE;
+    }
 
     g_print("Started pipeline\n");
     return TRUE;
-
-err:
-    if (glPipeline.pipeline)
-        g_clear_object(&glPipeline.pipeline);
-    if (webrtc1)
-        webrtc1 = NULL;
-    return FALSE;
 }
 
 static gboolean onBusMessage(GstBus* bus, GstMessage* msg, gpointer data) {
@@ -832,21 +932,16 @@ static gboolean onBusMessage(GstBus* bus, GstMessage* msg, gpointer data) {
     switch (GST_MESSAGE_TYPE(msg)) {
 
     case GST_MESSAGE_EOS:
-        g_print("End of stream\n");
-        g_main_loop_quit(glPipeline.loop);
+        quitLoop("End of stream\n", PEER_CALL_STOPPED);
         break;
 
     case GST_MESSAGE_ERROR: {
         gchar* debug;
         GError* error;
-
         gst_message_parse_error(msg, &error, &debug);
         g_free(debug);
-
-        g_printerr("Error: %s\n", error->message);
+        quitLoop(error->message, PEER_CALL_ERROR);
         g_error_free(error);
-
-        g_main_loop_quit(glPipeline.loop);
         break;
     }
 
@@ -917,7 +1012,6 @@ static gboolean runGMainLoop(gpointer data)
 
 // Render the scene and push the buffer
 static void addBufferToSource() {
-
     // Wrap the rendered texture into a GstBuffer.
     GstBuffer* buffer = wrapGlTexture();
 
@@ -941,6 +1035,11 @@ static GstBuffer* wrapGlTexture()
 
     allocator = gst_gl_memory_allocator_get_default(glPipeline.main_context);
 
+    if (!allocator) {
+        g_error("Gstreamer GL memory allocator get_default failed.\n");
+        return NULL;
+    }
+
     buffer = gst_buffer_new();
 
     if (!buffer) {
@@ -952,6 +1051,10 @@ static GstBuffer* wrapGlTexture()
 
     // Connect GStreamer to the second window of SGCT. Configuration of this windows is done in the SGCT-config file for GStreamer
     wrappedTextures[0] = (gpointer)Engine::instance().windows()[1]->frameBufferTexture(sgct::Window::TextureIndex::LeftEye);
+    if (!wrappedTextures[0]) {
+        g_error("Failed to get a wrapped texture from sgct\n");
+        return NULL;
+    }
 
     // Wrap the texture into GLMemory
     gboolean isSetUp = gst_gl_memory_setup_buffer(allocator, buffer,
@@ -975,16 +1078,22 @@ static gboolean quitLoop(const gchar* msg, enum AppState state)
         app_state = state;
 
     if (ws_conn) {
-        if (soup_websocket_connection_get_state(ws_conn) ==
-            SOUP_WEBSOCKET_STATE_OPEN)
+        if (soup_websocket_connection_get_state(ws_conn) == SOUP_WEBSOCKET_STATE_OPEN) {
+            g_print("Closing websocket connection in quitLoop().\n");
             soup_websocket_connection_close(ws_conn, 1000, "");
-        else
+        }
+        else {
             g_object_unref(ws_conn);
+        }
     }
 
     if (glPipeline.loop) {
         g_main_loop_quit(glPipeline.loop);
         glPipeline.loop = NULL;
+        g_print("QUIT main_loop\n");
+    }
+    else {
+        g_print("QUIT main_loop called with NULL glPipeline.loop\n");
     }
 
     return G_SOURCE_REMOVE;

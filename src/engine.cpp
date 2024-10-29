@@ -306,6 +306,9 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         Log::Error("Using thread affinity on an operating system that is not supported");
 #endif // WIN32
     }
+    if (cluster.webRtcId) {
+        _webRtcId = *cluster.webRtcId;
+    }
     {
         ZoneScopedN("GLFW initialization");
         glfwSetErrorCallback(
@@ -1047,6 +1050,10 @@ void Engine::updateFrustums() const {
     for (const std::unique_ptr<Window>& win : windows()) {
         win->updateFrustums(_nearClipPlane, _farClipPlane);
     }
+}
+
+unsigned int Engine::webRtcId() const {
+    return _webRtcId;
 }
 
 const Engine::Statistics& Engine::statistics() const {

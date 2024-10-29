@@ -55,7 +55,8 @@ enum AppState {
 };
 
 // Connection ID, this is static for the host
-static int ourId = 1; 
+static unsigned int ourId = 0;
+static unsigned int peer_id = 100;
 
 namespace {
     double currentTime = 0.0;
@@ -100,7 +101,6 @@ pipelineConfig glPipeline = { 0 };
 // "A class representing a WebSocket connection"
 static SoupWebsocketConnection* ws_conn = NULL;
 static enum AppState app_state = APP_STATE_UNKNOWN;
-static const gchar* peer_id = "2";
 static const gchar* server_url = "ws://localhost:8443";
 static gboolean disable_ssl = FALSE;
 bool signalingServerConnectionErrorLogged = false;
@@ -116,7 +116,7 @@ using namespace sgct;
 static gboolean quitLoop(const gchar* msg, enum AppState state);
 
 static void sendToSocket(const char* type, const char* content);
-
+static void sendToSocket(const char* type, unsigned int content);
 static void sendToSocket(const char* type, nlohmann::json content);
 
 static void onServerClosed(SoupWebsocketConnection* conn G_GNUC_UNUSED,
@@ -200,6 +200,8 @@ static void initGST() {
     glPipeline.texture = renderTexture;
     glPipeline.width = Engine::instance().windows()[1]->resolution().x;
     glPipeline.height = Engine::instance().windows()[1]->resolution().y;
+    ourId = Engine::instance().webRtcId();
+    peer_id = ourId + 100;
 
     gst_debug_set_default_threshold(GST_LEVEL_WARNING);
     gst_debug_set_active(TRUE);
@@ -562,7 +564,7 @@ static void onServerMessage(SoupWebsocketConnection* conn, SoupWebsocketDataType
                 g_print("There is no support for sdp offers for this client\n");
             }
             else if (sdpType == "answer") {
-                g_print("Received answer from %s:\n%s\n ", peer_id, sdpDesc);
+                g_print("Received answer from %d:\n%s\n ", peer_id, sdpDesc);
 
                 ret = gst_sdp_message_new(&sdp);
                 g_assert_cmphex(ret, == , GST_SDP_OK);
@@ -631,16 +633,12 @@ static void onServerClosed(SoupWebsocketConnection* conn G_GNUC_UNUSED,
 static gboolean setupCall(void)
 {
     gchar* msg;
-    gchar* peer_id_c;
 
     if (soup_websocket_connection_get_state(ws_conn) !=
         SOUP_WEBSOCKET_STATE_OPEN)
         return FALSE;
 
-    if (!peer_id)
-        return FALSE;
-
-    g_print("Setting up signaling server call with %s\n", peer_id);
+    g_print("Setting up signaling server call with %d\n", peer_id);
     app_state = PEER_CONNECTING;
 
     sendToSocket("SESSION", peer_id);
@@ -741,6 +739,18 @@ static void sendIceCandidateMessage(GstElement* webrtc G_GNUC_UNUSED, guint mlin
 }
 
 static void sendToSocket(const char* type, const char* content) {
+
+    nlohmann::json msgJSON = {
+        {"type", type},
+        {"content", content},
+        {"caller_id", ourId}
+    };
+    std::string msgDump = msgJSON.dump();
+    char* msgString = const_cast<char*>(msgDump.c_str());
+    soup_websocket_connection_send_text(ws_conn, msgString);
+};
+
+static void sendToSocket(const char* type, const unsigned int content) {
 
     nlohmann::json msgJSON = {
         {"type", type},

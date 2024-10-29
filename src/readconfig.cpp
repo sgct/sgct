@@ -1496,7 +1496,7 @@ void from_json(const nlohmann::json& j, Cluster& c) {
     else {
         throw Err(6084, "Cannot find master address");
     }
-
+    parseValue(j, "webrtcid", c.webRtcId);
     parseValue(j, "threadaffinity", c.setThreadAffinity);
     parseValue(j, "debuglog", c.debugLog);
     parseValue(j, "firmsync", c.firmSync);
@@ -1512,7 +1512,9 @@ void from_json(const nlohmann::json& j, Cluster& c) {
 
 void to_json(nlohmann::json& j, const Cluster& c) {
     j["masteraddress"] = c.masterAddress;
-
+    if (c.webRtcId.has_value()) {
+        j["webrtcid"] = *c.webRtcId;
+    }
     if (c.setThreadAffinity.has_value()) {
         j["threadaffinity"] = *c.setThreadAffinity;
     }

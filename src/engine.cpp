@@ -384,6 +384,9 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         Log::Error("Using thread affinity on an operating system that is not supported");
 #endif // WIN32
     }
+    if (cluster.webRtcId) {
+        _webRtcId = *cluster.webRtcId;
+    }
     {
         ZoneScopedN("GLFW initialization");
         glfwSetErrorCallback([](int error, const char* desc) {
@@ -1727,6 +1730,11 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
 
     glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
+}
+
+unsigned int Engine::webRtcId() const
+{
+    return _webRtcId;
 }
 
 const Engine::Statistics& Engine::statistics() const {

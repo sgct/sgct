@@ -426,6 +426,13 @@ public:
     void setupViewport(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustum);
 
+    /**
+     * Returns the WebRTC peer ID for this instance. IDs are unsigned and start at 0.
+     *
+     * \return The WebRTC peer ID
+     */
+    unsigned int webRtcId() const;
+
 private:
     /**
      * The global singleton instance of this Engine class. This instance is created
@@ -631,6 +638,8 @@ private:
 
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;
+
+    unsigned int _webRtcId = 0;
 };
 
 } // namespace sgct

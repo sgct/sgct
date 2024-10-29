@@ -340,6 +340,7 @@ struct SGCT_EXPORT Cluster {
     bool success = false;
 
     std::string masterAddress;
+    std::optional<int> webRtcId = 0;
     std::optional<bool> debugLog;
     std::optional<int> setThreadAffinity;
     std::optional<bool> firmSync;

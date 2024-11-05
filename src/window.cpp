@@ -140,6 +140,9 @@ void Window::applyWindow(const config::Window& window) {
     if (window.doubleBuffered) {
         setDoubleBuffered(*window.doubleBuffered);
     }
+    if (window.takeScreenshot) {
+        setTakeScreenshot(*window.takeScreenshot);
+    }
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
     }
@@ -668,6 +671,10 @@ void Window::setFloating(bool floating) {
 
 void Window::setDoubleBuffered(bool doubleBuffered) {
     _isDoubleBuffered = doubleBuffered;
+}
+
+void Window::setTakeScreenshot(bool takeScreenshot) {
+    _takeScreenshot = takeScreenshot;
 }
 
 void Window::setWindowDecoration(bool state) {
@@ -1312,6 +1319,10 @@ bool Window::shouldCallDraw3DFunction() const {
 
 int Window::blitWindowId() const {
     return _blitWindowId;
+}
+
+bool Window::shouldTakeScreenshot() const {
+    return _takeScreenshot;
 }
 
 bool Window::flipX() const {

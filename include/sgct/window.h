@@ -214,6 +214,11 @@ public:
     void setDoubleBuffered(bool doubleBuffered);
 
     /**
+     * Set if the window should participate in screenshot taking.
+     */
+    void setTakeScreenshot(bool takeScreenshot);
+
+    /**
      * Set if window borders should be visible.
      */
     void setWindowDecoration(bool state);
@@ -439,6 +444,8 @@ public:
     bool shouldCallDraw3DFunction() const;
     int blitWindowId() const;
 
+    bool shouldTakeScreenshot() const;
+
     bool flipX() const;
     bool flipY() const;
 
@@ -493,6 +500,7 @@ private:
     bool _hideMouseCursor = false;
     bool _isFloating = false;
     bool _isDoubleBuffered = true;
+    bool _takeScreenshot = true;
     bool _setWindowPos = false;
     bool _isDecorated = true;
     bool _isResizable = true;

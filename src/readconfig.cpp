@@ -1298,6 +1298,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "alwaysrender", w.alwaysRender);
     parseValue(j, "hidden", w.isHidden);
     parseValue(j, "doublebuffered", w.doubleBuffered);
+    parseValue(j, "takescreenshot", w.takeScreenshot);
 
     parseValue(j, "msaa", w.msaa);
     parseValue(j, "fxaa", w.useFxaa);
@@ -1389,6 +1390,10 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.doubleBuffered.has_value()) {
         j["doublebuffered"] = *w.doubleBuffered;
+    }
+
+    if (w.takeScreenshot.has_value()) {
+        j["takescreenshot"] = *w.takeScreenshot;
     }
 
     if (w.msaa.has_value()) {

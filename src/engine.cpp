@@ -1124,10 +1124,13 @@ void Engine::exec() {
         for (const std::unique_ptr<Window>& window : windows) {
             bool shouldTakeScreenshot = _shouldTakeScreenshot;
 
+            // The window might want to opt out of taking screenshots
+            shouldTakeScreenshot &= window->shouldTakeScreenshot();
+
             // If we don't want to take any screenshots anyway, there is no need for any
             // extra work. Same thing if we want to take a screenshot of all windows,
             // meaning that the _takeScreenshotIds list is empty
-            if (_shouldTakeScreenshot && !_shouldTakeScreenshotIds.empty()) {
+            if (shouldTakeScreenshot && !_shouldTakeScreenshotIds.empty()) {
                 auto it = std::find(
                     _shouldTakeScreenshotIds.begin(),
                     _shouldTakeScreenshotIds.end(),

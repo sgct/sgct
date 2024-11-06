@@ -1298,13 +1298,6 @@ void Engine::renderFBOTexture(Window& window) {
             }
             if (vp->hasBlackLevelMaskTexture() && vp->isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp->blackLevelMaskTextureIndex());
-
-                // inverse multiply
-                glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-                vp->renderMaskMesh();
-
-                // add
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 vp->renderMaskMesh();
             }
         }

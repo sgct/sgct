@@ -217,13 +217,18 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
 }
 
 float BaseViewport::horizontalFieldOfViewDegrees() const {
-    const float xDist = (_projPlane.coordinateUpperRight().x -
-        _projPlane.coordinateUpperLeft().x) / 2.f;
-    const float zDist = _projPlane.coordinateUpperRight().z;
+    // Using the unrotated original viewplane to calculate the field-of-view here
+    const float xDist = (_viewPlane.upperRight.x - _viewPlane.upperLeft.x) / 2.f;
+    const float zDist = _viewPlane.upperRight.z;
     return (glm::degrees(std::atan(std::abs(xDist / zDist)))) * 2.f;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
+    if (hFov == horizontalFieldOfViewDegrees()) {
+        // The old field of view is the same as the new one, so there is nothing to do
+        return;
+    }
+
     const vec3 upperLeft = _projPlane.coordinateUpperLeft();
     const vec3 lowerLeft = _projPlane.coordinateLowerLeft();
     const vec3 upperRight = _projPlane.coordinateUpperRight();

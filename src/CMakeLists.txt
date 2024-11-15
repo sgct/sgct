@@ -235,8 +235,9 @@ target_link_libraries(sgct
     sgct::stb
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
-    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     nlohmann_json_schema_validator::nlohmann_json_schema_validator
+    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:scalable>
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
 )
 
 target_compile_definitions(sgct

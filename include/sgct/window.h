@@ -558,6 +558,13 @@ private:
     static bool _useSwapGroups;
     static bool _isBarrierActive;
     static bool _isSwapGroupMaster;
+
+
+    // ScalableMesh
+    struct {
+        void* sdk = nullptr;
+        std::string path;
+    } _scalableMesh;
 };
 
 } // namespace sgct

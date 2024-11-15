@@ -24,7 +24,10 @@
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <algorithm>
+
+#include "EasyBlendSDK.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -102,6 +105,85 @@ void Window::applyWindow(const config::Window& window) {
     if (!window.tags.empty()) {
         setTags(window.tags);
     }
+    if (window.hideMouseCursor) {
+        _hideMouseCursor = *window.hideMouseCursor;
+    }
+    if (window.takeScreenshot) {
+        setTakeScreenshot(*window.takeScreenshot);
+    }
+    if (window.draw2D) {
+        setCallDraw2DFunction(*window.draw2D);
+    }
+    if (window.draw3D) {
+        setCallDraw3DFunction(*window.draw3D);
+    }
+
+    // If a scalable mesh is set, we abort straight after this
+    if (window.scalableMesh.has_value()) {
+        _scalableMesh.sdk = new EasyBlendSDK_Mesh;
+        _scalableMesh.path = window.scalableMesh->string();
+
+        // We have to load the mesh file twice;  SGCT needs to load it here to get the
+        // correct resolution, but we don't have an OpenGL context yet. The "correct"
+        // initialization needs a valid OpenGL context
+        EasyBlendSDK_Mesh mesh;
+        EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            &mesh,
+            EasyBlendSDK_SDKMODE_ClientData,
+            [](EasyBlendSDK_Mesh*, void*) { return static_cast<unsigned long>(0); }
+        );
+        if (err != EasyBlendSDK_ERR_S_OK) {
+            throw Error(
+                sgct::Error::Component::Config,
+                1104,
+                std::format(
+                    "Could not read ScalableMesh '{}' with error: {}",
+                    _scalableMesh.path, err
+                )
+            );
+        }
+
+        // Set expected windows values
+        setWindowDecoration(false);
+        setWindowPosition({ 0, 0 });
+        initWindowResolution({
+            static_cast<int>(mesh.Xres),
+            static_cast<int>(mesh.Yres)
+        });
+
+        // Set projection values
+        config::PlanarProjection proj;
+        proj.fov = {
+            .down = static_cast<float>(mesh.Frustum.BottomAngle),
+            .left = static_cast<float>(mesh.Frustum.LeftAngle),
+            .right = static_cast<float>(mesh.Frustum.RightAngle),
+            .up = static_cast<float>(mesh.Frustum.TopAngle)
+        };
+        double heading = 0.0;
+        double pitch = 0.0;
+        double roll = 0.0;
+        EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
+        const glm::quat q = glm::quat(glm::vec3(
+            glm::radians(pitch),
+            glm::radians(heading),
+            glm::radians(roll)
+        ));
+        proj.orientation = quat(q.x, q.y, q.z, q.w);
+        proj.offset = vec3 {
+            static_cast<float>(mesh.Frustum.XOffset),
+            static_cast<float>(mesh.Frustum.YOffset),
+            static_cast<float>(mesh.Frustum.ZOffset)
+        };
+
+        auto vp = std::make_unique<Viewport>(this);
+        vp->applyViewport({ .projection = proj });
+        addViewport(std::move(vp));
+
+        EasyBlendSDK_Uninitialize(&mesh);
+        return;
+    }
+
     if (window.bufferBitDepth) {
         const ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
             using CBD = config::Window::ColorBitDepth;
@@ -125,9 +207,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.shouldAutoiconify) {
         setAutoiconify(*window.shouldAutoiconify);
     }
-    if (window.hideMouseCursor) {
-        _hideMouseCursor = *window.hideMouseCursor;
-    }
     if (window.isFloating) {
         setFloating(*window.isFloating);
     }
@@ -139,9 +218,6 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.doubleBuffered) {
         setDoubleBuffered(*window.doubleBuffered);
-    }
-    if (window.takeScreenshot) {
-        setTakeScreenshot(*window.takeScreenshot);
     }
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
@@ -157,12 +233,6 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.isMirrored) {
         _isMirrored = *window.isMirrored;
-    }
-    if (window.draw2D) {
-        setCallDraw2DFunction(*window.draw2D);
-    }
-    if (window.draw3D) {
-        setCallDraw3DFunction(*window.draw3D);
     }
     if (window.blitWindowId) {
         setBlitWindowId(*window.blitWindowId);
@@ -197,6 +267,7 @@ void Window::applyWindow(const config::Window& window) {
         }(*window.stereo);
         setStereoMode(sm);
     }
+
     if (window.pos) {
         setWindowPosition(*window.pos);
     }
@@ -243,6 +314,14 @@ bool Window::isFocused() const {
 
 void Window::close() {
     ZoneScoped;
+
+    if (_scalableMesh.sdk) {
+        EasyBlendSDK_Uninitialize(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        delete _scalableMesh.sdk;
+        _scalableMesh.sdk = nullptr;
+    }
 
     makeSharedContextCurrent();
 
@@ -339,6 +418,15 @@ void Window::initContextSpecificOGL() {
             return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
         }
     );
+
+    if (!_scalableMesh.path.empty()) {
+        [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        // We already loaded the path in the constructor and verified that it works
+        assert(err == EasyBlendSDK_ERR_S_OK);
+    }
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
@@ -466,6 +554,13 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     // swap
     _windowResOld = _windowRes;
+
+    if (_scalableMesh.sdk) {
+        EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        assert(err != EasyBlendSDK_ERR_S_OK);
+    }
 
     if (_isDoubleBuffered) {
         ZoneScopedN("glfwSwapBuffers");

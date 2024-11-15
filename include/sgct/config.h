@@ -321,6 +321,8 @@ struct SGCT_EXPORT Window {
     std::optional<ivec2> resolution;
 
     std::vector<Viewport> viewports;
+
+    std::optional<std::filesystem::path> scalableMesh;
 };
 SGCT_EXPORT void validateWindow(const Window& window);
 

@@ -449,6 +449,10 @@ public:
     bool flipX() const;
     bool flipY() const;
 
+    // Returns true if this window has any settings that require a fallback on an OpenGL
+    // compatibility profile
+    bool needsCompatibilityProfile() const;
+
 private:
     enum class TextureType { Color, Depth, Normal, Position };
 

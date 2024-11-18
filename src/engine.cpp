@@ -800,7 +800,22 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    const Node& thisNode = ClusterManager::instance().thisNode();
+    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
+
+    // @TODO (abock, 2024-11-18)  We should find a better way to do this. The Scalable SDK
+    //                            requires a compatibility profile, but in general we want
+    //                            to run with a core profile
+    bool needsCompatProfile = false;
+    for (const std::unique_ptr<Window>& window : windows) {
+        needsCompatProfile |= window->needsCompatibilityProfile();
+    }
+    
+    glfwWindowHint(
+        GLFW_OPENGL_PROFILE,
+        needsCompatProfile ? GLFW_OPENGL_COMPAT_PROFILE : GLFW_OPENGL_CORE_PROFILE
+    );
 
     if (_createDebugContext) {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -811,8 +826,6 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
         _preWindowFn();
     }
 
-    const Node& thisNode = ClusterManager::instance().thisNode();
-    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     for (size_t i = 0; i < windows.size(); i++) {
         ZoneScopedN("Creating Window");
 

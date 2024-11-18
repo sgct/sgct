@@ -164,6 +164,10 @@ void Window::applyWindow(const config::Window& window) {
         double pitch = 0.0;
         double roll = 0.0;
         EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
+        // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
+        // right-handed coordinate system
+        pitch *= -1.0;
+        heading *= -1.0;
         const glm::quat q = glm::quat(glm::vec3(
             glm::radians(pitch),
             glm::radians(heading),
@@ -559,7 +563,7 @@ void Window::swapBuffers(bool takeScreenshot) {
         EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
             reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
         );
-        assert(err != EasyBlendSDK_ERR_S_OK);
+        assert(err == EasyBlendSDK_ERR_S_OK);
     }
 
     if (_isDoubleBuffered) {
@@ -1426,6 +1430,10 @@ bool Window::flipX() const {
 
 bool Window::flipY() const {
     return _mirrorY;
+}
+
+bool Window::needsCompatibilityProfile() const {
+    return _scalableMesh.sdk != nullptr;
 }
 
 } // namespace sgct

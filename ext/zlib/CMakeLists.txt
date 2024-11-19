@@ -210,7 +210,7 @@ if(WIN32)
 endif()
 
 add_library(minizip STATIC ${MINIZIP_SRCS} ${MINIZIP_PUBLIC_HDRS})
-add_library(minizip::minizip ALIAS minizip)
+add_library(unofficial::minizip::minizip ALIAS minizip)
 
 target_link_libraries(minizip PRIVATE ZLIB::ZLIB)
 target_compile_definitions(minizip PRIVATE -D_ZLIB_H)

@@ -49,8 +49,8 @@ namespace {
 
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
-    bool renderGrid = true;
-    bool renderBox = false;
+    bool renderGrid = false;
+    bool renderBox = true;
     bool showId = false;
     bool showStats = false;
 

@@ -65,21 +65,9 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.ignoreSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--capture-tga") {
-            config.captureFormat = Settings::CaptureFormat::TGA;
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--capture-jpg") {
-            config.captureFormat = Settings::CaptureFormat::JPG;
-            arg.erase(arg.begin() + i);
-        }
         else if (arg[i] == "--number-capture-threads" && arg.size() > (i + 1)) {
             config.nCaptureThreads = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
-        }
-        else if (arg[i] == "--export-correction-meshes") {
-            config.exportCorrectionMeshes = true;
-            arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--screenshot-path") {
             config.screenshotPath = arg[i + 1];

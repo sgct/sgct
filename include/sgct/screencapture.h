@@ -63,11 +63,6 @@ public:
     void setTextureTransferProperties(unsigned int type);
 
     /**
-     * Set the image format to use.
-     */
-    void setCaptureFormat(CaptureFormat cf);
-
-    /**
      * This function saves the images to disc.
      *
      * \param textureId The texture that will be streamed from the GPU if frame buffer
@@ -97,7 +92,6 @@ private:
     int _bytesPerColor = 1;
 
     EyeIndex _eyeIndex = EyeIndex::Mono;
-    CaptureFormat _format = CaptureFormat::PNG;
     int _windowIndex = 0;
 };
 

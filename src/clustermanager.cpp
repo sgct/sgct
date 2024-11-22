@@ -13,7 +13,6 @@
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -111,12 +110,6 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         auto n = std::make_unique<Node>();
         n->applyNode(cluster.nodes[i], static_cast<int>(i) == _thisNodeId);
         addNode(std::move(n));
-    }
-    if (cluster.settings) {
-        Settings::instance().applySettings(*cluster.settings);
-    }
-    if (cluster.capture) {
-        Settings::instance().applyCapture(*cluster.capture);
     }
 }
 

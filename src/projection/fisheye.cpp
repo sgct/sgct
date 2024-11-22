@@ -15,7 +15,6 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
 
@@ -98,19 +97,19 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
         glUniform1i(_shaderLoc.positionCubemap, 3);
@@ -167,7 +166,7 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
 
 
         // re-calculate depth values from a cube to spherical model
-        if (Settings::instance().useDepthTexture()) {
+        if (Engine::instance().useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
@@ -566,12 +565,12 @@ void FisheyeProjection::initShaders() {
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
     const std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
-                                               Settings::DrawBufferType type)
+                                               Engine::DrawBufferType type)
     {
         // It would be nice to do a multidimensional switch statement -.-
 
         constexpr auto tuple = [](bool offAxis, bool depth,
-                                  Settings::DrawBufferType t) -> uint16_t
+                                  Engine::DrawBufferType t) -> uint16_t
         {
             // Injective mapping from <bool, bool, bool, DrawBufferType> to uint16_t
             uint16_t res = 0;
@@ -585,7 +584,7 @@ void FisheyeProjection::initShaders() {
             return res;
         };
 
-        using DrawBufferType = Settings::DrawBufferType;
+        using DrawBufferType = Engine::DrawBufferType;
         switch (tuple(isOffAxis, useDepth, type)) {
             case tuple(true, true, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFragOffAxisDepth;
@@ -628,8 +627,8 @@ void FisheyeProjection::initShaders() {
         }
     }(
         _isOffAxis,
-        Settings::instance().useDepthTexture(),
-        Settings::instance().drawBufferType()
+        Engine::instance().useDepthTexture(),
+        Engine::instance().drawBufferType()
     );
 
     const std::string_view samplerShader =
@@ -675,17 +674,17 @@ void FisheyeProjection::initShaders() {
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);
 
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
         glUniform1i(_shaderLoc.positionCubemap, 3);
     }
@@ -700,7 +699,7 @@ void FisheyeProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,

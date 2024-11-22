@@ -11,7 +11,6 @@
 #include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <sgct/settings.h>
 #include <algorithm>
 
 // @TODO (abock, 2020-01-07) It would probably be better to only create a single offscreen
@@ -21,21 +20,28 @@
 
 namespace {
     void setDrawBuffers() {
+        enum class DrawBufferType {
+            Diffuse,
+            DiffuseNormal,
+            DiffusePosition,
+            DiffuseNormalPosition
+        };
+
         GLenum a[] = { GL_COLOR_ATTACHMENT0 };
         GLenum b[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
         GLenum c[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
         GLenum d[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-        switch (sgct::Settings::instance().drawBufferType()) {
-            case sgct::Settings::DrawBufferType::Diffuse:
+        switch (sgct::Engine::instance().drawBufferType()) {
+            case sgct::Engine::DrawBufferType::Diffuse:
                 glDrawBuffers(1, a);
                 break;
-            case sgct::Settings::DrawBufferType::DiffuseNormal:
+            case sgct::Engine::DrawBufferType::DiffuseNormal:
                 glDrawBuffers(2, b);
                 break;
-            case sgct::Settings::DrawBufferType::DiffusePosition:
+            case sgct::Engine::DrawBufferType::DiffusePosition:
                 glDrawBuffers(2, c);
                 break;
-            case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
+            case sgct::Engine::DrawBufferType::DiffuseNormalPosition:
                 glDrawBuffers(3, d);
                 break;
         }
@@ -86,12 +92,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
         glGenRenderbuffers(1, &_colorBuffer);
 
         // generate render buffer for intermediate normal storage
-        if (Settings::instance().useNormalTexture()) {
+        if (Engine::instance().useNormalTexture()) {
             glGenRenderbuffers(1, &_normalBuffer);
         }
 
         // generate render buffer for intermediate position storage
-        if (Settings::instance().usePositionTexture()) {
+        if (Engine::instance().usePositionTexture()) {
             glGenRenderbuffers(1, &_positionBuffer);
         }
 
@@ -108,23 +114,23 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             height
         );
 
-        if (Settings::instance().useNormalTexture()) {
+        if (Engine::instance().useNormalTexture()) {
             glBindRenderbuffer(GL_RENDERBUFFER, _normalBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                Settings::instance().bufferFloatPrecision(),
+                GL_RGB32F,
                 width,
                 height
             );
         }
 
-        if (Settings::instance().usePositionTexture()) {
+        if (Engine::instance().usePositionTexture()) {
             glBindRenderbuffer(GL_RENDERBUFFER, _positionBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                Settings::instance().bufferFloatPrecision(),
+                GL_RGB32F,
                 width,
                 height
             );
@@ -157,7 +163,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             GL_RENDERBUFFER,
             _colorBuffer
         );
-        if (Settings::instance().useNormalTexture()) {
+        if (Engine::instance().useNormalTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT1,
@@ -165,7 +171,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
                 _normalBuffer
             );
         }
-        if (Settings::instance().usePositionTexture()) {
+        if (Engine::instance().usePositionTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT2,
@@ -268,7 +274,7 @@ void OffScreenBuffer::blit() const {
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         glBlitFramebuffer(
             src0.x, src0.y, src1.x, src1.y,
             dst0.x, dst0.y, dst1.x, dst1.y,
@@ -283,7 +289,7 @@ void OffScreenBuffer::blit() const {
         );
     }
 
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         glReadBuffer(GL_COLOR_ATTACHMENT1);
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
@@ -294,7 +300,7 @@ void OffScreenBuffer::blit() const {
         );
     }
 
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         glReadBuffer(GL_COLOR_ATTACHMENT2);
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 

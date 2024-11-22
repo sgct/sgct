@@ -42,7 +42,7 @@ struct SGCT_EXPORT Capture {
         int last = -1;  // exclusive
     };
 
-    std::optional<std::string> path;
+    std::optional<std::filesystem::path> path;
     std::optional<Format> format;
     std::optional<ScreenShotRange> range;
 };

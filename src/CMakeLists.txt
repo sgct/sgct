@@ -69,7 +69,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
     ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
     ${PROJECT_SOURCE_DIR}/include/sgct/sgct.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/settings.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
@@ -129,7 +128,6 @@ target_sources(
     projection.cpp
     readconfig.cpp
     screencapture.cpp
-    settings.cpp
     shadermanager.cpp
     shaderprogram.cpp
     shareddata.cpp

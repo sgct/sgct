@@ -20,7 +20,6 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
-#include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -528,7 +527,7 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
-        if (Settings::instance().captureFromBackBuffer() && _isDoubleBuffered) {
+        if (Engine::instance().captureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -649,7 +648,7 @@ void Window::update() {
     resizeFBOs();
 
     auto resizePBO = [this](ScreenCapture& sc) {
-        if (Settings::instance().captureFromBackBuffer()) {
+        if (Engine::instance().captureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const ivec2 res = resolution();
@@ -893,12 +892,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
         glfwWindowHint(GLFW_BLUE_BITS, currentMode->blueBits);
-
-        const int refreshRateHint = Settings::instance().refreshRateHint();
-        glfwWindowHint(
-            GLFW_REFRESH_RATE,
-            refreshRateHint > 0 ? refreshRateHint : currentMode->refreshRate
-        );
     }
 
     {
@@ -941,7 +934,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     // refreshrate)/(number of windows), which is something that might really slow down a
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
-    glfwSwapInterval(isLastWindow ? Settings::instance().swapInterval() : 0);
+    glfwSwapInterval(isLastWindow ? Engine::instance().swapInterval() : 0);
 
     // if client, disable mouse pointer
     if (_hideMouseCursor || !Engine::instance().isMaster()) {
@@ -1019,7 +1012,7 @@ void Window::initNvidiaSwapGroups() {
 
 void Window::initScreenCapture() {
     auto initializeCapture = [this](ScreenCapture& sc) {
-        if (Settings::instance().captureFromBackBuffer()) {
+        if (Engine::instance().captureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             const ivec2 res = resolution();
             sc.initOrResize(res, 3, 1);
@@ -1031,18 +1024,6 @@ void Window::initScreenCapture() {
             sc.initOrResize(res, 3, _bytesPerColor);
             sc.setTextureTransferProperties(_colorDataType);
         }
-
-        const Settings::CaptureFormat format = Settings::instance().captureFormat();
-        const ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
-            using CF = Settings::CaptureFormat;
-            switch (f) {
-                case CF::PNG: return ScreenCapture::CaptureFormat::PNG;
-                case CF::TGA: return ScreenCapture::CaptureFormat::TGA;
-                case CF::JPG: return ScreenCapture::CaptureFormat::JPEG;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(format);
-        sc.setCaptureFormat(scf);
     };
 
     if (_screenCaptureLeftOrMono) {
@@ -1111,16 +1092,16 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (_useFXAA) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
@@ -1146,7 +1127,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                 return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:
             case TextureType::Position:
-                return { Settings::instance().bufferFloatPrecision(), GL_RGB, GL_FLOAT };
+                return { GL_RGB32F, GL_RGB, GL_FLOAT };
             default: throw std::logic_error("Unhandled case label");
         }
     }(type);

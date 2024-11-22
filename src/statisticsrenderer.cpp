@@ -267,7 +267,7 @@ void StatisticsRenderer::update() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
+void StatisticsRenderer::render(const Window& window, const Viewport& viewport) const {
     ZoneScoped;
 
     const ivec2 res = window.framebufferResolution();

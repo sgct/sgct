@@ -16,7 +16,6 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -134,7 +133,7 @@ void NonLinearProjection::initTextures() {
         _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapColor
     ));
 
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         generateCubeMap(
             _textures.cubeMapDepth,
             GL_DEPTH_COMPONENT32,
@@ -167,26 +166,16 @@ void NonLinearProjection::initTextures() {
         }
     }
 
-    if (Settings::instance().useNormalTexture()) {
-        generateCubeMap(
-            _textures.cubeMapNormals,
-            Settings::instance().bufferFloatPrecision(),
-            GL_RGB,
-            GL_FLOAT
-        );
+    if (Engine::instance().useNormalTexture()) {
+        generateCubeMap(_textures.cubeMapNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{}x{} normal cube map texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapNormals
         ));
     }
 
-    if (Settings::instance().usePositionTexture()) {
-        generateCubeMap(
-            _textures.cubeMapPositions,
-            Settings::instance().bufferFloatPrecision(),
-            GL_RGB,
-            GL_FLOAT
-        );
+    if (Engine::instance().usePositionTexture()) {
+        generateCubeMap(_textures.cubeMapPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{}x{} position cube map texture ({}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapPositions
@@ -362,7 +351,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
 }
 
 void NonLinearProjection::attachTextures(int face) {
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
     }
@@ -374,7 +363,7 @@ void NonLinearProjection::attachTextures(int face) {
         );
     }
 
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapNormals,
             face,
@@ -382,7 +371,7 @@ void NonLinearProjection::attachTextures(int face) {
         );
     }
 
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapPositions,
             face,

@@ -278,7 +278,7 @@ public:
      *
      * \param eyeSeparation The eye separation in meters
      */
-    void setEyeSeparation(float eyeSeparation);
+    void setEyeSeparation(float eyeSeparation) const;
 
     /**
      * This functions updates the frustum of all viewports. If a viewport is tracked, this
@@ -424,7 +424,93 @@ public:
      * \param frustum The frustum of the BaseViewport that should be set
      */
     void setupViewport(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustum);
+        Frustum::Mode frustum) const;
+
+    /**
+     * Get swap interval for all windows.
+     *   -1 = adaptive sync (Nvidia)
+     *    0 = vertical sync off
+     *    1 = wait for vertical sync
+     *    2 = fix when using swapgroups in xp and running half the framerate
+     */
+    int swapInterval() const;
+
+    /**
+     * Set capture/screenshot path used by SGCT.
+     *
+     * \param path The path including filename without suffix
+     */
+    void setCapturePath(std::filesystem::path path);
+
+    /**
+     * Get the capture/screenshot path.
+     */
+    const std::filesystem::path& capturePath() const;
+
+    /**
+     * Returns information about the screenshot limits. If there is no screenshot limit,
+     * this function returns `std::nullopt`. Otherwise the first component is the index of
+     * the first screenshot that will be rendered. The second component is the index of
+     * the last screenshot that will not be rendered anymore.
+     *
+     * \return Information about the limits of screenshot rendering
+     */
+    std::optional<std::pair<uint64_t, uint64_t>> screenshotLimit() const;
+
+    /**
+     * \return The prefix that is used for all screenshots
+     */
+    const std::string& prefixScreenshot() const;
+
+    /**
+     * \return Should screenshots contain the node name
+     */
+    bool addNodeNameToScreenshot() const;
+
+    /**
+     * \return Whether screenshots should contain the window name
+     */
+    bool addWindowNameToScreenshot() const;
+
+    /**
+     * \return The number of capture threads (for screenshot recording)
+     */
+    int numberCaptureThreads() const;
+
+    /**
+     * \return `true` if depth buffer is rendered to texture
+     */
+    bool useDepthTexture() const;
+
+    /**
+     * \return `true` if normals are rendered to texture
+     */
+    bool useNormalTexture() const;
+
+    /**
+     * \return `true` if positions are rendered to texture
+     */
+    bool usePositionTexture() const;
+
+    enum class DrawBufferType {
+        Diffuse,
+        DiffuseNormal,
+        DiffusePosition,
+        DiffuseNormalPosition
+    };
+    DrawBufferType drawBufferType() const;
+
+    /**
+     * Set if capture should capture warped from backbuffer instead of texture. Backbuffer
+     * data includes masks and warping.
+     */
+    void setCaptureFromBackBuffer(bool state);
+
+    /**
+     * Get if capture should use backbuffer data or texture. Backbuffer data includes
+     * masks and warping.
+     */
+    bool captureFromBackBuffer() const;
 
 private:
     /**
@@ -486,7 +572,7 @@ private:
      * \param window The Window object for which the overlays should be drawn
      * \param frustum The frustum for which the overlay should be drawn
      */
-    void drawOverlays(const Window& window, Frustum::Mode frustum);
+    void drawOverlays(const Window& window, Frustum::Mode frustum) const;
 
     /**
      * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
@@ -494,7 +580,7 @@ private:
      *
      * \param window The Window whose geometry should be drawn
      */
-    void renderFBOTexture(Window& window);
+    void renderFBOTexture(Window& window) const;
 
     /**
      * This function combines a texture and a shader into a new texture while applying
@@ -503,7 +589,7 @@ private:
      * \param window The Window object for which the FXAA operation should be performed
      * \param targetIndex The texture index that should be used as the source for the FXAA
      */
-    void renderFXAA(Window& window, Window::TextureIndex targetIndex);
+    void renderFXAA(Window& window, Window::TextureIndex targetIndex) const;
 
     /**
      * Causes all of the viewports of the provided \p window be rendered with the
@@ -514,7 +600,8 @@ private:
      * \param ti The Window::TextureIndex that is pointing at the target where the
      *        rendering should be placed
      */
-    void renderViewports(Window& window, Frustum::Mode frustum, Window::TextureIndex ti);
+    void renderViewports(Window& window, Frustum::Mode frustum,
+        Window::TextureIndex ti) const;
 
     /**
      * This function renders stats, OSD and overlays of the provided \p window and using
@@ -523,7 +610,7 @@ private:
      * \param window The Window into of which the 2D rendering should be performed
      * \param frustum The frustum that should be used to render the 2D component
      */
-    void render2D(const Window& window, Frustum::Mode frustum);
+    void render2D(const Window& window, Frustum::Mode frustum) const;
 
     /**
      * This function waits for all windows to be created on the whole cluster in order to
@@ -547,7 +634,7 @@ private:
      * \pre The \p prevWindow and \p window must be different Window objects
      */
     void blitWindowViewport(Window& prevWindow, Window& window,
-        const Viewport& viewport, Frustum::Mode mode);
+        const Viewport& viewport, Frustum::Mode mode) const;
 
     /// The function pointer that is called before any windows are created
     std::function<void()> _preWindowFn;
@@ -591,11 +678,6 @@ private:
     /// this pointer is `nullptr` then no rendering is performed
     std::unique_ptr<StatisticsRenderer> _statisticsRenderer;
 
-    /// Stores the configuration option whether the created OpenGL contexts should be
-    /// debug contexts or regular ones. This value is only in use between the constructor
-    /// and the #initialize function
-    bool _createDebugContext = false;
-
     /// Whether SGCT should take a screenshot in the next frame
     bool _shouldTakeScreenshot = false;
 
@@ -613,6 +695,50 @@ private:
     /// The number of seconds that SGCT will wait for the master or clients to connect
     /// before aborting
     float _syncTimeout = 60.f;
+
+    struct {
+        /// Stores the configuration option whether the created OpenGL contexts should be
+        /// debug contexts or regular ones. This value is only in use between the
+        /// constructor and the #initialize function
+        bool createDebugContext = false;
+
+        /// Sets the swap interval to be used by the application
+        ///   -1 = adaptive sync(Nvidia)
+        ///    0 = vertical sync off
+        ///    1 = wait for vertical sync
+        ///    2..inf = wait for every n-th vertical sync
+        int swapInterval = 1;
+
+        /// Get if capture should use backbuffer data or texture. Backbuffer data includes
+        /// masks and warping
+        bool captureBackBuffer = false;
+
+        struct {
+            bool useDepthTexture = false;
+            bool useNormalTexture = false;
+            bool usePositionTexture = false;
+        } textures;
+
+        struct {
+            /// The location where the screenshots are being saved
+            std::filesystem::path capturePath;
+
+            // The number of capture threads
+            int nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
+
+            /// The prefix to be used for all screenshots
+            std::string prefix;
+
+            /// If set to true, the node name is added to screenshots
+            bool addNodeName = false;
+
+            /// If set to true, the window name is added to screenshots
+            bool addWindowName = true;
+
+            /// If specified, it limits the screenshots taken to be in [first, second)
+            std::optional<std::pair<uint64_t, uint64_t>> limits;
+        } capture;
+    } _settings;
 
     /// Contains information about the FXAA shader that may be used in the rendering
     struct FXAAShader {

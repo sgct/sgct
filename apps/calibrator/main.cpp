@@ -451,7 +451,7 @@ void initGL(GLFWwindow*) {
 }
 
 void postSyncPreDraw() {
-    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer);
+    Engine::instance().setCaptureFromBackBuffer(captureBackbuffer);
     Engine::instance().setStatsGraphVisibility(showStats);
     if (takeScreenshot) {
         Log::Info("Triggering screenshot");

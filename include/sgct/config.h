@@ -42,7 +42,7 @@ struct SGCT_EXPORT Capture {
         int last = -1;  // exclusive
     };
 
-    std::optional<std::string> path;
+    std::optional<std::filesystem::path> path;
     std::optional<Format> format;
     std::optional<ScreenShotRange> range;
 };
@@ -321,6 +321,8 @@ struct SGCT_EXPORT Window {
     std::optional<ivec2> resolution;
 
     std::vector<Viewport> viewports;
+
+    std::optional<std::filesystem::path> scalableMesh;
 };
 SGCT_EXPORT void validateWindow(const Window& window);
 

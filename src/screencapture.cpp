@@ -15,7 +15,6 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <sgct/window.h>
 #include <cstring>
 #include <string>
@@ -62,7 +61,7 @@ namespace {
 namespace sgct {
 
 ScreenCapture::ScreenCapture()
-    : _nThreads(Settings::instance().numberCaptureThreads())
+    : _nThreads(Engine::instance().numberCaptureThreads())
 {
     ZoneScoped;
 }
@@ -123,17 +122,13 @@ void ScreenCapture::setTextureTransferProperties(GLenum type) {
     _downloadFormat = getDownloadFormat(_nChannels);
 }
 
-void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
-    _format = cf;
-}
-
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped;
 
     uint64_t number = Engine::instance().screenShotNumber();
-    if (Settings::instance().hasScreenshotLimit()) {
-        uint64_t begin = Settings::instance().screenshotLimitBegin();
-        uint64_t end = Settings::instance().screenshotLimitEnd();
+    if (Engine::instance().screenshotLimit()) {
+        uint64_t begin = Engine::instance().screenshotLimit()->first;
+        uint64_t end = Engine::instance().screenshotLimit()->second;
 
         if (number < begin || number >= end) {
             Log::Debug(std::format(
@@ -219,29 +214,20 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     std::fill(Buffer.begin(), Buffer.end(), '\0');
     std::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
-    const std::string suffix = [](CaptureFormat format) {
-        switch (format) {
-            case CaptureFormat::PNG: return "png";
-            case CaptureFormat::TGA: return "tga";
-            case CaptureFormat::JPEG: return "jpg";
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }(_format);
-
     std::filesystem::path file;
-    if (!Settings::instance().capturePath().empty()) {
-        file = Settings::instance().capturePath() / "";
+    if (!Engine::instance().capturePath().empty()) {
+        file = Engine::instance().capturePath() / "";
     }
-    if (!Settings::instance().prefixScreenshot().empty()) {
-        file += Settings::instance().prefixScreenshot();
+    if (!Engine::instance().prefixScreenshot().empty()) {
+        file += Engine::instance().prefixScreenshot();
         file += '_';
     }
-    if (Settings::instance().addNodeNameToScreenshot() &&
+    if (Engine::instance().addNodeNameToScreenshot() &&
         ClusterManager::instance().numberOfNodes() > 1)
     {
         file += std::format("node{}_", ClusterManager::instance().thisNodeId());
     }
-    if (Settings::instance().addWindowNameToScreenshot()) {
+    if (Engine::instance().addWindowNameToScreenshot()) {
         const Window& w = *Engine::instance().windows()[_windowIndex];
         if (w.name().empty()) {
             file += std::format("win{}", _windowIndex);
@@ -256,9 +242,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return std::format(
-        "{}{}.{}", file, std::string(Buffer.begin(), Buffer.end()), suffix
-    );
+    return std::format("{}{}.png", file, std::string(Buffer.begin(), Buffer.end()));
 }
 
 int ScreenCapture::availableCaptureThread() {

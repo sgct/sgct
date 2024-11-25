@@ -24,7 +24,7 @@ public:
     ~StatisticsRenderer();
 
     void update();
-    void render(const Window& window, const Viewport& viewport);
+    void render(const Window& window, const Viewport& viewport) const;
 
     float scale() const;
     void setScale(float scale);

@@ -20,11 +20,15 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
-#include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <algorithm>
+
+#ifdef SGCT_HAS_SCALABLE
+#include "EasyBlendSDK.h"
+#endif // SGCT_HAS_SCALABLE
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -102,6 +106,91 @@ void Window::applyWindow(const config::Window& window) {
     if (!window.tags.empty()) {
         setTags(window.tags);
     }
+    if (window.hideMouseCursor) {
+        _hideMouseCursor = *window.hideMouseCursor;
+    }
+    if (window.takeScreenshot) {
+        setTakeScreenshot(*window.takeScreenshot);
+    }
+    if (window.draw2D) {
+        setCallDraw2DFunction(*window.draw2D);
+    }
+    if (window.draw3D) {
+        setCallDraw3DFunction(*window.draw3D);
+    }
+
+    // If a scalable mesh is set, we abort straight after this
+#ifdef SGCT_HAS_SCALABLE
+    if (window.scalableMesh.has_value()) {
+        _scalableMesh.sdk = new EasyBlendSDK_Mesh;
+        _scalableMesh.path = window.scalableMesh->string();
+
+        // We have to load the mesh file twice;  SGCT needs to load it here to get the
+        // correct resolution, but we don't have an OpenGL context yet. The "correct"
+        // initialization needs a valid OpenGL context
+        EasyBlendSDK_Mesh mesh;
+        EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            &mesh,
+            EasyBlendSDK_SDKMODE_ClientData,
+            [](EasyBlendSDK_Mesh*, void*) { return static_cast<unsigned long>(0); }
+        );
+        if (err != EasyBlendSDK_ERR_S_OK) {
+            throw Error(
+                sgct::Error::Component::Config,
+                1104,
+                std::format(
+                    "Could not read ScalableMesh '{}' with error: {}",
+                    _scalableMesh.path, err
+                )
+            );
+        }
+
+        // Set expected windows values
+        setWindowDecoration(false);
+        setWindowPosition({ 0, 0 });
+        initWindowResolution({
+            static_cast<int>(mesh.Xres),
+            static_cast<int>(mesh.Yres)
+        });
+
+        // Set projection values
+        config::PlanarProjection proj;
+        proj.fov = {
+            .down = static_cast<float>(mesh.Frustum.BottomAngle),
+            .left = static_cast<float>(mesh.Frustum.LeftAngle),
+            .right = static_cast<float>(mesh.Frustum.RightAngle),
+            .up = static_cast<float>(mesh.Frustum.TopAngle)
+        };
+        double heading = 0.0;
+        double pitch = 0.0;
+        double roll = 0.0;
+        EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
+        // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
+        // right-handed coordinate system
+        pitch *= -1.0;
+        heading *= -1.0;
+        const glm::quat q = glm::quat(glm::vec3(
+            glm::radians(pitch),
+            glm::radians(heading),
+            glm::radians(roll)
+        ));
+        proj.orientation = quat(q.x, q.y, q.z, q.w);
+        proj.offset = vec3 {
+            static_cast<float>(mesh.Frustum.XOffset),
+            static_cast<float>(mesh.Frustum.YOffset),
+            static_cast<float>(mesh.Frustum.ZOffset)
+        };
+
+        auto vp = std::make_unique<Viewport>(this);
+        vp->applyViewport({ .projection = proj });
+        addViewport(std::move(vp));
+
+        EasyBlendSDK_Uninitialize(&mesh);
+        return;
+    }
+#endif // SGCT_HAS_SCALABLE
+
     if (window.bufferBitDepth) {
         const ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
             using CBD = config::Window::ColorBitDepth;
@@ -125,9 +214,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.shouldAutoiconify) {
         setAutoiconify(*window.shouldAutoiconify);
     }
-    if (window.hideMouseCursor) {
-        _hideMouseCursor = *window.hideMouseCursor;
-    }
     if (window.isFloating) {
         setFloating(*window.isFloating);
     }
@@ -139,9 +225,6 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.doubleBuffered) {
         setDoubleBuffered(*window.doubleBuffered);
-    }
-    if (window.takeScreenshot) {
-        setTakeScreenshot(*window.takeScreenshot);
     }
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
@@ -157,12 +240,6 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.isMirrored) {
         _isMirrored = *window.isMirrored;
-    }
-    if (window.draw2D) {
-        setCallDraw2DFunction(*window.draw2D);
-    }
-    if (window.draw3D) {
-        setCallDraw3DFunction(*window.draw3D);
     }
     if (window.blitWindowId) {
         setBlitWindowId(*window.blitWindowId);
@@ -197,6 +274,7 @@ void Window::applyWindow(const config::Window& window) {
         }(*window.stereo);
         setStereoMode(sm);
     }
+
     if (window.pos) {
         setWindowPosition(*window.pos);
     }
@@ -243,6 +321,16 @@ bool Window::isFocused() const {
 
 void Window::close() {
     ZoneScoped;
+
+#ifdef SGCT_HAS_SCALABLE
+    if (_scalableMesh.sdk) {
+        EasyBlendSDK_Uninitialize(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        delete _scalableMesh.sdk;
+        _scalableMesh.sdk = nullptr;
+    }
+#endif // SGCT_HAS_SCALABLE
 
     makeSharedContextCurrent();
 
@@ -339,6 +427,17 @@ void Window::initContextSpecificOGL() {
             return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
         }
     );
+
+#ifdef SGCT_HAS_SCALABLE
+    if (!_scalableMesh.path.empty()) {
+        [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        // We already loaded the path in the constructor and verified that it works
+        assert(err == EasyBlendSDK_ERR_S_OK);
+    }
+#endif // SGCT_HAS_SCALABLE
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
@@ -436,7 +535,7 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
-        if (Settings::instance().captureFromBackBuffer() && _isDoubleBuffered) {
+        if (Engine::instance().captureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -466,6 +565,15 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     // swap
     _windowResOld = _windowRes;
+
+#ifdef SGCT_HAS_SCALABLE
+    if (_scalableMesh.sdk) {
+        EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        assert(err == EasyBlendSDK_ERR_S_OK);
+    }
+#endif // SGCT_HAS_SCALABLE
 
     if (_isDoubleBuffered) {
         ZoneScopedN("glfwSwapBuffers");
@@ -550,7 +658,7 @@ void Window::update() {
     resizeFBOs();
 
     auto resizePBO = [this](ScreenCapture& sc) {
-        if (Settings::instance().captureFromBackBuffer()) {
+        if (Engine::instance().captureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const ivec2 res = resolution();
@@ -794,12 +902,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
         glfwWindowHint(GLFW_BLUE_BITS, currentMode->blueBits);
-
-        const int refreshRateHint = Settings::instance().refreshRateHint();
-        glfwWindowHint(
-            GLFW_REFRESH_RATE,
-            refreshRateHint > 0 ? refreshRateHint : currentMode->refreshRate
-        );
     }
 
     {
@@ -842,7 +944,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     // refreshrate)/(number of windows), which is something that might really slow down a
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
-    glfwSwapInterval(isLastWindow ? Settings::instance().swapInterval() : 0);
+    glfwSwapInterval(isLastWindow ? Engine::instance().swapInterval() : 0);
 
     // if client, disable mouse pointer
     if (_hideMouseCursor || !Engine::instance().isMaster()) {
@@ -920,7 +1022,7 @@ void Window::initNvidiaSwapGroups() {
 
 void Window::initScreenCapture() {
     auto initializeCapture = [this](ScreenCapture& sc) {
-        if (Settings::instance().captureFromBackBuffer()) {
+        if (Engine::instance().captureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             const ivec2 res = resolution();
             sc.initOrResize(res, 3, 1);
@@ -932,18 +1034,6 @@ void Window::initScreenCapture() {
             sc.initOrResize(res, 3, _bytesPerColor);
             sc.setTextureTransferProperties(_colorDataType);
         }
-
-        const Settings::CaptureFormat format = Settings::instance().captureFormat();
-        const ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
-            using CF = Settings::CaptureFormat;
-            switch (f) {
-                case CF::PNG: return ScreenCapture::CaptureFormat::PNG;
-                case CF::TGA: return ScreenCapture::CaptureFormat::TGA;
-                case CF::JPG: return ScreenCapture::CaptureFormat::JPEG;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(format);
-        sc.setCaptureFormat(scf);
     };
 
     if (_screenCaptureLeftOrMono) {
@@ -1012,16 +1102,16 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (_useFXAA) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
@@ -1047,7 +1137,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                 return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:
             case TextureType::Position:
-                return { Settings::instance().bufferFloatPrecision(), GL_RGB, GL_FLOAT };
+                return { GL_RGB32F, GL_RGB, GL_FLOAT };
             default: throw std::logic_error("Unhandled case label");
         }
     }(type);
@@ -1331,6 +1421,10 @@ bool Window::flipX() const {
 
 bool Window::flipY() const {
     return _mirrorY;
+}
+
+bool Window::needsCompatibilityProfile() const {
+    return _scalableMesh.sdk != nullptr;
 }
 
 } // namespace sgct

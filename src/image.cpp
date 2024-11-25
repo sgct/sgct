@@ -59,31 +59,6 @@
 
 #define Err(code, msg) Error(Error::Component::Image, code, msg)
 
-namespace {
-    sgct::Image::FormatType getFormatType(std::filesystem::path filename) {
-        // Convert the filename to all lower case for the extension checking
-        std::string s = filename.string();
-        std::transform(
-            s.begin(),
-            s.end(),
-            s.begin(),
-            [](char c) { return static_cast<char>(::tolower(c)); }
-        );
-        filename = s;
-
-        if (filename.extension() == ".png") {
-            return sgct::Image::FormatType::PNG;
-        }
-        if (filename.extension() == ".jpg" || filename.extension() == ".jpeg") {
-            return sgct::Image::FormatType::JPEG;
-        }
-        if (filename.extension() == ".tga") {
-            return sgct::Image::FormatType::TGA;
-        }
-        return sgct::Image::FormatType::Unknown;
-    }
-} // namespace
-
 namespace sgct {
 
 Image::~Image() {
@@ -135,46 +110,8 @@ void Image::save(const std::filesystem::path& filename) {
         throw Err(9002, "Filename not set for saving image");
     }
 
-    const FormatType type = getFormatType(filename);
-    if (type == FormatType::Unknown) {
-        throw Err(9003, std::format("Cannot save file '{}'", filename));
-    }
-    if (type == FormatType::PNG) {
-        // We use libPNG instead of stb as libPNG is faster and we care about how fast
-        // PNGs are written to disk in production
-        savePNG(filename);
-        return;
-    }
-
-    if (_nChannels >= 3) {
-        for (size_t i = 0; i < _dataSize; i += _nChannels) {
-            std::swap(_data[i], _data[i + 2]);
-        }
-    }
-
-    stbi_flip_vertically_on_write(1);
-    if (type == FormatType::JPEG) {
-        std::string f = filename.string();
-        const int r = stbi_write_jpg(f.c_str(), _size.x, _size.y, _nChannels, _data, 100);
-        if (r == 0) {
-            throw Err(9004, std::format("Could not save file '{}' as JPG", filename));
-        }
-        return;
-    }
-    if (type == FormatType::TGA) {
-        std::string f = filename.string();
-        const int r = stbi_write_tga(f.c_str(), _size.x, _size.y, _nChannels, _data);
-        if (r == 0) {
-            throw Err(9005, std::format("Could not save file '{}' as TGA", filename));
-
-        }
-        return;
-    }
-
-    throw std::logic_error("We should never get here");
-}
-
-void Image::savePNG(const std::filesystem::path& filename, int compressionLevel) {
+    // We use libPNG instead of stb as libPNG is faster and we care about how fast
+    // PNGs are written to disk in production
     if (_data == nullptr) {
         throw Err(9006, "Missing image data to save PNG");
     }
@@ -202,8 +139,12 @@ void Image::savePNG(const std::filesystem::path& filename, int compressionLevel)
         throw Err(9009, "Failed to create PNG struct");
     }
 
-    // set compression
-    png_set_compression_level(png_ptr, compressionLevel);
+    // Compression levels 1-9.
+    //   -1 = Default compression
+    //    0 = No compression
+    //    1 = Best speed
+    //    9 = Best compression
+    png_set_compression_level(png_ptr, -1);
     png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
     png_set_compression_mem_level(png_ptr, 8);
     png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
@@ -225,13 +166,13 @@ void Image::savePNG(const std::filesystem::path& filename, int compressionLevel)
 
     const int colorType = [](int channels) {
         switch (channels) {
-            case 1: return PNG_COLOR_TYPE_GRAY;
-            case 2: return PNG_COLOR_TYPE_GRAY_ALPHA;
-            case 3: return PNG_COLOR_TYPE_RGB;
-            case 4: return PNG_COLOR_TYPE_RGB_ALPHA;
-            default: throw std::logic_error("Unhandled case label");
+        case 1: return PNG_COLOR_TYPE_GRAY;
+        case 2: return PNG_COLOR_TYPE_GRAY_ALPHA;
+        case 3: return PNG_COLOR_TYPE_RGB;
+        case 4: return PNG_COLOR_TYPE_RGB_ALPHA;
+        default: throw std::logic_error("Unhandled case label");
         }
-    }(_nChannels);
+        }(_nChannels);
 
     // write header
     png_set_IHDR(

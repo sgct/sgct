@@ -11,7 +11,6 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/log.h>
-#include <sgct/settings.h>
 #include <optional>
 #include <string>
 #include <vector>
@@ -26,9 +25,7 @@ struct SGCT_EXPORT Configuration {
     std::optional<int> nodeId;
     std::optional<bool> firmSync;
     std::optional<bool> ignoreSync;
-    std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
-    std::optional<bool> exportCorrectionMeshes;
     std::optional<std::string> screenshotPath;
     std::optional<std::string> screenshotPrefix;
     std::optional<bool> addNodeNameInScreenshot;

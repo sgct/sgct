@@ -17,7 +17,6 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -114,7 +113,7 @@ void SpoutFlatProjection::initTextures() {
         _resolutionX, _resolutionY, _textureIdentifiers.spoutColor
     ));
 
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         generateMap(
             _textureIdentifiers.spoutDepth,
             GL_DEPTH_COMPONENT32,
@@ -152,26 +151,16 @@ void SpoutFlatProjection::initTextures() {
         }
     }
 
-    if (Settings::instance().useNormalTexture()) {
-        generateMap(
-            _textureIdentifiers.spoutNormals,
-            Settings::instance().bufferFloatPrecision(),
-            GL_RGB,
-            GL_FLOAT
-        );
+    if (Engine::instance().useNormalTexture()) {
+        generateMap(_textureIdentifiers.spoutNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{0}x{1} normal spout texture (id: {2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutNormals
         ));
     }
 
-    if (Settings::instance().usePositionTexture()) {
-        generateMap(
-            _textureIdentifiers.spoutPositions,
-            Settings::instance().bufferFloatPrecision(),
-            GL_RGB,
-            GL_FLOAT
-        );
+    if (Engine::instance().usePositionTexture()) {
+        generateMap(_textureIdentifiers.spoutPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{0}x{1} position spout texture ({2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutPositions
@@ -254,7 +243,7 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
 }
 
 void SpoutFlatProjection::attachTextures(int) {
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         _spoutFbo->attachDepthTexture(_textureIdentifiers.depthSwap);
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.colorSwap,
@@ -268,14 +257,14 @@ void SpoutFlatProjection::attachTextures(int) {
         );
     }
 
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.spoutNormals,
             GL_COLOR_ATTACHMENT1
         );
     }
 
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.spoutPositions,
             GL_COLOR_ATTACHMENT2

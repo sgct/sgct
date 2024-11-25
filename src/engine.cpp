@@ -131,18 +131,18 @@ namespace {
         // update attachments
         fbo->attachColorTexture(win.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
 
-        if (Settings::instance().useDepthTexture()) {
+        if (Engine::instance().useDepthTexture()) {
             fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
         }
 
-        if (Settings::instance().useNormalTexture()) {
+        if (Engine::instance().useNormalTexture()) {
             fbo->attachColorTexture(
                 win.frameBufferTexture(Window::TextureIndex::Normals),
                 GL_COLOR_ATTACHMENT1
             );
         }
 
-        if (Settings::instance().usePositionTexture()) {
+        if (Engine::instance().usePositionTexture()) {
             fbo->attachColorTexture(
                 win.frameBufferTexture(Window::TextureIndex::Positions),
                 GL_COLOR_ATTACHMENT2
@@ -165,18 +165,18 @@ namespace {
         // update attachments
         fbo->attachColorTexture(win.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
 
-        if (Settings::instance().useDepthTexture()) {
+        if (Engine::instance().useDepthTexture()) {
             fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
         }
 
-        if (Settings::instance().useNormalTexture()) {
+        if (Engine::instance().useNormalTexture()) {
             fbo->attachColorTexture(
                 win.frameBufferTexture(Window::TextureIndex::Normals),
                 GL_COLOR_ATTACHMENT1
             );
         }
 
-        if (Settings::instance().usePositionTexture()) {
+        if (Engine::instance().usePositionTexture()) {
             fbo->attachColorTexture(
                 win.frameBufferTexture(Window::TextureIndex::Positions),
                 GL_COLOR_ATTACHMENT2
@@ -351,31 +351,54 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.ignoreSync) {
         ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
     }
-    if (config.captureFormat) {
-        Settings::instance().setCaptureFormat(*config.captureFormat);
-    }
     if (config.nCaptureThreads) {
-        Settings::instance().setNumberOfCaptureThreads(*config.nCaptureThreads);
-    }
-    if (config.exportCorrectionMeshes) {
-        Settings::instance().setExportWarpingMeshes(*config.exportCorrectionMeshes);
+        _settings.capture.nCaptureThreads = *config.nCaptureThreads;
     }
     if (config.useOpenGLDebugContext) {
-        _createDebugContext = *config.useOpenGLDebugContext;
+        _settings.createDebugContext = *config.useOpenGLDebugContext;
     }
     if (config.screenshotPath) {
-        Settings::instance().setCapturePath(*config.screenshotPath);
+        _settings.capture.capturePath = *config.screenshotPath;
     }
     if (config.screenshotPrefix) {
-        Settings::instance().setScreenshotPrefix(*config.screenshotPrefix);
+        _settings.capture.prefix = *config.screenshotPrefix;
     }
     if (config.addNodeNameInScreenshot) {
-        Settings::instance().setAddNodeNameToScreenshot(*config.addNodeNameInScreenshot);
+        _settings.capture.addNodeName = *config.addNodeNameInScreenshot;
     }
     if (config.omitWindowNameInScreenshot) {
-        Settings::instance().setAddWindowNameToScreenshot(
-            !(*config.omitWindowNameInScreenshot)
-        );
+        _settings.capture.addWindowName = !(*config.omitWindowNameInScreenshot);
+    }
+    if (cluster.settings) {
+        if (cluster.settings->display) {
+            _settings.swapInterval = cluster.settings->display->swapInterval.value_or(
+                _settings.swapInterval
+            );
+        }
+        if (cluster.settings->useDepthTexture) {
+            _settings.textures.useDepthTexture = *cluster.settings->useDepthTexture;
+        }
+        if (cluster.settings->useNormalTexture) {
+            _settings.textures.useNormalTexture = *cluster.settings->useNormalTexture;
+        }
+        if (cluster.settings->usePositionTexture) {
+            _settings.textures.usePositionTexture = *cluster.settings->usePositionTexture;
+        }
+    }
+    if (cluster.capture) {
+        if (cluster.capture->path) {
+            _settings.capture.capturePath = cluster.capture->path.value_or(
+                _settings.capture.capturePath
+            );
+            setScreenshotNumber(0);
+        }
+
+        if (cluster.capture->range) {
+            _settings.capture.limits = {
+                static_cast<uint64_t>(cluster.capture->range->first),
+                static_cast<uint64_t>(cluster.capture->range->last)
+            };
+        }
     }
     if (cluster.setThreadAffinity) {
 #ifdef WIN32
@@ -763,7 +786,7 @@ Engine::~Engine() {
 
     // Window specific context
     if (hasNode && !cm.thisNode().windows().empty()) {
-        cm.thisNode().windows()[0]->makeOpenGLContextCurrent();
+        cm.thisNode().windows().front()->makeOpenGLContextCurrent();
     }
 
     Log::Debug("Destroying shared data");
@@ -771,9 +794,6 @@ Engine::~Engine() {
 
     Log::Debug("Destroying cluster manager");
     ClusterManager::destroy();
-
-    Log::Debug("Destroying settings");
-    Settings::destroy();
 
     Log::Debug("Destroying message handler");
     Log::destroy();
@@ -800,9 +820,25 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    if (_createDebugContext) {
+    const Node& thisNode = ClusterManager::instance().thisNode();
+    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
+
+    // @TODO (abock, 2024-11-18)  We should find a better way to do this. The Scalable SDK
+    //                            requires a compatibility profile, but in general we want
+    //                            to run with a core profile
+    bool needsCompatProfile = std::any_of(
+        windows.cbegin(),
+        windows.cend(),
+        std::mem_fn(&Window::needsCompatibilityProfile)
+    );
+    
+    glfwWindowHint(
+        GLFW_OPENGL_PROFILE,
+        needsCompatProfile ? GLFW_OPENGL_COMPAT_PROFILE : GLFW_OPENGL_CORE_PROFILE
+    );
+
+    if (_settings.createDebugContext) {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
     }
 
@@ -811,12 +847,10 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
         _preWindowFn();
     }
 
-    const Node& thisNode = ClusterManager::instance().thisNode();
-    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     for (size_t i = 0; i < windows.size(); i++) {
         ZoneScopedN("Creating Window");
 
-        GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
+        GLFWwindow* s = (i == 0) ? nullptr : windows[0]->windowHandle();
         const bool isLastWindow = i == windows.size() - 1;
         windows[i]->openWindow(s, isLastWindow);
         gladLoadGL();
@@ -1165,7 +1199,7 @@ void Engine::exec() {
     glDeleteQueries(1, &timeQueryEnd);
 }
 
-void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
+void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) const {
     ZoneScoped;
 
     for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
@@ -1184,7 +1218,7 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
     ShaderProgram::unbind();
 }
 
-void Engine::renderFBOTexture(Window& window) {
+void Engine::renderFBOTexture(Window& window) const {
     ZoneScoped;
 
     OffScreenBuffer::unbind();
@@ -1310,7 +1344,7 @@ void Engine::renderFBOTexture(Window& window) {
 }
 
 void Engine::renderViewports(Window& window, Frustum::Mode frustum,
-                             Window::TextureIndex ti)
+                             Window::TextureIndex ti) const
 {
     ZoneScoped;
 
@@ -1437,7 +1471,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D(const Window& window, Frustum::Mode frustum) {
+void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
     ZoneScoped;
 
     // draw viewport overlays if any
@@ -1480,7 +1514,7 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) {
     }
 }
 
-void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
+void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) const {
     ZoneScoped;
 
     assert(_fxaa.has_value());
@@ -1630,7 +1664,7 @@ void Engine::updateFrustums() const {
 }
 
 void Engine::blitWindowViewport(Window& prevWindow, Window& window,
-                                const Viewport& viewport, Frustum::Mode mode)
+                                const Viewport& viewport, Frustum::Mode mode) const
 {
     ZoneScoped;
 
@@ -1663,7 +1697,7 @@ void Engine::blitWindowViewport(Window& prevWindow, Window& window,
 }
 
 void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
-                           Frustum::Mode frustum)
+                           Frustum::Mode frustum) const
 {
     ZoneScoped;
 
@@ -1744,7 +1778,7 @@ void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClipp
     updateFrustums();
 }
 
-void Engine::setEyeSeparation(float eyeSeparation) {
+void Engine::setEyeSeparation(float eyeSeparation) const {
     const Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
         for (const std::unique_ptr<Viewport>& vp : window->viewports()) {
@@ -1818,6 +1852,78 @@ void Engine::setScreenshotNumber(unsigned int number) {
 
 unsigned int Engine::screenShotNumber() const {
     return _shotCounter;
+}
+
+int Engine::swapInterval() const{
+    return _settings.swapInterval;
+}
+
+void Engine::setCapturePath(std::filesystem::path path) {
+    _settings.capture.capturePath = std::move(path);
+    setScreenshotNumber(0);
+}
+
+const std::filesystem::path& Engine::capturePath() const {
+    return _settings.capture.capturePath;
+}
+
+std::optional<std::pair<uint64_t, uint64_t>> Engine::screenshotLimit() const {
+    return _settings.capture.limits;
+}
+
+const std::string& Engine::prefixScreenshot() const {
+    return _settings.capture.prefix;
+}
+
+bool Engine::addNodeNameToScreenshot() const {
+    return _settings.capture.addNodeName;
+}
+
+bool Engine::addWindowNameToScreenshot() const {
+    return _settings.capture.addWindowName;
+}
+
+int Engine::numberCaptureThreads() const {
+    return _settings.capture.nCaptureThreads;
+}
+
+bool Engine::useDepthTexture() const {
+    return _settings.textures.useDepthTexture;
+}
+
+bool Engine::useNormalTexture() const {
+    return _settings.textures.useNormalTexture;
+}
+
+bool Engine::usePositionTexture() const {
+    return _settings.textures.usePositionTexture;
+}
+
+Engine::DrawBufferType Engine::drawBufferType() const {
+    if (_settings.textures.usePositionTexture) {
+        if (_settings.textures.useNormalTexture) {
+            return DrawBufferType::DiffuseNormalPosition;
+        }
+        else {
+            return DrawBufferType::DiffusePosition;
+        }
+    }
+    else {
+        if (_settings.textures.useNormalTexture) {
+            return DrawBufferType::DiffuseNormal;
+        }
+        else {
+            return DrawBufferType::Diffuse;
+        }
+    }
+}
+
+void Engine::setCaptureFromBackBuffer(bool state) {
+    _settings.captureBackBuffer = state;
+}
+
+bool Engine::captureFromBackBuffer() const {
+    return _settings.captureBackBuffer;
 }
 
 } // namespace sgct

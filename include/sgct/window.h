@@ -449,6 +449,10 @@ public:
     bool flipX() const;
     bool flipY() const;
 
+    // Returns true if this window has any settings that require a fallback on an OpenGL
+    // compatibility profile
+    bool needsCompatibilityProfile() const;
+
 private:
     enum class TextureType { Color, Depth, Normal, Position };
 
@@ -558,6 +562,13 @@ private:
     static bool _useSwapGroups;
     static bool _isBarrierActive;
     static bool _isSwapGroupMaster;
+
+
+    // ScalableMesh
+    struct {
+        void* sdk = nullptr;
+        std::string path;
+    } _scalableMesh;
 };
 
 } // namespace sgct

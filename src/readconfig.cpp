@@ -1285,6 +1285,18 @@ void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "name", w.name);
     parseValue(j, "tags", w.tags);
+    parseValue(j, "hidemousecursor", w.hideMouseCursor);
+    parseValue(j, "takescreenshot", w.takeScreenshot);
+    parseValue(j, "draw2d", w.draw2D);
+    parseValue(j, "draw3d", w.draw3D);
+
+    parseValue(j, "scalablemesh", w.scalableMesh);
+    if (w.scalableMesh.has_value()) {
+        // If we have a scalable mesh, we don't want to parse the rest of the values
+        w.scalableMesh = std::filesystem::current_path() / *w.scalableMesh;
+        return;
+    }
+
 
     if (auto it = j.find("bufferbitdepth");  it != j.end()) {
         const std::string bbd = it->get<std::string>();
@@ -1293,12 +1305,10 @@ void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "fullscreen", w.isFullScreen);
     parseValue(j, "autoiconify", w.shouldAutoiconify);
-    parseValue(j, "hidemousecursor", w.hideMouseCursor);
     parseValue(j, "floating", w.isFloating);
     parseValue(j, "alwaysrender", w.alwaysRender);
     parseValue(j, "hidden", w.isHidden);
     parseValue(j, "doublebuffered", w.doubleBuffered);
-    parseValue(j, "takescreenshot", w.takeScreenshot);
 
     parseValue(j, "msaa", w.msaa);
     parseValue(j, "fxaa", w.useFxaa);
@@ -1306,8 +1316,6 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "border", w.isDecorated);
     parseValue(j, "resizable", w.isResizable);
     parseValue(j, "mirror", w.isMirrored);
-    parseValue(j, "draw2d", w.draw2D);
-    parseValue(j, "draw3d", w.draw3D);
     parseValue(j, "blitwindowid", w.blitWindowId);
     parseValue(j, "monitor", w.monitor);
     parseValue(j, "mirrorx", w.mirrorX);
@@ -1333,6 +1341,22 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (!w.tags.empty()) {
         j["tags"] = w.tags;
+    }
+
+    if (w.hideMouseCursor.has_value()) {
+        j["hidemousecursor"] = *w.hideMouseCursor;
+    }
+
+    if (w.takeScreenshot.has_value()) {
+        j["takescreenshot"] = *w.takeScreenshot;
+    }
+
+    if (w.draw2D.has_value()) {
+        j["draw2d"] = *w.draw2D;
+    }
+
+    if (w.draw3D.has_value()) {
+        j["draw3d"] = *w.draw3D;
     }
 
     if (w.bufferBitDepth.has_value()) {
@@ -1372,10 +1396,6 @@ void to_json(nlohmann::json& j, const Window& w) {
         j["autoiconify"] = *w.shouldAutoiconify;
     }
 
-    if (w.hideMouseCursor.has_value()) {
-        j["hidemousecursor"] = *w.hideMouseCursor;
-    }
-
     if (w.isFloating.has_value()) {
         j["floating"] = *w.isFloating;
     }
@@ -1390,10 +1410,6 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.doubleBuffered.has_value()) {
         j["doublebuffered"] = *w.doubleBuffered;
-    }
-
-    if (w.takeScreenshot.has_value()) {
-        j["takescreenshot"] = *w.takeScreenshot;
     }
 
     if (w.msaa.has_value()) {
@@ -1414,14 +1430,6 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.isMirrored.has_value()) {
         j["mirror"] = *w.isMirrored;
-    }
-
-    if (w.draw2D.has_value()) {
-        j["draw2d"] = *w.draw2D;
-    }
-
-    if (w.draw3D.has_value()) {
-        j["draw3d"] = *w.draw3D;
     }
 
     if (w.blitWindowId.has_value()) {

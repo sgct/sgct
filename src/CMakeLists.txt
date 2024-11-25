@@ -69,7 +69,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
     ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
     ${PROJECT_SOURCE_DIR}/include/sgct/sgct.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/settings.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
@@ -129,7 +128,6 @@ target_sources(
     projection.cpp
     readconfig.cpp
     screencapture.cpp
-    settings.cpp
     shadermanager.cpp
     shaderprogram.cpp
     shareddata.cpp
@@ -235,8 +233,9 @@ target_link_libraries(sgct
     sgct::stb
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
-    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     nlohmann_json_schema_validator::nlohmann_json_schema_validator
+    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:scalable>
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
 )
 
 target_compile_definitions(sgct
@@ -246,6 +245,7 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
     $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE
+    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:SGCT_HAS_SCALABLE>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:SGCT_HAS_VRPN>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
 )

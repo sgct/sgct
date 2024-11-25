@@ -14,7 +14,6 @@
 #include <sgct/math.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <sgct/correction/domeprojection.h>
@@ -92,70 +91,6 @@ correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
         }
     };
     return buff;
-}
-
-void exportMesh(GLenum type, const std::filesystem::path& path,
-                const correction::Buffer& buf)
-{
-    if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
-        throw Error(
-            2000,
-            std::format("Failed to export '{}'. Geometry type not supported", path)
-        );
-    }
-
-    std::ofstream file = std::ofstream(path, std::ios::out);
-    if (!file.is_open()) {
-        throw Error(
-            2001,
-            std::format("Failed to export '{}'. Failed to open", path)
-        );
-    }
-
-    file << std::fixed;
-    file << std::setprecision(6);
-    file << "# SGCT warping mesh\n# Number of vertices: " << buf.vertices.size() << "\n";
-
-    // export vertices
-    for (const sgct::correction::Buffer::Vertex& vertex : buf.vertices) {
-        file << std::format("v {} {} 0\n", vertex.x, vertex.y);
-    }
-
-    // export texture coords
-    for (const sgct::correction::Buffer::Vertex& vertex : buf.vertices) {
-        file << std::format("vt {} {} 0\n", vertex.s, vertex.t);
-    }
-
-    // export generated normals
-    file.write("vn 0 0 1\n", buf.vertices.size());
-
-    file << std::format("# Number of faces: {}\n", buf.indices.size() / 3);
-
-    // export face indices
-    if (type == GL_TRIANGLES) {
-        for (size_t i = 0; i < buf.indices.size(); i += 3) {
-            file << std::format(
-                "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
-                buf.indices[i] + 1, buf.indices[i + 1] + 1, buf.indices[i + 2] + 1
-            );
-        }
-    }
-    else {
-        // first base triangle
-        file << std::format(
-            "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
-            buf.indices[0] + 1, buf.indices[1] + 1, buf.indices[2] + 1
-        );
-
-        for (size_t i = 2; i < buf.indices.size(); i++) {
-            file << std::format(
-                "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
-                buf.indices[i], buf.indices[i - 1] + 1, buf.indices[i - 2] + 1
-            );
-        }
-    }
-
-    Log::Info(std::format("Mesh '{}' exported successfully", path));
 }
 
 } // namespace
@@ -262,13 +197,6 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
         "CorrectionMesh read successfully. Vertices={}, Indices={}",
         buf.vertices.size(), buf.indices.size()
     ));
-
-    if (Settings::instance().exportWarpingMeshes()) {
-        std::filesystem::path p = path;
-        p.replace_filename(std::format("{}_export", p.filename()));
-        p.replace_extension(".obj");
-        exportMesh(_warpGeometry.type, p, buf);
-    }
 }
 
 void CorrectionMesh::renderQuadMesh() const {

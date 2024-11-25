@@ -276,6 +276,12 @@ void validateWindow(const Window& w) {
         throw Error(1103, "Monitor index must be non-negative or -1");
     }
 
+#ifndef SGCT_HAS_SCALABLE
+    if (w.scalableMesh) {
+        throw Error(1004, "Tried to load ScalableMesh without SGCT support");
+    }
+#endif // SGCT_HAS_SCALABLE
+
     for (const Viewport& vp : w.viewports) {
         const bool draw3D = w.draw3D.value_or(true);
         validateViewport(vp, draw3D);

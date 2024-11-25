@@ -26,7 +26,9 @@
 #include <glm/gtc/quaternion.hpp>
 #include <algorithm>
 
+#ifdef SGCT_HAS_SCALABLE
 #include "EasyBlendSDK.h"
+#endif // SGCT_HAS_SCALABLE
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -118,6 +120,7 @@ void Window::applyWindow(const config::Window& window) {
     }
 
     // If a scalable mesh is set, we abort straight after this
+#ifdef SGCT_HAS_SCALABLE
     if (window.scalableMesh.has_value()) {
         _scalableMesh.sdk = new EasyBlendSDK_Mesh;
         _scalableMesh.path = window.scalableMesh->string();
@@ -186,6 +189,7 @@ void Window::applyWindow(const config::Window& window) {
         EasyBlendSDK_Uninitialize(&mesh);
         return;
     }
+#endif // SGCT_HAS_SCALABLE
 
     if (window.bufferBitDepth) {
         const ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
@@ -318,6 +322,7 @@ bool Window::isFocused() const {
 void Window::close() {
     ZoneScoped;
 
+#ifdef SGCT_HAS_SCALABLE
     if (_scalableMesh.sdk) {
         EasyBlendSDK_Uninitialize(
             reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
@@ -325,6 +330,7 @@ void Window::close() {
         delete _scalableMesh.sdk;
         _scalableMesh.sdk = nullptr;
     }
+#endif // SGCT_HAS_SCALABLE
 
     makeSharedContextCurrent();
 
@@ -422,6 +428,7 @@ void Window::initContextSpecificOGL() {
         }
     );
 
+#ifdef SGCT_HAS_SCALABLE
     if (!_scalableMesh.path.empty()) {
         [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
             _scalableMesh.path.c_str(),
@@ -430,6 +437,7 @@ void Window::initContextSpecificOGL() {
         // We already loaded the path in the constructor and verified that it works
         assert(err == EasyBlendSDK_ERR_S_OK);
     }
+#endif // SGCT_HAS_SCALABLE
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
@@ -558,12 +566,14 @@ void Window::swapBuffers(bool takeScreenshot) {
     // swap
     _windowResOld = _windowRes;
 
+#ifdef SGCT_HAS_SCALABLE
     if (_scalableMesh.sdk) {
         EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
             reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
         );
         assert(err == EasyBlendSDK_ERR_S_OK);
     }
+#endif // SGCT_HAS_SCALABLE
 
     if (_isDoubleBuffered) {
         ZoneScopedN("glfwSwapBuffers");

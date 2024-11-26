@@ -6,14 +6,12 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/utils/domegrid.h>
+#include "domegrid.h"
 
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
-
-namespace sgct::utils {
 
 DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolution)
     : _resolution(resolution)
@@ -22,7 +20,7 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
 {
     // must be four or higher
     if (_resolution < 4) {
-        Log::Warning("Dome geometry resolution must be higher than 4");
+        sgct::Log::Warning("Dome geometry resolution must be higher than 4");
     }
 
     // Create VAO
@@ -99,5 +97,3 @@ void DomeGrid::draw() const {
 
     glBindVertexArray(0);
 }
-
-} // namespace sgct::utils

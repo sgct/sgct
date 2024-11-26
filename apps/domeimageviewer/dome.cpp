@@ -6,13 +6,11 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/utils/dome.h>
+#include "dome.h"
 
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <glm/glm.hpp>
-
-namespace sgct::utils {
 
 Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps)
     : _elevationSteps(elevationSteps)
@@ -30,10 +28,10 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     };
 
     if (_azimuthSteps < 4) {
-        Log::Warning("Azimuth steps must be higher than 4");
+        sgct::Log::Warning("Azimuth steps must be higher than 4");
     }
     if (_elevationSteps < 4)  {
-        Log::Warning("Elevation steps must be higher than 4");
+        sgct::Log::Warning("Elevation steps must be higher than 4");
     }
 
     // Create VAO
@@ -159,5 +157,3 @@ void Dome::draw() const {
     );
     glBindVertexArray(0);
 }
-
-} // namespace sgct::utils

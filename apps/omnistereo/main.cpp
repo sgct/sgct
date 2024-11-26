@@ -6,10 +6,10 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include "box.h"
+#include "domegrid.h"
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <sgct/utils/box.h>
-#include <sgct/utils/domegrid.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,8 +19,8 @@ namespace {
     constexpr float Diameter = 14.8f;
     constexpr float Tilt = glm::radians(30.f);
 
-    std::unique_ptr<sgct::utils::Box> box;
-    std::unique_ptr<sgct::utils::DomeGrid> grid;
+    std::unique_ptr<Box> box;
+    std::unique_ptr<DomeGrid> grid;
     GLint matrixLoc = -1;
     GLint gridMatrixLoc = -1;
 
@@ -459,8 +459,8 @@ void postDraw() {
 void initOGL(GLFWwindow*) {
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
 
-    box = std::make_unique<utils::Box>(0.5f, utils::Box::TextureMappingMode::Regular);
-    grid = std::make_unique<utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
+    box = std::make_unique<Box>(0.5f, Box::TextureMappingMode::Regular);
+    grid = std::make_unique<DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
 
     // Set up backface culling
     glCullFace(GL_BACK);

@@ -9,14 +9,10 @@
 #ifndef __SGCT__BOX__H__
 #define __SGCT__BOX__H__
 
-#include <sgct/sgctexports.h>
-
-namespace sgct::utils {
-
 /**
  * This class creates and renders a textured box.
  */
-class SGCT_EXPORT Box {
+class Box {
 public:
     enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
@@ -36,7 +32,5 @@ private:
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 };
-
-} // namespace sgct::utils
 
 #endif // __SGCT__BOX__H__

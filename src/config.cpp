@@ -34,7 +34,6 @@ void validateUser(const User& u) {
     if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
         throw Error(1000, "Eye separation must be zero or a positive number");
     }
-
     if (u.tracking && u.tracking->device.empty()) {
         throw Error(1001, "Tracking device name must not be empty");
     }
@@ -53,7 +52,7 @@ void validateCapture(const Capture& c) {
         throw Error(1010, "Capture path must not be empty");
     }
 
-    if (c.range.has_value()) {
+    if (c.range) {
         if (c.range->first >= c.range->last && c.range->last != -1) {
             throw Error(1011, "Screenshot ranges beginning has to be before the end");
         }
@@ -103,7 +102,7 @@ void validateTracker(const Tracker& t) {
     std::for_each(t.devices.begin(), t.devices.end(), validateDevice);
 }
 
-void validatePlanarProjection(const PlanarProjection& p) {
+void validateProjection(const PlanarProjection& p) {
     ZoneScoped;
 
     if (p.fov.up == p.fov.down) {
@@ -114,13 +113,13 @@ void validatePlanarProjection(const PlanarProjection& p) {
     }
 }
 
-void validateTextureProjection(const TextureMappedProjection& p) {
+void validateProjection(const TextureMappedProjection& p) {
     ZoneScoped;
 
-    validatePlanarProjection(p);
+    validateProjection(static_cast<const PlanarProjection&>(p));
 }
 
-void validateFisheyeProjection(const FisheyeProjection& p) {
+void validateProjection(const FisheyeProjection& p) {
     ZoneScoped;
 
     if (p.fov && *p.fov <= 0.f) {
@@ -149,7 +148,7 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
     }
 }
 
-void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
+void validateProjection(const SphericalMirrorProjection& p) {
     ZoneScoped;
 
     if (p.quality && *p.quality <= 0) {
@@ -166,7 +165,7 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
     }
 }
 
-void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
+void validateProjection(const SpoutOutputProjection& p) {
     ZoneScoped;
 
     if (p.mappingSpoutName.empty()) {
@@ -183,10 +182,10 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
     }
 }
 
-void validateSpoutFlatProjection(const SpoutFlatProjection& p) {
+void validateProjection(const SpoutFlatProjection& p) {
     ZoneScoped;
 
-    validatePlanarProjection(p.proj);
+    validateProjection(p.proj);
     if (p.mappingSpoutName.empty()) {
         throw Error(1084, "Spout Mapping name must not be empty");
     }
@@ -204,13 +203,15 @@ void validateSpoutFlatProjection(const SpoutFlatProjection& p) {
     }
 }
 
-void validateCylindricalProjection(const CylindricalProjection&) {}
+void validateProjection(const CylindricalProjection&) {}
 
-void validateEquirectangularProjection(const EquirectangularProjection&) {}
+void validateProjection(const EquirectangularProjection&) {}
 
-void validateProjectionPlane(const ProjectionPlane&) {}
+void validateProjection(const ProjectionPlane&) {}
 
-void validateViewport(const Viewport& v, bool /*draw3D*/) {
+void validateProjection(const NoProjection&) {}
+
+void validateViewport(const Viewport& v) {
     ZoneScoped;
 
     if (v.user && v.user->empty()) {
@@ -229,35 +230,7 @@ void validateViewport(const Viewport& v, bool /*draw3D*/) {
         throw Error(1094, "Correction mesh texture path must not be empty");
     }
 
-    std::visit(overloaded {
-        [](const PlanarProjection& p) { validatePlanarProjection(p); },
-        [](const FisheyeProjection& p) { validateFisheyeProjection(p); },
-        [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
-        [](const SpoutOutputProjection& p) { validateSpoutOutputProjection(p); },
-        [](const SpoutFlatProjection& p) { validateSpoutFlatProjection(p); },
-        [](const CylindricalProjection& p) { validateCylindricalProjection(p); },
-        [](const EquirectangularProjection& p) {
-            validateEquirectangularProjection(p);
-        },
-        [](const ProjectionPlane& p) { validateProjectionPlane(p); },
-        [](const TextureMappedProjection& p) { validateTextureProjection(p); },
-
-        [v/*, draw3D*/](const NoProjection&) {
-            // This is currently commented out due to the fact that some of the meshes
-            // that we support can provide FOV information, too. Particularly the SCISS
-            // and the scalable meshes set a PlanarProjection as well and it would be
-            // weird to specify both at the moment. I think they should probably be
-            // handled differently to not hide the FOV setting in the `mesh` variable of
-            // the viewport
-
-            //if (draw3D) {
-            //    // We only need a projection if we actually want to render a 3D scene
-            //    throw Error(1095, "No valid projection provided");
-            //}
-        }
-        },
-        v.projection
-    );
+    std::visit([](const auto& p) { validateProjection(p); }, v.projection);
 }
 
 void validateWindow(const Window& w) {
@@ -283,8 +256,7 @@ void validateWindow(const Window& w) {
 #endif // SGCT_HAS_SCALABLE
 
     for (const Viewport& vp : w.viewports) {
-        const bool draw3D = w.draw3D.value_or(true);
-        validateViewport(vp, draw3D);
+        validateViewport(vp);
     }
 }
 
@@ -295,10 +267,10 @@ void validateNode(const Node& n) {
         throw Error(1110, "Node address must not be empty");
     }
     if (n.port <= 0) {
-        throw Error(1111, "Node port must be non-negative");
+        throw Error(1111, "Node port must be a positive number");
     }
     if (n.dataTransferPort && *n.dataTransferPort <= 0) {
-        throw Error(1112, "Node data transfer port must be non-negative");
+        throw Error(1112, "Node data transfer port must be a positive number");
     }
     if (n.windows.empty()) {
         throw Error(1113, "Every node must contain at least one window");
@@ -322,7 +294,7 @@ void validateNode(const Node& n) {
         }
         usedIds.push_back(win.id);
 
-        if (win.blitWindowId.has_value()) {
+        if (win.blitWindowId) {
             auto it = std::find_if(
                 n.windows.cbegin(), n.windows.cend(),
                 [id = *win.blitWindowId](const Window& w) { return w.id == id; }
@@ -368,10 +340,12 @@ void validateCluster(const Cluster& c) {
         throw Error(1122, "There must be at least one user in the cluster");
     }
 
-    const int nDefaultUsers = static_cast<int>(std::count_if(
-        c.users.cbegin(), c.users.cend(),
-        [](const User& user) { return !user.name.has_value(); }
-    ));
+    const int nDefaultUsers = static_cast<int>(
+        std::count_if(
+            c.users.cbegin(), c.users.cend(),
+            [](const User& user) { return !user.name.has_value(); }
+        )
+    );
 
     if (nDefaultUsers > 1) {
         throw Error(1123, "More than one unnamed users specified");
@@ -384,7 +358,7 @@ void validateCluster(const Cluster& c) {
         c.users.cbegin(),
         c.users.cend(),
         std::back_inserter(usernames),
-        [](const User& user) { return user.name ? *user.name : ""; }
+        [](const User& user) { return user.name.value_or(""); }
     );
     if (std::unique(usernames.begin(), usernames.end()) != usernames.end()) {
         throw Error(1124, "No two users can have the same name");
@@ -452,19 +426,6 @@ void validateCluster(const Cluster& c) {
         throw Error(1127, "Configuration must contain at least one node");
     }
     std::for_each(c.nodes.cbegin(), c.nodes.cend(), validateNode);
-
-
-    // Check for mutually exclusive ports
-    std::vector<int> ports;
-    std::transform(
-        c.nodes.cbegin(),
-        c.nodes.cend(),
-        std::back_inserter(ports),
-        [](const Node& node) { return node.port; }
-    );
-    if (std::unique(ports.begin(), ports.end()) != ports.end()) {
-        throw Error(1128, "Two or more nodes are using the same port");
-    }
 }
 
 void validateGeneratorVersion(const GeneratorVersion&) {}

@@ -99,25 +99,12 @@ void Window::applyWindow(const config::Window& window) {
     ZoneScoped;
 
     _id = window.id;
-
-    if (window.name) {
-        setName(*window.name);
-    }
-    if (!window.tags.empty()) {
-        setTags(window.tags);
-    }
-    if (window.hideMouseCursor) {
-        _hideMouseCursor = *window.hideMouseCursor;
-    }
-    if (window.takeScreenshot) {
-        setTakeScreenshot(*window.takeScreenshot);
-    }
-    if (window.draw2D) {
-        setCallDraw2DFunction(*window.draw2D);
-    }
-    if (window.draw3D) {
-        setCallDraw3DFunction(*window.draw3D);
-    }
+    _name = window.name.value_or(_name);
+    _tags = window.tags;
+    _hideMouseCursor = window.hideMouseCursor.value_or(_hideMouseCursor);
+    _takeScreenshot = window.takeScreenshot.value_or(_takeScreenshot);
+    _hasCallDraw2DFunction = window.draw2D.value_or(_hasCallDraw2DFunction);
+    _hasCallDraw3DFunction = window.draw3D.value_or(_hasCallDraw3DFunction);
 
     // If a scalable mesh is set, we abort straight after this
 #ifdef SGCT_HAS_SCALABLE
@@ -208,45 +195,21 @@ void Window::applyWindow(const config::Window& window) {
         }(*window.bufferBitDepth);
         _bufferColorBitDepth = bd;
     }
-    if (window.isFullScreen) {
-        setFullscreen(*window.isFullScreen);
-    }
-    if (window.shouldAutoiconify) {
-        setAutoiconify(*window.shouldAutoiconify);
-    }
-    if (window.isFloating) {
-        setFloating(*window.isFloating);
-    }
-    if (window.alwaysRender) {
-        setRenderWhileHidden(*window.alwaysRender);
-    }
     if (window.isHidden) {
         setVisible(!*window.isHidden);
     }
-    if (window.doubleBuffered) {
-        setDoubleBuffered(*window.doubleBuffered);
-    }
-    if (window.msaa) {
-        setNumberOfAASamples(*window.msaa);
-    }
-    if (window.useFxaa) {
-        setUseFXAA(*window.useFxaa);
-    }
-    if (window.isDecorated) {
-        setWindowDecoration(*window.isDecorated);
-    }
-    if (window.isResizable) {
-        setWindowResizable(*window.isResizable);
-    }
-    if (window.isMirrored) {
-        _isMirrored = *window.isMirrored;
-    }
-    if (window.blitWindowId) {
-        setBlitWindowId(*window.blitWindowId);
-    }
-    if (window.monitor) {
-        setFullScreenMonitorIndex(*window.monitor);
-    }
+    _isFullScreen = window.isFullScreen.value_or(_isFullScreen);
+    _shouldAutoiconify = window.shouldAutoiconify.value_or(_shouldAutoiconify);
+    _isFloating = window.isFloating.value_or(_isFloating);
+    _shouldRenderWhileHidden = window.alwaysRender.value_or(_shouldRenderWhileHidden);
+    _isDoubleBuffered = window.doubleBuffered.value_or(_isDoubleBuffered);
+    _nAASamples = window.msaa.value_or(_nAASamples);
+    _useFXAA = window.useFxaa.value_or(_useFXAA);
+    _isDecorated = window.isDecorated.value_or(_isDecorated);
+    _isResizable = window.isResizable.value_or(_isResizable);
+    _isMirrored = window.isMirrored.value_or(_isMirrored);
+    _blitWindowId = window.blitWindowId.value_or(_blitWindowId);
+    _monitorIndex = window.monitor.value_or(_monitorIndex);
     _mirrorX = window.mirrorX.value_or(_mirrorX);
     _mirrorY = window.mirrorY.value_or(_mirrorY);
 
@@ -813,9 +776,6 @@ void Window::setFixResolution(bool state) {
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    Log::Debug(std::format(
-        "FXAA status: {} for window {}", state ? "enabled" : "disabled", _id
-    ));
 }
 
 void Window::setUseQuadbuffer(bool state) {
@@ -828,25 +788,14 @@ void Window::setUseQuadbuffer(bool state) {
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
-    if (!_hasCallDraw2DFunction) {
-        Log::Info(std::format("Window {}: Draw 2D function disabled", _id));
-    }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
-    if (!_hasCallDraw3DFunction) {
-        Log::Info(std::format("Window {}: Draw 3D function disabled", _id));
-    }
 }
 
 void Window::setBlitWindowId(int id) {
     _blitWindowId = id;
-    if (_blitWindowId >= 0) {
-        Log::Info(
-            std::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
-        );
-    }
 }
 
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
@@ -1017,7 +966,7 @@ void Window::initNvidiaSwapGroups() {
     else {
         _useSwapGroups = false;
     }
-#endif
+#endif // WIN32
 }
 
 void Window::initScreenCapture() {
@@ -1065,7 +1014,7 @@ unsigned int Window::swapGroupFrameNumber() {
     return frameNumber;
 #else // ^^^^ WIN32 // !WIN32 vvvv
     return 0;
-#endif
+#endif // WIN32
 }
 
 void Window::resetSwapGroupFrameNumber() {
@@ -1080,7 +1029,7 @@ void Window::resetSwapGroupFrameNumber() {
             Log::Info("Resetting frame counter failed");
         }
     }
-#endif
+#endif // WIN32
 }
 
 void Window::createTextures() {

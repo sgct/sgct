@@ -29,16 +29,12 @@ void Node::applyNode(const config::Node& node, bool initializeWindows) {
         address.begin(),
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
-    _address = address;
+    _address = std::move(address);
 
     _syncPort = node.port;
 
-    if (node.dataTransferPort) {
-        _dataTransferPort = *node.dataTransferPort;
-    }
-    if (node.swapLock) {
-        _useSwapGroups = *node.swapLock;
-    }
+    _dataTransferPort = node.dataTransferPort.value_or(_dataTransferPort);
+    _useSwapGroups = node.swapLock.value_or(_useSwapGroups);
 
     if (initializeWindows) {
         for (const config::Window& window : node.windows) {

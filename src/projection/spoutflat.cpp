@@ -48,9 +48,32 @@ namespace {
     };
 } // namespace
 
-SpoutFlatProjection::SpoutFlatProjection(const Window* parent)
+SpoutFlatProjection::SpoutFlatProjection(const Window* parent, User* user,
+                                                const config::SpoutFlatProjection& config)
     : NonLinearProjection(parent)
-{}
+{
+    setUser(user);
+    if (config.width) {
+        setResolutionWidth(*config.width);
+    }
+    if (config.height) {
+        setResolutionHeight(*config.height);
+    }
+    _mappingName = config.mappingSpoutName;
+    if (config.background) {
+        setClearColor(*config.background);
+    }
+    _spoutDrawMain = config.drawMain.value_or(_spoutDrawMain);
+    _spoutOffset = config.proj.offset.value_or(_spoutOffset);
+    setSpoutFov(
+        config.proj.fov.up,
+        config.proj.fov.down,
+        config.proj.fov.left,
+        config.proj.fov.right,
+        config.proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
+        config.proj.fov.distance.value_or(10.f)
+    );
+}
 
 SpoutFlatProjection::~SpoutFlatProjection() {
 #ifdef SGCT_HAS_SPOUT

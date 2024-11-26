@@ -73,15 +73,6 @@ public:
     NonLinearProjection* nonLinearProjection() const;
 
 private:
-    void applyPlanarProjection(const config::PlanarProjection& proj);
-    void applyFisheyeProjection(const config::FisheyeProjection& proj);
-    void applySpoutOutputProjection(const config::SpoutOutputProjection& proj);
-    void applySpoutFlatProjection(const config::SpoutFlatProjection& proj);
-    void applyCylindricalProjection(const config::CylindricalProjection& proj);
-    void applyEquirectangularProjection(const config::EquirectangularProjection& proj);
-    void applySphericalMirrorProjection(const config::SphericalMirrorProjection& proj);
-    void applyTextureProjection(const config::TextureMappedProjection& proj);
-
     CorrectionMesh _mesh;
     std::filesystem::path _overlayFilename;
     std::filesystem::path _blendMaskFilename;

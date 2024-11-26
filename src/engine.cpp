@@ -345,27 +345,19 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         std::cout << helpMessage() << '\n';
         std::exit(0);
     }
+
     if (config.firmSync) {
-        ClusterManager::instance().setFirmFrameLockSyncStatus(*config.firmSync);
+        cluster.firmSync = config.firmSync;
     }
-    if (config.ignoreSync) {
-        ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
-    }
-    if (config.nCaptureThreads) {
-        _settings.capture.nCaptureThreads = *config.nCaptureThreads;
-    }
-    if (config.useOpenGLDebugContext) {
-        _settings.createDebugContext = *config.useOpenGLDebugContext;
-    }
-    if (config.screenshotPath) {
-        _settings.capture.capturePath = *config.screenshotPath;
-    }
-    if (config.screenshotPrefix) {
-        _settings.capture.prefix = *config.screenshotPrefix;
-    }
-    if (config.addNodeNameInScreenshot) {
-        _settings.capture.addNodeName = *config.addNodeNameInScreenshot;
-    }
+    _settings.capture.nCaptureThreads =
+        config.nCaptureThreads.value_or(_settings.capture.nCaptureThreads);
+    _settings.createDebugContext =
+        config.useOpenGLDebugContext.value_or(_settings.createDebugContext);
+    _settings.capture.capturePath =
+        config.screenshotPath.value_or(_settings.capture.capturePath);
+    _settings.capture.prefix = config.screenshotPrefix.value_or(_settings.capture.prefix);
+    _settings.capture.addNodeName =
+        config.addNodeNameInScreenshot.value_or(_settings.capture.addNodeName);
     if (config.omitWindowNameInScreenshot) {
         _settings.capture.addWindowName = !(*config.omitWindowNameInScreenshot);
     }
@@ -409,9 +401,11 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
     {
         ZoneScopedN("GLFW initialization");
-        glfwSetErrorCallback([](int error, const char* desc) {
-            throw Err(3010, std::format("GLFW error ({}): {}", error, desc));
-        });
+        glfwSetErrorCallback(
+            [](int error, const char* desc) {
+                throw Err(3010, std::format("GLFW error ({}): {}", error, desc));
+            }
+        );
         const int res = glfwInit();
         if (res == GLFW_FALSE) {
             throw Err(3000, "Failed to initialize GLFW");
@@ -469,6 +463,10 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
 
     ClusterManager::create(cluster, clusterId);
+    if (config.ignoreSync) {
+        ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
+    }
+
     NetworkManager::instance().initialize();
 }
 

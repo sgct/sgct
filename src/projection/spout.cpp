@@ -52,10 +52,46 @@ namespace {
 
 namespace sgct {
 
-SpoutOutputProjection::SpoutOutputProjection(const Window* parent)
+SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
+                                              const config::SpoutOutputProjection& config)
     : NonLinearProjection(parent)
     , _mainViewport(parent)
-{}
+{
+    setUser(user);
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
+    if (config.mapping) {
+        SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
+            switch (m) {
+            case config::SpoutOutputProjection::Mapping::Fisheye:
+                return SpoutOutputProjection::Mapping::Fisheye;
+            case config::SpoutOutputProjection::Mapping::Equirectangular:
+                return SpoutOutputProjection::Mapping::Equirectangular;
+            case config::SpoutOutputProjection::Mapping::Cubemap:
+                return SpoutOutputProjection::Mapping::Cubemap;
+            default: throw std::logic_error("Unhandled case label");
+            }
+            }(*config.mapping);
+        setSpoutMapping(m);
+    }
+    _mappingName = config.mappingSpoutName;
+    if (config.background) {
+        setClearColor(*config.background);
+    }
+    config::SpoutOutputProjection::Channels c =
+        config.channels.value_or(config::SpoutOutputProjection::Channels());
+    _spout[0].enabled = c.right;
+    _spout[1].enabled = c.left;
+    _spout[2].enabled = c.bottom;
+    _spout[3].enabled = c.top;
+    _spout[4].enabled = c.zLeft;
+    _spout[5].enabled = c.zRight;
+
+    _rigOrientation = config.orientation.value_or(_rigOrientation);
+
+    _spout[6].enabled = config.drawMain.value_or(_spout[6].enabled);
+}
 
 SpoutOutputProjection::~SpoutOutputProjection() {
 #ifdef SGCT_HAS_SPOUT

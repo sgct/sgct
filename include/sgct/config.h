@@ -129,12 +129,12 @@ struct SGCT_EXPORT PlanarProjection {
     std::optional<quat> orientation;
     std::optional<vec3> offset;
 };
-SGCT_EXPORT void validatePlanarProjection(const PlanarProjection& proj);
+SGCT_EXPORT void validateProjection(const PlanarProjection& proj);
 
 
 
 struct SGCT_EXPORT TextureMappedProjection : PlanarProjection { };
-SGCT_EXPORT void validateTextureProjection(const TextureMappedProjection& proj);
+SGCT_EXPORT void validateProjection(const TextureMappedProjection& proj);
 
 
 
@@ -158,7 +158,7 @@ struct SGCT_EXPORT FisheyeProjection {
     std::optional<vec3> offset;
     std::optional<vec4> background;
 };
-SGCT_EXPORT void validateFisheyeProjection(const FisheyeProjection& proj);
+SGCT_EXPORT void validateProjection(const FisheyeProjection& proj);
 
 
 
@@ -174,7 +174,7 @@ struct SGCT_EXPORT SphericalMirrorProjection {
     std::optional<vec4> background;
     Mesh mesh;
 };
-SGCT_EXPORT void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
+SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
 
 
@@ -196,7 +196,7 @@ struct SGCT_EXPORT SpoutOutputProjection {
     std::optional<vec3> orientation;
     std::optional<bool> drawMain;
 };
-SGCT_EXPORT void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
+SGCT_EXPORT void validateProjection(const SpoutOutputProjection& proj);
 
 
 
@@ -208,7 +208,7 @@ struct SGCT_EXPORT SpoutFlatProjection {
     std::optional<vec4> background;
     std::optional<bool> drawMain;
 };
-SGCT_EXPORT void validateSpoutFlatProjection(const SpoutFlatProjection& proj);
+SGCT_EXPORT void validateProjection(const SpoutFlatProjection& proj);
 
 
 
@@ -218,14 +218,14 @@ struct SGCT_EXPORT CylindricalProjection {
     std::optional<float> heightOffset;
     std::optional<float> radius;
 };
-SGCT_EXPORT void validateCylindricalProjection(const CylindricalProjection& proj);
+SGCT_EXPORT void validateProjection(const CylindricalProjection& proj);
 
 
 
 struct SGCT_EXPORT EquirectangularProjection {
     std::optional<int> quality;
 };
-SGCT_EXPORT void validateEquirectangularProjection(const EquirectangularProjection& proj);
+SGCT_EXPORT void validateProjection(const EquirectangularProjection& proj);
 
 
 struct SGCT_EXPORT ProjectionPlane {
@@ -233,7 +233,7 @@ struct SGCT_EXPORT ProjectionPlane {
     vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
     vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
 };
-SGCT_EXPORT void validateProjectionPlane(const ProjectionPlane& proj);
+SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
 
 
 
@@ -259,7 +259,7 @@ struct SGCT_EXPORT Viewport {
 
     Projections projection;
 };
-SGCT_EXPORT void validateViewport(const Viewport& viewport, bool draw3D);
+SGCT_EXPORT void validateViewport(const Viewport& viewport);
 
 
 

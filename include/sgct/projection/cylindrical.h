@@ -19,7 +19,8 @@ namespace sgct {
 
 class SGCT_EXPORT CylindricalProjection final : public NonLinearProjection {
 public:
-    CylindricalProjection(const Window* parent);
+    CylindricalProjection(const Window* parent, User* user,
+        const config::CylindricalProjection& config);
     ~CylindricalProjection() final;
 
     void render(const Window& window, const BaseViewport& viewport,

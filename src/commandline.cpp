@@ -85,19 +85,6 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.omitWindowNameInScreenshot = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-config") {
-            // @DEPRECATED
-            Log::Warning("Using -config has been deprecated in favor of -c or --config");
-            config.configFilename = arg[i + 1];
-            arg.erase(arg.begin() + i, arg.begin() + i + 2);
-        }
-        else if (arg[i] == "-local") {
-            // @DEPRECATED
-            Log::Warning("Using -local has been deprecated in favor of -l or --local");
-            config.isServer = true;
-            config.nodeId = std::stoi(arg[i + 1]);
-            arg.erase(arg.begin() + i, arg.begin() + i + 2);
-        }
         else {
             // Ignore unknown commands
             i++;

@@ -6,12 +6,10 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/utils/box.h>
+#include "box.h"
 
 #include <sgct/opengl.h>
 #include <array>
-
-namespace sgct::utils {
 
 Box::Box(float size, TextureMappingMode mode) {
     struct VertexData {
@@ -211,4 +209,3 @@ void Box::draw() const {
     glBindVertexArray(0);
 }
 
-} // namespace sgct::utils

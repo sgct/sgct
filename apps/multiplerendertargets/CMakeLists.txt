@@ -6,7 +6,7 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-add_executable(multiplerendertargets main.cpp)
+add_executable(multiplerendertargets main.cpp box.cpp)
 set_compile_options(multiplerendertargets)
 find_package(glm REQUIRED)
 target_link_libraries(multiplerendertargets PRIVATE sgct::sgct glm::glm)

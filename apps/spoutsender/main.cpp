@@ -6,10 +6,9 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include "box.h"
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <sgct/utils/box.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -22,7 +21,7 @@
 #include <SpoutLibrary.h>
 
 namespace {
-    std::unique_ptr<sgct::utils::Box> box;
+    std::unique_ptr<Box> box;
     GLint matrixLoc = -1;
     GLuint texture = 0;
 
@@ -179,7 +178,7 @@ void initOGL(GLFWwindow*) {
 
     texture = TextureManager::instance().loadTexture("box.png", true);
 
-    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
+    box = std::make_unique<Box>(2.f, Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);

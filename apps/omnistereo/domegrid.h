@@ -6,38 +6,32 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__SPHERE__H__
-#define __SGCT__SPHERE__H__
-
-#include <sgct/sgctexports.h>
-
-namespace sgct::utils {
+#ifndef __SGCT__DOMEGRID__H__
+#define __SGCT__DOMEGRID__H__
 
 /**
- * This class creates and renders a textured sphere.
+ * Helper class to render a dome grid.
  */
-class SGCT_EXPORT Sphere {
+class DomeGrid {
 public:
     /**
-     * This constructor requires a valid OpenGL context.
+     * This constructor requires a valid OpenGL contex.
      */
-    Sphere(float radius, unsigned int segments);
+    DomeGrid(float radius, float FOV, int segments, int rings, int resolution = 128);
 
     /**
      * The destructor requires a valid OpenGL context.
      */
-    ~Sphere();
+    ~DomeGrid();
 
     void draw() const;
 
 private:
-    unsigned int _nFaces = 0;
-
+    const int _resolution;
+    const int _rings;
+    const int _segments;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
-    unsigned int _ibo = 0;
 };
 
-} // namespace sgct::utils
-
-#endif // __SGCT__SPHERE__H__
+#endif // __SGCT__DOMEGRID__H__

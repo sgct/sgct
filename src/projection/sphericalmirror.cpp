@@ -55,18 +55,23 @@ namespace {
 
 namespace sgct {
 
-SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent,
-                                                     std::string bottomMesh,
-                                                     std::string leftMesh,
-                                                     std::string rightMesh,
-                                                     std::string topMesh)
+SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, User* user,
+                                          const config::SphericalMirrorProjection& config)
     : NonLinearProjection(parent)
-    , _meshPathBottom(std::move(bottomMesh))
-    , _meshPathLeft(std::move(leftMesh))
-    , _meshPathRight(std::move(rightMesh))
-    , _meshPathTop(std::move(topMesh))
+    , _meshPathBottom(config.mesh.bottom)
+    , _meshPathLeft(config.mesh.left)
+    , _meshPathRight(config.mesh.right)
+    , _meshPathTop(config.mesh.top)
 {
+    setUser(user);
     setUseDepthTransformation(false);
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
+    _tilt = config.tilt.value_or(_tilt);
+    if (config.background) {
+        setClearColor(*config.background);
+    }
 }
 
 SphericalMirrorProjection::~SphericalMirrorProjection() {

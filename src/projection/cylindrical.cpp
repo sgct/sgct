@@ -54,10 +54,19 @@ namespace {
 
 namespace sgct {
 
-CylindricalProjection::CylindricalProjection(const Window* parent)
+CylindricalProjection::CylindricalProjection(const Window* parent, User* user,
+                                              const config::CylindricalProjection& config)
     : NonLinearProjection(parent)
 {
+    setUser(user);
     setUseDepthTransformation(true);
+
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
+    _rotation = config.rotation.value_or(_rotation);
+    _heightOffset = config.heightOffset.value_or(_heightOffset);
+    _radius = config.radius.value_or(_radius);
 }
 
 CylindricalProjection::~CylindricalProjection() {

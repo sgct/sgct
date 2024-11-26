@@ -23,7 +23,8 @@ class SGCT_EXPORT FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
-    FisheyeProjection(const Window* parent);
+    FisheyeProjection(const config::FisheyeProjection& config, User* user,
+        const Window* parent);
     ~FisheyeProjection() final;
 
     /**
@@ -116,6 +117,8 @@ private:
     vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
+
+
 
     // shader locations
     struct {

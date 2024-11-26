@@ -24,7 +24,8 @@ namespace sgct {
  */
 class SGCT_EXPORT SpoutFlatProjection : public NonLinearProjection {
 public:
-    SpoutFlatProjection(const Window* parent);
+    SpoutFlatProjection(const Window* parent, User* user,
+        const config::SpoutFlatProjection& config);
 
     virtual ~SpoutFlatProjection() override;
 

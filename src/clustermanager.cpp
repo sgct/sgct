@@ -78,15 +78,12 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     for (const config::User& u : cluster.users) {
         ZoneScopedN("Create User");
 
-        std::string name;
+        std::string name = "default";
         if (u.name) {
             name = *u.name;
             auto usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
             Log::Info(std::format("Adding user '{}'", *u.name));
-        }
-        else {
-            name = "default";
         }
         User* usr = user(name);
 

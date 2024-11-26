@@ -33,9 +33,44 @@ namespace {
 
 namespace sgct {
 
-FisheyeProjection::FisheyeProjection(const Window* parent)
+FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, User* user,
+                                     const Window* parent)
     : NonLinearProjection(parent)
-{}
+{
+    setUser(user);
+
+    _fov = config.fov.value_or(_fov);
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
+    if (config.interpolation) {
+        const NonLinearProjection::InterpolationMode interp =
+            [](config::FisheyeProjection::Interpolation i) {
+            switch (i) {
+            case config::FisheyeProjection::Interpolation::Linear:
+                return NonLinearProjection::InterpolationMode::Linear;
+            case config::FisheyeProjection::Interpolation::Cubic:
+                return NonLinearProjection::InterpolationMode::Cubic;
+            default: throw std::logic_error("Unhandled case label");
+            }
+            }(*config.interpolation);
+        setInterpolationMode(interp);
+    }
+    _tilt = config.tilt.value_or(_tilt);
+    _diameter = config.diameter.value_or(_diameter);
+    if (config.crop) {
+        const config::FisheyeProjection::Crop crop = *config.crop;
+        setCropFactors(crop.left, crop.right, crop.bottom, crop.top);
+    }
+    if (config.offset) {
+        setBaseOffset(*config.offset);
+    }
+    if (config.background) {
+        setClearColor(*config.background);
+    }
+    _keepAspectRatio = config.keepAspectRatio.value_or(_keepAspectRatio);
+    setUseDepthTransformation(true);
+}
 
 FisheyeProjection::~FisheyeProjection() {
     glDeleteBuffers(1, &_vbo);

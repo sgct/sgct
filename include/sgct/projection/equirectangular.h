@@ -25,11 +25,11 @@ public:
     ~EquirectangularProjection() final;
 
     void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode) override;
+        Frustum::Mode) const override;
 
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
 
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
 private:
     void initVBO() override;

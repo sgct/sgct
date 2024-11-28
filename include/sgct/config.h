@@ -302,7 +302,6 @@ struct SGCT_EXPORT Window {
     std::optional<bool> isFloating;
     std::optional<bool> alwaysRender;
     std::optional<bool> isHidden;
-    std::optional<bool> doubleBuffered;
     std::optional<bool> takeScreenshot;
     std::optional<int> msaa;
     std::optional<bool> useFxaa;

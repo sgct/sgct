@@ -31,8 +31,8 @@ public:
      * \param texId GL id of the texture to attach
      * \param attachment The gl attachment enum in the form of `GL_COLOR_ATTACHMENT`i
      */
-    void attachColorTexture(unsigned int texId, unsigned int attachment);
-    void attachDepthTexture(unsigned int texId);
+    void attachColorTexture(unsigned int texId, unsigned int attachment) const;
+    void attachDepthTexture(unsigned int texId) const;
 
     /**
      * \param texId GL id of the texture to attach
@@ -40,8 +40,8 @@ public:
      * \param attachment The gl attachment enum in the form of `GL_COLOR_ATTACHMENT`i
      */
     void attachCubeMapTexture(unsigned int texId, unsigned int face,
-        unsigned int attachment);
-    void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
+        unsigned int attachment) const;
+    void attachCubeMapDepthTexture(unsigned int texId, unsigned int face) const;
 
     /**
      * Bind framebuffer, auto-set multisampling and draw buffers.

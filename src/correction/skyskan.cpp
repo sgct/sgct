@@ -34,7 +34,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
 
     Log::Info(std::format("Reading SkySkan mesh data from '{}'", path));
 
-    std::ifstream meshFile(path);
+    std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
         throw Error(2090, std::format("Failed to open file '{}'", path));
     }
@@ -96,7 +96,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         if (auto r = scn::scan<float, float, float, float>(line, "{} {} {} {}");
             r && areDimsSet)
         {
-            auto [x, y, u, v] = r->values();
+            auto& [x, y, u, v] = r->values();
             if (uvTweaks.x > -1.f) {
                 u *= uvTweaks.x;
             }

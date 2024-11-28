@@ -69,9 +69,7 @@ SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, User*
         setCubemapResolution(*config.quality);
     }
     _tilt = config.tilt.value_or(_tilt);
-    if (config.background) {
-        setClearColor(*config.background);
-    }
+    _clearColor = config.background.value_or(_clearColor);
 }
 
 SphericalMirrorProjection::~SphericalMirrorProjection() {
@@ -79,24 +77,17 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void SphericalMirrorProjection::update(vec2) {}
+void SphericalMirrorProjection::update(const vec2&) const {}
 
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode)
+                                       Frustum::Mode frustumMode) const
 {
     ZoneScoped;
 
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
     const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
-#ifdef WIN32
-#pragma warning(push)
-#pragma warning(disable: 4127) // warning C4127: conditional expression is constant
-#endif // WIN32
     const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
-#ifdef WIN32
-#pragma warning(pop)
-#endif // WIN32
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -131,10 +122,14 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void SphericalMirrorProjection::renderCubemap(const Window& window,
+                                              Frustum::Mode frustumMode) const
+{
     ZoneScoped;
 
-    auto renderInternal = [this, &window, frustumMode](BaseViewport& bv, unsigned int t) {
+    auto renderInternal = [this, &window, frustumMode](const BaseViewport& bv,
+                                                       unsigned int t)
+    {
         if (!bv.isEnabled()) {
             return;
         }
@@ -152,7 +147,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        const RenderData renderData(
+        const RenderData renderData = {
             window,
             bv,
             frustumMode,
@@ -162,7 +157,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
             bv.projection(frustumMode).viewProjectionMatrix() *
                 ClusterManager::instance().sceneTransform(),
             _cubemapResolution
-        );
+        };
         Engine::instance().drawFunction()(renderData);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

@@ -51,7 +51,7 @@ public:
      *         the clients. If it was the acknowledge data call or no connections are
      *         available, a `nullopt` is returned
      */
-    std::optional<std::pair<double, double>> sync(SyncMode sm);
+    std::optional<std::pair<double, double>> sync(SyncMode sm) const;
 
     /**
      * Compare if the last frame and current frames are different -> data update and if
@@ -67,8 +67,9 @@ public:
     bool isComputerServer() const;
     bool isRunning() const;
     bool areAllNodesConnected() const;
-    void transferData(const void* data, int length, int packageId);
-    void transferData(const void* data, int length, int packageId, Network& connection);
+    void transferData(const void* data, int length, int packageId) const;
+    void transferData(const void* data, int length, int packageId,
+        const Network& connection) const;
 
     unsigned int activeConnectionsCount() const;
     int connectionsCount() const;
@@ -91,8 +92,6 @@ private:
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
     void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();
-    void prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
-        int packageId);
 
     static NetworkManager* _instance;
 

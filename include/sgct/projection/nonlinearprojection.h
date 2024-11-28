@@ -35,13 +35,13 @@ public:
      * Initialize the non-linear projection. The arguments should match the texture
      * settings for the parent window's FBO target.
      */
-    void initialize(unsigned int internalFormat, unsigned int format, unsigned int type,
-        int samples);
+    virtual void initialize(unsigned int internalFormat, unsigned int format,
+        unsigned int type, int samples);
 
     virtual void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) = 0;
-    virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) = 0;
-    virtual void update(vec2 size) = 0;
+        Frustum::Mode frustumMode) const = 0;
+    virtual void renderCubemap(const Window& window, Frustum::Mode frustumMode) const = 0;
+    virtual void update(const vec2& size) const = 0;
 
     virtual void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
 
@@ -69,21 +69,12 @@ public:
      */
     void setStereo(bool state);
 
-    /**
-     * Set the clear color (background color) for the non linear projection renderer.
-     *
-     * \param color The RGBA color vector
-     */
-    void setClearColor(vec4 color);
-
     virtual void setUser(User* user);
 
     /**
      * \return the resolution of the cubemap
      */
     ivec2 cubemapResolution() const;
-
-    ivec4 viewportCoords();
 
 protected:
     virtual void initTextures();
@@ -92,16 +83,16 @@ protected:
     virtual void initViewports() = 0;
     virtual void initShaders() = 0;
 
-    void setupViewport(BaseViewport& vp);
+    void setupViewport(const BaseViewport& vp) const;
     void generateMap(unsigned int& texture, unsigned int internalFormat,
         unsigned int format, unsigned int type);
     void generateCubeMap(unsigned int& texture, unsigned int internalFormat,
         unsigned int format, unsigned int type);
 
-    void attachTextures(int face);
-    void blitCubeFace(int face);
-    void renderCubeFace(const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode);
-    void renderCubeFaces(Window& window, Frustum::Mode frustumMode);
+    void attachTextures(int face) const;
+    void blitCubeFace(int face) const;
+    void renderCubeFace(const Window& win, const BaseViewport& vp, int idx,
+        Frustum::Mode mode) const;
 
     struct {
         unsigned int cubeMapColor = 0;
@@ -132,7 +123,6 @@ protected:
 
     ivec2 _cubemapResolution = ivec2(512, 512);
     vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);
-    ivec4 _vpCoords = ivec4(0, 0, 0, 0);
     bool _useDepthTransformation = false;
     bool _isStereo = false;
     unsigned int _texInternalFormat = 0;

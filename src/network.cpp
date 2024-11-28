@@ -16,7 +16,7 @@
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #define SGCT_ERRNO WSAGetLastError()
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -29,7 +29,7 @@
     #define INVALID_SOCKET (~0)
     #define NO_ERROR 0L
     #define SGCT_ERRNO errno
-#endif
+#endif // WIN32
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
@@ -53,8 +53,8 @@ namespace {
     std::string getTypeStr(sgct::Network::ConnectionType ct) {
         switch (ct) {
             case sgct::Network::ConnectionType::SyncConnection: return "sync";
-            case sgct::Network::ConnectionType::DataTransfer: return "data transfer";
-            default: throw std::logic_error("Unhandled case label");
+            case sgct::Network::ConnectionType::DataTransfer:   return "data transfer";
+            default:                       throw std::logic_error("Unhandled case label");
         }
     }
 
@@ -89,14 +89,13 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    // @TODO (abock, 2019-11-28);  We could probably get away with using the UDP stack as
-    // we are always waiting for ack messages from the clients anyway
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_PASSIVE;
 
     // Resolve the local address and port to be used by the server
     const char* a = _isServer ? nullptr : address.c_str();
-    const int addrRes = getaddrinfo(a, std::to_string(_port).c_str(), &hints, &res);
+    std::string portStr = std::to_string(_port);
+    const int addrRes = getaddrinfo(a, portStr.c_str(), &hints, &res);
     if (addrRes != 0) {
         throw Err(5000, "Failed to parse hints for connection");
     }
@@ -118,9 +117,9 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
             freeaddrinfo(res);
 #ifdef WIN32
             closesocket(_listenSocket);
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
             close(_listenSocket);
-#endif
+#endif // WIN32
             throw Err(5002, "Bind socket call failed");
         }
 
@@ -128,9 +127,9 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
             freeaddrinfo(res);
 #ifdef WIN32
             closesocket(_listenSocket);
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
             close(_listenSocket);
-#endif
+#endif // WIN32
             throw Err(5003, "Listen call failed");
         }
     }
@@ -139,7 +138,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
         while (!_shouldTerminate) {
             Log::Info(std::format(
                 "Attempting to connect to server (id: {}, ip: {}, type: {})",
-                _id, address.c_str(), getTypeStr(type()).c_str()
+                _id, address, getTypeStr(type())
             ));
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -194,7 +193,7 @@ void Network::connectionHandler() {
                     try {
                         communicationHandler();
                     }
-                    catch (const std::runtime_error & e) {
+                    catch (const std::runtime_error& e) {
                         Log::Error(e.what());
                     }
                 });
@@ -237,7 +236,7 @@ void Network::setOptions(SGCT_SOCKET* socket) const {
 
     // insert no delay, disable nagle's algorithm
     const int delayRes = setsockopt(
-        *socket,    // socket affected
+        *socket,       // socket affected
         IPPROTO_TCP,   // set option at TCP level
         TCP_NODELAY,   // name of option
         reinterpret_cast<const char*>(&flag), // the cast is historical cruft
@@ -288,32 +287,25 @@ void Network::setOptions(SGCT_SOCKET* socket) const {
     }
 }
 
-void Network::closeSocket(SGCT_SOCKET lSocket) {
-    if (lSocket == INVALID_SOCKET) {
+void Network::closeSocket(SGCT_SOCKET socket) {
+    if (socket == INVALID_SOCKET) {
         return;
     }
 
     const std::unique_lock lock(_connectionMutex);
 
 #ifdef WIN32
-    shutdown(lSocket, SD_BOTH);
-    closesocket(lSocket);
-#else
-    shutdown(lSocket, SHUT_RDWR);
-    close(lSocket);
-#endif
+    shutdown(socket, SD_BOTH);
+    closesocket(socket);
+#else // ^^^^ WIN32 // !WIN32 vvvv
+    shutdown(socket, SHUT_RDWR);
+    close(socket);
+#endif // WIN32
 }
 
 int Network::iterateFrameCounter() {
-    _previousSendFrame.store(_currentSendFrame.load());
-
-    if (_currentSendFrame < MaxNetworkSyncFrameNumber) {
-        _currentSendFrame++;
-    }
-    else {
-        _currentSendFrame = 0;
-    }
-
+    _previousSendFrame = _currentSendFrame.load();
+    _currentSendFrame = (_currentSendFrame + 1) % MaxNetworkSyncFrameNumber;
     _isUpdated = false;
 
     {
@@ -329,7 +321,7 @@ void Network::pushClientMessage() {
     const int currentFrame = iterateFrameCounter();
     uint32_t localSyncHeaderSize = 0;
 
-    std::array<char, HeaderSize> data;
+    std::array<char, HeaderSize> data = {};
     data[0] = Network::DataId;
     std::memcpy(data.data() + 1, &currentFrame, sizeof(currentFrame));
     std::memcpy(data.data() + 5, &localSyncHeaderSize, sizeof(localSyncHeaderSize));
@@ -423,7 +415,6 @@ void Network::setRecvFrame(int i) {
     _previousRecvFrame.store(_currentRecvFrame.load());
     _currentRecvFrame = i;
     _isUpdated = true;
-
     _timeStampTotal = time() - _timeStampSend;
 }
 
@@ -449,9 +440,9 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
         }
 #ifdef WIN32
         else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
         else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
-#endif
+#endif // WIN32
             Log::Warning(std::format(
                 "Receiving data after interrupted system error (attempt {})", attempts
             ));
@@ -482,8 +473,8 @@ void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
     currSize = reqSize;
 }
 
-int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSize,
-                             uint32_t& uncompressedDataSize)
+int Network::readSyncMessage(char* header, int32_t syncFrame, uint32_t dataSize,
+                             uint32_t uncompressedDataSize)
 {
     int iResult = receiveData(_socket, header, static_cast<int>(HeaderSize), 0);
 
@@ -522,8 +513,8 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
     return iResult;
 }
 
-int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
-                                     uint32_t& uncompressedDataSize)
+int Network::readDataTransferMessage(char* header, int32_t packageId, uint32_t dataSize,
+                                     uint32_t uncompressedDataSize)
 {
     int iResult = receiveData(_socket, header, static_cast<int>(HeaderSize), 0);
 
@@ -564,9 +555,9 @@ int Network::readExternalMessage() {
     int attempts = 1;
 #ifdef WIN32
     while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
     while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
-#endif
+#endif // WIN32
         iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
         Log::Info(std::format(
             "Receiving data after interrupted system error (attempt {})", attempts
@@ -585,16 +576,16 @@ void Network::communicationHandler() {
     // listen for client if server
     if (_isServer) {
         Log::Info(
-            std::format("Waiting for client {} to connect on port {}", _id, port())
+            std::format("Waiting for client {} to connect on port {}", _id, _port)
         );
 
         _socket = accept(_listenSocket, nullptr, nullptr);
 
 #ifdef WIN32
         while (!_shouldTerminate && _socket == INVALID_SOCKET && SGCT_ERRNO == WSAEINTR) {
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
         while (!_shouldTerminate && _socket == INVALID_SOCKET && SGCT_ERRNO == EINTR) {
-#endif
+#endif // WIN32
             Log::Info(
                 std::format("Re-accept after interrupted system on connection {}", _id)
             );
@@ -621,7 +612,7 @@ void Network::communicationHandler() {
     }
 
     // init buffers
-    std::array<char, HeaderSize> RecvHeader;
+    std::array<char, HeaderSize> RecvHeader = {};
     std::memset(RecvHeader.data(), DefaultId, HeaderSize);
 
     {
@@ -721,7 +712,7 @@ void Network::communicationHandler() {
 
                     // send acknowledge
                     uint32_t pLength = 0;
-                    std::array<char, HeaderSize> sendBuffer;
+                    std::array<char, HeaderSize> sendBuffer = {};
                     sendBuffer[0] = Ack;
                     std::memcpy(sendBuffer.data() + 1, &packageId, sizeof(packageId));
                     std::memcpy(sendBuffer.data() + 5, &pLength, sizeof(pLength));

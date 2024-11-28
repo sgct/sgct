@@ -47,11 +47,6 @@ public:
      */
     bool isUsingSwapGroups() const;
 
-    /**
-     * Check if a key is pressed for all windows.
-     */
-    bool isKeyPressed(Key key);
-
     const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /**

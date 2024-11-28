@@ -25,18 +25,18 @@ public:
         const config::SphericalMirrorProjection& config);
     virtual ~SphericalMirrorProjection() final;
 
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
     /**
      * Render the non linear projection to currently bounded FBO.
      */
     void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) override;
+        Frustum::Mode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is

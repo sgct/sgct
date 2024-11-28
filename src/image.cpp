@@ -129,13 +129,13 @@ void Image::save(const std::filesystem::path& filename) {
     }
 
     // initialize stuff
-    png_structp png_ptr = png_create_write_struct(
+    png_structp png = png_create_write_struct(
         PNG_LIBPNG_VER_STRING,
         nullptr,
         nullptr,
         nullptr
     );
-    if (!png_ptr) {
+    if (!png) {
         throw Err(9009, "Failed to create PNG struct");
     }
 
@@ -144,40 +144,40 @@ void Image::save(const std::filesystem::path& filename) {
     //    0 = No compression
     //    1 = Best speed
     //    9 = Best compression
-    png_set_compression_level(png_ptr, -1);
-    png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
-    png_set_compression_mem_level(png_ptr, 8);
-    png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
-    png_set_compression_window_bits(png_ptr, 15);
-    png_set_compression_method(png_ptr, 8);
-    png_set_compression_buffer_size(png_ptr, 8192);
+    png_set_compression_level(png, -1);
+    png_set_filter(png, 0, PNG_FILTER_NONE);
+    png_set_compression_mem_level(png, 8);
+    png_set_compression_strategy(png, Z_DEFAULT_STRATEGY);
+    png_set_compression_window_bits(png, 15);
+    png_set_compression_method(png, 8);
+    png_set_compression_buffer_size(png, 8192);
 
-    png_infop info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) {
+    png_infop info = png_create_info_struct(png);
+    if (!info) {
         throw Err(9010, "Failed to create PNG info struct");
     }
 
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        png_destroy_write_struct(&png_ptr, &info_ptr);
+    if (setjmp(png_jmpbuf(png))) {
+        png_destroy_write_struct(&png, &info);
         throw Err(9011, "One of the called PNG functions failed");
     }
 
-    png_init_io(png_ptr, fp);
+    png_init_io(png, fp);
 
     const int colorType = [](int channels) {
         switch (channels) {
-        case 1: return PNG_COLOR_TYPE_GRAY;
-        case 2: return PNG_COLOR_TYPE_GRAY_ALPHA;
-        case 3: return PNG_COLOR_TYPE_RGB;
-        case 4: return PNG_COLOR_TYPE_RGB_ALPHA;
-        default: throw std::logic_error("Unhandled case label");
+            case 1: return PNG_COLOR_TYPE_GRAY;
+            case 2: return PNG_COLOR_TYPE_GRAY_ALPHA;
+            case 3: return PNG_COLOR_TYPE_RGB;
+            case 4: return PNG_COLOR_TYPE_RGB_ALPHA;
+            default: throw std::logic_error("Unhandled case label");
         }
-        }(_nChannels);
+    }(_nChannels);
 
     // write header
     png_set_IHDR(
-        png_ptr,
-        info_ptr,
+        png,
+        info,
         _size.x,
         _size.y,
         _bytesPerChannel * 8,
@@ -188,13 +188,13 @@ void Image::save(const std::filesystem::path& filename) {
     );
 
     if (colorType == PNG_COLOR_TYPE_RGB || colorType == PNG_COLOR_TYPE_RGB_ALPHA) {
-        png_set_bgr(png_ptr);
+        png_set_bgr(png);
     }
-    png_write_info(png_ptr, info_ptr);
+    png_write_info(png, info);
 
     // swap big-endian to little endian
     if (_bytesPerChannel == 2) {
-        png_set_swap(png_ptr);
+        png_set_swap(png);
     }
 
     std::vector<png_bytep> rowPtrs(_size.y);
@@ -202,11 +202,11 @@ void Image::save(const std::filesystem::path& filename) {
         const size_t idx = static_cast<size_t>(_size.y) - 1 - static_cast<size_t>(y);
         rowPtrs[idx] = &_data[y * _size.x * _nChannels * _bytesPerChannel];
     }
-    png_write_image(png_ptr, rowPtrs.data());
+    png_write_image(png, rowPtrs.data());
     rowPtrs.clear();
 
-    png_write_end(png_ptr, nullptr);
-    png_destroy_write_struct(&png_ptr, &info_ptr);
+    png_write_end(png, nullptr);
+    png_destroy_write_struct(&png, &info);
     fclose(fp);
 
     const double t = (time() - t0) * 1000.0;
@@ -250,10 +250,13 @@ void Image::allocateOrResizeData() {
 
     const unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
     if (dataSize == 0) {
-        std::string s =
-            std::to_string(_size.x) + 'x' + std::to_string(_size.y) + ' ' +
-            std::to_string(_nChannels);
-        throw Err(9012, std::format("Invalid image size {} channels", s));
+        throw Err(
+            9012,
+            std::format(
+                "Invalid image size {}x{} {} channels",
+                _size.x, _size.y, _nChannels
+            )
+        );
     }
 
     if (_data && _dataSize != dataSize) {

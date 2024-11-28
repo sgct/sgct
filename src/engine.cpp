@@ -88,25 +88,25 @@ namespace {
         a[0] = v;
     }
 
-    void setAndClearBuffer(Window& window, BufferMode buffer, Frustum::Mode frustum) {
+    void setAndClearBuffer(const Window& window, BufferMode buffer, Frustum::Mode frustum)
+    {
         ZoneScoped;
 
         if (buffer == BufferMode::BackBufferBlack) {
-            const bool doubleBuffered = window.isDoubleBuffered();
             // Set buffer
             if (window.stereoMode() != Window::StereoMode::Active) {
-                glDrawBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
-                glReadBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
+                glDrawBuffer(GL_BACK);
+                glReadBuffer(GL_BACK);
             }
             else if (frustum == Frustum::Mode::StereoLeftEye) {
                 // if active left
-                glDrawBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
-                glReadBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
+                glDrawBuffer(GL_BACK_LEFT);
+                glReadBuffer(GL_BACK_LEFT);
             }
             else if (frustum == Frustum::Mode::StereoRightEye) {
                 // if active right
-                glDrawBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
-                glReadBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
+                glDrawBuffer(GL_BACK_RIGHT);
+                glReadBuffer(GL_BACK_RIGHT);
             }
 
             // when rendering textures to backbuffer (using fbo)
@@ -119,38 +119,7 @@ namespace {
         }
     }
 
-    void prepareBuffer(Window& win, Window::TextureIndex ti) {
-        ZoneScoped;
-
-        OffScreenBuffer* fbo = win.fbo();
-        fbo->bind();
-        if (fbo->isMultiSampled()) {
-            return;
-        }
-
-        // update attachments
-        fbo->attachColorTexture(win.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
-
-        if (Engine::instance().useDepthTexture()) {
-            fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
-        }
-
-        if (Engine::instance().useNormalTexture()) {
-            fbo->attachColorTexture(
-                win.frameBufferTexture(Window::TextureIndex::Normals),
-                GL_COLOR_ATTACHMENT1
-            );
-        }
-
-        if (Engine::instance().usePositionTexture()) {
-            fbo->attachColorTexture(
-                win.frameBufferTexture(Window::TextureIndex::Positions),
-                GL_COLOR_ATTACHMENT2
-            );
-        }
-    }
-
-    void updateRenderingTargets(Window& win, Window::TextureIndex ti) {
+    void updateRenderingTargets(const Window& win, Window::TextureIndex ti) {
         ZoneScoped;
 
         // copy AA-buffer to "regular" / non-AA buffer
@@ -822,9 +791,6 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
 
-    // @TODO (abock, 2024-11-18)  We should find a better way to do this. The Scalable SDK
-    //                            requires a compatibility profile, but in general we want
-    //                            to run with a core profile
     bool needsCompatProfile = std::any_of(
         windows.cbegin(),
         windows.cend(),
@@ -1070,6 +1036,9 @@ void Engine::exec() {
                     Frustum::Mode::MonoEye,
                     Window::TextureIndex::LeftEye
                 );
+
+                // if we are not rendering in stereo, we are done
+                continue;
             }
             else {
                 renderViewports(
@@ -1077,11 +1046,6 @@ void Engine::exec() {
                     Frustum::Mode::StereoLeftEye,
                     Window::TextureIndex::LeftEye
                 );
-            }
-
-            // if we are not rendering in stereo, we are done
-            if (sm == Window::StereoMode::NoStereo) {
-                continue;
             }
 
             // Render right non-linear projection viewports to cubemap
@@ -1164,14 +1128,14 @@ void Engine::exec() {
             // meaning that the _takeScreenshotIds list is empty
             if (shouldTakeScreenshot && !_shouldTakeScreenshotIds.empty()) {
                 auto it = std::find(
-                    _shouldTakeScreenshotIds.begin(),
-                    _shouldTakeScreenshotIds.end(),
+                    _shouldTakeScreenshotIds.cbegin(),
+                    _shouldTakeScreenshotIds.cend(),
                     window->id()
                 );
                 // If the window id is in the list of ids, then we want to take a
                 // screenshot. We already checked that `shouldTakeScreenshot` is true in
                 // the if statement above
-                shouldTakeScreenshot = (it != _shouldTakeScreenshotIds.end());
+                shouldTakeScreenshot = (it != _shouldTakeScreenshotIds.cend());
             }
             window->swapBuffers(shouldTakeScreenshot);
         }
@@ -1231,7 +1195,7 @@ void Engine::renderFBOTexture(Window& window) const {
         Frustum::Mode::StereoLeftEye :
         Frustum::Mode::MonoEye;
 
-    const ivec2 size = ivec2{
+    const ivec2 size = ivec2 {
         static_cast<int>(std::ceil(window.scale().x * window.resolution().x)),
         static_cast<int>(std::ceil(window.scale().y * window.resolution().y))
     };
@@ -1260,18 +1224,8 @@ void Engine::renderFBOTexture(Window& window) const {
         _fboQuad.bind();
         maskShaderSet = true;
 
-        if (window.flipX()) {
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 1);
-        }
-        else {
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 0);
-        }
-        if (window.flipY()) {
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 1);
-        }
-        else {
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 0);
-        }
+        glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), window.flipX() ? 1 : 0);
+        glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), window.flipY() ? 1 : 0);
 
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
 
@@ -1299,22 +1253,18 @@ void Engine::renderFBOTexture(Window& window) const {
         if (!maskShaderSet) {
             _fboQuad.bind();
 
-            if (window.flipX()) {
-                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 1);
-            }
-            else {
-                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), 0);
-            }
-            if (window.flipY()) {
-                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 1);
-            }
-            else {
-                glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), 0);
-            }
+            glUniform1i(
+                glGetUniformLocation(_fboQuad.id(), "flipX"),
+                window.flipX() ? 1 : 0
+            );
+            glUniform1i(
+                glGetUniformLocation(_fboQuad.id(), "flipY"),
+                window.flipY() ? 1 : 0
+            );
         }
 
-        glDrawBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
-        glReadBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
+        glDrawBuffer(GL_BACK);
+        glReadBuffer(GL_BACK);
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_BLEND);
 
@@ -1341,12 +1291,37 @@ void Engine::renderFBOTexture(Window& window) const {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(Window& window, Frustum::Mode frustum,
+void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
                              Window::TextureIndex ti) const
 {
     ZoneScoped;
 
-    prepareBuffer(window, ti);
+    OffScreenBuffer* fbo = window.fbo();
+    fbo->bind();
+    if (fbo->isMultiSampled()) {
+        return;
+    }
+
+    // update attachments
+    fbo->attachColorTexture(window.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
+
+    if (Engine::instance().useDepthTexture()) {
+        fbo->attachDepthTexture(window.frameBufferTexture(Window::TextureIndex::Depth));
+    }
+
+    if (Engine::instance().useNormalTexture()) {
+        fbo->attachColorTexture(
+            window.frameBufferTexture(Window::TextureIndex::Normals),
+            GL_COLOR_ATTACHMENT1
+        );
+    }
+
+    if (Engine::instance().usePositionTexture()) {
+        fbo->attachColorTexture(
+            window.frameBufferTexture(Window::TextureIndex::Positions),
+            GL_COLOR_ATTACHMENT2
+        );
+    }
 
     const Window::StereoMode sm = window.stereoMode();
     // render all viewports for selected eye
@@ -1386,7 +1361,8 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
             if (window.blitWindowId() >= 0) {
                 const std::vector<std::unique_ptr<Window>>& wins = windows();
                 auto it = std::find_if(
-                    wins.cbegin(), wins.cend(),
+                    wins.cbegin(),
+                    wins.cend(),
                     [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
                         return w->id() == id;
                     }
@@ -1404,7 +1380,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
 
                 if (_drawFn) {
                     ZoneScopedN("[SGCT] Draw");
-                    const RenderData renderData(
+                    const RenderData renderData = {
                         window,
                         *vp,
                         frustum,
@@ -1414,7 +1390,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
                         vp->projection(frustum).viewProjectionMatrix() *
                             ClusterManager::instance().sceneTransform(),
                         window.finalFBODimensions()
-                    );
+                    };
                     _drawFn(renderData);
                 }
             }
@@ -1426,21 +1402,20 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     if (!window.shouldCallDraw3DFunction() && blitId == -1) {
         setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
     }
-    else {
-        if (blitId != -1) {
-            const std::vector<std::unique_ptr<Window>>& wins = windows();
-            auto it = std::find_if(
-                wins.cbegin(), wins.cend(),
-                [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
-                    return w->id() == id;
-                }
-            );
-            assert(it != wins.cend());
-            const Window& srcWin = **it;
-
-            if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
-                setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
+    else if (blitId != -1) {
+        const std::vector<std::unique_ptr<Window>>& wins = windows();
+        auto it = std::find_if(
+            wins.cbegin(),
+            wins.cend(),
+            [id = window.blitWindowId()](const std::unique_ptr<Window>& w) {
+                return w->id() == id;
             }
+        );
+        assert(it != wins.cend());
+        const Window& srcWin = **it;
+
+        if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
+            setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
         }
     }
 
@@ -1495,7 +1470,7 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
         // Check if we should call the use defined draw2D function
         if (_draw2DFn && window.shouldCallDraw2DFunction()) {
             ZoneScopedN("[SGCT] Draw 2D");
-            const RenderData renderData(
+            const RenderData renderData = {
                 window,
                 *vp,
                 frustum,
@@ -1505,14 +1480,13 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
                 vp->projection(frustum).viewProjectionMatrix() *
                     ClusterManager::instance().sceneTransform(),
                 window.finalFBODimensions()
-            );
-
+            };
             _draw2DFn(renderData);
         }
     }
 }
 
-void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) const {
+void Engine::renderFXAA(const Window& window, Window::TextureIndex targetIndex) const {
     ZoneScoped;
 
     assert(_fxaa.has_value());
@@ -1564,17 +1538,13 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
         ZoneScopedN("Clear Windows");
         window->makeOpenGLContextCurrent();
-        glDrawBuffer(window->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+        glDrawBuffer(GL_BACK);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (window->isDoubleBuffered()) {
+        {
             ZoneScopedN("glfwSwapBuffers");
             glfwSwapBuffers(window->windowHandle());
-        }
-        else {
-            ZoneScopedN("glFinish");
-            glFinish();
         }
     }
 
@@ -1584,7 +1554,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     }
 
     // Must wait until all nodes are running if using swap barrier
-    if (cm.ignoreSync() || cm.numberOfNodes() <= 1) {
+    if (cm.ignoreSync() || cm.numberOfNodes() == 1) {
         return;
     }
 
@@ -1607,12 +1577,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : thisNode.windows()) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if (window->isDoubleBuffered()) {
-                glfwSwapBuffers(window->windowHandle());
-            }
-            else {
-                glFinish();
-            }
+            glfwSwapBuffers(window->windowHandle());
         }
         {
             ZoneScopedN("GLFW Poll Events");
@@ -1661,7 +1626,7 @@ void Engine::updateFrustums() const {
     }
 }
 
-void Engine::blitWindowViewport(Window& prevWindow, Window& window,
+void Engine::blitWindowViewport(const Window& prevWindow, const Window& window,
                                 const Viewport& viewport, Frustum::Mode mode) const
 {
     ZoneScoped;
@@ -1700,7 +1665,7 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
     ZoneScoped;
 
     const ivec2 res = window.framebufferResolution();
-    ivec4 vpCoordinates = ivec4{
+    ivec4 vpCoordinates = ivec4 {
         static_cast<int>(viewport.position().x * res.x),
         static_cast<int>(viewport.position().y * res.y),
         static_cast<int>(viewport.size().x * res.x),

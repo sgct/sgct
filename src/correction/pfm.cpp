@@ -28,7 +28,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
     Log::Info(std::format("Reading 3D/stereo mesh data (in PFM image) from '{}'", path));
 
-    std::ifstream meshFile(path, std::ifstream::binary);
+    std::ifstream meshFile = std::ifstream(path, std::ifstream::binary);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::Pfm,

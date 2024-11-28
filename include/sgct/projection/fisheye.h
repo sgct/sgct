@@ -30,18 +30,18 @@ public:
     /**
      * Update projection when aspect ratio changes for the viewport.
      */
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
     /**
      * Render the non-linear projection to currently bounded FBO.
      */
     void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) override;
+        Frustum::Mode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
 
     /**
      * Set the dome diameter used in the fisheye renderer (used for the viewplane distance
@@ -78,7 +78,7 @@ public:
      * Base of fisheye is the XY-plane. This function is normally used in fisheye stereo
      * rendering.
      */
-    void setOffset(vec3 offset);
+    void setOffset(vec3 offset) const;
 
     /**
      * Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
@@ -108,13 +108,13 @@ private:
     float _cropBottom = 0.f;
     float _cropTop = 0.f;
 
-    bool _isOffAxis = false;
     bool _ignoreAspectRatio = false;
     bool _keepAspectRatio = true;
 
-    vec3 _offset = vec3{ 0.f, 0.f, 0.f };
+    mutable bool _isOffAxis = false;
+    mutable vec3 _offset = vec3{ 0.f, 0.f, 0.f };
     vec3 _baseOffset = vec3{ 0.f, 0.f, 0.f };
-    vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
+    mutable vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 

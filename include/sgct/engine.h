@@ -589,7 +589,7 @@ private:
      * \param window The Window object for which the FXAA operation should be performed
      * \param targetIndex The texture index that should be used as the source for the FXAA
      */
-    void renderFXAA(Window& window, Window::TextureIndex targetIndex) const;
+    void renderFXAA(const Window& window, Window::TextureIndex targetIndex) const;
 
     /**
      * Causes all of the viewports of the provided \p window be rendered with the
@@ -600,7 +600,7 @@ private:
      * \param ti The Window::TextureIndex that is pointing at the target where the
      *        rendering should be placed
      */
-    void renderViewports(Window& window, Frustum::Mode frustum,
+    void renderViewports(const Window& window, Frustum::Mode frustum,
         Window::TextureIndex ti) const;
 
     /**
@@ -633,7 +633,7 @@ private:
      *
      * \pre The \p prevWindow and \p window must be different Window objects
      */
-    void blitWindowViewport(Window& prevWindow, Window& window,
+    void blitWindowViewport(const Window& prevWindow, const Window& window,
         const Viewport& viewport, Frustum::Mode mode) const;
 
     /// The function pointer that is called before any windows are created

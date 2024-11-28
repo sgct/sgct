@@ -11,6 +11,7 @@
 
 #include <sgct/sgctexports.h>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 namespace sgct {
@@ -55,7 +56,13 @@ public:
 
 private:
     struct CorrectionMeshGeometry {
+        CorrectionMeshGeometry(const correction::Buffer& buffer);
+        CorrectionMeshGeometry(CorrectionMeshGeometry&&) noexcept;
         ~CorrectionMeshGeometry();
+
+        CorrectionMeshGeometry& operator=(CorrectionMeshGeometry&&) noexcept = default;
+
+        void render() const;
 
         unsigned int vao = 0;
         unsigned int vbo = 0;
@@ -65,11 +72,9 @@ private:
         unsigned int type = 0x0005; // = GL_TRIANGLE_STRIP;
     };
 
-    void createMesh(CorrectionMeshGeometry& geom, const correction::Buffer& buffer);
-
-    CorrectionMeshGeometry _quadGeometry;
-    CorrectionMeshGeometry _warpGeometry;
-    CorrectionMeshGeometry _maskGeometry;
+    std::optional<CorrectionMeshGeometry> _quadGeometry;
+    std::optional<CorrectionMeshGeometry> _warpGeometry;
+    std::optional<CorrectionMeshGeometry> _maskGeometry;
 };
 
 } // namespace sgct

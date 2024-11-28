@@ -41,18 +41,18 @@ public:
     /**
      * Update projection when aspect ratio changes for the viewport.
      */
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
     /**
      * Render the non linear projection to currently bounded FBO.
      */
     void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) override;
+        Frustum::Mode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
 
     void updateFrustums(Frustum::Mode mode, float nearClip, float farClip) override;
     void setUser(User* user) override;

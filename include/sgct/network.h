@@ -122,10 +122,10 @@ public:
 private:
     void setRecvFrame(int i);
     void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
-    int readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSize,
-        uint32_t& uncompressedDataSize);
-    int readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
-        uint32_t& uncompressedDataSize);
+    int readSyncMessage(char* header, int32_t syncFrame, uint32_t dataSize,
+        uint32_t uncompressedDataSize);
+    int readDataTransferMessage(char* header, int32_t packageId, uint32_t dataSize,
+        uint32_t uncompressedDataSize);
     int readExternalMessage();
 
     /// function to decode messages

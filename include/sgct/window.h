@@ -294,11 +294,6 @@ public:
     bool isFloating() const;
 
     /**
-     * \return `true` if window is double-buffered
-     */
-    bool isDoubleBuffered() const;
-
-    /**
      * \return `this` window's focused flag
      */
     bool isFocused() const;
@@ -349,7 +344,7 @@ public:
      * \param index Index or Engine::TextureIndex enum
      * \return The texture index of selected frame buffer texture
      */
-    unsigned int frameBufferTexture(TextureIndex index);
+    unsigned int frameBufferTexture(TextureIndex index) const;
 
     /**
      * This function returns the screen capture pointer if it's set otherwise nullptr.
@@ -503,7 +498,6 @@ private:
     bool _shouldAutoiconify = false;
     bool _hideMouseCursor = false;
     bool _isFloating = false;
-    bool _isDoubleBuffered = true;
     bool _takeScreenshot = true;
     bool _setWindowPos = false;
     bool _isDecorated = true;

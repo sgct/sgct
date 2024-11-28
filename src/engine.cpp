@@ -950,7 +950,7 @@ void Engine::exec() {
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     while (!_shouldTerminate && !thisNode.closeAllWindows() &&
-           NetworkManager::instance().isRunning())
+           NetworkManager::instance().isRunning()) [[unlikely]]
     {
 #ifdef SGCT_HAS_VRPN
         if (isMaster()) {
@@ -965,7 +965,7 @@ void Engine::exec() {
 
         Window::makeSharedContextCurrent();
 
-        if (_preSyncFn) {
+        if (_preSyncFn) [[likely]] {
             ZoneScopedN("[SGCT] PreSync");
             _preSyncFn();
         }
@@ -983,7 +983,7 @@ void Engine::exec() {
         std::for_each(windows.cbegin(), windows.cend(), std::mem_fn(&Window::update));
         Window::makeSharedContextCurrent();
 
-        if (_postSyncPreDrawFn) {
+        if (_postSyncPreDrawFn) [[likely]] {
             ZoneScopedN("[SGCT] PostSyncPreDraw");
             _postSyncPreDrawFn();
         }
@@ -995,7 +995,7 @@ void Engine::exec() {
             addValue(_statistics.frametimes, ft);
             _statsPrevTimestamp = startFrameTime;
 
-            if (_statisticsRenderer) {
+            if (_statisticsRenderer) [[unlikely]] {
                 glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
             }
         }
@@ -1004,7 +1004,7 @@ void Engine::exec() {
         for (const std::unique_ptr<Window>& win : windows) {
             ZoneScopedN("Render window");
 
-            if (!(win->isVisible() || win->isRenderingWhileHidden())) {
+            if (!(win->isVisible() || win->isRenderingWhileHidden())) [[unlikely]] {
                 continue;
             }
 
@@ -1078,23 +1078,23 @@ void Engine::exec() {
 
         // Render to screen
         for (const std::unique_ptr<Window>& window : windows) {
-            if (window->isVisible()) {
+            if (window->isVisible()) [[likely]] {
                 renderFBOTexture(*window);
             }
         }
         Window::makeSharedContextCurrent();
 
-        if (_statisticsRenderer) {
+        if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("glQueryCounter");
             glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
         }
 
-        if (_postDrawFn) {
+        if (_postDrawFn) [[likely]] {
             ZoneScopedN("[SGCT] PostDraw");
             _postDrawFn();
         }
 
-        if (_statisticsRenderer) {
+        if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("Statistics Update");
             // wait until the query results are available
             GLint done = GL_FALSE;

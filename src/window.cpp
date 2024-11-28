@@ -502,7 +502,7 @@ void Window::swapBuffers(bool takeScreenshot) {
 
 #ifdef SGCT_HAS_SCALABLE
     if (_scalableMesh.sdk) {
-        EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
+        [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
             reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
         );
         assert(err == EasyBlendSDK_ERR_S_OK);

@@ -21,9 +21,9 @@
 
 #ifdef WIN32
     using SGCT_SOCKET = size_t;
-#else // linux & OS X
+#else // ^^^^ WIN32 // !WIN32 vvvv
     using SGCT_SOCKET = int;
-#endif
+#endif // WIN32
 
 namespace sgct {
 

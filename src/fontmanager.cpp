@@ -110,9 +110,9 @@ FontManager::FontManager() {
 #elif defined(__APPLE__)
     // System Fonts
     SystemFontPath = "/System/Library/Fonts/";
-#else
+#else // !WIN32 && !__APPLE__
     SystemFontPath = "/usr/share/fonts/truetype/freefont/";
-#endif
+#endif // WIN32
 }
 
 FontManager::~FontManager() {

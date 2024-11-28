@@ -316,16 +316,16 @@ bool OffScreenBuffer::isMultiSampled() const {
     return _isMultiSampled;
 }
 
-void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) {
+void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) const {
     glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texId, 0);
 }
 
-void OffScreenBuffer::attachDepthTexture(unsigned int texId) {
+void OffScreenBuffer::attachDepthTexture(unsigned int texId) const {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0);
 }
 
 void OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face,
-                                           GLenum attachment)
+                                           GLenum attachment) const
 {
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
@@ -336,7 +336,9 @@ void OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face
     );
 }
 
-void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int face) {
+void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId,
+                                                                  unsigned int face) const
+{
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,

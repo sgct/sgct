@@ -105,10 +105,6 @@ void NonLinearProjection::setStereo(bool state) {
     _isStereo = state;
 }
 
-void NonLinearProjection::setClearColor(vec4 color) {
-    _clearColor = std::move(color);
-}
-
 void NonLinearProjection::setUser(User* user) {
     _subViewports.right.setUser(user);
     _subViewports.left.setUser(user);
@@ -120,10 +116,6 @@ void NonLinearProjection::setUser(User* user) {
 
 ivec2 NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
-}
-
-ivec4 NonLinearProjection::viewportCoords() {
-    return _vpCoords;
 }
 
 void NonLinearProjection::initTextures() {
@@ -189,16 +181,16 @@ void NonLinearProjection::initFBO() {
     _cubeMapFbo->createFBO(_cubemapResolution.x, _cubemapResolution.y, _samples);
 }
 
-void NonLinearProjection::setupViewport(BaseViewport& vp) {
-    _vpCoords = ivec4{
+void NonLinearProjection::setupViewport(const BaseViewport& vp) const {
+    ivec4 vpCoords = ivec4 {
         static_cast<int>(std::floor(vp.position().x * _cubemapResolution.x + 0.5f)),
         static_cast<int>(std::floor(vp.position().y * _cubemapResolution.y + 0.5f)),
         static_cast<int>(std::floor(vp.size().x * _cubemapResolution.x + 0.5f)),
         static_cast<int>(std::floor(vp.size().y * _cubemapResolution.y + 0.5f))
     };
 
-    glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
-    glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
+    glViewport(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
+    glScissor(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
 }
 
 void NonLinearProjection::generateMap(unsigned int& texture, unsigned int internalFormat,
@@ -350,7 +342,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-void NonLinearProjection::attachTextures(int face) {
+void NonLinearProjection::attachTextures(int face) const {
     if (Engine::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
@@ -380,15 +372,15 @@ void NonLinearProjection::attachTextures(int face) {
     }
 }
 
-void NonLinearProjection::blitCubeFace(int face) {
+void NonLinearProjection::blitCubeFace(int face) const {
     // copy AA-buffer to "regular"/non-AA buffer
     _cubeMapFbo->bindBlit();
     attachTextures(face);
     _cubeMapFbo->blit();
 }
 
-void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, int idx,
-                                         Frustum::Mode mode)
+void NonLinearProjection::renderCubeFace(const Window& win, const BaseViewport& vp,
+                                         int idx, Frustum::Mode mode) const
 {
     if (!vp.isEnabled()) {
         return;
@@ -399,7 +391,7 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
         attachTextures(idx);
     }
 
-    const RenderData renderData(
+    const RenderData renderData = {
         win,
         vp,
         mode,
@@ -409,7 +401,7 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
         vp.projection(mode).viewProjectionMatrix() *
             ClusterManager::instance().sceneTransform(),
         _cubemapResolution
-    );
+    };
     glLineWidth(1.f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -429,15 +421,6 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
     if (_cubeMapFbo->isMultiSampled()) {
         blitCubeFace(idx);
     }
-}
-
-void NonLinearProjection::renderCubeFaces(Window& window, Frustum::Mode frustumMode) {
-    renderCubeFace(window, _subViewports.right, 0, frustumMode);
-    renderCubeFace(window, _subViewports.left, 1, frustumMode);
-    renderCubeFace(window, _subViewports.bottom, 2, frustumMode);
-    renderCubeFace(window, _subViewports.top, 3, frustumMode);
-    renderCubeFace(window, _subViewports.front, 4, frustumMode);
-    renderCubeFace(window, _subViewports.back, 5, frustumMode);
 }
 
 } // namespace sgct

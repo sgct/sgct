@@ -276,7 +276,6 @@ bool operator==(const Window& lhs, const Window& rhs) {
         lhs.isFloating == rhs.isFloating &&
         lhs.alwaysRender == rhs.alwaysRender &&
         lhs.isHidden == rhs.isHidden &&
-        lhs.doubleBuffered == rhs.doubleBuffered &&
         lhs.msaa == rhs.msaa &&
         lhs.useFxaa == rhs.useFxaa &&
         lhs.isDecorated == rhs.isDecorated &&

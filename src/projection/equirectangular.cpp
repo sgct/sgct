@@ -71,7 +71,7 @@ EquirectangularProjection::~EquirectangularProjection() {
 }
 
 void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode)
+                                       Frustum::Mode frustumMode) const
 {
     ZoneScoped;
 
@@ -96,7 +96,6 @@ void EquirectangularProjection::render(const Window& window, const BaseViewport&
 
     glUniform1i(_shaderLoc.cubemap, 0);
 
-
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
@@ -108,14 +107,26 @@ void EquirectangularProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void EquirectangularProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void EquirectangularProjection::renderCubemap(const Window& window,
+                                              Frustum::Mode frustumMode) const
+{
     ZoneScoped;
 
-    renderCubeFaces(window, frustumMode);
+    renderCubeFace(window, _subViewports.right, 0, frustumMode);
+    renderCubeFace(window, _subViewports.left, 1, frustumMode);
+    renderCubeFace(window, _subViewports.bottom, 2, frustumMode);
+    renderCubeFace(window, _subViewports.top, 3, frustumMode);
+    renderCubeFace(window, _subViewports.front, 4, frustumMode);
+    renderCubeFace(window, _subViewports.back, 5, frustumMode);
 }
 
-void EquirectangularProjection::update(vec2) {
+void EquirectangularProjection::update(const vec2&) const {}
+
+void EquirectangularProjection::initVBO() {
+    glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     constexpr std::array<float, 20> v = {
@@ -125,15 +136,6 @@ void EquirectangularProjection::update(vec2) {
          1.f,  1.f, -1.f, 1.f, 1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
-    glBindVertexArray(0);
-}
-
-void EquirectangularProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);

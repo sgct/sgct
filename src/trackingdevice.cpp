@@ -66,7 +66,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
         return;
     }
 
-    const glm::mat4 parentTrans = glm::make_mat4(parent->getTransform().values);
+    const glm::mat4 parentTrans = glm::make_mat4(parent->transform().values);
 
     // create matrixes
     const glm::mat4 sensorTransMat = glm::translate(

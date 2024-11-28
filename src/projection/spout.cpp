@@ -24,12 +24,12 @@
 #ifdef SGCT_HAS_SPOUT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif
+#endif // WIN32_LEAN_AND_MEAN
 #ifndef NOMINMAX
 #define NOMINMAX
-#endif
+#endif // NOMINMAX
 #include <SpoutLibrary.h>
-#endif
+#endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_SPOUT
 namespace {
@@ -64,21 +64,19 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
     if (config.mapping) {
         SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
             switch (m) {
-            case config::SpoutOutputProjection::Mapping::Fisheye:
-                return SpoutOutputProjection::Mapping::Fisheye;
-            case config::SpoutOutputProjection::Mapping::Equirectangular:
-                return SpoutOutputProjection::Mapping::Equirectangular;
-            case config::SpoutOutputProjection::Mapping::Cubemap:
-                return SpoutOutputProjection::Mapping::Cubemap;
-            default: throw std::logic_error("Unhandled case label");
+                case config::SpoutOutputProjection::Mapping::Fisheye:
+                    return SpoutOutputProjection::Mapping::Fisheye;
+                case config::SpoutOutputProjection::Mapping::Equirectangular:
+                    return SpoutOutputProjection::Mapping::Equirectangular;
+                case config::SpoutOutputProjection::Mapping::Cubemap:
+                    return SpoutOutputProjection::Mapping::Cubemap;
+                default: throw std::logic_error("Unhandled case label");
             }
-            }(*config.mapping);
+        }(*config.mapping);
         setSpoutMapping(m);
     }
     _mappingName = config.mappingSpoutName;
-    if (config.background) {
-        setClearColor(*config.background);
-    }
+    _clearColor = config.background.value_or(_clearColor);
     config::SpoutOutputProjection::Channels c =
         config.channels.value_or(config::SpoutOutputProjection::Channels());
     _spout[0].enabled = c.right;
@@ -107,10 +105,10 @@ SpoutOutputProjection::~SpoutOutputProjection() {
         reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->ReleaseSender();
         reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->Release();
     }
-#else
+#else // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
     // Prevent an unused variable warning
     (void)_mappingHandle;
-#endif
+#endif // SGCT_HAS_SPOUT
 
     glDeleteTextures(1, &_mappingTexture);
 
@@ -122,22 +120,10 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     glDeleteFramebuffers(1, &_blitFbo);
 }
 
-void SpoutOutputProjection::update(vec2) {
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    const std::array<const Vertex, 4> v = {
-        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
-    };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vertex), v.data(), GL_STATIC_DRAW);
-    glBindVertexArray(0);
-}
+void SpoutOutputProjection::update(const vec2&) const {}
 
 void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
-                                   Frustum::Mode frustumMode)
+                                   Frustum::Mode frustumMode) const
 {
     ZoneScoped;
 
@@ -228,7 +214,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
             _mappingWidth,
             _mappingHeight
         );
-#endif
+#endif // SGCT_HAS_SPOUT
         glBindTexture(GL_TEXTURE_2D, 0);
 
         buffers[0] = saveBuffer;
@@ -260,17 +246,20 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
                 ));
             }
         }
-#endif
+#endif // SGCT_HAS_SPOUT
 
         glBindTexture(GL_TEXTURE_2D, saveTexture);
         glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
     }
 }
 
-void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void SpoutOutputProjection::renderCubemap(const Window& window,
+                                          Frustum::Mode frustumMode) const
+{
     ZoneScoped;
 
-    auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
+    auto render = [this](const Window& win, const BaseViewport& vp, int idx,
+                         Frustum::Mode mode)
     {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
             return;
@@ -429,7 +418,7 @@ void SpoutOutputProjection::initTextures() {
                     ));
                 }
             }
-#endif
+#endif // SGCT_HAS_SPOUT
             glGenTextures(1, &_spout[i].texture);
             glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
 
@@ -472,7 +461,7 @@ void SpoutOutputProjection::initTextures() {
                 ));
             }
         }
-#endif
+#endif // SGCT_HAS_SPOUT
         glGenTextures(1, &_mappingTexture);
         glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 
@@ -514,7 +503,7 @@ void SpoutOutputProjection::initTextures() {
                 ));
             }
         }
-#endif
+#endif // SGCT_HAS_SPOUT
         glGenTextures(1, &_mappingTexture);
         glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 
@@ -575,6 +564,14 @@ void SpoutOutputProjection::initVBO() {
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+    const std::array<const Vertex, 4> v = {
+        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
+        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
+        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
+        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
+    };
+    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vertex), v.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);

@@ -49,19 +49,6 @@ void Node::addWindow(std::unique_ptr<Window> window) {
     _windows.emplace_back(std::move(window));
 }
 
-bool Node::isKeyPressed(Key key) {
-    if (key == Key::Unknown) {
-        return false;
-    }
-
-    for (const std::unique_ptr<Window>& window : _windows) {
-        if (glfwGetKey(window->windowHandle(), static_cast<int>(key))) {
-            return true;
-        }
-    }
-    return false;
-}
-
 const std::vector<std::unique_ptr<Window>>& Node::windows() const {
     return _windows;
 }

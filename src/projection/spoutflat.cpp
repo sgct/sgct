@@ -60,9 +60,7 @@ SpoutFlatProjection::SpoutFlatProjection(const Window* parent, User* user,
         setResolutionHeight(*config.height);
     }
     _mappingName = config.mappingSpoutName;
-    if (config.background) {
-        setClearColor(*config.background);
-    }
+    _clearColor = config.background.value_or(_clearColor);
     _spoutDrawMain = config.drawMain.value_or(_spoutDrawMain);
     _spoutOffset = config.proj.offset.value_or(_spoutOffset);
     setSpoutFov(
@@ -213,16 +211,16 @@ void SpoutFlatProjection::initFBO() {
     _spoutFbo->createFBO(_resolutionX, _resolutionY, _samples);
 }
 
-void SpoutFlatProjection::setupViewport(BaseViewport& vp) {
-    _vpCoords = ivec4{
+void SpoutFlatProjection::setupViewport(const BaseViewport& vp) const {
+    ivec4 vpCoords = ivec4{
         static_cast<int>(std::floor(vp.position().x * _resolutionX + 0.5f)),
         static_cast<int>(std::floor(vp.position().y * _resolutionY + 0.5f)),
         static_cast<int>(std::floor(vp.size().x * _resolutionX + 0.5f)),
         static_cast<int>(std::floor(vp.size().y * _resolutionY + 0.5f))
     };
 
-    glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
-    glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
+    glViewport(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
+    glScissor(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
 }
 
 void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int internalFormat,
@@ -265,7 +263,7 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void SpoutFlatProjection::attachTextures(int) {
+void SpoutFlatProjection::attachTextures(int) const {
     if (Engine::instance().useDepthTexture()) {
         _spoutFbo->attachDepthTexture(_textureIdentifiers.depthSwap);
         _spoutFbo->attachColorTexture(
@@ -295,7 +293,7 @@ void SpoutFlatProjection::attachTextures(int) {
     }
 }
 
-void SpoutFlatProjection::blitCubeFace(int face) {
+void SpoutFlatProjection::blitCubeFace(int face) const {
     // copy AA-buffer to "regular"/non-AA buffer
     _spoutFbo->bindBlit();
     attachTextures(face);
@@ -303,7 +301,7 @@ void SpoutFlatProjection::blitCubeFace(int face) {
 }
 
 void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewport,
-                                 Frustum::Mode frustumMode)
+                                 Frustum::Mode frustumMode) const
 {
     ZoneScoped;
 
@@ -360,10 +358,13 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }
 
-void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void SpoutFlatProjection::renderCubemap(const Window& window,
+                                        Frustum::Mode frustumMode) const
+{
     ZoneScoped;
 
-    auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
+    auto render = [this](const Window& win, const BaseViewport& vp, int idx,
+                         Frustum::Mode mode)
     {
         if (!_mappingHandle || !vp.isEnabled()) {
             return;
@@ -374,7 +375,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
             attachTextures(idx);
         }
 
-        const RenderData renderData = RenderData(
+        const RenderData renderData = {
             win,
             vp,
             mode,
@@ -384,7 +385,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
             vp.projection(mode).viewProjectionMatrix() *
             ClusterManager::instance().sceneTransform(),
             ivec2(_resolutionX, _resolutionY)
-        );
+        };
         glLineWidth(1.f);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -414,7 +415,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }
 
-void SpoutFlatProjection::update(vec2) {}
+void SpoutFlatProjection::update(const vec2&) const {}
 
 void SpoutFlatProjection::initVBO() {}
 

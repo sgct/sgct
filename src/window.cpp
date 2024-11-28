@@ -40,9 +40,9 @@
 
 #ifdef WIN32
 #include <glad/glad_wgl.h>
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
 #include <glad/glad.h>
-#endif
+#endif // WIN32
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -202,7 +202,6 @@ void Window::applyWindow(const config::Window& window) {
     _shouldAutoiconify = window.shouldAutoiconify.value_or(_shouldAutoiconify);
     _isFloating = window.isFloating.value_or(_isFloating);
     _shouldRenderWhileHidden = window.alwaysRender.value_or(_shouldRenderWhileHidden);
-    _isDoubleBuffered = window.doubleBuffered.value_or(_isDoubleBuffered);
     _nAASamples = window.msaa.value_or(_nAASamples);
     _useFXAA = window.useFxaa.value_or(_useFXAA);
     _isDecorated = window.isDecorated.value_or(_isDecorated);
@@ -334,7 +333,7 @@ void Window::close() {
         wglBindSwapBarrierNV(1, 0); // un-bind
         wglJoinSwapGroupNV(hDC, 0); // un-join
     }
-#endif
+#endif // WIN32
 }
 
 void Window::initOGL() {
@@ -403,44 +402,17 @@ void Window::initContextSpecificOGL() {
 #endif // SGCT_HAS_SCALABLE
 }
 
-unsigned int Window::frameBufferTexture(TextureIndex index) {
+unsigned int Window::frameBufferTexture(TextureIndex index) const {
     ZoneScoped;
 
-    // @TODO (abock, 2019-12-04) I think this function should be made constant and we
-    // figure out beforehand which textures we need to create. So this function just
-    // returns the already created textures instead
     switch (index) {
-        case TextureIndex::LeftEye:
-            if (_frameBufferTextures.leftEye == 0) {
-                generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
-            }
-            return _frameBufferTextures.leftEye;
-        case TextureIndex::RightEye:
-            if (_frameBufferTextures.rightEye == 0) {
-                generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
-            }
-            return _frameBufferTextures.rightEye;
-        case TextureIndex::Intermediate:
-            if (_frameBufferTextures.intermediate == 0) {
-                generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
-            }
-            return _frameBufferTextures.intermediate;
-        case TextureIndex::Depth:
-            if (_frameBufferTextures.depth == 0) {
-                generateTexture(_frameBufferTextures.depth, TextureType::Depth);
-            }
-            return _frameBufferTextures.depth;
-        case TextureIndex::Normals:
-            if (_frameBufferTextures.normals == 0) {
-                generateTexture(_frameBufferTextures.normals, TextureType::Normal);
-            }
-            return _frameBufferTextures.normals;
-        case TextureIndex::Positions:
-            if (_frameBufferTextures.positions == 0) {
-                generateTexture(_frameBufferTextures.positions, TextureType::Position);
-            }
-            return _frameBufferTextures.positions;
-        default: throw std::logic_error("Unhandled case label");
+        case TextureIndex::LeftEye:      return _frameBufferTextures.leftEye;
+        case TextureIndex::RightEye:     return _frameBufferTextures.rightEye;
+        case TextureIndex::Intermediate: return _frameBufferTextures.intermediate;
+        case TextureIndex::Depth:        return _frameBufferTextures.depth;
+        case TextureIndex::Normals:      return _frameBufferTextures.normals;
+        case TextureIndex::Positions:    return _frameBufferTextures.positions;
+        default:                         throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -498,7 +470,7 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
-        if (Engine::instance().captureFromBackBuffer() && _isDoubleBuffered) {
+        if (Engine::instance().captureFromBackBuffer()) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -538,20 +510,16 @@ void Window::swapBuffers(bool takeScreenshot) {
     }
 #endif // SGCT_HAS_SCALABLE
 
-    if (_isDoubleBuffered) {
+    {
         ZoneScopedN("glfwSwapBuffers");
         glfwSwapBuffers(_windowHandle);
-    }
-    else {
-        ZoneScopedN("glFinish");
-        glFinish();
     }
 }
 
 void Window::updateResolutions() {
     ZoneScoped;
 
-    if (_pendingWindowRes.has_value()) {
+    if (_pendingWindowRes) {
         _windowRes = *_pendingWindowRes;
         float ratio = static_cast<float>(_windowRes.x) / static_cast<float>(_windowRes.y);
 
@@ -576,7 +544,7 @@ void Window::updateResolutions() {
         _pendingWindowRes = std::nullopt;
     }
 
-    if (_pendingFramebufferRes.has_value()) {
+    if (_pendingFramebufferRes) {
         _framebufferRes = *_pendingFramebufferRes;
 
         Log::Debug(std::format(
@@ -703,10 +671,6 @@ bool Window::isFloating() const {
     return _isFloating;
 }
 
-bool Window::isDoubleBuffered() const {
-    return _isDoubleBuffered;
-}
-
 bool Window::isVisible() const {
     return _isVisible;
 }
@@ -738,10 +702,6 @@ void Window::setAutoiconify(bool shouldAutoiconify) {
 
 void Window::setFloating(bool floating) {
     _isFloating = floating;
-}
-
-void Window::setDoubleBuffered(bool doubleBuffered) {
-    _isDoubleBuffered = doubleBuffered;
 }
 
 void Window::setTakeScreenshot(bool takeScreenshot) {
@@ -812,7 +772,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
         glfwWindowHint(GLFW_AUTO_ICONIFY, _shouldAutoiconify ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
-        glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
+        glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 #ifdef __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -1087,7 +1047,8 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
             case TextureType::Normal:
             case TextureType::Position:
                 return { GL_RGB32F, GL_RGB, GL_FLOAT };
-            default: throw std::logic_error("Unhandled case label");
+            default:
+                throw std::logic_error("Unhandled case label");
         }
     }(type);
 

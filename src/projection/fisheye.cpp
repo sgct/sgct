@@ -47,11 +47,11 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, Us
         const NonLinearProjection::InterpolationMode interp =
             [](config::FisheyeProjection::Interpolation i) {
             switch (i) {
-            case config::FisheyeProjection::Interpolation::Linear:
-                return NonLinearProjection::InterpolationMode::Linear;
-            case config::FisheyeProjection::Interpolation::Cubic:
-                return NonLinearProjection::InterpolationMode::Cubic;
-            default: throw std::logic_error("Unhandled case label");
+                case config::FisheyeProjection::Interpolation::Linear:
+                    return NonLinearProjection::InterpolationMode::Linear;
+                case config::FisheyeProjection::Interpolation::Cubic:
+                    return NonLinearProjection::InterpolationMode::Cubic;
+                default: throw std::logic_error("Unhandled case label");
             }
             }(*config.interpolation);
         setInterpolationMode(interp);
@@ -65,9 +65,7 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, Us
     if (config.offset) {
         setBaseOffset(*config.offset);
     }
-    if (config.background) {
-        setClearColor(*config.background);
-    }
+    _clearColor = config.background.value_or(_clearColor);
     _keepAspectRatio = config.keepAspectRatio.value_or(_keepAspectRatio);
     setUseDepthTransformation(true);
 }
@@ -79,7 +77,7 @@ FisheyeProjection::~FisheyeProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void FisheyeProjection::update(vec2 size) {
+void FisheyeProjection::update(const vec2& size) const {
     // do the cropping in the fragment shader and not by changing the vbo
 
     const float cropAspect =
@@ -114,7 +112,7 @@ void FisheyeProjection::update(vec2 size) {
 }
 
 void FisheyeProjection::render(const Window& window, const BaseViewport& viewport,
-                               Frustum::Mode frustumMode)
+                               Frustum::Mode frustumMode) const
 {
     ZoneScoped;
 
@@ -156,7 +154,7 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     glDepthFunc(GL_ALWAYS);
 
     glUniform1i(_shaderLoc.cubemap, 0);
-    glUniform1f(_shaderLoc.halfFov, glm::radians<float>(_fov / 2.f));
+    glUniform1f(_shaderLoc.halfFov, glm::radians(_fov / 2.f));
 
     if (_isOffAxis) {
         glUniform3fv(_shaderLoc.offset, 1, &_totalOffset.x);
@@ -173,7 +171,9 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     glDepthFunc(GL_LESS);
 }
 
-void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void FisheyeProjection::renderCubemap(const Window& window,
+                                      Frustum::Mode frustumMode) const
+{
     ZoneScoped;
 
     switch (frustumMode) {
@@ -191,7 +191,8 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             break;
     }
 
-    auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
+    auto render = [this](const Window& win, const BaseViewport& vp, int idx,
+                         Frustum::Mode mode)
     {
         if (!vp.isEnabled()) {
             return;
@@ -273,7 +274,7 @@ void FisheyeProjection::setCropFactors(float left, float right, float bottom, fl
     _cropTop = glm::clamp(top, 0.f, 1.f);
 }
 
-void FisheyeProjection::setOffset(vec3 offset) {
+void FisheyeProjection::setOffset(vec3 offset) const {
     _offset = std::move(offset);
     _totalOffset.x = _baseOffset.x + _offset.x;
     _totalOffset.y = _baseOffset.y + _offset.y;

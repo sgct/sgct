@@ -985,62 +985,6 @@ TEST_CASE("Window/IsHidden", "[roundtrip]") {
     }
 }
 
-TEST_CASE("Window/DoubleBuffered", "[roundtrip]") {
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        node.windows.push_back({
-            .doubleBuffered = std::nullopt
-        });
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        node.windows.push_back({
-            .doubleBuffered = false
-        });
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        node.windows.push_back({
-            .doubleBuffered = true
-        });
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-}
-
 TEST_CASE("Window/MSAA", "[roundtrip]") {
     {
         sgct::config::Cluster input = {

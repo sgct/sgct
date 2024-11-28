@@ -71,15 +71,11 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
                 default: throw std::logic_error("Unhandled case label");
             }
         }(*viewport.eye);
-        setEye(eye);
+        _eye = eye;
     }
 
-    if (viewport.position) {
-        setPos(*viewport.position);
-    }
-    if (viewport.size) {
-        setSize(*viewport.size);
-    }
+    _position = viewport.position.value_or(_position);
+    _size = viewport.size.value_or(_size);
 
     std::visit(overloaded {
         [](const config::NoProjection&) {},
@@ -169,7 +165,7 @@ void Viewport::loadData() {
     _mesh.loadMesh(
         _meshFilename,
         *this,
-        (hasBlendMaskTexture() || hasBlackLevelMaskTexture()),
+        hasBlendMaskTexture() || hasBlackLevelMaskTexture(),
         _useTextureMappedProjection
     );
 }

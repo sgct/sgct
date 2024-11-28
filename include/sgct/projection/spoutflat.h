@@ -30,9 +30,10 @@ public:
     virtual ~SpoutFlatProjection() override;
 
     virtual void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) override;
-    virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
-    virtual void update(vec2 size) override;
+        Frustum::Mode frustumMode) const override;
+    virtual void renderCubemap(const Window& window,
+        Frustum::Mode frustumMode) const override;
+    virtual void update(const vec2& size) const override;
 
     void setSpoutMappingName(std::string name);
     void setResolutionWidth(int resolutionX);
@@ -49,12 +50,12 @@ protected:
     virtual void initViewports() override;
     virtual void initShaders() override;
 
-    void setupViewport(BaseViewport& vp);
+    void setupViewport(const BaseViewport& vp) const;
     void generateMap(unsigned int& texture, unsigned int internalFormat,
         unsigned int format, unsigned int type);
 
-    void attachTextures(int face);
-    void blitCubeFace(int face);
+    void attachTextures(int face) const;
+    void blitCubeFace(int face) const;
 
     struct {
         unsigned int spoutColor = 0;

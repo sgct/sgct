@@ -76,7 +76,7 @@ CylindricalProjection::~CylindricalProjection() {
 }
 
 void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
-                                   Frustum::Mode frustumMode)
+                                   Frustum::Mode frustumMode) const
 {
     ZoneScoped;
 
@@ -115,14 +115,26 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glDepthFunc(GL_LESS);
 }
 
-void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void CylindricalProjection::renderCubemap(const Window& window,
+                                          Frustum::Mode frustumMode) const
+{
     ZoneScoped;
 
-    renderCubeFaces(window, frustumMode);
+    renderCubeFace(window, _subViewports.right, 0, frustumMode);
+    renderCubeFace(window, _subViewports.left, 1, frustumMode);
+    renderCubeFace(window, _subViewports.bottom, 2, frustumMode);
+    renderCubeFace(window, _subViewports.top, 3, frustumMode);
+    renderCubeFace(window, _subViewports.front, 4, frustumMode);
+    renderCubeFace(window, _subViewports.back, 5, frustumMode);
 }
 
-void CylindricalProjection::update(vec2) {
+void CylindricalProjection::update(const vec2&) const {}
+
+void CylindricalProjection::initVBO() {
+    glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     constexpr std::array<float, 20> v = {
@@ -132,15 +144,6 @@ void CylindricalProjection::update(vec2) {
          1.f,  1.f, -1.f, 1.f, 1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
-    glBindVertexArray(0);
-}
-
-void CylindricalProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
@@ -159,15 +162,11 @@ void CylindricalProjection::initVBO() {
 }
 
 void CylindricalProjection::initViewports() {
-    // radius is needed to calculate the distance to all view planes
-    // const float radius = _diameter / 2.f;
-    const float radius = _radius;
-
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
-    const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
-    const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
-    const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
+    const glm::vec4 lowerLeftBase(-_radius, -_radius, _radius, 1.f);
+    const glm::vec4 upperLeftBase(-_radius, _radius, _radius, 1.f);
+    const glm::vec4 upperRightBase(_radius, _radius, _radius, 1.f);
 
     const glm::mat4 tiltMat = glm::rotate(
         glm::mat4(1.f),
@@ -192,7 +191,7 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 upperRight = upperRightBase;
-        upperRight.x = radius;
+        upperRight.x = _radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
@@ -216,9 +215,9 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 lowerLeft = lowerLeftBase;
-        lowerLeft.x = -radius;
+        lowerLeft.x = -_radius;
         glm::vec4 upperLeft = upperLeftBase;
-        upperLeft.x = -radius;
+        upperLeft.x = -_radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
@@ -242,7 +241,7 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 lowerLeft = lowerLeftBase;
-        lowerLeft.y = -radius;
+        lowerLeft.y = -_radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
@@ -265,9 +264,9 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 upperLeft = upperLeftBase;
-        upperLeft.y = radius;
+        upperLeft.y = _radius;
         glm::vec4 upperRight = upperRightBase;
-        upperRight.y = radius;
+        upperRight.y = _radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);

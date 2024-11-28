@@ -13,7 +13,7 @@
 #define NOMINMAX
 #define VC_EXTRALEAN
 #include <windows.h>
-#endif
+#endif // WIN32
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>

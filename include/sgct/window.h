@@ -92,7 +92,6 @@ public:
     static void setBarrier(bool state);
     static bool isBarrierActive();
     static bool isUsingSwapGroups();
-    static bool isSwapGroupMaster();
     static unsigned int swapGroupFrameNumber();
 
     static void makeSharedContextCurrent();
@@ -207,11 +206,6 @@ public:
      * Set if the window should float (be on top / topmost).
      */
     void setFloating(bool floating);
-
-    /**
-     * Set if the window is double buffered (can only be set before window creation).
-     */
-    void setDoubleBuffered(bool doubleBuffered);
 
     /**
      * Set if the window should participate in screenshot taking.
@@ -555,7 +549,6 @@ private:
     static GLFWwindow* _sharedHandle;
     static bool _useSwapGroups;
     static bool _isBarrierActive;
-    static bool _isSwapGroupMaster;
 
 
     // ScalableMesh

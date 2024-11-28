@@ -27,11 +27,11 @@ enum class MouseButton {
     ButtonLeft = Button1,
     ButtonRight = Button2,
     ButtonMiddle = Button3
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
     ButtonLeft = 0,
     ButtonRight = 1,
     ButtonMiddle = 2
-#endif
+#endif // WIN32
 };
 } // namespace sgct
 

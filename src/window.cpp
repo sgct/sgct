@@ -92,7 +92,6 @@ GLFWwindow* _activeContext = nullptr;
 
 bool Window::_useSwapGroups = false;
 bool Window::_isBarrierActive = false;
-bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
 void Window::applyWindow(const config::Window& window) {
@@ -655,10 +654,6 @@ bool Window::isUsingSwapGroups() {
     return _useSwapGroups;
 }
 
-bool Window::isSwapGroupMaster() {
-    return _isSwapGroupMaster;
-}
-
 bool Window::isFullScreen() const {
     return _isFullScreen;
 }
@@ -981,8 +976,8 @@ void Window::resetSwapGroupFrameNumber() {
 #ifdef WIN32
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
         HDC hDC = wglGetCurrentDC();
-        _isSwapGroupMaster = wglResetFrameCountNV(hDC);
-        if (_isSwapGroupMaster) {
+        int res = wglResetFrameCountNV(hDC);
+        if (res) {
             Log::Info("Resetting frame counter");
         }
         else {

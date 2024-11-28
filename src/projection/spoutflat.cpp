@@ -338,7 +338,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
             "Error sending texture '{}'", _textureIdentifiers.spoutColor
         ));
     }
-#endif
+#endif // SGCT_HAS_SPOUT
 
     glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
 

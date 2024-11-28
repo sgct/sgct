@@ -27,7 +27,7 @@
 #include <sgct/texturemanager.h>
 #ifdef SGCT_HAS_VRPN
 #include <sgct/trackingmanager.h>
-#endif
+#endif // SGCT_HAS_VRPN
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
@@ -38,9 +38,9 @@
 
 #ifdef WIN32
 #include <glad/glad_wgl.h>
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
 #include <glad/glad.h>
-#endif
+#endif // WIN32
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -396,7 +396,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     for (const config::Tracker& tracker : cluster.trackers) {
         TrackingManager::instance().applyTracker(tracker);
     }
-#endif
+#endif // SGCT_HAS_VRPN
     int clusterId = -1;
     // check in cluster configuration which it is
     if (netMode == NetworkManager::NetworkMode::Remote) {
@@ -453,7 +453,7 @@ void Engine::initialize() {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+#endif // __APPLE__
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
         GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
         glfwMakeContextCurrent(offscreen);
@@ -651,9 +651,9 @@ void Engine::initialize() {
     constexpr std::string_view FontName = "verdanab.ttf";
 #elif defined(__APPLE__)
     constexpr std::string_view FontName = "HelveticaNeue.ttc";
-#else
+#else // !WIN32 && !__APPLE__
     constexpr std::string_view FontName = "FreeSansBold.ttf";
-#endif
+#endif // WIN32
     text::FontManager::instance().addFont("SGCTFont", std::string(FontName));
 #endif // SGCT_HAS_TEXT
 
@@ -675,7 +675,7 @@ void Engine::initialize() {
     if (isMaster()) {
         TrackingManager::instance().startSampling();
     }
-#endif
+#endif // SGCT_HAS_VRPN
 }
 
 Engine::~Engine() {
@@ -956,7 +956,7 @@ void Engine::exec() {
         if (isMaster()) {
             TrackingManager::instance().updateTrackingDevices();
         }
-#endif
+#endif // SGCT_HAS_VRPN
 
         {
             ZoneScopedN("GLFW Poll Events");
@@ -1567,9 +1567,9 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     else {
         Log::Info("Swap groups are not supported by hardware");
     }
-#else
+#else // ^^^^ WIN32 // !WIN32 vvvv
     Log::Info("Swap groups are not supported by hardware");
-#endif
+#endif // WIN32
 
     Log::Info("Waiting for all nodes to connect");
 

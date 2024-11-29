@@ -112,10 +112,10 @@ void postDraw() {
         const bool isLeft = windowData[i].second;
 
         const std::unique_ptr<Window>& win = Engine::instance().windows()[winIndex];
-        const GLuint texId = win->frameBufferTexture(
-            isLeft ? Window::TextureIndex::LeftEye : Window::TextureIndex::RightEye
-        );
-
+        const GLuint texId =
+            isLeft ?
+            win->frameBufferTextureEye(Window::Eye::MonoOrLeft) :
+            win->frameBufferTextureEye(Window::Eye::Right);
         glBindTexture(GL_TEXTURE_2D, texId);
 
         spoutSendersData[i].spoutSender->SendTexture(

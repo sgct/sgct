@@ -567,9 +567,9 @@ private:
      * fast anti-aliasing (FXAA).
      *
      * \param window The Window object for which the FXAA operation should be performed
-     * \param targetIndex The texture index that should be used as the source for the FXAA
+     * \param eye The eye that should be rendered
      */
-    void renderFXAA(const Window& window, Window::TextureIndex targetIndex) const;
+    void renderFXAA(const Window& window, Window::Eye eye) const;
 
     /**
      * Causes all of the viewports of the provided \p window be rendered with the
@@ -577,11 +577,10 @@ private:
      *
      * \param window The window whose viewports should be rendered
      * \param frustum The frustum that should be used to render the viewports
-     * \param ti The Window::TextureIndex that is pointing at the target where the
-     *        rendering should be placed
+     * \param eye The eye that should be rendered
      */
     void renderViewports(const Window& window, Frustum::Mode frustum,
-        Window::TextureIndex ti) const;
+        Window::Eye eye) const;
 
     /**
      * This function renders stats, OSD and overlays of the provided \p window and using

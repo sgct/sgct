@@ -9,26 +9,26 @@
 #include <sgct/network.h>
 
 #ifdef WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #define VC_EXTRALEAN
-    #define NOMINMAX
-    #include <Windows.h>
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-    #define SGCT_ERRNO WSAGetLastError()
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#define NOMINMAX
+#include <Windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#define SGCT_ERRNO WSAGetLastError()
 #else // ^^^^ WIN32 // !WIN32 vvvv
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <cerrno>
-    #include <netdb.h>
-    #include <unistd.h>
-    #define SOCKET_ERROR (-1)
-    #define INVALID_SOCKET (~0)
-    #define NO_ERROR 0L
-    #define SGCT_ERRNO errno
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <cerrno>
+#include <netdb.h>
+#include <unistd.h>
+#define SOCKET_ERROR (-1)
+#define INVALID_SOCKET (~0)
+#define NO_ERROR 0L
+#define SGCT_ERRNO errno
 #endif // WIN32
 
 #include <sgct/clustermanager.h>
@@ -43,14 +43,103 @@
 #include <algorithm>
 #include <cstring>
 
-#define Err(code, msg) Error(Error::Component::Network, code, msg)
+#define Err(code, msg) sgct::Error(sgct::Error::Component::Network, code, msg)
 
 namespace {
     constexpr int MaxNumberOfAttempts = 10;
 
     constexpr int MaxNetworkSyncFrameNumber = 10000;
 
-    std::string getTypeStr(sgct::Network::ConnectionType ct) {
+
+    int receiveData(SGCT_SOCKET lsocket, char* buffer, int length, int flags) {
+        long iResult = 0;
+        int attempts = 1;
+
+        while (iResult < length) {
+            const long tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
+            if (tmpRes > 0) {
+                iResult += tmpRes;
+            }
+#ifdef WIN32
+            else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
+#else // ^^^^ WIN32 // !WIN32 vvvv
+            else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
+#endif // WIN32
+                sgct::Log::Warning(std::format(
+                    "Receiving data after interrupted system error (attempt {})", attempts
+                ));
+                attempts++;
+            }
+            else {
+                // capture error
+                iResult = tmpRes;
+                break;
+            }
+            }
+
+        // POXIX requires `recv` to return ssize_t which is -> long. We are not going to get
+        // enough data to fill this, so we should be fine
+        return static_cast<int>(iResult);
+    }
+
+    void setOptions(SGCT_SOCKET socket, sgct::Network::ConnectionType connectionType) {
+        const int flag = 1;
+
+        // insert no delay, disable nagle's algorithm
+        const int delayRes = setsockopt(
+            socket,       // socket affected
+            IPPROTO_TCP,   // set option at TCP level
+            TCP_NODELAY,   // name of option
+            reinterpret_cast<const char*>(&flag), // the cast is historical cruft
+            sizeof(int)    // length of option value
+        );
+
+        if (delayRes != NO_ERROR) {
+            throw Err(
+                5005,
+                std::format("Failed to set network no-delay option: {}", SGCT_ERRNO)
+            );
+        }
+
+        // set timeout
+        const int timeout = 0; // infinite
+        setsockopt(
+            socket,
+            SOL_SOCKET,
+            SO_SNDTIMEO,
+            reinterpret_cast<const char*>(&timeout),
+            sizeof(timeout)
+        );
+
+        const int sockoptRes = setsockopt(
+            socket,
+            SOL_SOCKET,
+            SO_REUSEADDR,
+            reinterpret_cast<const char*>(&flag),
+            sizeof(flag)
+        );
+        if (sockoptRes == SOCKET_ERROR) {
+            throw Err(5006, std::format("Failed to set reuse address: {}", SGCT_ERRNO));
+        }
+
+        if (connectionType != sgct::Network::ConnectionType::SyncConnection) {
+            // set on all connections types, cluster nodes sends data several times per
+            // second so there is no need so send alive packages
+            const int iResult = setsockopt(
+                socket,
+                SOL_SOCKET,
+                SO_KEEPALIVE,
+                reinterpret_cast<const char*>(&flag),
+                sizeof(flag)
+            );
+            if (iResult == SOCKET_ERROR) {
+                throw Err(5009, std::format("Failed to set keep alive: {}", SGCT_ERRNO));
+            }
+        }
+    }
+
+
+    std::string typeStr(sgct::Network::ConnectionType ct) {
         switch (ct) {
             case sgct::Network::ConnectionType::SyncConnection: return "sync";
             case sgct::Network::ConnectionType::DataTransfer:   return "data transfer";
@@ -84,7 +173,6 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
         _uncompressedBufferSize = _bufferSize;
     }
 
-    addrinfo* res = nullptr;
     addrinfo hints;
     std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -95,6 +183,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
     // Resolve the local address and port to be used by the server
     const char* a = _isServer ? nullptr : address.c_str();
     std::string portStr = std::to_string(_port);
+    addrinfo* res = nullptr;
     const int addrRes = getaddrinfo(a, portStr.c_str(), &hints, &res);
     if (addrRes != 0) {
         throw Err(5000, "Failed to parse hints for connection");
@@ -108,7 +197,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
             throw Err(5001, "Failed to listen init socket");
         }
 
-        setOptions(&_listenSocket);
+        setOptions(_listenSocket, type());
 
         // Setup the TCP listening socket
         const int addrlen = static_cast<int>(res->ai_addrlen);
@@ -138,7 +227,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
         while (!_shouldTerminate) {
             Log::Info(std::format(
                 "Attempting to connect to server (id: {}, ip: {}, type: {})",
-                _id, address, getTypeStr(type())
+                _id, address, typeStr(type())
             ));
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -147,7 +236,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
                 throw Err(5004, "Failed to init client socket");
             }
 
-            setOptions(&_socket);
+            setOptions(_socket, type());
 
             const int r = connect(
                 _socket,
@@ -228,65 +317,6 @@ std::condition_variable& Network::startConnectionConditionVar() {
     return _startConnectionCond;
 }
 
-void Network::setOptions(SGCT_SOCKET* socket) const {
-    if (socket == nullptr) {
-        return;
-    }
-    const int flag = 1;
-
-    // insert no delay, disable nagle's algorithm
-    const int delayRes = setsockopt(
-        *socket,       // socket affected
-        IPPROTO_TCP,   // set option at TCP level
-        TCP_NODELAY,   // name of option
-        reinterpret_cast<const char*>(&flag), // the cast is historical cruft
-        sizeof(int)    // length of option value
-    );
-
-    if (delayRes != NO_ERROR) {
-        throw Err(
-            5005,
-            std::format("Failed to set network no-delay option: {}", SGCT_ERRNO)
-        );
-    }
-
-    // set timeout
-    const int timeout = 0; // infinite
-    setsockopt(
-        *socket,
-        SOL_SOCKET,
-        SO_SNDTIMEO,
-        reinterpret_cast<const char*>(&timeout),
-        sizeof(timeout)
-    );
-
-    const int sockoptRes = setsockopt(
-        *socket,
-        SOL_SOCKET,
-        SO_REUSEADDR,
-        reinterpret_cast<const char*>(&flag),
-        sizeof(flag)
-    );
-    if (sockoptRes == SOCKET_ERROR) {
-        throw Err(5006, std::format("Failed to set reuse address: {}", SGCT_ERRNO));
-    }
-
-    if (type() != Network::ConnectionType::SyncConnection) {
-        // set on all connections types, cluster nodes sends data several times per
-        // second so there is no need so send alive packages
-        const int iResult = setsockopt(
-            *socket,
-            SOL_SOCKET,
-            SO_KEEPALIVE,
-            reinterpret_cast<const char*>(&flag),
-            sizeof(flag)
-        );
-        if (iResult == SOCKET_ERROR) {
-            throw Err(5009, std::format("Failed to set keep alive: {}", SGCT_ERRNO));
-        }
-    }
-}
-
 void Network::closeSocket(SGCT_SOCKET socket) {
     if (socket == INVALID_SOCKET) {
         return;
@@ -304,7 +334,6 @@ void Network::closeSocket(SGCT_SOCKET socket) {
 }
 
 int Network::iterateFrameCounter() {
-    _previousSendFrame = _currentSendFrame.load();
     _currentSendFrame = (_currentSendFrame + 1) % MaxNetworkSyncFrameNumber;
     _isUpdated = false;
 
@@ -331,10 +360,6 @@ void Network::pushClientMessage() {
 
 int Network::sendFrameCurrent() const {
     return _currentSendFrame;
-}
-
-int Network::sendFramePrevious() const {
-    return _previousSendFrame;
 }
 
 int Network::recvFrameCurrent() const {
@@ -377,7 +402,7 @@ void Network::setPackageDecodeFunction(std::function<void(void*, int, int, int)>
     _packageDecoderCallback = std::move(fn);
 }
 
-void Network::setUpdateFunction(std::function<void(Network*)> fn) {
+void Network::setUpdateFunction(std::function<void(Network&)> fn) {
     _updateCallback = std::move(fn);
 }
 
@@ -422,44 +447,6 @@ int Network::lastError() {
     return SGCT_ERRNO;
 }
 
-int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
-    int attempts = 1;
-
-#ifdef WIN32
-    int iResult = 0;
-    const auto sgctError = WSAEINTR;
-#else
-    ssize_t iResult = 0;
-    const auto sgctError = EINTR;
-#endif
-
-    while (iResult < length) {
-        const long tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
-        if (tmpRes > 0) {
-            iResult += tmpRes;
-        }
-#ifdef WIN32
-        else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
-#else // ^^^^ WIN32 // !WIN32 vvvv
-        else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
-#endif // WIN32
-            Log::Warning(std::format(
-                "Receiving data after interrupted system error (attempt {})", attempts
-            ));
-            attempts++;
-        }
-        else {
-            // capture error
-            iResult = tmpRes;
-            break;
-        }
-    }
-
-    // POXIX requires `recv` to return ssize_t which is -> long. We are not going to get
-    // enough data to fill this, so we should be fine
-    return static_cast<int>(iResult);
-}
-
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
                            uint32_t& currSize)
 {
@@ -487,11 +474,11 @@ int Network::readSyncMessage(char* header, int32_t syncFrame, uint32_t dataSize,
 
             setRecvFrame(syncFrame);
             if (syncFrame < 0) {
-                const std::string s = std::to_string(syncFrame);
-                const std::string i = std::to_string(_id);
                 throw Err(
                     5010,
-                    std::format("Error in sync frame {} for connection {}", s, i)
+                    std::format(
+                        "Error in sync frame {} for connection {}", syncFrame, _id
+                    )
                 );
             }
 
@@ -598,7 +585,7 @@ void Network::communicationHandler() {
             );
 
             if (_updateCallback) {
-                _updateCallback(this);
+                _updateCallback(*this);
             }
             return;
         }
@@ -608,7 +595,7 @@ void Network::communicationHandler() {
     Log::Info(std::format("Connection {} established", _id));
 
     if (_updateCallback) {
-        _updateCallback(this);
+        _updateCallback(*this);
     }
 
     // init buffers
@@ -744,7 +731,7 @@ void Network::communicationHandler() {
     closeSocket(_socket);
 
     if (_updateCallback) {
-        _updateCallback(this);
+        _updateCallback(*this);
     }
 
     Log::Info(std::format("Node {} disconnected", _id));

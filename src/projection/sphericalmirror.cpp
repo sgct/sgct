@@ -79,14 +79,15 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
 
 void SphericalMirrorProjection::update(const vec2&) const {}
 
-void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
+void SphericalMirrorProjection::render(const BaseViewport& viewport,
                                        FrustumMode frustumMode) const
 {
     ZoneScoped;
 
     viewport.setupViewport(frustumMode);
 
-    const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
+    const float aspect =
+        viewport.parent()->aspectRatio() * viewport.size().x / viewport.size().y;
     const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);

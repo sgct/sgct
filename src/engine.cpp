@@ -930,7 +930,7 @@ void Engine::frameLockPostStage() {
         for (int i = 0; i < nm.syncConnectionsCount(); i++) {
             if (_printSyncMessage && !nm.connection(i).isUpdated()) {
                 Log::Info(std::format(
-                    "Waiting for IG{}: send frame {} != recv frame {}\n\tSwap groups: {}"
+                    "Waiting for IG {}: send frame {} != recv frame {}\n\tSwap groups: {}"
                     "\n\tSwap barrier: {}\n\tUniversal frame number: {}\n\t"
                     "SGCT frame number: {}", i, nm.connection(i).sendFrameCurrent(),
                     nm.connection(i).recvFrameCurrent(),
@@ -1202,11 +1202,7 @@ void Engine::renderFBOTexture(Window& window) const {
     bool maskShaderSet = false;
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
-        window.bindStereoShaderProgram(
-            window.frameBufferTextureEye(Eye::MonoOrLeft),
-            window.frameBufferTextureEye(Eye::Right)
-        );
-
+        window.bindStereoShaderProgram();
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
     }
     else {
@@ -1322,25 +1318,15 @@ void Engine::renderViewports(const Window& window, FrustumMode frustum, Eye eye)
             frustum = vp->eye();
         }
 
+        if (vp->isTracked()) {
+            vp->calculateFrustum(frustum, _nearClipPlane, _farClipPlane);
+        }
         if (vp->hasSubViewports()) {
-            if (vp->isTracked()) {
-                vp->nonLinearProjection()->updateFrustums(
-                    frustum,
-                    _nearClipPlane,
-                    _farClipPlane
-                );
-            }
-
             if (window.shouldCallDraw3DFunction()) {
-                vp->nonLinearProjection()->render(window, *vp, frustum);
+                vp->nonLinearProjection()->render(*vp, frustum);
             }
         }
         else {
-            // no subviewports
-            if (vp->isTracked()) {
-                vp->calculateFrustum(frustum, _nearClipPlane, _farClipPlane);
-            }
-
             // check if we want to blit the previous window before we do anything else
             if (window.blitWindowId() >= 0) {
                 const std::vector<std::unique_ptr<Window>>& wins = windows();

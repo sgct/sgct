@@ -46,8 +46,7 @@ public:
     /**
      * Render the non linear projection to currently bounded FBO.
      */
-    void render(const Window& window, const BaseViewport& viewport,
-        FrustumMode frustumMode) const override;
+    void render(const BaseViewport& viewport, FrustumMode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.

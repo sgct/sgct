@@ -300,7 +300,7 @@ void SpoutFlatProjection::blitCubeFace(int face) const {
     _spoutFbo->blit();
 }
 
-void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewport,
+void SpoutFlatProjection::render(const BaseViewport& viewport,
                                  FrustumMode frustumMode) const
 {
     ZoneScoped;
@@ -347,7 +347,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _textureIdentifiers.spoutColor);
         _shader.bind();
-        window.renderScreenQuad();
+        viewport.parent()->renderScreenQuad();
         ShaderProgram::unbind();
     }
 

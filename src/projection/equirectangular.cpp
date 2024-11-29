@@ -70,7 +70,7 @@ EquirectangularProjection::~EquirectangularProjection() {
     _shader.deleteProgram();
 }
 
-void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
+void EquirectangularProjection::render(const BaseViewport& viewport,
                                        FrustumMode frustumMode) const
 {
     ZoneScoped;

@@ -75,7 +75,7 @@ CylindricalProjection::~CylindricalProjection() {
     _shader.deleteProgram();
 }
 
-void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
+void CylindricalProjection::render(const BaseViewport& viewport,
                                    FrustumMode frustumMode) const
 {
     ZoneScoped;

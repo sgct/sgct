@@ -310,6 +310,7 @@ struct SGCT_EXPORT Window {
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
     std::optional<bool> isMirrored;
+    std::optional<bool> noError;
     std::optional<int> blitWindowId;
     std::optional<bool> mirrorX;
     std::optional<bool> mirrorY;
@@ -338,6 +339,31 @@ SGCT_EXPORT void validateNode(const Node& node);
 
 
 
+struct SGCT_EXPORT GeneratorVersion {
+    std::string name;
+    int major = 0;
+    int minor = 0;
+
+    bool operator==(const GeneratorVersion& rhs) const noexcept;
+
+    bool versionCheck(GeneratorVersion check) const;
+
+    std::string versionString() const;
+};
+SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
+
+
+
+struct SGCT_EXPORT Meta {
+    std::string author;
+    std::string description;
+    std::string license;
+    std::string name;
+    std::string version;
+};
+
+
+
 struct SGCT_EXPORT Cluster {
     bool success = false;
 
@@ -351,44 +377,47 @@ struct SGCT_EXPORT Cluster {
     std::optional<Capture> capture;
     std::vector<Tracker> trackers;
     std::optional<Settings> settings;
+
+    std::optional<GeneratorVersion> generator;
+    std::optional<Meta> meta;
 };
 SGCT_EXPORT void validateCluster(const Cluster& cluster);
 
-struct SGCT_EXPORT GeneratorVersion {
-    std::string name;
-    int major;
-    int minor;
-
-    bool operator==(const GeneratorVersion& rhs) const {
-        return (name == rhs.name) && (major == rhs.major) && (minor == rhs.minor);
-    }
-
-    bool versionCheck(GeneratorVersion check) const {
-        if (check.name != name) {
-            return false;
-        }
-        else if (major > check.major) {
-            return true;
-        }
-        else {
-            return ((major == check.major) && (minor >= check.minor));
-        }
-    }
-
-    std::string versionString() const {
-        return (name + " " + std::to_string(major) + "." + std::to_string(minor));
-    }
-};
-SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
-
-struct SGCT_EXPORT Meta {
-    std::string author;
-    std::string description;
-    std::string license;
-    std::string name;
-    std::string version;
-};
-
 } // namespace sgct::config
+
+namespace sgct {
+
+/**
+ * Reads a JSON configuration file from the provided \p filename. If the loading fails an
+ * exception is raised, otherwise a valid #Cluster object is returned.
+ */
+SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(
+    const std::filesystem::path& filename);
+
+/**
+ * Reads a JSON-formatted configuration direction from the provided \p configuration. If
+ * the loading fails an exception is raised, otherwise a valid #Cluster object is
+ * returned.
+ */
+SGCT_EXPORT [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
+
+/**
+ * Serialize the provided \p cluster into its JSON string representation such that parsing
+ * the serialized string later with #readJsonConfig will result int the same \p cluster
+ * again.
+ */
+SGCT_EXPORT [[nodiscard]] std::string serializeConfig(const config::Cluster& cluster,
+    std::optional<config::GeneratorVersion> genVersion = std::nullopt);
+
+/**
+ * Validate the provided JSON-based string representation of a configuration against the
+ * schema file located at the provided \p schema file. If the JSON is valid according to
+ * the schema, the function returns the empty string. Otherwise it contains an error
+ * message that describes which parts of the JSON are ill-formed.
+ */
+SGCT_EXPORT [[nodiscard]] std::string validateConfigAgainstSchema(
+    std::string_view configuration, const std::filesystem::path& schema);
+
+} // namespace sgct
 
 #endif // __SGCT__CONFIG__H__

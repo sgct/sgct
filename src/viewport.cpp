@@ -12,7 +12,6 @@
 #include <sgct/config.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
-#include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/cylindrical.h>

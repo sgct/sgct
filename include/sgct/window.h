@@ -497,6 +497,7 @@ private:
     bool _isDecorated = true;
     bool _isResizable = true;
     bool _isMirrored = false;
+    bool _noError = false;
     ivec2 _framebufferRes = ivec2{ 512, 256 };
     ivec2 _windowInitialRes = ivec2{ 640, 480 };
     std::optional<ivec2> _pendingWindowRes;

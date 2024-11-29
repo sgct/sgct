@@ -9,7 +9,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "equality.h"
-#include <sgct/readconfig.h>
+#include <sgct/config.h>
 #include <nlohmann/json.hpp>
 #include <filesystem>
 

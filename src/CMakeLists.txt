@@ -66,7 +66,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/opengl.h
     ${PROJECT_SOURCE_DIR}/include/sgct/profiling.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
     ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
     ${PROJECT_SOURCE_DIR}/include/sgct/sgct.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
@@ -121,7 +120,6 @@ target_sources(
     offscreenbuffer.cpp
     profiling.cpp
     projection.cpp
-    readconfig.cpp
     screencapture.cpp
     shadermanager.cpp
     shaderprogram.cpp

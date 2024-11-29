@@ -1033,10 +1033,10 @@ void Engine::exec() {
                 NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or config
-                    nonLinearProj->renderCubemap(*win, vp->eye());
+                    nonLinearProj->renderCubemap(vp->eye());
                 }
                 else {
-                    nonLinearProj->renderCubemap(*win, Frustum::Mode::StereoLeftEye);
+                    nonLinearProj->renderCubemap(Frustum::Mode::StereoLeftEye);
                 }
             }
 
@@ -1067,7 +1067,7 @@ void Engine::exec() {
                     continue;
                 }
                 NonLinearProjection* p = vp->nonLinearProjection();
-                p->renderCubemap(*win, Frustum::Mode::StereoRightEye);
+                p->renderCubemap(Frustum::Mode::StereoRightEye);
             }
 
             // Render right regular viewports to FBO

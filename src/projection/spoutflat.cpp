@@ -358,59 +358,52 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }
 
-void SpoutFlatProjection::renderCubemap(const Window& window,
-                                        Frustum::Mode frustumMode) const
-{
+void SpoutFlatProjection::renderCubemap(Frustum::Mode frustumMode) const {
     ZoneScoped;
-
-    auto render = [this](const Window& win, const BaseViewport& vp, int idx,
-                         Frustum::Mode mode)
-    {
-        if (!_mappingHandle || !vp.isEnabled()) {
-            return;
-        }
-
-        _spoutFbo->bind();
-        if (!_spoutFbo->isMultiSampled()) {
-            attachTextures(idx);
-        }
-
-        const RenderData renderData = {
-            win,
-            vp,
-            mode,
-            ClusterManager::instance().sceneTransform(),
-            vp.projection(mode).viewMatrix(),
-            vp.projection(mode).projectionMatrix(),
-            vp.projection(mode).viewProjectionMatrix() *
-            ClusterManager::instance().sceneTransform(),
-            ivec2(_resolutionX, _resolutionY)
-        };
-        glLineWidth(1.f);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        glDepthFunc(GL_LESS);
-
-        glEnable(GL_SCISSOR_TEST);
-        setupViewport(vp);
-
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glDisable(GL_SCISSOR_TEST);
-        Engine::instance().drawFunction()(renderData);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        // blit MSAA fbo to texture
-        if (_spoutFbo->isMultiSampled()) {
-            blitCubeFace(idx);
-        }
-        OffScreenBuffer::unbind();
-    };
 
     int vec[4];
     glGetIntegerv(GL_VIEWPORT, vec);
-    render(window, _subViewports.front, 0, frustumMode);
+    if (!_mappingHandle || !_subViewports.front.isEnabled()) {
+        return;
+    }
+
+    _spoutFbo->bind();
+    if (!_spoutFbo->isMultiSampled()) {
+        attachTextures(0);
+    }
+
+    const RenderData renderData = {
+        *_subViewports.front.parent(),
+        _subViewports.front,
+        frustumMode,
+        ClusterManager::instance().sceneTransform(),
+        _subViewports.front.projection(frustumMode).viewMatrix(),
+        _subViewports.front.projection(frustumMode).projectionMatrix(),
+        _subViewports.front.projection(frustumMode).viewProjectionMatrix() *
+        ClusterManager::instance().sceneTransform(),
+        ivec2(_resolutionX, _resolutionY)
+    };
+    glLineWidth(1.f);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_SCISSOR_TEST);
+    setupViewport(_subViewports.front);
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_SCISSOR_TEST);
+    Engine::instance().drawFunction()(renderData);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    // blit MSAA fbo to texture
+    if (_spoutFbo->isMultiSampled()) {
+        blitCubeFace(0);
+    }
+    OffScreenBuffer::unbind();
+
     glViewport(vec[0], vec[1], vec[2], vec[3]);
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }

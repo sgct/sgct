@@ -40,6 +40,8 @@ public:
     const vec2& size() const;
     float horizontalFieldOfViewDegrees() const;
 
+    const Window* parent() const;
+
     User& user() const;
     const Window& window() const;
     Frustum::Mode eye() const;

@@ -27,7 +27,7 @@ public:
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode) const override;
 
-    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
+    void renderCubemap(Frustum::Mode frustumMode) const override;
 
     void update(const vec2& size) const override;
 

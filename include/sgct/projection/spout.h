@@ -52,7 +52,7 @@ public:
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
+    void renderCubemap(Frustum::Mode frustumMode) const override;
 
     void updateFrustums(Frustum::Mode mode, float nearClip, float farClip) override;
     void setUser(User* user) override;

@@ -122,14 +122,10 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void SphericalMirrorProjection::renderCubemap(const Window& window,
-                                              Frustum::Mode frustumMode) const
-{
+void SphericalMirrorProjection::renderCubemap(Frustum::Mode frustumMode) const {
     ZoneScoped;
 
-    auto renderInternal = [this, &window, frustumMode](const BaseViewport& bv,
-                                                       unsigned int t)
-    {
+    auto renderInternal = [this, frustumMode](const BaseViewport& bv, unsigned int t) {
         if (!bv.isEnabled()) {
             return;
         }
@@ -148,7 +144,7 @@ void SphericalMirrorProjection::renderCubemap(const Window& window,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         const RenderData renderData = {
-            window,
+            *bv.parent(),
             bv,
             frustumMode,
             ClusterManager::instance().sceneTransform(),

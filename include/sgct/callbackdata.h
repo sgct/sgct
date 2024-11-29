@@ -10,7 +10,7 @@
 #define __SGCT__CALLBACKDATA__H__
 
 #include <sgct/sgctexports.h>
-#include <sgct/frustum.h>
+#include <sgct/definitions.h>
 #include <sgct/math.h>
 #include <utility>
 
@@ -21,7 +21,7 @@ class Window;
 
 struct SGCT_EXPORT RenderData {
     RenderData(const Window& window_, const BaseViewport& viewport_,
-               Frustum::Mode frustumMode_, mat4 modelMatrix_, mat4 viewMatrix_,
+               FrustumMode frustumMode_, mat4 modelMatrix_, mat4 viewMatrix_,
                mat4 projectionMatrix_, mat4 modelViewProjectionMatrix_, ivec2 bufferSize_)
         : window(window_)
         , viewport(viewport_)
@@ -34,7 +34,7 @@ struct SGCT_EXPORT RenderData {
     {}
     const Window& window;
     const BaseViewport& viewport;
-    const Frustum::Mode frustumMode;
+    const FrustumMode frustumMode;
 
     mat4 modelMatrix;
     mat4 viewMatrix;

@@ -123,7 +123,7 @@ SpoutOutputProjection::~SpoutOutputProjection() {
 void SpoutOutputProjection::update(const vec2&) const {}
 
 void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
-                                   Frustum::Mode frustumMode) const
+                                   FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -253,10 +253,10 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     }
 }
 
-void SpoutOutputProjection::renderCubemap(Frustum::Mode frustumMode) const {
+void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
-    auto render = [this](const BaseViewport& vp, int idx, Frustum::Mode mode) {
+    auto render = [this](const BaseViewport& vp, int idx, FrustumMode mode) {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
             return;
         }
@@ -759,7 +759,7 @@ void SpoutOutputProjection::initViewports() {
     }
 }
 
-void SpoutOutputProjection::updateFrustums(Frustum::Mode mode, float nearClip,
+void SpoutOutputProjection::updateFrustums(FrustumMode mode, float nearClip,
                                            float farClip)
 {
     if (_mainViewport.isEnabled()) {

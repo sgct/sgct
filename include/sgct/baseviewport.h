@@ -9,8 +9,8 @@
 #ifndef __SGCT__BASEVIEWPORT__H__
 #define __SGCT__BASEVIEWPORT__H__
 
+#include <sgct/definitions.h>
 #include <sgct/sgctexports.h>
-#include <sgct/frustum.h>
 #include <sgct/math.h>
 #include <sgct/projection.h>
 #include <sgct/projection/projectionplane.h>
@@ -34,7 +34,7 @@ public:
     void setEnabled(bool state);
     void setUser(User* user);
     void setUserName(std::string userName);
-    void setEye(Frustum::Mode eye);
+    void setEye(FrustumMode eye);
 
     const vec2& position() const;
     const vec2& size() const;
@@ -44,21 +44,21 @@ public:
 
     User& user() const;
     const Window& window() const;
-    Frustum::Mode eye() const;
+    FrustumMode eye() const;
 
-    const Projection& projection(Frustum::Mode frustumMode) const;
+    const Projection& projection(FrustumMode frustumMode) const;
     ProjectionPlane& projectionPlane();
 
     bool isEnabled() const;
     void linkUserName();
 
-    virtual void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip);
-    void setupViewport(Frustum::Mode frustum) const;
+    virtual void calculateFrustum(FrustumMode mode, float nearClip, float farClip);
+    void setupViewport(FrustumMode frustum) const;
 
     /**
      * Make projection symmetric relative to user.
      */
-    void calculateNonLinearFrustum(Frustum::Mode mode, float nearClip, float farClip);
+    void calculateNonLinearFrustum(FrustumMode mode, float nearClip, float farClip);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         quat rot, float dist = 10.f);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
@@ -72,7 +72,7 @@ protected:
     Projection _stereoRightProj;
 
     ProjectionPlane _projPlane;
-    Frustum::Mode _eye = Frustum::Mode::MonoEye;
+    FrustumMode _eye = FrustumMode::Mono;
 
     User* _user;
 

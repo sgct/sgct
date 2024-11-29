@@ -44,7 +44,7 @@ bool BaseViewport::isEnabled() const {
     return _isEnabled;
 }
 
-void BaseViewport::setEye(Frustum::Mode eye) {
+void BaseViewport::setEye(FrustumMode eye) {
     _eye = eye;
 }
 
@@ -68,15 +68,15 @@ const Window& BaseViewport::window() const {
     return *_parent;
 }
 
-Frustum::Mode BaseViewport::eye() const {
+FrustumMode BaseViewport::eye() const {
     return _eye;
 }
 
-const Projection& BaseViewport::projection(Frustum::Mode frustumMode) const {
+const Projection& BaseViewport::projection(FrustumMode frustumMode) const {
     switch (frustumMode) {
-        case Frustum::Mode::MonoEye:        return _monoProj;
-        case Frustum::Mode::StereoLeftEye:  return _stereoLeftProj;
-        case Frustum::Mode::StereoRightEye: return _stereoRightProj;
+        case FrustumMode::Mono:        return _monoProj;
+        case FrustumMode::StereoLeft:  return _stereoLeftProj;
+        case FrustumMode::StereoRight: return _stereoRightProj;
         default:                           throw std::logic_error("Unhandled case label");
     }
 }
@@ -105,11 +105,11 @@ void BaseViewport::linkUserName() {
     }
 }
 
-void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
+void BaseViewport::calculateFrustum(FrustumMode mode, float nearClip, float farClip) {
     ZoneScoped;
 
     switch (mode) {
-        case Frustum::Mode::MonoEye:
+        case FrustumMode::Mono:
             _monoProj.calculateProjection(
                 _user->posMono(),
                 _projPlane,
@@ -117,7 +117,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
                 farClip
             );
             break;
-        case Frustum::Mode::StereoLeftEye:
+        case FrustumMode::StereoLeft:
             _stereoLeftProj.calculateProjection(
                 _user->posLeftEye(),
                 _projPlane,
@@ -125,7 +125,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
                 farClip
             );
             break;
-        case Frustum::Mode::StereoRightEye:
+        case FrustumMode::StereoRight:
             _stereoRightProj.calculateProjection(
                 _user->posRightEye(),
                 _projPlane,
@@ -136,7 +136,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
     }
 }
 
-void BaseViewport::setupViewport(Frustum::Mode frustum) const {
+void BaseViewport::setupViewport(FrustumMode frustum) const {
     ZoneScoped;
 
     const ivec2 res = _parent->framebufferResolution();
@@ -148,7 +148,7 @@ void BaseViewport::setupViewport(Frustum::Mode frustum) const {
     };
 
     const Window::StereoMode sm = _parent->stereoMode();
-    if (frustum == Frustum::Mode::StereoLeftEye) {
+    if (frustum == FrustumMode::StereoLeft) {
         switch (sm) {
             case Window::StereoMode::SideBySide:
                 vpCoordinates.x /= 2;
@@ -197,13 +197,13 @@ void BaseViewport::setupViewport(Frustum::Mode frustum) const {
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
 }
 
-void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
+void BaseViewport::calculateNonLinearFrustum(FrustumMode mode, float nearClip,
                                              float farClip)
 {
     const vec3& eyePos = _user->posMono();
 
     switch (mode) {
-        case Frustum::Mode::MonoEye:
+        case FrustumMode::Mono:
             _monoProj.calculateProjection(
                 eyePos,
                 _projPlane,
@@ -211,7 +211,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                 farClip
             );
             break;
-        case Frustum::Mode::StereoLeftEye:
+        case FrustumMode::StereoLeft:
         {
             const vec3 p {
                 _user->posLeftEye().x - eyePos.x,
@@ -221,7 +221,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
             _stereoLeftProj.calculateProjection(eyePos, _projPlane, nearClip, farClip, p);
             break;
         }
-        case Frustum::Mode::StereoRightEye:
+        case FrustumMode::StereoRight:
         {
             const vec3 p {
                 _user->posRightEye().x + eyePos.x,

@@ -31,7 +31,7 @@ namespace {
     bool takeScreenshot = true;
 
     struct OmniData {
-        std::map<sgct::Frustum::Mode, glm::mat4> viewProjectionMatrix;
+        std::map<sgct::FrustumMode, glm::mat4> viewProjectionMatrix;
         bool enabled = false;
     };
     std::vector<std::vector<OmniData>> omniProjections;
@@ -169,20 +169,20 @@ void initOmniStereo(bool mask) {
     for (int eye = 0; eye <= 2; eye++) {
         float eyeSep = Engine::instance().defaultUser().eyeSeparation();
 
-        Frustum::Mode fm;
+        FrustumMode fm;
         glm::vec3 eyePos;
         switch (eye) {
             case 0:
             default:
-                fm = Frustum::Mode::MonoEye;
+                fm = FrustumMode::Mono;
                 eyePos = glm::vec3{ 0.f, 0.f, 0.f };
                 break;
             case 1:
-                fm = Frustum::Mode::StereoLeftEye;
+                fm = FrustumMode::StereoLeft;
                 eyePos = glm::vec3{ -eyeSep / 2.f, 0.f, 0.f };
                 break;
             case 2:
-                fm = Frustum::Mode::StereoRightEye;
+                fm = FrustumMode::StereoRight;
                 eyePos = glm::vec3{ eyeSep / 2.f, 0.f, 0.f };
                 break;
         }
@@ -388,7 +388,7 @@ void drawOmniStereo(const RenderData& renderData) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    Frustum::Mode fm = renderData.frustumMode;
+    FrustumMode fm = renderData.frustumMode;
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {

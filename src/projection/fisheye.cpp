@@ -112,7 +112,7 @@ void FisheyeProjection::update(const vec2& size) const {
 }
 
 void FisheyeProjection::render(const Window& window, const BaseViewport& viewport,
-                               Frustum::Mode frustumMode) const
+                               FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -171,25 +171,25 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     glDepthFunc(GL_LESS);
 }
 
-void FisheyeProjection::renderCubemap(Frustum::Mode frustumMode) const {
+void FisheyeProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     switch (frustumMode) {
-        case Frustum::Mode::MonoEye:
+        case FrustumMode::Mono:
             break;
-        case Frustum::Mode::StereoLeftEye:
+        case FrustumMode::StereoLeft:
             setOffset(
                 vec3{ -Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f }
             );
             break;
-        case Frustum::Mode::StereoRightEye:
+        case FrustumMode::StereoRight:
             setOffset(
                 vec3{ Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f }
             );
             break;
     }
 
-    auto render = [this](const BaseViewport& vp, int idx, Frustum::Mode mode) {
+    auto render = [this](const BaseViewport& vp, int idx, FrustumMode mode) {
         if (!vp.isEnabled()) {
             return;
         }
@@ -586,7 +586,7 @@ void FisheyeProjection::initViewports() {
 }
 
 void FisheyeProjection::initShaders() {
-    if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
+    if (_isStereo || _preferedMonoFrustumMode != FrustumMode::Mono) {
         // if any frustum mode other than Mono (or stereo)
         _isOffAxis = true;
     }

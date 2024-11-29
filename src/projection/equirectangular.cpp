@@ -71,7 +71,7 @@ EquirectangularProjection::~EquirectangularProjection() {
 }
 
 void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode) const
+                                       FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -107,7 +107,7 @@ void EquirectangularProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void EquirectangularProjection::renderCubemap(Frustum::Mode frustumMode) const {
+void EquirectangularProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     renderCubeFace(_subViewports.right, 0, frustumMode);

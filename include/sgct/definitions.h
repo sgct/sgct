@@ -13,22 +13,8 @@
 
 namespace sgct {
 
-/**
- * The frustum class stores the view frustum for each viewport.
- */
-struct SGCT_EXPORT Frustum {
-    /**
-     * SGCT stores all view frustums as triplets for switching between mono and stereo.
-     */
-    enum class Mode { MonoEye = 0, StereoLeftEye, StereoRightEye };
-
-    float left = -1.f;
-    float right = 1.f;
-    float bottom = -1.f;
-    float top = 1.f;
-    float nearPlane = 0.1f;
-    float farPlane = 100.f;
-};
+enum class SGCT_EXPORT Eye { MonoOrLeft, Right };
+enum class SGCT_EXPORT FrustumMode { Mono, StereoLeft, StereoRight };
 
 } // namespace sgct
 

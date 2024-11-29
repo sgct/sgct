@@ -301,7 +301,7 @@ void SpoutFlatProjection::blitCubeFace(int face) const {
 }
 
 void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewport,
-                                 Frustum::Mode frustumMode) const
+                                 FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -358,7 +358,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }
 
-void SpoutFlatProjection::renderCubemap(Frustum::Mode frustumMode) const {
+void SpoutFlatProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     int vec[4];

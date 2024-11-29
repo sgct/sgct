@@ -39,11 +39,11 @@ public:
         unsigned int type, int samples);
 
     virtual void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) const = 0;
-    virtual void renderCubemap(Frustum::Mode frustumMode) const = 0;
+        FrustumMode frustumMode) const = 0;
+    virtual void renderCubemap(FrustumMode frustumMode) const = 0;
     virtual void update(const vec2& size) const = 0;
 
-    virtual void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
+    virtual void updateFrustums(FrustumMode mode, float nearClip, float farClip);
 
     /**
      * Set the resolution of the cubemap faces.
@@ -91,7 +91,7 @@ protected:
 
     void attachTextures(int face) const;
     void blitCubeFace(int face) const;
-    void renderCubeFace(const BaseViewport& vp, int idx, Frustum::Mode mode) const;
+    void renderCubeFace(const BaseViewport& vp, int idx, FrustumMode mode) const;
 
     struct {
         unsigned int cubeMapColor = 0;
@@ -118,7 +118,7 @@ protected:
     } _subViewports;
 
     InterpolationMode _interpolationMode = InterpolationMode::Linear;
-    Frustum::Mode _preferedMonoFrustumMode = Frustum::Mode::MonoEye;
+    FrustumMode _preferedMonoFrustumMode = FrustumMode::Mono;
 
     ivec2 _cubemapResolution = ivec2(512, 512);
     vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);

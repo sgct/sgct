@@ -88,8 +88,7 @@ namespace {
         a[0] = v;
     }
 
-    void setAndClearBuffer(const Window& window, BufferMode buffer, Frustum::Mode frustum)
-    {
+    void setAndClearBuffer(const Window& window, BufferMode buffer, FrustumMode frustum) {
         ZoneScoped;
 
         if (buffer == BufferMode::BackBufferBlack) {
@@ -98,12 +97,12 @@ namespace {
                 glDrawBuffer(GL_BACK);
                 glReadBuffer(GL_BACK);
             }
-            else if (frustum == Frustum::Mode::StereoLeftEye) {
+            else if (frustum == FrustumMode::StereoLeft) {
                 // if active left
                 glDrawBuffer(GL_BACK_LEFT);
                 glReadBuffer(GL_BACK_LEFT);
             }
-            else if (frustum == Frustum::Mode::StereoRightEye) {
+            else if (frustum == FrustumMode::StereoRight) {
                 // if active right
                 glDrawBuffer(GL_BACK_RIGHT);
                 glReadBuffer(GL_BACK_RIGHT);
@@ -119,7 +118,7 @@ namespace {
         }
     }
 
-    void updateRenderingTargets(const Window& win, Window::Eye eye) {
+    void updateRenderingTargets(const Window& win, Eye eye) {
         ZoneScoped;
 
         // copy AA-buffer to "regular" / non-AA buffer
@@ -1036,28 +1035,20 @@ void Engine::exec() {
                     nonLinearProj->renderCubemap(vp->eye());
                 }
                 else {
-                    nonLinearProj->renderCubemap(Frustum::Mode::StereoLeftEye);
+                    nonLinearProj->renderCubemap(FrustumMode::StereoLeft);
                 }
             }
 
             // Render left/mono regular viewports to FBO
             // if any stereo type (except passive) then set frustum mode to left eye
             if (sm == Window::StereoMode::NoStereo) {
-                renderViewports(
-                    *win,
-                    Frustum::Mode::MonoEye,
-                    Window::Eye::MonoOrLeft
-                );
+                renderViewports(*win, FrustumMode::Mono, Eye::MonoOrLeft);
 
                 // if we are not rendering in stereo, we are done
                 continue;
             }
             else {
-                renderViewports(
-                    *win,
-                    Frustum::Mode::StereoLeftEye,
-                    Window::Eye::MonoOrLeft
-                );
+                renderViewports(*win, FrustumMode::StereoLeft, Eye::MonoOrLeft);
             }
 
             // Render right non-linear projection viewports to cubemap
@@ -1067,24 +1058,16 @@ void Engine::exec() {
                     continue;
                 }
                 NonLinearProjection* p = vp->nonLinearProjection();
-                p->renderCubemap(Frustum::Mode::StereoRightEye);
+                p->renderCubemap(FrustumMode::StereoRight);
             }
 
             // Render right regular viewports to FBO
             // use a single texture for side-by-side and top-bottom stereo modes
             if (sm >= Window::StereoMode::SideBySide) {
-                renderViewports(
-                    *win,
-                    Frustum::Mode::StereoRightEye,
-                    Window::Eye::MonoOrLeft
-                );
+                renderViewports(*win, FrustumMode::StereoRight, Eye::MonoOrLeft);
             }
             else {
-                renderViewports(
-                    *win,
-                    Frustum::Mode::StereoRightEye,
-                    Window::Eye::Right
-                );
+                renderViewports(*win, FrustumMode::StereoRight, Eye::Right);
             }
         }
 
@@ -1173,7 +1156,7 @@ void Engine::exec() {
     glDeleteQueries(1, &timeQueryEnd);
 }
 
-void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) const {
+void Engine::drawOverlays(const Window& window, FrustumMode frustum) const {
     ZoneScoped;
 
     for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
@@ -1202,10 +1185,10 @@ void Engine::renderFBOTexture(Window& window) const {
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    const Frustum::Mode frustum =
+    const FrustumMode frustum =
         (window.stereoMode() == Window::StereoMode::Active) ?
-        Frustum::Mode::StereoLeftEye :
-        Frustum::Mode::MonoEye;
+        FrustumMode::StereoLeft :
+        FrustumMode::Mono;
 
     const ivec2 size = ivec2 {
         static_cast<int>(std::ceil(window.scale().x * window.resolution().x)),
@@ -1220,18 +1203,15 @@ void Engine::renderFBOTexture(Window& window) const {
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         window.bindStereoShaderProgram(
-            window.frameBufferTextureEye(Window::Eye::MonoOrLeft),
-            window.frameBufferTextureEye(Window::Eye::Right)
+            window.frameBufferTextureEye(Eye::MonoOrLeft),
+            window.frameBufferTextureEye(Eye::Right)
         );
 
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
     }
     else {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(
-            GL_TEXTURE_2D,
-            window.frameBufferTextureEye(Window::Eye::MonoOrLeft)
-        );
+        glBindTexture(GL_TEXTURE_2D, window.frameBufferTextureEye(Eye::MonoOrLeft));
 
         _fboQuad.bind();
         maskShaderSet = true;
@@ -1249,13 +1229,10 @@ void Engine::renderFBOTexture(Window& window) const {
             setAndClearBuffer(
                 window,
                 BufferMode::BackBufferBlack,
-                Frustum::Mode::StereoRightEye
+                FrustumMode::StereoRight
             );
 
-            glBindTexture(
-                GL_TEXTURE_2D,
-                window.frameBufferTextureEye(Window::Eye::Right)
-            );
+            glBindTexture(GL_TEXTURE_2D, window.frameBufferTextureEye(Eye::Right));
             std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
         }
     }
@@ -1303,9 +1280,7 @@ void Engine::renderFBOTexture(Window& window) const {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
-                             Window::Eye eye) const
-{
+void Engine::renderViewports(const Window& window, FrustumMode frustum, Eye eye) const {
     ZoneScoped;
 
     OffScreenBuffer* fbo = window.fbo();
@@ -1435,7 +1410,7 @@ void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
 
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
-    if (!isSplitScreen || frustum != Frustum::Mode::StereoLeftEye) {
+    if (!isSplitScreen || frustum != FrustumMode::StereoLeft) {
         ZoneScopedN("PostFX/Blit");
 
         updateRenderingTargets(window, eye);
@@ -1446,14 +1421,14 @@ void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
         render2D(window, frustum);
         if (isSplitScreen) {
             // render left eye info and graph to render 2D items after post fx
-            render2D(window, Frustum::Mode::StereoLeftEye);
+            render2D(window, FrustumMode::StereoLeft);
         }
     }
 
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
+void Engine::render2D(const Window& window, FrustumMode frustum) const {
     ZoneScoped;
 
     // draw viewport overlays if any
@@ -1495,7 +1470,7 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
     }
 }
 
-void Engine::renderFXAA(const Window& window, Window::Eye eye) const {
+void Engine::renderFXAA(const Window& window, Eye eye) const {
     ZoneScoped;
 
     assert(_fxaa.has_value());
@@ -1616,16 +1591,15 @@ void Engine::updateFrustums() const {
                 continue;
             }
 
-            using Mode = Frustum::Mode;
-            vp->calculateFrustum(Mode::MonoEye, _nearClipPlane, _farClipPlane);
-            vp->calculateFrustum(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
-            vp->calculateFrustum(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
+            vp->calculateFrustum(FrustumMode::Mono, _nearClipPlane, _farClipPlane);
+            vp->calculateFrustum(FrustumMode::StereoLeft, _nearClipPlane, _farClipPlane);
+            vp->calculateFrustum(FrustumMode::StereoRight, _nearClipPlane, _farClipPlane);
         }
     }
 }
 
 void Engine::blitWindowViewport(const Window& prevWindow, const Window& window,
-                                const Viewport& viewport, Frustum::Mode mode) const
+                                const Viewport& viewport, FrustumMode mode) const
 {
     ZoneScoped;
 
@@ -1640,13 +1614,13 @@ void Engine::blitWindowViewport(const Window& prevWindow, const Window& window,
     _overlay.bind();
 
     glActiveTexture(GL_TEXTURE0);
-    const unsigned int tex = [&prevWindow](Frustum::Mode v) {
+    const unsigned int tex = [&prevWindow](FrustumMode v) {
         switch (v) {
-            case Frustum::Mode::MonoEye:
-                return prevWindow.frameBufferTextureEye(Window::Eye::MonoOrLeft);
-            case Frustum::Mode::StereoLeftEye:
-                return prevWindow.frameBufferTextureEye(Window::Eye::Right);
-            case Frustum::Mode::StereoRightEye:
+            case FrustumMode::Mono:
+                return prevWindow.frameBufferTextureEye(Eye::MonoOrLeft);
+            case FrustumMode::StereoLeft:
+                return prevWindow.frameBufferTextureEye(Eye::Right);
+            case FrustumMode::StereoRight:
                 return prevWindow.frameBufferTextureIntermediate();
             default:
                 throw std::logic_error("Missing case label");

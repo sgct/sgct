@@ -63,8 +63,7 @@ void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int f
     initShaders();
 }
 
-void NonLinearProjection::updateFrustums(Frustum::Mode mode, float nearClip,
-                                         float farClip)
+void NonLinearProjection::updateFrustums(FrustumMode mode, float nearClip, float farClip)
 {
     ZoneScoped;
 
@@ -379,8 +378,8 @@ void NonLinearProjection::blitCubeFace(int face) const {
     _cubeMapFbo->blit();
 }
 
-void NonLinearProjection::renderCubeFace(const BaseViewport& vp,
-                                         int idx, Frustum::Mode mode) const
+void NonLinearProjection::renderCubeFace(const BaseViewport& vp, int idx,
+                                         FrustumMode mode) const
 {
     if (!vp.isEnabled()) {
         return;

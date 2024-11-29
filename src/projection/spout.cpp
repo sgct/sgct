@@ -122,7 +122,7 @@ SpoutOutputProjection::~SpoutOutputProjection() {
 
 void SpoutOutputProjection::update(const vec2&) const {}
 
-void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
+void SpoutOutputProjection::render(const BaseViewport& viewport,
                                    FrustumMode frustumMode) const
 {
     ZoneScoped;
@@ -137,7 +137,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _spout[6].texture);
         _flatShader.bind();
-        window.renderScreenQuad();
+        viewport.parent()->renderScreenQuad();
         ShaderProgram::unbind();
     }
 

@@ -16,25 +16,18 @@
 #include <string_view>
 #include <vector>
 
-struct GLFWmonitor;
 struct GLFWwindow;
-
-namespace sgct::config { struct Window; }
 
 namespace sgct {
 
-class BaseViewport;
+namespace config { struct Window; }
+
 class OffScreenBuffer;
 class ScreenCapture;
 
-/**
- * Helper class for window data.
- */
 class SGCT_EXPORT Window {
 public:
-    /**
-     * Different stereo modes used for rendering.
-     */
+    /// Different stereo modes used for rendering.
     enum class StereoMode {
         NoStereo = 0,
         Active,
@@ -154,7 +147,7 @@ public:
      *
      * \param title The title of the window
      */
-    void setWindowTitle(const char* title);
+    void setWindowTitle(std::string title);
 
     /**
      * Sets the window resolution.
@@ -325,14 +318,6 @@ public:
     unsigned int frameBufferTexturePositions() const;
 
     /**
-     * This function returns the screen capture pointer if it's set otherwise nullptr.
-     *
-     * \param eye Can either be 0 (left) or 1 (right)
-     * \return Pointer to screen capture pointer
-     */
-    ScreenCapture* screenCapturePointer(Eye eye) const;
-
-    /**
      * \return The number of samples used in multisampled anti-aliasing
      */
     int numberOfAASamples() const;
@@ -411,7 +396,7 @@ public:
      */
     bool useFXAA() const;
 
-    void bindStereoShaderProgram(unsigned int leftTex, unsigned int rightTex) const;
+    void bindStereoShaderProgram() const;
 
     bool shouldCallDraw2DFunction() const;
     bool shouldCallDraw3DFunction() const;

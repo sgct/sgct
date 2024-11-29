@@ -493,8 +493,8 @@ const Network& NetworkManager::syncConnection(int index) const {
     return *_syncConnections[index];
 }
 
-void NetworkManager::updateConnectionStatus(Network* connection) {
-    Log::Debug(std::format("Updating status for connection {}", connection->id()));
+void NetworkManager::updateConnectionStatus(Network& connection) {
+    Log::Debug(std::format("Updating status for connection {}", connection.id()));
 
     int nConnections = 0;
     int nConnectedSync = 0;
@@ -572,12 +572,12 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // wake up the connection handler thread on server
-        connection->startConnectionConditionVar().notify_all();
+        connection.startConnectionConditionVar().notify_all();
     }
 
-    if (connection->type() == Network::ConnectionType::DataTransfer) {
+    if (connection.type() == Network::ConnectionType::DataTransfer) {
         if (_dataTransferStatusFn) {
-            _dataTransferStatusFn(connection->isConnected(), connection->id());
+            _dataTransferStatusFn(connection.isConnected(), connection.id());
         }
     }
 
@@ -618,7 +618,7 @@ void NetworkManager::addConnection(int port, std::string address,
     Log::Debug(std::format(
         "Initiating connection {} at port {}", _networkConnections.size(), port
     ));
-    net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
+    net->setUpdateFunction([this](Network& c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
     // must be initialized after binding

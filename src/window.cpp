@@ -355,7 +355,7 @@ void Window::initOGL() {
     }(_bufferColorBitDepth);
 
     createTextures();
-    createVBOs(); // must be created before FBO
+    createVBOs();
     createFBOs();
     initScreenCapture();
     loadShaders();
@@ -445,9 +445,9 @@ void Window::setFocused(bool state) {
     _hasFocus = state;
 }
 
-void Window::setWindowTitle(const char* title) {
+void Window::setWindowTitle(std::string title) {
     ZoneScoped;
-    glfwSetWindowTitle(_windowHandle, title);
+    glfwSetWindowTitle(_windowHandle, title.c_str());
 }
 
 void Window::setWindowResolution(ivec2 resolution) {
@@ -1253,16 +1253,12 @@ int Window::numberOfAASamples() const {
 
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
+
+    // Using the `_windowHandle` here as a standin for whether we have already initialized
+    // the window. Otherwise the `applyWindow` will call this function before the context
+    // has been created and we'll crash
     if (_windowHandle) {
         loadShaders();
-    }
-}
-
-ScreenCapture* Window::screenCapturePointer(Eye eye) const {
-    switch (eye) {
-        case Eye::MonoOrLeft: return _screenCaptureLeftOrMono.get();
-        case Eye::Right:      return _screenCaptureRight.get();
-        default:              throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -1306,14 +1302,14 @@ bool Window::useFXAA() const {
     return _useFXAA;
 }
 
-void Window::bindStereoShaderProgram(unsigned int leftTex, unsigned int rightTex) const {
+void Window::bindStereoShaderProgram() const {
     _stereo.shader.bind();
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, leftTex);
+    glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, rightTex);
+    glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
 
     glUniform1i(_stereo.leftTexLoc, 0);
     glUniform1i(_stereo.rightTexLoc, 1);

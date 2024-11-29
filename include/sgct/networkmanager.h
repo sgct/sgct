@@ -78,6 +78,8 @@ public:
     const Network& syncConnection(int index) const;
 
 private:
+    static NetworkManager* _instance;
+
     NetworkManager(NetworkMode nm,
         std::function<void(void*, int, int, int)> dataTransferDecode,
         std::function<void(bool, int)> dataTransferStatus,
@@ -90,10 +92,8 @@ private:
 
     void addConnection(int port, std::string address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
-    void updateConnectionStatus(Network* connection);
+    void updateConnectionStatus(Network& connection);
     void setAllNodesConnected();
-
-    static NetworkManager* _instance;
 
     std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
     std::function<void(bool, int)> _dataTransferStatusFn;
@@ -105,7 +105,7 @@ private:
     std::vector<Network*> _syncConnections;
     std::vector<Network*> _dataTransferConnections;
 
-    std::vector<std::string> _localAddresses; // stores this computers ip addresses
+    std::vector<std::string> _localAddresses;
 
     bool _isServer = true;
     bool _isRunning = true;

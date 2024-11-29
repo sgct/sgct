@@ -60,17 +60,17 @@ namespace {
 
 using namespace sgct;
 
-void networkConnectionUpdated(Network* conn) {
-    if (conn->isServer()) {
+void networkConnectionUpdated(Network& conn) {
+    if (conn.isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
-        conn->startConnectionConditionVar().notify_all();
+        conn.startConnectionConditionVar().notify_all();
     }
 
-    connected = conn->isConnected();
+    connected = conn.isConnected();
 
     Log::Info(std::format(
-        "Network is {}", conn->isConnected() ? "connected" : "disconneced"
+        "Network is {}", conn.isConnected() ? "connected" : "disconneced"
     ));
 }
 

@@ -111,7 +111,7 @@ void FisheyeProjection::update(const vec2& size) const {
     glBindVertexArray(0);
 }
 
-void FisheyeProjection::render(const Window& window, const BaseViewport& viewport,
+void FisheyeProjection::render(const BaseViewport& viewport,
                                FrustumMode frustumMode) const
 {
     ZoneScoped;

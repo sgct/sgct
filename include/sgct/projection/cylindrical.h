@@ -23,8 +23,7 @@ public:
         const config::CylindricalProjection& config);
     ~CylindricalProjection() final;
 
-    void render(const Window& window, const BaseViewport& viewport,
-        FrustumMode) const override;
+    void render(const BaseViewport& viewport, FrustumMode mode) const override;
 
     void renderCubemap(FrustumMode frustumMode) const override;
 

@@ -24,8 +24,7 @@ public:
         const config::EquirectangularProjection& config);
     ~EquirectangularProjection() final;
 
-    void render(const Window& window, const BaseViewport& viewport,
-        FrustumMode) const override;
+    void render(const BaseViewport& viewport, FrustumMode mode) const override;
 
     void renderCubemap(FrustumMode frustumMode) const override;
 

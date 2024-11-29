@@ -136,6 +136,67 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
     }
 }
 
+void BaseViewport::setupViewport(Frustum::Mode frustum) const {
+    ZoneScoped;
+
+    const ivec2 res = _parent->framebufferResolution();
+    ivec4 vpCoordinates = ivec4{
+        static_cast<int>(position().x * res.x),
+        static_cast<int>(position().y * res.y),
+        static_cast<int>(size().x * res.x),
+        static_cast<int>(size().y * res.y)
+    };
+
+    const Window::StereoMode sm = _parent->stereoMode();
+    if (frustum == Frustum::Mode::StereoLeftEye) {
+        switch (sm) {
+            case Window::StereoMode::SideBySide:
+                vpCoordinates.x /= 2;
+                vpCoordinates.z /= 2;
+                break;
+            case Window::StereoMode::SideBySideInverted:
+                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
+                vpCoordinates.z = vpCoordinates.z / 2;
+                break;
+            case Window::StereoMode::TopBottom:
+                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
+                vpCoordinates.w /= 2;
+                break;
+            case Window::StereoMode::TopBottomInverted:
+                vpCoordinates.y /= 2;
+                vpCoordinates.w /= 2;
+                break;
+            default:
+                break;
+        }
+    }
+    else {
+        switch (sm) {
+            case Window::StereoMode::SideBySide:
+                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
+                vpCoordinates.z /= 2;
+                break;
+            case Window::StereoMode::SideBySideInverted:
+                vpCoordinates.x /= 2;
+                vpCoordinates.z /= 2;
+                break;
+            case Window::StereoMode::TopBottom:
+                vpCoordinates.y /= 2;
+                vpCoordinates.w /= 2;
+                break;
+            case Window::StereoMode::TopBottomInverted:
+                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
+                vpCoordinates.w /= 2;
+                break;
+            default:
+                break;
+        }
+    }
+
+    glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
+    glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
+}
+
 void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                                              float farClip)
 {

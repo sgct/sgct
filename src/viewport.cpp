@@ -169,6 +169,15 @@ void Viewport::loadData() {
     );
 }
 
+void Viewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
+    if (_nonLinearProjection) {
+        _nonLinearProjection->updateFrustums(mode, nearClip, farClip);
+    }
+    else {
+        BaseViewport::calculateFrustum(mode, nearClip, farClip);
+    }
+}
+
 void Viewport::renderQuadMesh() const {
     ZoneScoped;
 

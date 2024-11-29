@@ -84,7 +84,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 {
     ZoneScoped;
 
-    Engine::instance().setupViewport(window, viewport, frustumMode);
+    viewport.setupViewport(frustumMode);
 
     const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
     const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);

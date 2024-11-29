@@ -273,14 +273,6 @@ public:
     void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
 
     /**
-     * Set the eye separation (interocular distance) for all users. This operation
-     * recalculates all frustums for all viewports.
-     *
-     * \param eyeSeparation The eye separation in meters
-     */
-    void setEyeSeparation(float eyeSeparation) const;
-
-    /**
      * This functions updates the frustum of all viewports. If a viewport is tracked, this
      * is done on the fly.
      */
@@ -413,18 +405,6 @@ public:
      * \param timeout The timeout that the master and clients will wait for in seconds
      */
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
-
-    /**
-     * Set up the current viewport, the framebuffer resolutions, windowing, and scissoring
-     * in OpenGL. This is a function that is called by internal classes of SGCT and in
-     * general does not have to be called by any external application using this library.
-     *
-     * \param window The Window object for which the viewport should be set
-     * \param viewport The viewport of the \p window that should be set
-     * \param frustum The frustum of the BaseViewport that should be set
-     */
-    void setupViewport(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustum) const;
 
     /**
      * Get swap interval for all windows.

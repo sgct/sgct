@@ -1182,7 +1182,7 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) const {
             continue;
         }
 
-        setupViewport(window, *vp, frustum);
+        vp->setupViewport(frustum);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
@@ -1385,7 +1385,7 @@ void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
 
             if (window.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
-                setupViewport(window, *vp, frustum);
+                vp->setupViewport(frustum);
                 glEnable(GL_SCISSOR_TEST);
                 setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
                 glDisable(GL_SCISSOR_TEST);
@@ -1473,7 +1473,7 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
         if (!vp->isEnabled()) {
             continue;
         }
-        setupViewport(window, *vp, frustum);
+        vp->setupViewport(frustum);
 
         if (_statisticsRenderer) {
             _statisticsRenderer->render(window, *vp);
@@ -1623,17 +1623,9 @@ void Engine::updateFrustums() const {
             }
 
             using Mode = Frustum::Mode;
-            if (vp->hasSubViewports()) {
-                NonLinearProjection& p = *vp->nonLinearProjection();
-                p.updateFrustums(Mode::MonoEye, _nearClipPlane, _farClipPlane);
-                p.updateFrustums(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
-                p.updateFrustums(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
-            }
-            else {
-                vp->calculateFrustum(Mode::MonoEye, _nearClipPlane, _farClipPlane);
-                vp->calculateFrustum(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
-                vp->calculateFrustum(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
-            }
+            vp->calculateFrustum(Mode::MonoEye, _nearClipPlane, _farClipPlane);
+            vp->calculateFrustum(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
+            vp->calculateFrustum(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
         }
     }
 }
@@ -1647,7 +1639,7 @@ void Engine::blitWindowViewport(const Window& prevWindow, const Window& window,
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    setupViewport(window, viewport, mode);
+    viewport.setupViewport(mode);
     setAndClearBuffer(window, BufferMode::RenderToTexture, mode);
     glDisable(GL_SCISSOR_TEST);
 
@@ -1671,69 +1663,6 @@ void Engine::blitWindowViewport(const Window& prevWindow, const Window& window,
     ShaderProgram::unbind();
 }
 
-void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
-                           Frustum::Mode frustum) const
-{
-    ZoneScoped;
-
-    const ivec2 res = window.framebufferResolution();
-    ivec4 vpCoordinates = ivec4 {
-        static_cast<int>(viewport.position().x * res.x),
-        static_cast<int>(viewport.position().y * res.y),
-        static_cast<int>(viewport.size().x * res.x),
-        static_cast<int>(viewport.size().y * res.y)
-    };
-
-    const Window::StereoMode sm = window.stereoMode();
-    if (frustum == Frustum::Mode::StereoLeftEye) {
-        switch (sm) {
-            case Window::StereoMode::SideBySide:
-                vpCoordinates.x /= 2;
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::SideBySideInverted:
-                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
-                vpCoordinates.z = vpCoordinates.z / 2;
-                break;
-            case Window::StereoMode::TopBottom:
-                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
-                vpCoordinates.w /= 2;
-                break;
-            case Window::StereoMode::TopBottomInverted:
-                vpCoordinates.y /= 2;
-                vpCoordinates.w /= 2;
-                break;
-            default:
-                break;
-        }
-    }
-    else {
-        switch (sm) {
-            case Window::StereoMode::SideBySide:
-                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::SideBySideInverted:
-                vpCoordinates.x /= 2;
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::TopBottom:
-                vpCoordinates.y /= 2;
-                vpCoordinates.w /= 2;
-                break;
-            case Window::StereoMode::TopBottomInverted:
-                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
-                vpCoordinates.w /= 2;
-                break;
-            default:
-                break;
-        }
-    }
-
-    glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
-    glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
-}
-
 const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }
@@ -1750,16 +1679,6 @@ void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClipp
 {
     _nearClipPlane = nearClippingPlane;
     _farClipPlane = farClippingPlane;
-    updateFrustums();
-}
-
-void Engine::setEyeSeparation(float eyeSeparation) const {
-    const Node& thisNode = ClusterManager::instance().thisNode();
-    for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-        for (const std::unique_ptr<Viewport>& vp : window->viewports()) {
-            vp->user().setEyeSeparation(eyeSeparation);
-        }
-    }
     updateFrustums();
 }
 

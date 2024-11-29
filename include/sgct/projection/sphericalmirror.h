@@ -36,7 +36,7 @@ public:
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(const Window& window, Frustum::Mode frustumMode) const override;
+    void renderCubemap(Frustum::Mode frustumMode) const override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is

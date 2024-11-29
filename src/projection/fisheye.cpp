@@ -171,9 +171,7 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     glDepthFunc(GL_LESS);
 }
 
-void FisheyeProjection::renderCubemap(const Window& window,
-                                      Frustum::Mode frustumMode) const
-{
+void FisheyeProjection::renderCubemap(Frustum::Mode frustumMode) const {
     ZoneScoped;
 
     switch (frustumMode) {
@@ -191,15 +189,12 @@ void FisheyeProjection::renderCubemap(const Window& window,
             break;
     }
 
-    auto render = [this](const Window& win, const BaseViewport& vp, int idx,
-                         Frustum::Mode mode)
-    {
+    auto render = [this](const BaseViewport& vp, int idx, Frustum::Mode mode) {
         if (!vp.isEnabled()) {
             return;
         }
 
-        renderCubeFace(win, vp, idx, mode);
-
+        renderCubeFace(vp, idx, mode);
 
         // re-calculate depth values from a cube to spherical model
         if (Engine::instance().useDepthTexture()) {
@@ -238,7 +233,7 @@ void FisheyeProjection::renderCubemap(const Window& window,
             glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
             glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
 
-            win.renderScreenQuad();
+            vp.parent()->renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -247,12 +242,12 @@ void FisheyeProjection::renderCubemap(const Window& window,
         }
     };
 
-    render(window, _subViewports.right, 0, frustumMode);
-    render(window, _subViewports.left, 1, frustumMode);
-    render(window, _subViewports.bottom, 2, frustumMode);
-    render(window, _subViewports.top, 3, frustumMode);
-    render(window, _subViewports.front, 4, frustumMode);
-    render(window, _subViewports.back, 5, frustumMode);
+    render(_subViewports.right, 0, frustumMode);
+    render(_subViewports.left, 1, frustumMode);
+    render(_subViewports.bottom, 2, frustumMode);
+    render(_subViewports.top, 3, frustumMode);
+    render(_subViewports.front, 4, frustumMode);
+    render(_subViewports.back, 5, frustumMode);
 }
 
 void FisheyeProjection::setDomeDiameter(float diameter) {

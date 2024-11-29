@@ -40,7 +40,7 @@ public:
 
     virtual void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustumMode) const = 0;
-    virtual void renderCubemap(const Window& window, Frustum::Mode frustumMode) const = 0;
+    virtual void renderCubemap(Frustum::Mode frustumMode) const = 0;
     virtual void update(const vec2& size) const = 0;
 
     virtual void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
@@ -91,8 +91,7 @@ protected:
 
     void attachTextures(int face) const;
     void blitCubeFace(int face) const;
-    void renderCubeFace(const Window& win, const BaseViewport& vp, int idx,
-        Frustum::Mode mode) const;
+    void renderCubeFace(const BaseViewport& vp, int idx, Frustum::Mode mode) const;
 
     struct {
         unsigned int cubeMapColor = 0;

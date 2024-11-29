@@ -253,20 +253,16 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     }
 }
 
-void SpoutOutputProjection::renderCubemap(const Window& window,
-                                          Frustum::Mode frustumMode) const
-{
+void SpoutOutputProjection::renderCubemap(Frustum::Mode frustumMode) const {
     ZoneScoped;
 
-    auto render = [this](const Window& win, const BaseViewport& vp, int idx,
-                         Frustum::Mode mode)
-    {
+    auto render = [this](const BaseViewport& vp, int idx, Frustum::Mode mode) {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
             return;
         }
 
         const int safeIdx = idx % 6;
-        renderCubeFace(win, vp, safeIdx, mode);
+        renderCubeFace(vp, safeIdx, mode);
 
 
         // re-calculate depth values from a cube to spherical model
@@ -306,7 +302,7 @@ void SpoutOutputProjection::renderCubemap(const Window& window,
             glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
             glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
 
-            win.renderScreenQuad();
+            vp.parent()->renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -353,13 +349,13 @@ void SpoutOutputProjection::renderCubemap(const Window& window,
         }
     };
 
-    render(window, _mainViewport, 6, frustumMode);
-    render(window, _subViewports.right, 0, frustumMode);
-    render(window, _subViewports.left, 1, frustumMode);
-    render(window, _subViewports.bottom, 2, frustumMode);
-    render(window, _subViewports.top, 3, frustumMode);
-    render(window, _subViewports.front, 4, frustumMode);
-    render(window, _subViewports.back, 5, frustumMode);
+    render(_mainViewport, 6, frustumMode);
+    render(_subViewports.right, 0, frustumMode);
+    render(_subViewports.left, 1, frustumMode);
+    render(_subViewports.bottom, 2, frustumMode);
+    render(_subViewports.top, 3, frustumMode);
+    render(_subViewports.front, 4, frustumMode);
+    render(_subViewports.back, 5, frustumMode);
 }
 
 void SpoutOutputProjection::setSpoutChannels(bool right, bool zLeft, bool bottom,

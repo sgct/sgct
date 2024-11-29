@@ -379,7 +379,7 @@ void NonLinearProjection::blitCubeFace(int face) const {
     _cubeMapFbo->blit();
 }
 
-void NonLinearProjection::renderCubeFace(const Window& win, const BaseViewport& vp,
+void NonLinearProjection::renderCubeFace(const BaseViewport& vp,
                                          int idx, Frustum::Mode mode) const
 {
     if (!vp.isEnabled()) {
@@ -392,7 +392,7 @@ void NonLinearProjection::renderCubeFace(const Window& win, const BaseViewport& 
     }
 
     const RenderData renderData = {
-        win,
+        *vp.parent(),
         vp,
         mode,
         ClusterManager::instance().sceneTransform(),

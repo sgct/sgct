@@ -284,6 +284,10 @@ float BaseViewport::horizontalFieldOfViewDegrees() const {
     return (glm::degrees(std::atan(std::abs(xDist / zDist)))) * 2.f;
 }
 
+const Window* BaseViewport::parent() const {
+    return _parent;
+}
+
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
     if (hFov == horizontalFieldOfViewDegrees()) {
         // The old field of view is the same as the new one, so there is nothing to do

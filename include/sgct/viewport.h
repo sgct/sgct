@@ -47,19 +47,10 @@ public:
     void applyViewport(const sgct::config::Viewport& viewport);
     void loadData();
 
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to.
-     */
+    void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) override;
+
     void renderQuadMesh() const;
-
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to.
-     */
     void renderWarpMesh() const;
-
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to.
-     */
     void renderMaskMesh() const;
 
     bool hasOverlayTexture() const;

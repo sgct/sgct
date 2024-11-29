@@ -50,7 +50,8 @@ public:
     bool isEnabled() const;
     void linkUserName();
 
-    void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip);
+    virtual void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip);
+    void setupViewport(Frustum::Mode frustum) const;
 
     /**
      * Make projection symmetric relative to user.

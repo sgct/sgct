@@ -98,7 +98,7 @@ struct SGCT_EXPORT mat4 {
         values[3 * 4 + 2] = 0.f;
         values[3 * 4 + 3] = v;
     }
-    float values[16];
+    float values[16] = {};
 };
 
 SGCT_EXPORT mat4 operator*(const mat4& m1, const mat4& m2);

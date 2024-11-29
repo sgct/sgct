@@ -770,6 +770,9 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
         glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_NONE);
+        if (_noError) {
+            glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+        }
 
 #ifdef __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);

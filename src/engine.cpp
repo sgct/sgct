@@ -9,6 +9,7 @@
 #include <sgct/engine.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
+#include <sgct/config.h>
 #include <sgct/error.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
@@ -19,7 +20,6 @@
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
-#include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -222,7 +222,19 @@ config::Cluster loadCluster(std::optional<std::filesystem::path> path) {
     if (path) {
         assert(std::filesystem::exists(*path) && std::filesystem::is_regular_file(*path));
         try {
-            return readConfig(*path);
+            Log::Debug(std::format("Parsing config '{}'", *path));
+            config::Cluster cluster = readConfig(*path);
+
+            Log::Debug("Config file read successfully");
+            Log::Info(std::format("Number of nodes: {}", cluster.nodes.size()));
+
+            for (size_t i = 0; i < cluster.nodes.size(); i++) {
+                const config::Node& node = cluster.nodes[i];
+                Log::Info(std::format(
+                    "\tNode ({}) address: {} [{}]", i, node.address, node.port
+                ));
+            }
+            return cluster;
         }
         catch (const std::runtime_error& e) {
             std::cout << e.what() << '\n';

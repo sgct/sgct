@@ -61,12 +61,11 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     _meshFilename = viewport.correctionMeshTexture.value_or(_meshFilename);
     _isTracked = viewport.isTracked.value_or(_isTracked);
     if (viewport.eye) {
-        const Frustum::Mode eye = [](config::Viewport::Eye e) {
-            using Mode = Frustum::Mode;
+        const FrustumMode eye = [](config::Viewport::Eye e) {
             switch (e) {
-                case config::Viewport::Eye::Mono: return Mode::MonoEye;
-                case config::Viewport::Eye::StereoLeft: return Mode::StereoLeftEye;
-                case config::Viewport::Eye::StereoRight: return Mode::StereoRightEye;
+                case config::Viewport::Eye::Mono: return FrustumMode::Mono;
+                case config::Viewport::Eye::StereoLeft: return FrustumMode::StereoLeft;
+                case config::Viewport::Eye::StereoRight: return FrustumMode::StereoRight;
                 default: throw std::logic_error("Unhandled case label");
             }
         }(*viewport.eye);
@@ -169,7 +168,7 @@ void Viewport::loadData() {
     );
 }
 
-void Viewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
+void Viewport::calculateFrustum(FrustumMode mode, float nearClip, float farClip) {
     if (_nonLinearProjection) {
         _nonLinearProjection->updateFrustums(mode, nearClip, farClip);
     }

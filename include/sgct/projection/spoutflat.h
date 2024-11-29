@@ -30,8 +30,8 @@ public:
     virtual ~SpoutFlatProjection() override;
 
     virtual void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) const override;
-    virtual void renderCubemap(Frustum::Mode frustumMode) const override;
+        FrustumMode frustumMode) const override;
+    virtual void renderCubemap(FrustumMode frustumMode) const override;
     virtual void update(const vec2& size) const override;
 
     void setSpoutMappingName(std::string name);

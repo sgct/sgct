@@ -13,7 +13,7 @@
 #include <sgct/actions.h>
 #include <sgct/callbackdata.h>
 #include <sgct/config.h>
-#include <sgct/frustum.h>
+#include <sgct/definitions.h>
 #include <sgct/joystick.h>
 #include <sgct/keys.h>
 #include <sgct/modifiers.h>
@@ -55,6 +55,7 @@ SGCT_EXPORT config::Cluster loadCluster(
  * \return The number of seconds since the program started
  */
 SGCT_EXPORT double time();
+
 
 /**
  * The Engine class is the central part of SGCT and handles most of the callbacks,
@@ -552,7 +553,7 @@ private:
      * \param window The Window object for which the overlays should be drawn
      * \param frustum The frustum for which the overlay should be drawn
      */
-    void drawOverlays(const Window& window, Frustum::Mode frustum) const;
+    void drawOverlays(const Window& window, FrustumMode frustum) const;
 
     /**
      * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
@@ -569,7 +570,7 @@ private:
      * \param window The Window object for which the FXAA operation should be performed
      * \param eye The eye that should be rendered
      */
-    void renderFXAA(const Window& window, Window::Eye eye) const;
+    void renderFXAA(const Window& window, Eye eye) const;
 
     /**
      * Causes all of the viewports of the provided \p window be rendered with the
@@ -579,8 +580,7 @@ private:
      * \param frustum The frustum that should be used to render the viewports
      * \param eye The eye that should be rendered
      */
-    void renderViewports(const Window& window, Frustum::Mode frustum,
-        Window::Eye eye) const;
+    void renderViewports(const Window& window, FrustumMode frustum, Eye eye) const;
 
     /**
      * This function renders stats, OSD and overlays of the provided \p window and using
@@ -589,7 +589,7 @@ private:
      * \param window The Window into of which the 2D rendering should be performed
      * \param frustum The frustum that should be used to render the 2D component
      */
-    void render2D(const Window& window, Frustum::Mode frustum) const;
+    void render2D(const Window& window, FrustumMode frustum) const;
 
     /**
      * This function waits for all windows to be created on the whole cluster in order to
@@ -613,7 +613,7 @@ private:
      * \pre The \p prevWindow and \p window must be different Window objects
      */
     void blitWindowViewport(const Window& prevWindow, const Window& window,
-        const Viewport& viewport, Frustum::Mode mode) const;
+        const Viewport& viewport, FrustumMode mode) const;
 
     /// The function pointer that is called before any windows are created
     std::function<void()> _preWindowFn;

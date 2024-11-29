@@ -31,12 +31,12 @@ public:
      * Render the non linear projection to currently bounded FBO.
      */
     void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) const override;
+        FrustumMode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(Frustum::Mode frustumMode) const override;
+    void renderCubemap(FrustumMode frustumMode) const override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is

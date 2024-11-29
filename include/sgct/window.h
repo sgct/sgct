@@ -63,8 +63,6 @@ public:
         Depth32UInt
     };
 
-    enum class Eye { MonoOrLeft, Right };
-
     void applyWindow(const config::Window& window);
 
     /**

@@ -47,7 +47,7 @@ public:
     void applyViewport(const sgct::config::Viewport& viewport);
     void loadData();
 
-    void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) override;
+    void calculateFrustum(FrustumMode mode, float nearClip, float farClip) override;
 
     void renderQuadMesh() const;
     void renderWarpMesh() const;

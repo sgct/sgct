@@ -13,7 +13,7 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
-#include <sgct/frustum.h>
+#include <sgct/definitions.h>
 #include <sgct/math.h>
 
 namespace sgct {
@@ -25,9 +25,9 @@ public:
     ~EquirectangularProjection() final;
 
     void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode) const override;
+        FrustumMode) const override;
 
-    void renderCubemap(Frustum::Mode frustumMode) const override;
+    void renderCubemap(FrustumMode frustumMode) const override;
 
     void update(const vec2& size) const override;
 

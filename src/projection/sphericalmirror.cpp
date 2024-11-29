@@ -80,7 +80,7 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
 void SphericalMirrorProjection::update(const vec2&) const {}
 
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode) const
+                                       FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -122,7 +122,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void SphericalMirrorProjection::renderCubemap(Frustum::Mode frustumMode) const {
+void SphericalMirrorProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     auto renderInternal = [this, frustumMode](const BaseViewport& bv, unsigned int t) {
@@ -293,7 +293,7 @@ void SphericalMirrorProjection::initViewports() {
 }
 
 void SphericalMirrorProjection::initShaders() {
-    if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
+    if (_isStereo || _preferedMonoFrustumMode != FrustumMode::Mono) {
         // if any frustum mode other than Mono (or stereo)
         Log::Warning("Stereo not supported in spherical projection");
     }

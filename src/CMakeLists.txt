@@ -43,13 +43,13 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/commandline.h
     ${PROJECT_SOURCE_DIR}/include/sgct/config.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/definitions.h
     ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
     ${PROJECT_SOURCE_DIR}/include/sgct/error.h
     ${PROJECT_SOURCE_DIR}/include/sgct/format.h
     ${PROJECT_SOURCE_DIR}/include/sgct/font.h
     ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/frustum.h
     ${PROJECT_SOURCE_DIR}/include/sgct/image.h
     ${PROJECT_SOURCE_DIR}/include/sgct/internalshaders.h
     ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h

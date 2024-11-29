@@ -76,7 +76,7 @@ CylindricalProjection::~CylindricalProjection() {
 }
 
 void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
-                                   Frustum::Mode frustumMode) const
+                                   FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -115,7 +115,7 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glDepthFunc(GL_LESS);
 }
 
-void CylindricalProjection::renderCubemap(Frustum::Mode frustumMode) const {
+void CylindricalProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     renderCubeFace(_subViewports.right, 0, frustumMode);

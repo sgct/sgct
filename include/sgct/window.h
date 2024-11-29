@@ -65,18 +65,6 @@ public:
 
     enum class Eye { MonoOrLeft, Right };
 
-    /**
-     * The different texture indexes in window buffers.
-     */
-    enum class TextureIndex {
-        LeftEye = 0,
-        RightEye,
-        Intermediate,
-        Depth,
-        Normals,
-        Positions
-    };
-
     void applyWindow(const config::Window& window);
 
     /**
@@ -332,13 +320,11 @@ public:
      */
     int id() const;
 
-    /**
-     * Get a frame buffer texture. If the texture doesn't exists then it will be created.
-     *
-     * \param index Index or Engine::TextureIndex enum
-     * \return The texture index of selected frame buffer texture
-     */
-    unsigned int frameBufferTexture(TextureIndex index) const;
+    unsigned int frameBufferTextureEye(Eye eye) const;
+    unsigned int frameBufferTextureIntermediate() const;
+    unsigned int frameBufferTextureDepth() const;
+    unsigned int frameBufferTextureNormals() const;
+    unsigned int frameBufferTexturePositions() const;
 
     /**
      * This function returns the screen capture pointer if it's set otherwise nullptr.

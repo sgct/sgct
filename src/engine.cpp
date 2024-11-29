@@ -119,7 +119,7 @@ namespace {
         }
     }
 
-    void updateRenderingTargets(const Window& win, Window::TextureIndex ti) {
+    void updateRenderingTargets(const Window& win, Window::Eye eye) {
         ZoneScoped;
 
         // copy AA-buffer to "regular" / non-AA buffer
@@ -132,22 +132,22 @@ namespace {
         fbo->bindBlit();
 
         // update attachments
-        fbo->attachColorTexture(win.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
+        fbo->attachColorTexture(win.frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
 
         if (Engine::instance().useDepthTexture()) {
-            fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
+            fbo->attachDepthTexture(win.frameBufferTextureDepth());
         }
 
         if (Engine::instance().useNormalTexture()) {
             fbo->attachColorTexture(
-                win.frameBufferTexture(Window::TextureIndex::Normals),
+                win.frameBufferTextureNormals(),
                 GL_COLOR_ATTACHMENT1
             );
         }
 
         if (Engine::instance().usePositionTexture()) {
             fbo->attachColorTexture(
-                win.frameBufferTexture(Window::TextureIndex::Positions),
+                win.frameBufferTexturePositions(),
                 GL_COLOR_ATTACHMENT2
             );
         }
@@ -1046,7 +1046,7 @@ void Engine::exec() {
                 renderViewports(
                     *win,
                     Frustum::Mode::MonoEye,
-                    Window::TextureIndex::LeftEye
+                    Window::Eye::MonoOrLeft
                 );
 
                 // if we are not rendering in stereo, we are done
@@ -1056,7 +1056,7 @@ void Engine::exec() {
                 renderViewports(
                     *win,
                     Frustum::Mode::StereoLeftEye,
-                    Window::TextureIndex::LeftEye
+                    Window::Eye::MonoOrLeft
                 );
             }
 
@@ -1076,14 +1076,14 @@ void Engine::exec() {
                 renderViewports(
                     *win,
                     Frustum::Mode::StereoRightEye,
-                    Window::TextureIndex::LeftEye
+                    Window::Eye::MonoOrLeft
                 );
             }
             else {
                 renderViewports(
                     *win,
                     Frustum::Mode::StereoRightEye,
-                    Window::TextureIndex::RightEye
+                    Window::Eye::Right
                 );
             }
         }
@@ -1220,8 +1220,8 @@ void Engine::renderFBOTexture(Window& window) const {
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         window.bindStereoShaderProgram(
-            window.frameBufferTexture(Window::TextureIndex::LeftEye),
-            window.frameBufferTexture(Window::TextureIndex::RightEye)
+            window.frameBufferTextureEye(Window::Eye::MonoOrLeft),
+            window.frameBufferTextureEye(Window::Eye::Right)
         );
 
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
@@ -1230,7 +1230,7 @@ void Engine::renderFBOTexture(Window& window) const {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(
             GL_TEXTURE_2D,
-            window.frameBufferTexture(Window::TextureIndex::LeftEye)
+            window.frameBufferTextureEye(Window::Eye::MonoOrLeft)
         );
 
         _fboQuad.bind();
@@ -1254,7 +1254,7 @@ void Engine::renderFBOTexture(Window& window) const {
 
             glBindTexture(
                 GL_TEXTURE_2D,
-                window.frameBufferTexture(Window::TextureIndex::RightEye)
+                window.frameBufferTextureEye(Window::Eye::Right)
             );
             std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
         }
@@ -1304,7 +1304,7 @@ void Engine::renderFBOTexture(Window& window) const {
 }
 
 void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
-                             Window::TextureIndex ti) const
+                             Window::Eye eye) const
 {
     ZoneScoped;
 
@@ -1315,22 +1315,19 @@ void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
     }
 
     // update attachments
-    fbo->attachColorTexture(window.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
+    fbo->attachColorTexture(window.frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
 
     if (Engine::instance().useDepthTexture()) {
-        fbo->attachDepthTexture(window.frameBufferTexture(Window::TextureIndex::Depth));
+        fbo->attachDepthTexture(window.frameBufferTextureDepth());
     }
 
     if (Engine::instance().useNormalTexture()) {
-        fbo->attachColorTexture(
-            window.frameBufferTexture(Window::TextureIndex::Normals),
-            GL_COLOR_ATTACHMENT1
-        );
+        fbo->attachColorTexture(window.frameBufferTextureNormals(), GL_COLOR_ATTACHMENT1);
     }
 
     if (Engine::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            window.frameBufferTexture(Window::TextureIndex::Positions),
+            window.frameBufferTexturePositions(),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1441,9 +1438,9 @@ void Engine::renderViewports(const Window& window, Frustum::Mode frustum,
     if (!isSplitScreen || frustum != Frustum::Mode::StereoLeftEye) {
         ZoneScopedN("PostFX/Blit");
 
-        updateRenderingTargets(window, ti);
+        updateRenderingTargets(window, eye);
         if (window.useFXAA()) {
-            renderFXAA(window, ti);
+            renderFXAA(window, eye);
         }
 
         render2D(window, frustum);
@@ -1498,7 +1495,7 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) const {
     }
 }
 
-void Engine::renderFXAA(const Window& window, Window::TextureIndex targetIndex) const {
+void Engine::renderFXAA(const Window& window, Window::Eye eye) const {
     ZoneScoped;
 
     assert(_fxaa.has_value());
@@ -1506,7 +1503,7 @@ void Engine::renderFXAA(const Window& window, Window::TextureIndex targetIndex) 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     // bind target FBO
     window.fbo()->attachColorTexture(
-        window.frameBufferTexture(targetIndex),
+        window.frameBufferTextureEye(eye),
         GL_COLOR_ATTACHMENT0
     );
 
@@ -1517,10 +1514,7 @@ void Engine::renderFXAA(const Window& window, Window::TextureIndex targetIndex) 
 
     glActiveTexture(GL_TEXTURE0);
 
-    glBindTexture(
-        GL_TEXTURE_2D,
-        window.frameBufferTexture(Window::TextureIndex::Intermediate)
-    );
+    glBindTexture(GL_TEXTURE_2D, window.frameBufferTextureIntermediate());
 
     _fxaa->shader.bind();
     glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
@@ -1646,18 +1640,19 @@ void Engine::blitWindowViewport(const Window& prevWindow, const Window& window,
     _overlay.bind();
 
     glActiveTexture(GL_TEXTURE0);
-    const Window::TextureIndex m = [](Frustum::Mode v) {
+    const unsigned int tex = [&prevWindow](Frustum::Mode v) {
         switch (v) {
-            // @TODO (abock, 2019-09-27) Yep, I'm confused about this mapping, too. But I
-            // just took the enumerations values as they were and I assume that it was an
-            // undetected bug
-            case Frustum::Mode::MonoEye: return Window::TextureIndex::LeftEye;
-            case Frustum::Mode::StereoLeftEye: return Window::TextureIndex::RightEye;
-            case Frustum::Mode::StereoRightEye: return Window::TextureIndex::Intermediate;
-            default: throw std::logic_error("Unhandled case label");
+            case Frustum::Mode::MonoEye:
+                return prevWindow.frameBufferTextureEye(Window::Eye::MonoOrLeft);
+            case Frustum::Mode::StereoLeftEye:
+                return prevWindow.frameBufferTextureEye(Window::Eye::Right);
+            case Frustum::Mode::StereoRightEye:
+                return prevWindow.frameBufferTextureIntermediate();
+            default:
+                throw std::logic_error("Missing case label");
         }
     }(mode);
-    glBindTexture(GL_TEXTURE_2D, prevWindow.frameBufferTexture(m));
+    glBindTexture(GL_TEXTURE_2D, tex);
 
     window.renderScreenQuad();
     ShaderProgram::unbind();

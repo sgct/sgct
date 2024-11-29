@@ -401,18 +401,28 @@ void Window::initContextSpecificOGL() {
 #endif // SGCT_HAS_SCALABLE
 }
 
-unsigned int Window::frameBufferTexture(TextureIndex index) const {
-    ZoneScoped;
-
-    switch (index) {
-        case TextureIndex::LeftEye:      return _frameBufferTextures.leftEye;
-        case TextureIndex::RightEye:     return _frameBufferTextures.rightEye;
-        case TextureIndex::Intermediate: return _frameBufferTextures.intermediate;
-        case TextureIndex::Depth:        return _frameBufferTextures.depth;
-        case TextureIndex::Normals:      return _frameBufferTextures.normals;
-        case TextureIndex::Positions:    return _frameBufferTextures.positions;
-        default:                         throw std::logic_error("Unhandled case label");
+unsigned int Window::frameBufferTextureEye(Eye eye) const {
+    switch (eye) {
+        case Eye::MonoOrLeft: return _frameBufferTextures.leftEye;
+        case Eye::Right:      return _frameBufferTextures.rightEye;
+        default:              throw std::logic_error("Missing case label");
     }
+}
+
+unsigned int Window::frameBufferTextureIntermediate() const {
+    return _frameBufferTextures.intermediate;
+}
+
+unsigned int Window::frameBufferTextureDepth() const {
+    return _frameBufferTextures.depth;
+}
+
+unsigned int Window::frameBufferTextureNormals() const {
+    return _frameBufferTextures.normals;
+}
+
+unsigned int Window::frameBufferTexturePositions() const {
+    return _frameBufferTextures.positions;
 }
 
 void Window::setVisible(bool state) {

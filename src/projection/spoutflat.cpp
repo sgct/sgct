@@ -51,6 +51,17 @@ namespace {
 SpoutFlatProjection::SpoutFlatProjection(const Window* parent, User* user,
                                                 const config::SpoutFlatProjection& config)
     : NonLinearProjection(parent)
+    , _mappingName(config.mappingSpoutName)
+    , _spoutOffset(config.proj.offset.value_or(vec3(0.f, 0.f, 0.f)))
+    , _spoutDrawMain(config.drawMain.value_or(false))
+    , _spoutFov {
+        .down = config.proj.fov.down,
+        .left = config.proj.fov.left,
+        .right = config.proj.fov.right,
+        .up = config.proj.fov.up,
+        .distance = config.proj.fov.distance.value_or(10.f)
+    }
+    , _spoutOrientation(config.proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }))
 {
     setUser(user);
     if (config.width) {
@@ -59,18 +70,7 @@ SpoutFlatProjection::SpoutFlatProjection(const Window* parent, User* user,
     if (config.height) {
         setResolutionHeight(*config.height);
     }
-    _mappingName = config.mappingSpoutName;
     _clearColor = config.background.value_or(_clearColor);
-    _spoutDrawMain = config.drawMain.value_or(_spoutDrawMain);
-    _spoutOffset = config.proj.offset.value_or(_spoutOffset);
-    setSpoutFov(
-        config.proj.fov.up,
-        config.proj.fov.down,
-        config.proj.fov.left,
-        config.proj.fov.right,
-        config.proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
-        config.proj.fov.distance.value_or(10.f)
-    );
 }
 
 SpoutFlatProjection::~SpoutFlatProjection() {
@@ -106,17 +106,6 @@ void SpoutFlatProjection::setResolutionHeight(int resolutionY) {
 
 void SpoutFlatProjection::setSpoutMappingName(std::string name) {
     _mappingName = std::move(name);
-}
-
-void SpoutFlatProjection::setSpoutFov(float up, float down, float left, float right,
-                                      quat orientation, float distance)
-{
-    _spoutFov.up = up;
-    _spoutFov.down = down;
-    _spoutFov.left = left;
-    _spoutFov.right = right;
-    _spoutFov.distance = distance;
-    _spoutOrientation = std::move(orientation);
 }
 
 void SpoutFlatProjection::setSpoutOffset(vec3 offset) {

@@ -44,23 +44,22 @@ public:
     ScreenCapture();
     ~ScreenCapture();
 
-    void initialize(int windowIndex, EyeIndex ei);
+    /**
+     * Set the opengl texture properties for glGetTexImage.
+     * Type can be: `GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_HALF_FLOAT`, `GL_FLOAT`,
+     * `GL_SHORT`, `GL_INT`, `GL_UNSIGNED_SHORT` or `GL_UNSIGNED_INT`
+     *
+     * \param bytesPerColor The number of bytes that are stored for each color per pixel
+     */
+    void initialize(int windowIndex, EyeIndex ei, ivec2 resolution, int bytesPerColor,
+        unsigned int colorDataType);
 
     /**
      * Initializes the PBO or re-sizes it if the frame buffer size have changed.
      *
      * \param resolution The pixel resolution of the frame buffer
-     * \param channels The number of color channels
-     * \param bytesPerColor The number of bytes that are stored for each color per pixel
      */
-    void initOrResize(ivec2 resolution, int channels, int bytesPerColor);
-
-    /**
-     * Set the opengl texture properties for glGetTexImage.
-     * Type can be: `GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_HALF_FLOAT`, `GL_FLOAT`,
-     * `GL_SHORT`, `GL_INT`, `GL_UNSIGNED_SHORT` or `GL_UNSIGNED_INT`
-     */
-    void setTextureTransferProperties(unsigned int type);
+    void resize(ivec2 resolution);
 
     /**
      * This function saves the images to disc.
@@ -75,7 +74,6 @@ public:
 private:
     std::string createFilename(uint64_t frameNumber);
     int availableCaptureThread();
-    void checkImageBuffer(CaptureSource captureSource);
     Image* prepareImage(int index, std::string file);
 
     std::mutex _mutex;
@@ -83,12 +81,9 @@ private:
 
     unsigned int _nThreads;
     unsigned int _pbo = 0;
-    unsigned int _downloadFormat = 0x80E1; // GL_BGRA;
     unsigned int _downloadType = 0x1401; // GL_UNSIGNED_BYTE;
-    unsigned int _downloadTypeSetByUser = _downloadType;
     int _dataSize = 0;
     ivec2 _resolution = ivec2{ 0, 0 };
-    int _nChannels = 0;
     int _bytesPerColor = 1;
 
     EyeIndex _eyeIndex = EyeIndex::Mono;

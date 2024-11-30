@@ -38,9 +38,9 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _rotation = 0.f;
-    float _heightOffset = 0.f;
-    float _radius = 5.f;
+    float _rotation;
+    float _heightOffset;
+    float _radius;
 
     struct {
         int cubemap = -1;

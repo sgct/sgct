@@ -51,7 +51,7 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _tilt = 0.f;
+    float _tilt;
     float _diameter = 2.4f;
 
     // mesh data

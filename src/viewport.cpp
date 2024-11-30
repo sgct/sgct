@@ -30,46 +30,35 @@ namespace {
     // Helper structs for the visitor pattern of the std::variant on projections
     template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
     template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+    sgct::FrustumMode convert(sgct::config::Viewport::Eye e) {
+        using namespace sgct;
+        switch (e) {
+            case config::Viewport::Eye::Mono:        return FrustumMode::Mono;
+            case config::Viewport::Eye::StereoLeft:  return FrustumMode::StereoLeft;
+            case config::Viewport::Eye::StereoRight: return FrustumMode::StereoRight;
+            default:                       throw std::logic_error("Unhandled case label");
+        }
+    }
 } // namespace
 
 namespace sgct {
 
-Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
-
-Viewport::~Viewport() = default;
-
-void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-                          unsigned int format, unsigned int type, int samples)
+Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
+    : BaseViewport(parent)
+    , _overlayFilename(viewport.overlayTexture.value_or(std::filesystem::path()))
+    , _blendMaskFilename(viewport.blendMaskTexture.value_or(std::filesystem::path()))
+    , _blackLevelMaskFilename(
+        viewport.blackLevelMaskTexture.value_or(std::filesystem::path())
+    )
+    , _meshFilename(viewport.correctionMeshTexture.value_or(std::filesystem::path()))
+    , _isTracked(viewport.isTracked.value_or(false))
 {
-    if (_nonLinearProjection) {
-        _nonLinearProjection->setStereo(hasStereo);
-        _nonLinearProjection->initialize(internalFormat, format, type, samples);
-        _nonLinearProjection->update(std::move(size));
-    }
-}
-
-void Viewport::applyViewport(const config::Viewport& viewport) {
-    ZoneScoped;
-
     if (viewport.user) {
         setUserName(*viewport.user);
     }
-    _overlayFilename = viewport.overlayTexture.value_or(_overlayFilename);
-    _blendMaskFilename = viewport.blendMaskTexture.value_or(_blendMaskFilename);
-    _blackLevelMaskFilename =
-        viewport.blackLevelMaskTexture.value_or(_blackLevelMaskFilename);
-    _meshFilename = viewport.correctionMeshTexture.value_or(_meshFilename);
-    _isTracked = viewport.isTracked.value_or(_isTracked);
     if (viewport.eye) {
-        const FrustumMode eye = [](config::Viewport::Eye e) {
-            switch (e) {
-                case config::Viewport::Eye::Mono: return FrustumMode::Mono;
-                case config::Viewport::Eye::StereoLeft: return FrustumMode::StereoLeft;
-                case config::Viewport::Eye::StereoRight: return FrustumMode::StereoRight;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(*viewport.eye);
-        _eye = eye;
+        _eye = convert(*viewport.eye);
     }
 
     _position = viewport.position.value_or(_position);
@@ -142,6 +131,18 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
             _viewPlane.upperRight = p.upperRight;
         },
     }, viewport.projection);
+}
+
+Viewport::~Viewport() = default;
+
+void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
+                          unsigned int format, unsigned int type, int samples)
+{
+    if (_nonLinearProjection) {
+        _nonLinearProjection->setStereo(hasStereo);
+        _nonLinearProjection->initialize(internalFormat, format, type, samples);
+        _nonLinearProjection->update(std::move(size));
+    }
 }
 
 void Viewport::loadData() {

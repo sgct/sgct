@@ -36,10 +36,17 @@ namespace sgct {
 FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, User* user,
                                      const Window* parent)
     : NonLinearProjection(parent)
+    , _fov(config.fov.value_or(180.f))
+    , _tilt(config.tilt.value_or(0.f))
+    , _diameter(config.diameter.value_or(14.8f))
+    , _cropLeft(config.crop ? config.crop->left : 0.f)
+    , _cropRight(config.crop ? config.crop->right : 0.f)
+    , _cropBottom(config.crop ? config.crop->bottom : 0.f)
+    , _cropTop(config.crop ? config.crop->top : 0.f)
+    , _keepAspectRatio(config.keepAspectRatio.value_or(true))
 {
     setUser(user);
 
-    _fov = config.fov.value_or(_fov);
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
@@ -56,17 +63,10 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, Us
             }(*config.interpolation);
         setInterpolationMode(interp);
     }
-    _tilt = config.tilt.value_or(_tilt);
-    _diameter = config.diameter.value_or(_diameter);
-    if (config.crop) {
-        const config::FisheyeProjection::Crop crop = *config.crop;
-        setCropFactors(crop.left, crop.right, crop.bottom, crop.top);
-    }
     if (config.offset) {
         setBaseOffset(*config.offset);
     }
     _clearColor = config.background.value_or(_clearColor);
-    _keepAspectRatio = config.keepAspectRatio.value_or(_keepAspectRatio);
     setUseDepthTransformation(true);
 }
 

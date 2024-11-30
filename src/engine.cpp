@@ -9,18 +9,14 @@
 #include <sgct/engine.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
-#include <sgct/config.h>
 #include <sgct/error.h>
-#include <sgct/font.h>
 #include <sgct/fontmanager.h>
-#include <sgct/format.h>
-#include <sgct/freetype.h>
 #include <sgct/internalshaders.h>
+#include <sgct/log.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
-#include <sgct/screencapture.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
@@ -28,13 +24,11 @@
 #ifdef SGCT_HAS_VRPN
 #include <sgct/trackingmanager.h>
 #endif // SGCT_HAS_VRPN
-#include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <cassert>
 #include <iostream>
 #include <numeric>
-#include <cmath>
+#include <mutex>
 
 #ifdef WIN32
 #include <glad/glad_wgl.h>

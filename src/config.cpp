@@ -1893,6 +1893,12 @@ void to_json(nlohmann::json& j, const Window& w) {
 void from_json(const nlohmann::json& j, Node& n) {
     if (auto it = j.find("address");  it != j.end()) {
         it->get_to(n.address);
+        std::transform(
+            n.address.cbegin(),
+            n.address.cend(),
+            n.address.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
     }
     else {
         throw Err(6040, "Missing field address in node");

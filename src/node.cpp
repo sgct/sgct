@@ -18,28 +18,17 @@
 
 namespace sgct {
 
-void Node::applyNode(const config::Node& node, bool initializeWindows) {
+Node::Node(const config::Node& node, bool initializeWindows)
+    : _address(node.address)
+    , _syncPort(node.port)
+    , _dataTransferPort(node.dataTransferPort.value_or(0))
+    , _useSwapGroups(node.swapLock.value_or(false))
+{
     ZoneScoped;
-
-    // Set network address
-    std::string address = node.address;
-    std::transform(
-        address.cbegin(),
-        address.cend(),
-        address.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-    _address = std::move(address);
-
-    _syncPort = node.port;
-
-    _dataTransferPort = node.dataTransferPort.value_or(_dataTransferPort);
-    _useSwapGroups = node.swapLock.value_or(_useSwapGroups);
 
     if (initializeWindows) {
         for (const config::Window& window : node.windows) {
-            auto win = std::make_unique<Window>();
-            win->applyWindow(window);
+            auto win = std::make_unique<Window>(window);
             addWindow(std::move(win));
         }
     }

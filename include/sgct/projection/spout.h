@@ -82,15 +82,15 @@ private:
     std::unique_ptr<OffScreenBuffer> _spoutFBO;
 
     struct SpoutInfo {
-        bool enabled = true;
-        void* handle = nullptr;
-        unsigned int texture = 0;
+        bool enabled;
+        void* handle;
+        unsigned int texture;
     };
     std::array<SpoutInfo, NTextures> _spout;
 
     void* _mappingHandle = nullptr;
     unsigned int _mappingTexture = 0;
-    Mapping _mappingType = Mapping::Cubemap;
+    Mapping _mappingType;
     std::string _mappingName = "SPOUT_OS_MAPPING";
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
 

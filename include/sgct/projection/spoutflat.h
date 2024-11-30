@@ -36,8 +36,6 @@ public:
     void setSpoutMappingName(std::string name);
     void setResolutionWidth(int resolutionX);
     void setResolutionHeight(int resolutionY);
-    void setSpoutFov(float up, float down, float left, float right, quat orientation,
-        float distance);
     void setSpoutOffset(vec3 offset);
     void setSpoutDrawMain(bool drawMain);
 
@@ -64,7 +62,7 @@ protected:
         unsigned int depthSwap = 0;
     } _textureIdentifiers;
 
-    std::string _mappingName = "SPOUT_SGCT_MAPPING";
+    std::string _mappingName;
     SPOUTHANDLE _mappingHandle = nullptr;
     int _resolutionX = 1280;
     int _resolutionY = 720;
@@ -78,8 +76,8 @@ protected:
         float distance = 0.f;
     };
     FOV _spoutFov;
-    quat _spoutOrientation = quat(0.f, 0.f, 0.f, 1.f);
-    vec3 _spoutOffset = vec3(0.f, 0.f, 0.f);
+    quat _spoutOrientation;
+    vec3 _spoutOffset;
     bool _spoutDrawMain = false;
 
     std::unique_ptr<OffScreenBuffer> _spoutFbo;

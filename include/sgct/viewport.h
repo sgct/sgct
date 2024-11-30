@@ -38,13 +38,12 @@ class NonLinearProjection;
  */
 class SGCT_EXPORT Viewport final : public BaseViewport {
 public:
-    Viewport(const Window* parent);
+    Viewport(const config::Viewport& viewport, const Window* parent);
     ~Viewport() override;
 
     void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
         unsigned int format, unsigned int type, int samples);
 
-    void applyViewport(const sgct::config::Viewport& viewport);
     void loadData();
 
     void calculateFrustum(FrustumMode mode, float nearClip, float farClip) override;
@@ -69,7 +68,7 @@ private:
     std::filesystem::path _blendMaskFilename;
     std::filesystem::path _blackLevelMaskFilename;
     std::filesystem::path _meshFilename;
-    bool _isTracked = false;
+    bool _isTracked;
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;
     unsigned int _blackLevelMaskTextureIndex = 0;

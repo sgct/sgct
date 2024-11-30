@@ -56,7 +56,9 @@ public:
         Depth32UInt
     };
 
-    void applyWindow(const config::Window& window);
+    Window(const config::Window& window);
+
+    static void makeSharedContextCurrent();
 
     /**
      * Init Nvidia swap groups if supported by hardware. Supported hardware is NVidia
@@ -73,15 +75,7 @@ public:
     static bool isUsingSwapGroups();
     static unsigned int swapGroupFrameNumber();
 
-    static void makeSharedContextCurrent();
-
-    Window() = default;
     ~Window() = default;
-
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    Window& operator=(const Window&) = delete;
-    Window& operator=(Window&&) = delete;
 
     void close();
 
@@ -138,23 +132,11 @@ public:
     void setRenderWhileHidden(bool state);
 
     /**
-     * Set the focued flag for this window (should not be done by user).
-     */
-    void setFocused(bool state);
-
-    /**
      * Set the window title.
      *
      * \param title The title of the window
      */
     void setWindowTitle(std::string title);
-
-    /**
-     * Sets the window resolution.
-     *
-     * \param resolution The width and height of the window in pixels
-     */
-    void setWindowResolution(ivec2 resolution);
 
     /**
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
@@ -163,13 +145,6 @@ public:
      * \param resolution The width and height of the frame buffer in pixels
      */
     void setFramebufferResolution(ivec2 resolution);
-
-    /**
-     * Set this window's position in screen coordinates.
-     *
-     * \param positions The horizontal and vertical position in pixels
-    */
-    void setWindowPosition(ivec2 positions);
 
     /**
      * Set if fullscreen mode should be used.
@@ -216,13 +191,6 @@ public:
      * Set if FXAA should be used.
      */
     void setUseFXAA(bool state);
-
-    /**
-     * Use quad buffer (hardware stereoscopic rendering). This function can only be used
-     * before the window is created. The quad buffer feature is only supported on
-     * professional CAD graphics cards such as Nvidia Quadro or AMD/ATI FireGL.
-     */
-    void setUseQuadbuffer(bool state);
 
     /**
      * Set if the specifed Draw2D function pointer should be called for this window.
@@ -362,11 +330,6 @@ public:
     ivec2 framebufferResolution() const;
 
     /**
-     * \return Get the initial window resolution
-     */
-    ivec2 initialResolution() const;
-
-    /**
      * \return Get the scale value (relation between pixel and point size). Normally this
      *         value is 1.f but 2.f on some retina computers.
      */
@@ -376,11 +339,6 @@ public:
      * \return The aspect ratio of the window
      */
     float aspectRatio() const;
-
-    /**
-     * \return Get the frame buffer bytes per color component (BPCC) count
-     */
-    int framebufferBPCC() const;
 
     void renderScreenQuad() const;
 
@@ -414,6 +372,11 @@ public:
 private:
     enum class TextureType { Color, Depth, Normal, Position };
 
+    Window(const Window&) = delete;
+    Window(Window&&) = delete;
+    Window& operator=(const Window&) = delete;
+    Window& operator=(Window&&) = delete;
+
     void initWindowResolution(ivec2 resolution);
 
     void initScreenCapture();
@@ -444,44 +407,44 @@ private:
     bool useRightEyeTexture() const;
 
     std::string _name;
+    int _id = -1;
     std::vector<std::string> _tags;
 
-    bool _isVisible = true;
-    bool _shouldRenderWhileHidden = false;
+    bool _hideMouseCursor;
+    bool _takeScreenshot;
+    bool _hasCallDraw2DFunction;
+    bool _hasCallDraw3DFunction;
+    bool _isFullScreen;
+    bool _shouldAutoiconify;
+    bool _isFloating;
+    bool _shouldRenderWhileHidden;
+    int _nAASamples;
+    bool _useFXAA;
+    bool _isDecorated;
+    bool _isResizable;
+    bool _isMirrored;
+    int _blitWindowId;
+    int _monitorIndex;
+    bool _mirrorX;
+    bool _mirrorY;
+    bool _noError;
+    bool _isVisible;
+    ColorBitDepth _bufferColorBitDepth;
+    StereoMode _stereoMode;
+    std::optional<ivec2> _windowPos;
+
     bool _hasFocus = false;
     bool _useFixResolution = false;
-    bool _isWindowResolutionSet = false;
-    bool _hasCallDraw2DFunction = true;
-    bool _hasCallDraw3DFunction = true;
-    int _blitWindowId = -1;
-    bool _mirrorX = false;
-    bool _mirrorY = false;
-    bool _useQuadBuffer = false;
-    bool _isFullScreen = false;
-    bool _shouldAutoiconify = false;
-    bool _hideMouseCursor = false;
-    bool _isFloating = false;
-    bool _takeScreenshot = true;
-    bool _setWindowPos = false;
-    bool _isDecorated = true;
-    bool _isResizable = true;
-    bool _isMirrored = false;
-    bool _noError = false;
     ivec2 _framebufferRes = ivec2{ 512, 256 };
-    ivec2 _windowInitialRes = ivec2{ 640, 480 };
     std::optional<ivec2> _pendingWindowRes;
+    bool _windowResChanged = false;
     std::optional<ivec2> _pendingFramebufferRes;
-    ivec2 _windowRes = ivec2{ 640, 480 };
-    ivec2 _windowPos = ivec2{ 0, 0 };
-    ivec2 _windowResOld = ivec2{ 640, 480 };
-    int _monitorIndex = 0;
+    std::optional<ivec2> _windowRes;
     GLFWwindow* _windowHandle = nullptr;
     float _aspectRatio = 1.f;
     vec2 _scale = vec2{ 0.f, 0.f };
 
-    bool _useFXAA = false;
 
-    ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
     unsigned int _internalColorFormat = 0x8814; // = GL_RGBA32F
     unsigned int _colorDataType = 0x1406; // = GL_FLOAT
     int _bytesPerColor = 4;
@@ -498,9 +461,6 @@ private:
     std::unique_ptr<ScreenCapture> _screenCaptureLeftOrMono;
     std::unique_ptr<ScreenCapture> _screenCaptureRight;
 
-    StereoMode _stereoMode = StereoMode::NoStereo;
-    int _nAASamples = 1;
-    int _id = -1;
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;

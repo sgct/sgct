@@ -48,6 +48,21 @@ namespace {
         float s;
         float t;
     };
+
+    sgct::SpoutOutputProjection::Mapping convert(
+                                           sgct::config::SpoutOutputProjection::Mapping m)
+    {
+        switch (m) {
+            case sgct::config::SpoutOutputProjection::Mapping::Fisheye:
+                return sgct::SpoutOutputProjection::Mapping::Fisheye;
+            case sgct::config::SpoutOutputProjection::Mapping::Equirectangular:
+                return sgct::SpoutOutputProjection::Mapping::Equirectangular;
+            case sgct::config::SpoutOutputProjection::Mapping::Cubemap:
+                return sgct::SpoutOutputProjection::Mapping::Cubemap;
+            default:
+                throw std::logic_error("Unhandled case label");
+        }
+    }
 } // namespace
 
 namespace sgct {
@@ -56,39 +71,26 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
                                               const config::SpoutOutputProjection& config)
     : NonLinearProjection(parent)
     , _mainViewport(parent)
+    , _mappingType(
+        convert(config.mapping.value_or(config::SpoutOutputProjection::Mapping::Cubemap))
+    )
+    , _mappingName(config.mappingSpoutName)
+    , _spout {
+        SpoutInfo { config.channels ? config.channels->right : true, nullptr, 0 },
+        SpoutInfo { config.channels ? config.channels->left : true, nullptr, 0 },
+        SpoutInfo { config.channels ? config.channels->bottom : true, nullptr, 0 },
+        SpoutInfo { config.channels ? config.channels->top : true, nullptr, 0 },
+        SpoutInfo { config.channels ? config.channels->zLeft : true, nullptr, 0 },
+        SpoutInfo { config.channels ? config.channels->zRight : true, nullptr, 0 },
+        SpoutInfo { config.drawMain.value_or(true), nullptr, 0 }
+    }
+    , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
 {
     setUser(user);
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
-    if (config.mapping) {
-        SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
-            switch (m) {
-                case config::SpoutOutputProjection::Mapping::Fisheye:
-                    return SpoutOutputProjection::Mapping::Fisheye;
-                case config::SpoutOutputProjection::Mapping::Equirectangular:
-                    return SpoutOutputProjection::Mapping::Equirectangular;
-                case config::SpoutOutputProjection::Mapping::Cubemap:
-                    return SpoutOutputProjection::Mapping::Cubemap;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(*config.mapping);
-        setSpoutMapping(m);
-    }
-    _mappingName = config.mappingSpoutName;
     _clearColor = config.background.value_or(_clearColor);
-    config::SpoutOutputProjection::Channels c =
-        config.channels.value_or(config::SpoutOutputProjection::Channels());
-    _spout[0].enabled = c.right;
-    _spout[1].enabled = c.left;
-    _spout[2].enabled = c.bottom;
-    _spout[3].enabled = c.top;
-    _spout[4].enabled = c.zLeft;
-    _spout[5].enabled = c.zRight;
-
-    _rigOrientation = config.orientation.value_or(_rigOrientation);
-
-    _spout[6].enabled = config.drawMain.value_or(_spout[6].enabled);
 }
 
 SpoutOutputProjection::~SpoutOutputProjection() {

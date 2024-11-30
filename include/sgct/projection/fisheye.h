@@ -99,16 +99,16 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _fov = 180.f;
-    float _tilt = 0.f;
-    float _diameter = 14.8f;
-    float _cropLeft = 0.f;
-    float _cropRight = 0.f;
-    float _cropBottom = 0.f;
-    float _cropTop = 0.f;
+    float _fov;
+    float _tilt;
+    float _diameter;
+    float _cropLeft;
+    float _cropRight;
+    float _cropBottom;
+    float _cropTop;
 
     bool _ignoreAspectRatio = false;
-    bool _keepAspectRatio = true;
+    bool _keepAspectRatio;
 
     mutable bool _isOffAxis = false;
     mutable vec3 _offset = vec3{ 0.f, 0.f, 0.f };

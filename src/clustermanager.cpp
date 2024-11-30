@@ -178,12 +178,12 @@ int ClusterManager::thisNodeId() const {
     return _thisNodeId;
 }
 
-bool ClusterManager::firmFrameLockSyncStatus() const {
-    return _firmFrameLockSync;
-}
-
 void ClusterManager::setFirmFrameLockSyncStatus(bool state) {
     _firmFrameLockSync = state;
+}
+
+bool ClusterManager::firmFrameLockSyncStatus() const {
+    return _firmFrameLockSync;
 }
 
 } // namespace sgct

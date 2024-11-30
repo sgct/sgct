@@ -117,8 +117,6 @@ private:
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 
-
-
     // shader locations
     struct {
         int cubemap = -1;

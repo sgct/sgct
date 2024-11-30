@@ -193,6 +193,10 @@ namespace {
 
 namespace sgct {
 
+int Network::lastError() {
+    return SGCT_ERRNO;
+}
+
 Network::Network(int port, const std::string& address, bool isServer, ConnectionType t)
     : _socket(INVALID_SOCKET)
     , _listenSocket(INVALID_SOCKET)
@@ -477,10 +481,6 @@ void Network::setRecvFrame(int i) {
     _currentRecvFrame = i;
     _isUpdated = true;
     _timeStampTotal = time() - _timeStampSend;
-}
-
-int Network::lastError() {
-    return SGCT_ERRNO;
 }
 
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,

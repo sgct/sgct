@@ -45,17 +45,6 @@ public:
         TopBottomInverted
     };
 
-    enum class ColorBitDepth {
-        Depth8,
-        Depth16,
-        Depth16Float,
-        Depth32Float,
-        Depth16Int,
-        Depth32Int,
-        Depth16UInt,
-        Depth32UInt
-    };
-
     Window(const config::Window& window);
 
     static void makeSharedContextCurrent();
@@ -379,8 +368,6 @@ private:
 
     void initWindowResolution(ivec2 resolution);
 
-    void initScreenCapture();
-
     /**
      * This function creates textures that will act as FBO targets.
      */
@@ -429,7 +416,6 @@ private:
     bool _mirrorY;
     bool _noError;
     bool _isVisible;
-    ColorBitDepth _bufferColorBitDepth;
     StereoMode _stereoMode;
     std::optional<ivec2> _windowPos;
 
@@ -445,9 +431,9 @@ private:
     vec2 _scale = vec2{ 0.f, 0.f };
 
 
-    unsigned int _internalColorFormat = 0x8814; // = GL_RGBA32F
-    unsigned int _colorDataType = 0x1406; // = GL_FLOAT
-    int _bytesPerColor = 4;
+    const unsigned int _internalColorFormat;
+    const unsigned int _colorDataType;
+    const int _bytesPerColor = 4;
 
     struct {
         unsigned int leftEye = 0;

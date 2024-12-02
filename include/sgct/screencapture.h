@@ -41,18 +41,9 @@ public:
         bool isRunning = false; // needed for test if running without join
     };
 
-    ScreenCapture();
-    ~ScreenCapture();
-
-    /**
-     * Set the opengl texture properties for glGetTexImage.
-     * Type can be: `GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_HALF_FLOAT`, `GL_FLOAT`,
-     * `GL_SHORT`, `GL_INT`, `GL_UNSIGNED_SHORT` or `GL_UNSIGNED_INT`
-     *
-     * \param bytesPerColor The number of bytes that are stored for each color per pixel
-     */
-    void initialize(int windowIndex, EyeIndex ei, ivec2 resolution, int bytesPerColor,
+    ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei, int bytesPerColor,
         unsigned int colorDataType);
+    ~ScreenCapture();
 
     /**
      * Initializes the PBO or re-sizes it if the frame buffer size have changed.
@@ -86,8 +77,8 @@ private:
     ivec2 _resolution = ivec2{ 0, 0 };
     int _bytesPerColor = 1;
 
-    EyeIndex _eyeIndex = EyeIndex::Mono;
-    int _windowIndex = 0;
+    const EyeIndex _eyeIndex;
+    const Window& _window;
 };
 
 } // namespace sgct

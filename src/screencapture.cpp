@@ -19,16 +19,24 @@
 #include <cstring>
 #include <string>
 
-// @TODO (abock, 2019-12-01) This class might want a complete overhaul; right now, there
-// is one instance of this class for each window, and it might be better to replace it
-// with a global version that keeps threads usable by all windows of the application
-
 namespace sgct {
 
-ScreenCapture::ScreenCapture()
+ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
+                             int bytesPerColor, unsigned int colorDataType)
     : _nThreads(Engine::instance().numberCaptureThreads())
+    , _downloadType(colorDataType)
+    , _bytesPerColor(bytesPerColor)
+    , _eyeIndex(ei)
+    , _window(window)
 {
-    ZoneScoped;
+    _captureInfos.resize(_nThreads);
+    for (unsigned int i = 0; i < _nThreads; i++) {
+        _captureInfos[i].frameBufferImage = nullptr;
+        _captureInfos[i].captureThread = nullptr;
+        _captureInfos[i].mutex = &_mutex;
+        _captureInfos[i].isRunning = false;
+    }
+    Log::Debug(std::format("Number of screencapture threads is set to {}", _nThreads));
 }
 
 ScreenCapture::~ScreenCapture() {
@@ -45,29 +53,6 @@ ScreenCapture::~ScreenCapture() {
     }
 
     glDeleteBuffers(1, &_pbo);
-}
-
-void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei,
-                               ivec2 resolution, int bytesPerColor,
-                               unsigned int colorDataType)
-{
-    _eyeIndex = ei;
-
-    _captureInfos.resize(_nThreads);
-    for (unsigned int i = 0; i < _nThreads; i++) {
-        _captureInfos[i].frameBufferImage = nullptr;
-        _captureInfos[i].captureThread = nullptr;
-        _captureInfos[i].mutex = &_mutex;
-        _captureInfos[i].isRunning = false;
-    }
-    _windowIndex = windowIndex;
-
-    Log::Debug(std::format("Number of screencapture threads is set to {}", _nThreads));
-
-    _bytesPerColor = bytesPerColor;
-    _downloadType = colorDataType;
-
-    resize(resolution);
 }
 
 void ScreenCapture::resize(ivec2 resolution) {
@@ -119,11 +104,10 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
 
     std::string file = createFilename(number);
 
-    const Window& win = *Engine::instance().windows()[_windowIndex];
     const ivec2 res =
         capSrc == CaptureSource::Texture ?
-        win.framebufferResolution() :
-        win.resolution();
+        _window.framebufferResolution() :
+        _window.resolution();
     if (_resolution.x != res.x && _resolution.y != res.y) {
         resize(res);
     }
@@ -140,7 +124,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
 
     if (capSrc == CaptureSource::Texture) {
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, _downloadType, nullptr);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, _downloadType, nullptr);
     }
     else {
         // set the target framebuffer to read
@@ -160,7 +144,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         const ivec2& s = imPtr->size();
         const GLsizei w = static_cast<GLsizei>(s.x);
         const GLsizei h = static_cast<GLsizei>(s.y);
-        glReadPixels(0, 0, w, h, GL_RGB, _downloadType, nullptr);
+        glReadPixels(0, 0, w, h, GL_BGR, _downloadType, nullptr);
     }
 
     unsigned char* ptr = reinterpret_cast<unsigned char*>(
@@ -223,13 +207,8 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += std::format("node{}_", ClusterManager::instance().thisNodeId());
     }
     if (Engine::instance().addWindowNameToScreenshot()) {
-        const Window& w = *Engine::instance().windows()[_windowIndex];
-        if (w.name().empty()) {
-            file += std::format("win{}", _windowIndex);
-        }
-        else {
-            file += w.name();
-        }
+        file +=
+            _window.name().empty() ? std::format("win{}", _window.id()) : _window.name();
         file += '_';
     }
 

@@ -86,21 +86,50 @@ namespace {
         }
     }
 
-    sgct::Window::ColorBitDepth convert(sgct::config::Window::ColorBitDepth cbd) {
+    unsigned int colorBitDepthToColorFormat(sgct::config::Window::ColorBitDepth cbd) {
         using CBD = sgct::config::Window::ColorBitDepth;
         switch (cbd) {
-            case CBD::Depth8: return sgct::Window::ColorBitDepth::Depth8;
-            case CBD::Depth16: return sgct::Window::ColorBitDepth::Depth16;
-            case CBD::Depth16Float: return sgct::Window::ColorBitDepth::Depth16Float;
-            case CBD::Depth32Float: return sgct::Window::ColorBitDepth::Depth32Float;
-            case CBD::Depth16Int: return sgct::Window::ColorBitDepth::Depth16Int;
-            case CBD::Depth32Int: return sgct::Window::ColorBitDepth::Depth32Int;
-            case CBD::Depth16UInt: return sgct::Window::ColorBitDepth::Depth16UInt;
-            case CBD::Depth32UInt: return sgct::Window::ColorBitDepth::Depth32UInt;
+            case CBD::Depth8:       return GL_RGBA8;
+            case CBD::Depth16:      return GL_RGBA16;
+            case CBD::Depth16Float: return GL_RGBA16F;
+            case CBD::Depth32Float: return GL_RGBA32F;
+            case CBD::Depth16Int:   return GL_RGBA16I;
+            case CBD::Depth32Int:   return GL_RGBA32I;
+            case CBD::Depth16UInt:  return GL_RGBA16UI;
+            case CBD::Depth32UInt:  return GL_RGBA32UI;
             default: throw std::logic_error("Unhandled case label");
         }
     }
 
+    unsigned int colorBitDepthToDataType(sgct::config::Window::ColorBitDepth cbd) {
+        using CBD = sgct::config::Window::ColorBitDepth;
+        switch (cbd) {
+            case CBD::Depth8:       return GL_UNSIGNED_BYTE;
+            case CBD::Depth16:      return GL_UNSIGNED_SHORT;
+            case CBD::Depth16Float: return GL_HALF_FLOAT;
+            case CBD::Depth32Float: return GL_FLOAT;
+            case CBD::Depth16Int:   return GL_SHORT;
+            case CBD::Depth32Int:   return GL_INT;
+            case CBD::Depth16UInt:  return GL_UNSIGNED_SHORT;
+            case CBD::Depth32UInt:  return GL_UNSIGNED_INT;
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }
+
+    unsigned int colorBitDepthToBytesPerColor(sgct::config::Window::ColorBitDepth cbd) {
+        using CBD = sgct::config::Window::ColorBitDepth;
+        switch (cbd) {
+            case CBD::Depth8:       return 1;
+            case CBD::Depth16:      return 2;
+            case CBD::Depth16Float: return 2;
+            case CBD::Depth32Float: return 4;
+            case CBD::Depth16Int:   return 2;
+            case CBD::Depth32Int:   return 4;
+            case CBD::Depth16UInt:  return 2;
+            case CBD::Depth32UInt:  return 4;
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }
 } // namespace
 
 namespace sgct {
@@ -175,10 +204,9 @@ void Window::resetSwapGroupFrameNumber() {
 }
 
 void Window::setBarrier(bool state) {
+#ifdef WIN32
     if (_useSwapGroups && state != _isBarrierActive) {
         Log::Info("Enabling Nvidia swap barrier");
-
-#ifdef WIN32
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
 #endif // WIN32
     }
@@ -193,16 +221,14 @@ bool Window::isUsingSwapGroups() {
 }
 
 unsigned int Window::swapGroupFrameNumber() {
-#ifdef WIN32
     unsigned int frameNumber = 0;
+#ifdef WIN32
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
         HDC hDC = wglGetCurrentDC();
         wglQueryFrameCountNV(hDC, &frameNumber);
     }
-    return frameNumber;
-#else // ^^^^ WIN32 // !WIN32 vvvv
-    return 0;
 #endif // WIN32
+    return frameNumber;
 }
 
 Window::Window(const config::Window& window)
@@ -228,11 +254,17 @@ Window::Window(const config::Window& window)
     , _mirrorY(window.mirrorY.value_or(false))
     , _noError(window.noError.value_or(false))
     , _isVisible(!window.isHidden.value_or(false))
-    , _bufferColorBitDepth(
-        convert(window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8))
-    )
     , _stereoMode(convert(window.stereo.value_or(config::Window::StereoMode::NoStereo)))
     , _windowPos(window.pos)
+    , _internalColorFormat(colorBitDepthToColorFormat(
+        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
+    ))
+    , _colorDataType(colorBitDepthToDataType(
+        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
+    ))
+    , _bytesPerColor(colorBitDepthToBytesPerColor(
+        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
+    ))
 {
     ZoneScoped;
 
@@ -404,26 +436,23 @@ void Window::close() {
 void Window::initOGL() {
     ZoneScoped;
 
-    std::tie(_internalColorFormat, _colorDataType, _bytesPerColor) = 
-        [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
-    {
-        switch (bd) {
-            case ColorBitDepth::Depth8:      return { GL_RGBA8, GL_UNSIGNED_BYTE, 1 };
-            case ColorBitDepth::Depth16:     return { GL_RGBA16, GL_UNSIGNED_SHORT, 2 };
-            case ColorBitDepth::Depth16Float: return { GL_RGBA16F, GL_HALF_FLOAT, 2};
-            case ColorBitDepth::Depth32Float: return { GL_RGBA32F, GL_FLOAT, 4 };
-            case ColorBitDepth::Depth16Int:  return { GL_RGBA16I, GL_SHORT, 2 };
-            case ColorBitDepth::Depth32Int:  return { GL_RGBA32I, GL_INT, 2 };
-            case ColorBitDepth::Depth16UInt: return { GL_RGBA16UI, GL_UNSIGNED_SHORT, 2 };
-            case ColorBitDepth::Depth32UInt: return { GL_RGBA32UI, GL_UNSIGNED_INT, 4 };
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }(_bufferColorBitDepth);
-
     createTextures();
     createVBOs();
     createFBOs();
-    initScreenCapture();
+
+    const ivec2 res =
+        Engine::instance().captureFromBackBuffer() ?
+        resolution() :
+        framebufferResolution();
+
+    if (_screenCaptureLeftOrMono) {
+        _screenCaptureLeftOrMono->resize(res);
+    }
+
+    if (_screenCaptureRight) {
+        _screenCaptureRight->resize(res);
+    }
+
     loadShaders();
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
@@ -870,9 +899,30 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
 
-    _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>();
-    if (useRightEyeTexture()) {
-        _screenCaptureRight = std::make_unique<ScreenCapture>();
+    const bool captureBackBuffer = Engine::instance().captureFromBackBuffer();
+    int bytesPerColor = captureBackBuffer ? 1 : _bytesPerColor;
+    unsigned int colorDataType = captureBackBuffer ? GL_UNSIGNED_BYTE : _colorDataType;
+    if (!useRightEyeTexture()) {
+        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::Mono,
+            bytesPerColor,
+            colorDataType
+        );
+    }
+    else {
+        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::StereoLeft,
+            bytesPerColor,
+            colorDataType
+        );
+        _screenCaptureRight = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::Mono,
+            bytesPerColor,
+            colorDataType
+        );
     }
     _finalFBO = std::make_unique<OffScreenBuffer>();
 
@@ -930,24 +980,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         // swap the buffers and update the window
         ZoneScopedN("glfwSwapBuffers");
         glfwSwapBuffers(_windowHandle);
-    }
-}
-
-void Window::initScreenCapture() {
-    const bool captureBackBuffer = Engine::instance().captureFromBackBuffer();
-    const ivec2 res = captureBackBuffer ? resolution() : framebufferResolution();
-    int bytesPerColor = captureBackBuffer ? 1 : _bytesPerColor;
-    unsigned int colorDataType = captureBackBuffer ? GL_UNSIGNED_BYTE : _colorDataType;
-
-    using EyeIndex = ScreenCapture::EyeIndex;
-    if (_screenCaptureLeftOrMono) {
-        const EyeIndex ei = useRightEyeTexture() ? EyeIndex::StereoLeft : EyeIndex::Mono;
-        _screenCaptureLeftOrMono->initialize(_id, ei, res, bytesPerColor, colorDataType);
-    }
-
-    if (_screenCaptureRight) {
-        const EyeIndex ei = EyeIndex::StereoRight;
-        _screenCaptureRight->initialize(_id, ei, res, bytesPerColor, colorDataType);
     }
 }
 

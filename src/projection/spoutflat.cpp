@@ -123,7 +123,7 @@ void SpoutFlatProjection::initTextures() {
         _resolutionX, _resolutionY, _textureIdentifiers.spoutColor
     ));
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         generateMap(
             _textureIdentifiers.spoutDepth,
             GL_DEPTH_COMPONENT32,
@@ -161,7 +161,7 @@ void SpoutFlatProjection::initTextures() {
         }
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         generateMap(_textureIdentifiers.spoutNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{0}x{1} normal spout texture (id: {2}) generated",
@@ -169,7 +169,7 @@ void SpoutFlatProjection::initTextures() {
         ));
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         generateMap(_textureIdentifiers.spoutPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{0}x{1} position spout texture ({2}) generated",
@@ -253,7 +253,7 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
 }
 
 void SpoutFlatProjection::attachTextures(int) const {
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _spoutFbo->attachDepthTexture(_textureIdentifiers.depthSwap);
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.colorSwap,
@@ -267,14 +267,14 @@ void SpoutFlatProjection::attachTextures(int) const {
         );
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.spoutNormals,
             GL_COLOR_ATTACHMENT1
         );
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.spoutPositions,
             GL_COLOR_ATTACHMENT2

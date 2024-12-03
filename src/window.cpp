@@ -1077,15 +1077,15 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
     // update attachments
     _finalFBO->attachColorTexture(frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _finalFBO->attachDepthTexture(frameBufferTextureDepth());
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         _finalFBO->attachColorTexture(frameBufferTextureNormals(), GL_COLOR_ATTACHMENT1);
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         _finalFBO->attachColorTexture(
             frameBufferTexturePositions(),
             GL_COLOR_ATTACHMENT2
@@ -1207,18 +1207,18 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
                 GL_COLOR_ATTACHMENT0
             );
 
-            if (Engine::instance().settings().textures.useDepthTexture) {
+            if (Engine::instance().settings().useDepthTexture) {
                 _finalFBO->attachDepthTexture(frameBufferTextureDepth());
             }
 
-            if (Engine::instance().settings().textures.useNormalTexture) {
+            if (Engine::instance().settings().useNormalTexture) {
                 _finalFBO->attachColorTexture(
                     frameBufferTextureNormals(),
                     GL_COLOR_ATTACHMENT1
                 );
             }
 
-            if (Engine::instance().settings().textures.usePositionTexture) {
+            if (Engine::instance().settings().usePositionTexture) {
                 _finalFBO->attachColorTexture(
                     frameBufferTexturePositions(),
                     GL_COLOR_ATTACHMENT2
@@ -1502,16 +1502,16 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (_useFXAA) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 

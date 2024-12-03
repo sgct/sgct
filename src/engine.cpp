@@ -80,6 +80,7 @@ namespace {
     Engine::Settings createSettings(config::Cluster cluster, const Configuration& config)
     {
         Engine::Settings res;
+
         res.capture.nCaptureThreads =
             config.nCaptureThreads.value_or(res.capture.nCaptureThreads);
         res.createDebugContext =
@@ -97,12 +98,12 @@ namespace {
                     res.swapInterval
                 );
             }
-            res.textures.useDepthTexture =
-                cluster.settings->useDepthTexture.value_or(res.textures.useDepthTexture);
-            res.textures.useNormalTexture =
-                cluster.settings->useNormalTexture.value_or(res.textures.useNormalTexture);
-            res.textures.usePositionTexture =
-                cluster.settings->usePositionTexture.value_or(res.textures.usePositionTexture);
+            res.useDepthTexture =
+                cluster.settings->useDepthTexture.value_or(res.useDepthTexture);
+            res.useNormalTexture =
+                cluster.settings->useNormalTexture.value_or(res.useNormalTexture);
+            res.usePositionTexture =
+                cluster.settings->usePositionTexture.value_or(res.usePositionTexture);
         }
         if (cluster.capture) {
             res.capture.capturePath =
@@ -1133,25 +1134,6 @@ unsigned int Engine::screenShotNumber() const {
 void Engine::setCapturePath(std::filesystem::path path) {
     _settings.capture.capturePath = std::move(path);
     setScreenshotNumber(0);
-}
-
-Engine::DrawBufferType Engine::drawBufferType() const {
-    if (_settings.textures.usePositionTexture) {
-        if (_settings.textures.useNormalTexture) {
-            return DrawBufferType::DiffuseNormalPosition;
-        }
-        else {
-            return DrawBufferType::DiffusePosition;
-        }
-    }
-    else {
-        if (_settings.textures.useNormalTexture) {
-            return DrawBufferType::DiffuseNormal;
-        }
-        else {
-            return DrawBufferType::Diffuse;
-        }
-    }
 }
 
 void Engine::setCaptureFromBackBuffer(bool state) {

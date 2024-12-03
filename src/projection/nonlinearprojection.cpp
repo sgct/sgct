@@ -124,7 +124,7 @@ void NonLinearProjection::initTextures() {
         _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapColor
     ));
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         generateCubeMap(
             _textures.cubeMapDepth,
             GL_DEPTH_COMPONENT32,
@@ -157,7 +157,7 @@ void NonLinearProjection::initTextures() {
         }
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         generateCubeMap(_textures.cubeMapNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{}x{} normal cube map texture (id: {}) generated",
@@ -165,7 +165,7 @@ void NonLinearProjection::initTextures() {
         ));
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         generateCubeMap(_textures.cubeMapPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
         Log::Debug(std::format(
             "{}x{} position cube map texture ({}) generated",
@@ -342,7 +342,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
 }
 
 void NonLinearProjection::attachTextures(int face) const {
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
     }
@@ -354,7 +354,7 @@ void NonLinearProjection::attachTextures(int face) const {
         );
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapNormals,
             face,
@@ -362,7 +362,7 @@ void NonLinearProjection::attachTextures(int face) const {
         );
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapPositions,
             face,

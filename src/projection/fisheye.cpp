@@ -130,19 +130,19 @@ void FisheyeProjection::render(const BaseViewport& viewport,
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
         glUniform1i(_shaderLoc.positionCubemap, 3);
@@ -197,7 +197,7 @@ void FisheyeProjection::renderCubemap(FrustumMode frustumMode) const {
         renderCubeFace(vp, idx, mode);
 
         // re-calculate depth values from a cube to spherical model
-        if (Engine::instance().settings().textures.useDepthTexture) {
+        if (Engine::instance().settings().useDepthTexture) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
@@ -596,61 +596,57 @@ void FisheyeProjection::initShaders() {
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
     const std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
-                                               Engine::DrawBufferType type)
+                                               bool useNormal, bool usePosition)
     {
         // It would be nice to do a multidimensional switch statement -.-
 
-        constexpr auto tuple = [](bool offAxis, bool depth,
-                                  Engine::DrawBufferType t) -> uint16_t
+        constexpr auto tuple = [](bool useOffAxis, bool useDepth,
+                                  bool useNormal, bool usePosition) -> uint16_t
         {
-            // Injective mapping from <bool, bool, bool, DrawBufferType> to uint16_t
-            uint16_t res = 0;
-            res += static_cast<uint8_t>(t);
-            if (offAxis) {
-                res += 1 << 11;
-            }
-            if (depth) {
-                res += 1 << 12;
-            }
-            return res;
+            // Injective mapping from <bool, bool, bool, bool.> to uint8_t
+                uint8_t value = 0;
+                value |= useOffAxis ? 0b0000 : 0b0001;
+                value |= useDepth ? 0b0000 : 0b0010;
+                value |= useNormal ? 0b0000 : 0b0100;
+                value |= usePosition ? 0b0000 : 0b1000;
+                return value;
         };
 
-        using DrawBufferType = Engine::DrawBufferType;
-        switch (tuple(isOffAxis, useDepth, type)) {
-            case tuple(true, true, DrawBufferType::Diffuse):
+        switch (tuple(isOffAxis, useDepth, useNormal, usePosition)) {
+            case tuple(true, true, false, false):
                 return shaders_fisheye::FisheyeFragOffAxisDepth;
-            case tuple(true, true, DrawBufferType::DiffuseNormal):
+            case tuple(true, true, true, false):
                 return shaders_fisheye::FisheyeFragOffAxisDepthNormal;
-            case tuple(true, true, DrawBufferType::DiffusePosition):
+            case tuple(true, true, false, true):
                 return shaders_fisheye::FisheyeFragOffAxisDepthPosition;
-            case tuple(true, true, DrawBufferType::DiffuseNormalPosition):
+            case tuple(true, true, true, true):
                 return shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
 
-            case tuple(true, false, DrawBufferType::Diffuse):
+            case tuple(true, false, false, false):
                 return shaders_fisheye::FisheyeFragOffAxis;
-            case tuple(true, false, DrawBufferType::DiffuseNormal):
+            case tuple(true, false, true, false):
                 return shaders_fisheye::FisheyeFragOffAxisNormal;
-            case tuple(true, false, DrawBufferType::DiffusePosition):
+            case tuple(true, false, false, true):
                 return shaders_fisheye::FisheyeFragOffAxisPosition;
-            case tuple(true, false, DrawBufferType::DiffuseNormalPosition):
+            case tuple(true, false, true, true):
                 return shaders_fisheye::FisheyeFragOffAxisNormalPosition;
 
-            case tuple(false, true, DrawBufferType::Diffuse):
+            case tuple(false, true, false, false):
                 return shaders_fisheye::FisheyeFragDepth;
-            case tuple(false, true, DrawBufferType::DiffuseNormal):
+            case tuple(false, true, true, false):
                 return shaders_fisheye::FisheyeFragDepthNormal;
-            case tuple(false, true, DrawBufferType::DiffusePosition):
+            case tuple(false, true, false, true):
                 return shaders_fisheye::FisheyeFragDepthPosition;
-            case tuple(false, true, DrawBufferType::DiffuseNormalPosition):
+            case tuple(false, true, true, true):
                 return shaders_fisheye::FisheyeFragDepthNormalPosition;
 
-            case tuple(false, false, DrawBufferType::Diffuse):
+            case tuple(false, false, false, false):
                 return shaders_fisheye::FisheyeFrag;
-            case tuple(false, false, DrawBufferType::DiffuseNormal):
+            case tuple(false, false, true, false):
                 return shaders_fisheye::FisheyeFragNormal;
-            case tuple(false, false, DrawBufferType::DiffusePosition):
+            case tuple(false, false, false, true):
                 return shaders_fisheye::FisheyeFragPosition;
-            case tuple(false, false, DrawBufferType::DiffuseNormalPosition):
+            case tuple(false, false, true, true):
                 return shaders_fisheye::FisheyeFragNormalPosition;
 
             default:
@@ -658,8 +654,9 @@ void FisheyeProjection::initShaders() {
         }
     }(
         _isOffAxis,
-        Engine::instance().settings().textures.useDepthTexture,
-        Engine::instance().drawBufferType()
+        Engine::instance().settings().useDepthTexture,
+        Engine::instance().settings().useNormalTexture,
+        Engine::instance().settings().usePositionTexture
     );
 
     const std::string_view samplerShader =
@@ -705,17 +702,17 @@ void FisheyeProjection::initShaders() {
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
         glUniform1i(_shaderLoc.positionCubemap, 3);
     }
@@ -730,7 +727,7 @@ void FisheyeProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,

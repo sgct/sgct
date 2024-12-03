@@ -114,7 +114,7 @@ public:
         /// Stores the configuration option whether the created OpenGL contexts should be
         /// debug contexts or regular ones. This value is only in use between the
         /// constructor and the #initialize function
-        bool createDebugContext;
+        bool createDebugContext = false;
 
         /// Sets the swap interval to be used by the application
         ///   -1 = adaptive sync(Nvidia)
@@ -136,11 +136,9 @@ public:
         /// masks and warping
         bool captureBackBuffer = false;
 
-        struct {
-            bool useDepthTexture = false;
-            bool useNormalTexture = false;
-            bool usePositionTexture = false;
-        } textures;
+        bool useDepthTexture = false;
+        bool useNormalTexture = false;
+        bool usePositionTexture = false;
 
         struct {
             /// The location where the screenshots are being saved
@@ -466,14 +464,6 @@ public:
      * \param path The path including filename without suffix
      */
     void setCapturePath(std::filesystem::path path);
-
-    enum class DrawBufferType {
-        Diffuse,
-        DiffuseNormal,
-        DiffusePosition,
-        DiffuseNormalPosition
-    };
-    DrawBufferType drawBufferType() const;
 
     /**
      * Set if capture should capture warped from backbuffer instead of texture. Backbuffer

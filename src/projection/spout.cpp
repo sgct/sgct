@@ -18,6 +18,7 @@
 #include <sgct/profiling.h>
 #include <sgct/window.h>
 #include <algorithm>
+#include <bitset>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -165,19 +166,19 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
-        if (Engine::instance().settings().textures.useDepthTexture) {
+        if (Engine::instance().settings().useDepthTexture) {
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
             glUniform1i(_shaderLoc.depthCubemap, 1);
         }
 
-        if (Engine::instance().settings().textures.useNormalTexture) {
+        if (Engine::instance().settings().useNormalTexture) {
             glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
             glUniform1i(_shaderLoc.normalCubemap, 2);
         }
 
-        if (Engine::instance().settings().textures.usePositionTexture) {
+        if (Engine::instance().settings().usePositionTexture) {
             glActiveTexture(GL_TEXTURE3);
             glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
             glUniform1i(_shaderLoc.positionCubemap, 3);
@@ -268,7 +269,7 @@ void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
 
 
         // re-calculate depth values from a cube to spherical model
-        if (Engine::instance().settings().textures.useDepthTexture) {
+        if (Engine::instance().settings().useDepthTexture) {
             std::array<GLenum, 1> buffers = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers.data()); // bind no multi-sampled
 
@@ -780,46 +781,45 @@ void SpoutOutputProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
 
-    const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    const std::string_view fragment = [](bool useDepth, Engine::DrawBufferType type) {
+
+    const std::string_view frag = [](bool useDepth, bool useNormal, bool usePosition) {
         // It would be nice to do a multidimensional switch statement -.-
 
-        constexpr auto tuple = [](bool depth, Engine::DrawBufferType t) -> uint16_t {
-            // Injective mapping from <bool, DrawBufferType> to uint16_t
-            uint16_t res = 0;
-            res += static_cast<uint8_t>(t);
-            if (depth) {
-                res += 1 << 11;
-            }
-            return res;
+        constexpr auto tuple = [](bool depth, bool normal, bool position) {
+            // Injective mapping from <bool, bool, bool> to uint8_t
+            uint8_t value = 0;
+            value |= depth ? 0b000 : 0b001;
+            value |= normal ? 0b000 : 0b010;
+            value |= position ? 0b000 : 0b100;
+            return value;
         };
 
-        using DrawBufferType = Engine::DrawBufferType;
-        switch (tuple(useDepth, type)) {
-            case tuple(true, DrawBufferType::Diffuse):
+        switch (tuple(useDepth, useNormal, usePosition)) {
+            case tuple(true, false, false):
                 return shaders_fisheye::FisheyeFragDepth;
-            case tuple(true, DrawBufferType::DiffuseNormal):
+            case tuple(true, true, false):
                 return shaders_fisheye::FisheyeFragDepthNormal;
-            case tuple(true, DrawBufferType::DiffusePosition):
+            case tuple(true, false, true):
                 return shaders_fisheye::FisheyeFragDepthPosition;
-            case tuple(true, DrawBufferType::DiffuseNormalPosition):
+            case tuple(true, true, true):
                 return shaders_fisheye::FisheyeFragDepthNormalPosition;
 
-            case tuple(false, DrawBufferType::Diffuse):
+            case tuple(false, false, false):
                 return shaders_fisheye::FisheyeFrag;
-            case tuple(false, DrawBufferType::DiffuseNormal):
+            case tuple(false, true, false):
                 return shaders_fisheye::FisheyeFragNormal;
-            case tuple(false, DrawBufferType::DiffusePosition):
+            case tuple(false, false, true):
                 return shaders_fisheye::FisheyeFragPosition;
-            case tuple(false, DrawBufferType::DiffuseNormalPosition):
+            case tuple(false, true, true):
                 return shaders_fisheye::FisheyeFragNormalPosition;
 
             default:
                 throw std::logic_error("Unhandled case label");
         }
     }(
-        Engine::instance().settings().textures.useDepthTexture,
-        Engine::instance().drawBufferType()
+        Engine::instance().settings().useDepthTexture,
+        Engine::instance().settings().useNormalTexture,
+        Engine::instance().settings().usePositionTexture
     );
 
 
@@ -834,7 +834,7 @@ void SpoutOutputProjection::initShaders() {
 
     _shader = ShaderProgram(std::move(name));
     _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(fragment, GL_FRAGMENT_SHADER);
+    _shader.addShaderSource(frag, GL_FRAGMENT_SHADER);
 
     const std::string_view samplerShaderCode = [](Mapping mappingType) {
         switch (mappingType) {
@@ -875,7 +875,7 @@ void SpoutOutputProjection::initShaders() {
     }
 
     glUniform4fv(glGetUniformLocation(_shader.id(), "bgColor"), 1, &_clearColor.x);
-    if (isCubic) {
+    if (_interpolationMode == InterpolationMode::Cubic) {
         glUniform1f(
             glGetUniformLocation(_shader.id(), "size"),
             static_cast<float>(_cubemapResolution.x)
@@ -885,17 +885,17 @@ void SpoutOutputProjection::initShaders() {
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
-    if (Engine::instance().settings().textures.useNormalTexture) {
+    if (Engine::instance().settings().useNormalTexture) {
         _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
-    if (Engine::instance().settings().textures.usePositionTexture) {
+    if (Engine::instance().settings().usePositionTexture) {
         _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
         glUniform1i(_shaderLoc.positionCubemap, 3);
     }
@@ -915,7 +915,7 @@ void SpoutOutputProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Engine::instance().settings().textures.useDepthTexture) {
+    if (Engine::instance().settings().useDepthTexture) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,

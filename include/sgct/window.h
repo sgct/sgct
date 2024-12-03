@@ -12,6 +12,7 @@
 #include <sgct/sgctexports.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
+#include <functional>
 #include <optional>
 #include <string_view>
 #include <vector>
@@ -95,6 +96,8 @@ public:
      */
     void openWindow(GLFWwindow* share, bool isLastWindow);
 
+    void draw();
+
     void makeOpenGLContextCurrent();
 
     /**
@@ -177,11 +180,6 @@ public:
     void setHorizFieldOfView(float hFovDeg);
 
     /**
-     * Set if FXAA should be used.
-     */
-    void setUseFXAA(bool state);
-
-    /**
      * Set if the specifed Draw2D function pointer should be called for this window.
      */
     void setCallDraw2DFunction(bool state);
@@ -206,22 +204,6 @@ public:
      * post-sync-pre-draw callback. GLSL shaders will be recompliled if needed.
      */
     void setStereoMode(StereoMode sm);
-
-    /**
-     * \return `true` if full screen rendering is enabled
-     */
-    bool isFullScreen() const;
-
-    /**
-     * \return `true` if full screen windows should automatically iconify when losing
-     *         focus
-     */
-    bool shouldAutoiconify() const;
-
-    /**
-     * \return `true` if window is floating/allways on top/topmost
-     */
-    bool isFloating() const;
 
     /**
      * \return `this` window's focused flag
@@ -275,11 +257,6 @@ public:
     unsigned int frameBufferTexturePositions() const;
 
     /**
-     * \return The number of samples used in multisampled anti-aliasing
-     */
-    int numberOfAASamples() const;
-
-    /**
      * \return The stereo mode
      */
     StereoMode stereoMode() const;
@@ -290,11 +267,6 @@ public:
      * effects are rendered using these dimensions.
      */
     ivec2 finalFBODimensions() const;
-
-    /**
-     * Returns pointer to FBO container.
-     */
-    OffScreenBuffer* fbo() const;
 
     /**
      * \return The pointer to GLFW window
@@ -333,30 +305,31 @@ public:
 
     void addViewport(std::unique_ptr<Viewport> vpPtr);
 
-    /**
-     * \return `true` if any masks are used
-     */
-    bool hasAnyMasks() const;
-
-    /**
-     * \return `true` if FXAA should be used
-     */
-    bool useFXAA() const;
-
-    void bindStereoShaderProgram() const;
-
-    bool shouldCallDraw2DFunction() const;
-    bool shouldCallDraw3DFunction() const;
-    int blitWindowId() const;
 
     bool shouldTakeScreenshot() const;
-
-    bool flipX() const;
-    bool flipY() const;
 
     // Returns true if this window has any settings that require a fallback on an OpenGL
     // compatibility profile
     bool needsCompatibilityProfile() const;
+
+    /**
+     * Draw viewport overlays if there are any. This function renders stats, OSD and overlays of the provided \p window and using
+      * the provided \p frustum.
+     *
+     * \param window The Window object for which the overlays should be drawn
+     * \param frustum The frustum for which the overlay should be drawn
+     */
+    void render2D(FrustumMode frustum) const;
+
+    /**
+     * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
+     * be a simple quad or a geometry correction and blending mesh.
+     *
+     * \param window The Window whose geometry should be drawn
+     */
+    void renderFBOTexture();
+
+    void updateFrustums(float nearClip, float farClip);
 
 private:
     enum class TextureType { Color, Depth, Normal, Position };
@@ -392,6 +365,42 @@ private:
     void createVBOs();
     void loadShaders();
     bool useRightEyeTexture() const;
+
+    /**
+     * Causes all of the viewports of the provided \p window be rendered with the
+     * \p frustum into the texture behind the provided \p ti texture index.
+     *
+     * \param window The window whose viewports should be rendered
+     * \param frustum The frustum that should be used to render the viewports
+     * \param eye The eye that should be rendered
+     */
+    void renderViewports(FrustumMode frustum, Eye eye) const;
+
+    /**
+     * This function combines a texture and a shader into a new texture while applying
+     * fast anti-aliasing (FXAA).
+     *
+     * \param window The Window object for which the FXAA operation should be performed
+     * \param eye The eye that should be rendered
+     */
+    void renderFXAA(Eye eye) const;
+
+
+    /**
+     * This function copies/render the result from the previous window same viewport (if
+     * it exists) into this window.
+     *
+     * \param prevWindow The source window whose content should be copied into the
+     *        \p window
+     * \param window The destination into which the contents of the \p prevWindow is
+     *        copied
+     * \param viewport The viewport of the window that should be compied
+     * \param mode The frustum that should be used to copy the window contents
+     *
+     * \pre The \p prevWindow and \p window must be different Window objects
+     */
+    void blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
+        FrustumMode mode) const;
 
     std::string _name;
     int _id = -1;
@@ -451,11 +460,24 @@ private:
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 
+    ShaderProgram _fboQuad;
+    ShaderProgram _overlay;
+
     struct {
         ShaderProgram shader;
         int leftTexLoc = -1;
         int rightTexLoc = -1;
     } _stereo;
+
+    struct FXAAShader {
+        ShaderProgram shader;
+        int sizeX = -1;
+        int sizeY = -1;
+        int subPixTrim = -1;
+        int subPixOffset = -1;
+    };
+    std::optional<FXAAShader> _fxaa;
+
 
     bool _hasAnyMasks = false;
 

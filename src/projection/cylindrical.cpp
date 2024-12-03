@@ -72,7 +72,7 @@ CylindricalProjection::CylindricalProjection(const Window* parent, User* user,
 CylindricalProjection::~CylindricalProjection() {
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
-    _shader.deleteProgram();
+    _shader.program.deleteProgram();
 }
 
 void CylindricalProjection::render(const BaseViewport& viewport,
@@ -86,11 +86,11 @@ void CylindricalProjection::render(const BaseViewport& viewport,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _shader.bind();
+    _shader.program.bind();
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // if for some reson the active texture has been reset
+    // if for some reason the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
@@ -99,9 +99,9 @@ void CylindricalProjection::render(const BaseViewport& viewport,
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shaderLoc.cubemap, 0);
-    glUniform1f(_shaderLoc.rotation, glm::radians(_rotation));
-    glUniform1f(_shaderLoc.heightOffset, _heightOffset);
+    glUniform1i(_shader.cubemap, 0);
+    glUniform1f(_shader.rotation, glm::radians(_rotation));
+    glUniform1f(_shader.heightOffset, _heightOffset);
 
 
     glBindVertexArray(_vao);
@@ -293,18 +293,18 @@ void CylindricalProjection::initViewports() {
 
 void CylindricalProjection::initShaders() {
     // reload shader program if it exists
-    _shader.deleteProgram();
+    _shader.program.deleteProgram();
 
-    _shader = ShaderProgram("CylindricalProjectionShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
-    _shader.createAndLinkProgram();
-    _shader.bind();
+    _shader.program = ShaderProgram("CylindricalProjectionShader");
+    _shader.program.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
+    _shader.program.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
+    _shader.program.createAndLinkProgram();
+    _shader.program.bind();
 
-    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemap, 0);
-    _shaderLoc.rotation = glGetUniformLocation(_shader.id(), "rotation");
-    _shaderLoc.heightOffset = glGetUniformLocation(_shader.id(), "heightOffset");
+    _shader.cubemap = glGetUniformLocation(_shader.program.id(), "cubemap");
+    glUniform1i(_shader.cubemap, 0);
+    _shader.rotation = glGetUniformLocation(_shader.program.id(), "rotation");
+    _shader.heightOffset = glGetUniformLocation(_shader.program.id(), "heightOffset");
 
     ShaderProgram::unbind();
 }

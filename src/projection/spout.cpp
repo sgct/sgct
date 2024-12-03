@@ -165,19 +165,19 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
-        if (Engine::instance().useDepthTexture()) {
+        if (Engine::instance().settings().textures.useDepthTexture) {
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
             glUniform1i(_shaderLoc.depthCubemap, 1);
         }
 
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().textures.useNormalTexture) {
             glActiveTexture(GL_TEXTURE2);
             glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
             glUniform1i(_shaderLoc.normalCubemap, 2);
         }
 
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().textures.usePositionTexture) {
             glActiveTexture(GL_TEXTURE3);
             glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
             glUniform1i(_shaderLoc.positionCubemap, 3);
@@ -268,7 +268,7 @@ void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
 
 
         // re-calculate depth values from a cube to spherical model
-        if (Engine::instance().useDepthTexture()) {
+        if (Engine::instance().settings().textures.useDepthTexture) {
             std::array<GLenum, 1> buffers = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers.data()); // bind no multi-sampled
 
@@ -817,7 +817,10 @@ void SpoutOutputProjection::initShaders() {
             default:
                 throw std::logic_error("Unhandled case label");
         }
-    }(Engine::instance().useDepthTexture(), Engine::instance().drawBufferType());
+    }(
+        Engine::instance().settings().textures.useDepthTexture,
+        Engine::instance().drawBufferType()
+    );
 
 
     std::string name = [](Mapping mapping) {
@@ -882,17 +885,17 @@ void SpoutOutputProjection::initShaders() {
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);
 
-    if (Engine::instance().useDepthTexture()) {
+    if (Engine::instance().settings().textures.useDepthTexture) {
         _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
-    if (Engine::instance().useNormalTexture()) {
+    if (Engine::instance().settings().textures.useNormalTexture) {
         _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
-    if (Engine::instance().usePositionTexture()) {
+    if (Engine::instance().settings().textures.usePositionTexture) {
         _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
         glUniform1i(_shaderLoc.positionCubemap, 3);
     }
@@ -912,7 +915,7 @@ void SpoutOutputProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Engine::instance().useDepthTexture()) {
+    if (Engine::instance().settings().textures.useDepthTexture) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,

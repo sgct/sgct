@@ -43,13 +43,14 @@ private:
     float _radius;
 
     struct {
+        ShaderProgram program;
         int cubemap = -1;
         int rotation = -1;
         int heightOffset = -1;
-    } _shaderLoc;
+    } _shader;
+
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
-    ShaderProgram _shader;
 };
 
 } // namespace sgct

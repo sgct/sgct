@@ -92,12 +92,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
         glGenRenderbuffers(1, &_colorBuffer);
 
         // generate render buffer for intermediate normal storage
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().textures.useNormalTexture) {
             glGenRenderbuffers(1, &_normalBuffer);
         }
 
         // generate render buffer for intermediate position storage
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().textures.usePositionTexture) {
             glGenRenderbuffers(1, &_positionBuffer);
         }
 
@@ -114,7 +114,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             height
         );
 
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().textures.useNormalTexture) {
             glBindRenderbuffer(GL_RENDERBUFFER, _normalBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
@@ -125,7 +125,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             );
         }
 
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().textures.usePositionTexture) {
             glBindRenderbuffer(GL_RENDERBUFFER, _positionBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
@@ -163,7 +163,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             GL_RENDERBUFFER,
             _colorBuffer
         );
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().textures.useNormalTexture) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT1,
@@ -171,7 +171,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
                 _normalBuffer
             );
         }
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().textures.usePositionTexture) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT2,
@@ -274,7 +274,7 @@ void OffScreenBuffer::blit() const {
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    if (Engine::instance().useDepthTexture()) {
+    if (Engine::instance().settings().textures.useDepthTexture) {
         glBlitFramebuffer(
             src0.x, src0.y, src1.x, src1.y,
             dst0.x, dst0.y, dst1.x, dst1.y,
@@ -289,7 +289,7 @@ void OffScreenBuffer::blit() const {
         );
     }
 
-    if (Engine::instance().useNormalTexture()) {
+    if (Engine::instance().settings().textures.useNormalTexture) {
         glReadBuffer(GL_COLOR_ATTACHMENT1);
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
@@ -300,7 +300,7 @@ void OffScreenBuffer::blit() const {
         );
     }
 
-    if (Engine::instance().usePositionTexture()) {
+    if (Engine::instance().settings().textures.usePositionTexture) {
         glReadBuffer(GL_COLOR_ATTACHMENT2);
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 

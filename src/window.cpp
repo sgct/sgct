@@ -20,6 +20,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
+#include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -50,6 +51,9 @@
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
+    constexpr float FxaaSubPixTrim = 1.f / 4.f;
+    constexpr float FxaaSubPixOffset = 1.f / 2.f;
+
     sgct::Window::StereoMode convert(sgct::config::Window::StereoMode mode) {
         using SM = sgct::config::Window::StereoMode;
         switch (mode) {
@@ -128,6 +132,39 @@ namespace {
             case CBD::Depth16UInt:  return 2;
             case CBD::Depth32UInt:  return 4;
             default: throw std::logic_error("Unhandled case label");
+        }
+    }
+
+    enum class BufferMode { BackBufferBlack, RenderToTexture };
+    void setAndClearBuffer(const sgct::Window& window, BufferMode buffer,
+                           sgct::FrustumMode frustum)
+    {
+        ZoneScoped;
+
+        if (buffer == BufferMode::BackBufferBlack) {
+            // Set buffer
+            if (window.stereoMode() != sgct::Window::StereoMode::Active) {
+                glDrawBuffer(GL_BACK);
+                glReadBuffer(GL_BACK);
+            }
+            else if (frustum == sgct::FrustumMode::StereoLeft) {
+                // if active left
+                glDrawBuffer(GL_BACK_LEFT);
+                glReadBuffer(GL_BACK_LEFT);
+            }
+            else if (frustum == sgct::FrustumMode::StereoRight) {
+                // if active right
+                glDrawBuffer(GL_BACK_RIGHT);
+                glReadBuffer(GL_BACK_RIGHT);
+            }
+
+            // when rendering textures to backbuffer (using fbo)
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+        else {
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
 } // namespace
@@ -412,7 +449,12 @@ void Window::close() {
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
+    _fboQuad.deleteProgram();
+    _overlay.deleteProgram();
     _stereo.shader.deleteProgram();
+    if (_fxaa) {
+        _fxaa->shader.deleteProgram();
+    }
 
     // Current handle must be set at the end to properly destroy the window
     makeOpenGLContextCurrent();
@@ -441,7 +483,7 @@ void Window::initOGL() {
     createFBOs();
 
     const ivec2 res =
-        Engine::instance().captureFromBackBuffer() ?
+        Engine::instance().settings().captureBackBuffer ?
         resolution() :
         framebufferResolution();
 
@@ -558,7 +600,7 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
-        if (Engine::instance().captureFromBackBuffer()) {
+        if (Engine::instance().settings().captureBackBuffer) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -674,7 +716,7 @@ void Window::update() {
     resizeFBOs();
 
     const ivec2 res =
-        Engine::instance().captureFromBackBuffer() ?
+        Engine::instance().settings().captureBackBuffer ?
         resolution() :
         framebufferResolution();
     if (_screenCaptureLeftOrMono) {
@@ -709,18 +751,6 @@ void Window::makeOpenGLContextCurrent() {
 
 bool Window::isWindowResized() const {
     return _windowResChanged;
-}
-
-bool Window::isFullScreen() const {
-    return _isFullScreen;
-}
-
-bool Window::shouldAutoiconify() const {
-    return _shouldAutoiconify;
-}
-
-bool Window::isFloating() const {
-    return _isFloating;
 }
 
 bool Window::isVisible() const {
@@ -771,10 +801,6 @@ void Window::setFixResolution(bool state) {
     _useFixResolution = state;
 }
 
-void Window::setUseFXAA(bool state) {
-    _useFXAA = state;
-}
-
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
 }
@@ -796,7 +822,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, _isResizable ? GLFW_TRUE : GLFW_FALSE);
 
-        const int antiAliasingSamples = numberOfAASamples();
+        const int antiAliasingSamples = _nAASamples;
         glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
 
         glfwWindowHint(GLFW_AUTO_ICONIFY, _shouldAutoiconify ? GLFW_TRUE : GLFW_FALSE);
@@ -890,7 +916,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     // refreshrate)/(number of windows), which is something that might really slow down a
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
-    glfwSwapInterval(isLastWindow ? Engine::instance().swapInterval() : 0);
+    glfwSwapInterval(isLastWindow ? Engine::instance().settings().swapInterval : 0);
 
     // if client, disable mouse pointer
     if (_hideMouseCursor || !Engine::instance().isMaster()) {
@@ -899,7 +925,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
 
-    const bool captureBackBuffer = Engine::instance().captureFromBackBuffer();
+    const bool captureBackBuffer = Engine::instance().settings().captureBackBuffer;
     int bytesPerColor = captureBackBuffer ? 1 : _bytesPerColor;
     unsigned int colorDataType = captureBackBuffer ? GL_UNSIGNED_BYTE : _colorDataType;
     if (!useRightEyeTexture()) {
@@ -983,6 +1009,480 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     }
 }
 
+void Window::draw() {
+    ZoneScopedN("Render window");
+
+    if (!(isVisible() || isRenderingWhileHidden())) [[unlikely]] {
+        return;
+    }
+
+    // Render Left/Mono non-linear projection viewports to cubemap
+    for (const std::unique_ptr<Viewport>& vp : viewports()) {
+        ZoneScopedN("Render viewport");
+
+        if (!vp->hasSubViewports()) {
+            continue;
+        }
+
+        NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
+        if (_stereoMode == Window::StereoMode::NoStereo) {
+            // for mono viewports frustum mode can be selected by user or config
+            nonLinearProj->renderCubemap(vp->eye());
+        }
+        else {
+            nonLinearProj->renderCubemap(FrustumMode::StereoLeft);
+        }
+    }
+
+    // Render left/mono regular viewports to FBO
+    // if any stereo type (except passive) then set frustum mode to left eye
+    if (_stereoMode == Window::StereoMode::NoStereo) {
+        renderViewports(FrustumMode::Mono, Eye::MonoOrLeft);
+
+        // if we are not rendering in stereo, we are done
+        return;
+    }
+    else {
+        renderViewports(FrustumMode::StereoLeft, Eye::MonoOrLeft);
+    }
+
+    // Render right non-linear projection viewports to cubemap
+    for (const std::unique_ptr<Viewport>& vp : viewports()) {
+        ZoneScopedN("Render Cubemap");
+        if (!vp->hasSubViewports()) {
+            continue;
+        }
+        NonLinearProjection* p = vp->nonLinearProjection();
+        p->renderCubemap(FrustumMode::StereoRight);
+    }
+
+    // Render right regular viewports to FBO
+    // use a single texture for side-by-side and top-bottom stereo modes
+    if (_stereoMode >= Window::StereoMode::SideBySide) {
+        renderViewports(FrustumMode::StereoRight, Eye::MonoOrLeft);
+    }
+    else {
+        renderViewports(FrustumMode::StereoRight, Eye::Right);
+    }
+}
+
+void Window::renderViewports(FrustumMode frustum, Eye eye) const {
+    ZoneScoped;
+
+    _finalFBO->bind();
+    if (_finalFBO->isMultiSampled()) {
+        return;
+    }
+
+    // update attachments
+    _finalFBO->attachColorTexture(frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
+
+    if (Engine::instance().settings().textures.useDepthTexture) {
+        _finalFBO->attachDepthTexture(frameBufferTextureDepth());
+    }
+
+    if (Engine::instance().settings().textures.useNormalTexture) {
+        _finalFBO->attachColorTexture(frameBufferTextureNormals(), GL_COLOR_ATTACHMENT1);
+    }
+
+    if (Engine::instance().settings().textures.usePositionTexture) {
+        _finalFBO->attachColorTexture(
+            frameBufferTexturePositions(),
+            GL_COLOR_ATTACHMENT2
+        );
+    }
+
+    const Window::StereoMode sm = stereoMode();
+    // render all viewports for selected eye
+    for (const std::unique_ptr<Viewport>& vp : viewports()) {
+        if (!vp->isEnabled()) {
+            continue;
+        }
+
+        // if passive stereo or mono
+        if (sm == Window::StereoMode::NoStereo) {
+            // @TODO (abock, 2019-12-04) Not sure about this one; the frustum is set in
+            // the calling function based on the stereo mode already and we are
+            // overwriting it here
+            frustum = vp->eye();
+        }
+
+        if (vp->isTracked()) {
+            vp->calculateFrustum(
+                frustum,
+                Engine::instance().nearClipPlane(),
+                Engine::instance().farClipPlane()
+            );
+        }
+        if (vp->hasSubViewports()) {
+            if (_hasCallDraw3DFunction) {
+                vp->nonLinearProjection()->render(*vp, frustum);
+            }
+        }
+        else {
+            // check if we want to blit the previous window before we do anything else
+            if (_blitWindowId >= 0) {
+                const std::vector<std::unique_ptr<Window>>& wins =
+                    Engine::instance().windows();
+                auto it = std::find_if(
+                    wins.cbegin(),
+                    wins.cend(),
+                    [id = _blitWindowId](const std::unique_ptr<Window>& w) {
+                        return w->id() == id;
+                    }
+                );
+                assert(it != wins.cend());
+                blitWindowViewport(**it, *vp, frustum);
+            }
+
+            if (_hasCallDraw3DFunction) {
+                // run scissor test to prevent clearing of entire buffer
+                vp->setupViewport(frustum);
+                glEnable(GL_SCISSOR_TEST);
+                glClearColor(0.f, 0.f, 0.f, 1.f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glDisable(GL_SCISSOR_TEST);
+
+                if (Engine::instance().drawFunction()) {
+                    ZoneScopedN("[SGCT] Draw");
+                    const RenderData renderData = {
+                        *this,
+                        *vp,
+                        frustum,
+                        ClusterManager::instance().sceneTransform(),
+                        vp->projection(frustum).viewMatrix(),
+                        vp->projection(frustum).projectionMatrix(),
+                        vp->projection(frustum).viewProjectionMatrix() *
+                            ClusterManager::instance().sceneTransform(),
+                        finalFBODimensions()
+                    };
+                    Engine::instance().drawFunction()(renderData);
+                }
+            }
+        }
+    }
+
+    // If we did not render anything, make sure we clear the screen at least
+    if (!_hasCallDraw3DFunction && _blitWindowId == -1) {
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    else if (_blitWindowId != -1) {
+        const std::vector<std::unique_ptr<Window>>& wins = Engine::instance().windows();
+        auto it = std::find_if(
+            wins.cbegin(),
+            wins.cend(),
+            [id = _blitWindowId](const std::unique_ptr<Window>& w) {
+                return w->id() == id;
+            }
+        );
+        assert(it != wins.cend());
+        const Window& srcWin = **it;
+
+        if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+    }
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+
+    // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
+    const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
+    if (!isSplitScreen || frustum != FrustumMode::StereoLeft) {
+        ZoneScopedN("PostFX/Blit");
+
+        // copy AA-buffer to "regular" / non-AA buffer
+
+        if (_finalFBO->isMultiSampled()) {
+            // bind separate read and draw buffers to prepare blit operation
+            _finalFBO->bindBlit();
+
+            // update attachments
+            _finalFBO->attachColorTexture(
+                frameBufferTextureEye(eye),
+                GL_COLOR_ATTACHMENT0
+            );
+
+            if (Engine::instance().settings().textures.useDepthTexture) {
+                _finalFBO->attachDepthTexture(frameBufferTextureDepth());
+            }
+
+            if (Engine::instance().settings().textures.useNormalTexture) {
+                _finalFBO->attachColorTexture(
+                    frameBufferTextureNormals(),
+                    GL_COLOR_ATTACHMENT1
+                );
+            }
+
+            if (Engine::instance().settings().textures.usePositionTexture) {
+                _finalFBO->attachColorTexture(
+                    frameBufferTexturePositions(),
+                    GL_COLOR_ATTACHMENT2
+                );
+            }
+            _finalFBO->blit();
+        }
+
+
+        if (_useFXAA) {
+            renderFXAA(eye);
+        }
+
+        render2D(frustum);
+        if (isSplitScreen) {
+            // render left eye info and graph to render 2D items after post fx
+            render2D(FrustumMode::StereoLeft);
+        }
+    }
+
+    glDisable(GL_BLEND);
+}
+
+void Window::renderFXAA(Eye eye) const {
+    ZoneScoped;
+
+    assert(_fxaa);
+
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    // bind target FBO
+    _finalFBO->attachColorTexture(
+        frameBufferTextureEye(eye),
+        GL_COLOR_ATTACHMENT0
+    );
+
+    const ivec2 framebufferSize = framebufferResolution();
+    glViewport(0, 0, framebufferSize.x, framebufferSize.y);
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    glBindTexture(GL_TEXTURE_2D, frameBufferTextureIntermediate());
+
+    _fxaa->shader.bind();
+    glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
+    glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
+
+    renderScreenQuad();
+    ShaderProgram::unbind();
+}
+
+void Window::render2D(FrustumMode frustum) const {
+    ZoneScoped;
+
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        // if viewport has overlay
+        if (!vp->hasOverlayTexture() || !vp->isEnabled()) {
+            continue;
+        }
+
+        vp->setupViewport(frustum);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
+        _overlay.bind();
+        renderScreenQuad();
+    }
+    ShaderProgram::unbind();
+
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        if (!vp->isEnabled()) {
+            continue;
+        }
+        vp->setupViewport(frustum);
+
+        if (Engine::instance().statisticsRenderer()) {
+            Engine::instance().statisticsRenderer()->render(*this, *vp);
+        }
+
+        // Check if we should call the use defined draw2D function
+        if (Engine::instance().draw2DFunction() && _hasCallDraw2DFunction) {
+            ZoneScopedN("[SGCT] Draw 2D");
+            const RenderData renderData = {
+                *this,
+                *vp,
+                frustum,
+                ClusterManager::instance().sceneTransform(),
+                vp->projection(frustum).viewMatrix(),
+                vp->projection(frustum).projectionMatrix(),
+                vp->projection(frustum).viewProjectionMatrix() *
+                    ClusterManager::instance().sceneTransform(),
+                finalFBODimensions()
+            };
+            Engine::instance().draw2DFunction()(renderData);
+        }
+    }
+}
+
+void Window::renderFBOTexture() {
+    ZoneScoped;
+
+    if (!_isVisible) [[unlikely]] {
+        return;
+    }
+
+    OffScreenBuffer::unbind();
+
+    makeOpenGLContextCurrent();
+
+    glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    const FrustumMode frustum =
+        (stereoMode() == Window::StereoMode::Active) ?
+        FrustumMode::StereoLeft :
+        FrustumMode::Mono;
+
+    const ivec2 size = ivec2{
+        static_cast<int>(std::ceil(scale().x * resolution().x)),
+        static_cast<int>(std::ceil(scale().y * resolution().y))
+    };
+
+    glViewport(0, 0, size.x, size.y);
+    setAndClearBuffer(*this, BufferMode::BackBufferBlack, frustum);
+
+    bool maskShaderSet = false;
+    const std::vector<std::unique_ptr<Viewport>>& vps = _viewports;
+    if (_stereoMode > Window::StereoMode::Active &&
+        _stereoMode < Window::StereoMode::SideBySide)
+    {
+        _stereo.shader.bind();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
+
+        glUniform1i(_stereo.leftTexLoc, 0);
+        glUniform1i(_stereo.rightTexLoc, 1);
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+    }
+    else {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::MonoOrLeft));
+
+        _fboQuad.bind();
+        maskShaderSet = true;
+
+        glUniform1i(
+            glGetUniformLocation(_fboQuad.id(), "flipX"),
+            _mirrorX ? 1 : 0
+        );
+        glUniform1i(
+            glGetUniformLocation(_fboQuad.id(), "flipY"),
+            _mirrorY ? 1 : 0
+        );
+
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+
+        // render right eye in active stereo mode
+        if (_stereoMode == Window::StereoMode::Active) {
+            glViewport(0, 0, size.x, size.y);
+
+            // clear buffers
+            setAndClearBuffer(
+                *this,
+                BufferMode::BackBufferBlack,
+                FrustumMode::StereoRight
+            );
+
+            glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::Right));
+            std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+        }
+    }
+
+    // render mask (mono)
+    if (_hasAnyMasks) {
+        if (!maskShaderSet) {
+            _fboQuad.bind();
+
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), _mirrorX ? 1 : 0);
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), _mirrorY ? 1 : 0);
+        }
+
+        glDrawBuffer(GL_BACK);
+        glReadBuffer(GL_BACK);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_BLEND);
+
+        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
+        // render blend masks
+        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
+            ZoneScopedN("Render Viewport");
+
+            if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
+                glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
+                vp->renderMaskMesh();
+            }
+            if (vp->hasBlackLevelMaskTexture() && vp->isEnabled()) {
+                glBindTexture(GL_TEXTURE_2D, vp->blackLevelMaskTextureIndex());
+                vp->renderMaskMesh();
+            }
+        }
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    ShaderProgram::unbind();
+    glDisable(GL_BLEND);
+}
+
+void Window::updateFrustums(float nearClip, float farClip) {
+    ZoneScoped;
+
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        if (vp->isTracked()) {
+            // if not tracked update, otherwise this is done on the fly
+            continue;
+        }
+
+        vp->calculateFrustum(FrustumMode::Mono, nearClip, farClip);
+        vp->calculateFrustum(FrustumMode::StereoLeft, nearClip, farClip);
+        vp->calculateFrustum(FrustumMode::StereoRight, nearClip, farClip);
+    }
+}
+
+void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
+                                FrustumMode mode) const
+{
+    ZoneScoped;
+
+    assert(prevWindow.id() != id());
+
+    // run scissor test to prevent clearing of entire buffer
+    glEnable(GL_SCISSOR_TEST);
+    viewport.setupViewport(mode);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+
+    _overlay.bind();
+
+    glActiveTexture(GL_TEXTURE0);
+    const unsigned int tex = [&prevWindow](FrustumMode v) {
+        switch (v) {
+        case FrustumMode::Mono:
+            return prevWindow.frameBufferTextureEye(Eye::MonoOrLeft);
+        case FrustumMode::StereoLeft:
+            return prevWindow.frameBufferTextureEye(Eye::Right);
+        case FrustumMode::StereoRight:
+            return prevWindow.frameBufferTextureIntermediate();
+        default:
+            throw std::logic_error("Missing case label");
+        }
+        }(mode);
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    renderScreenQuad();
+    ShaderProgram::unbind();
+}
+
 void Window::createTextures() {
     ZoneScoped;
     TracyGpuZone("Create Textures");
@@ -1002,16 +1502,16 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Engine::instance().useDepthTexture()) {
+    if (Engine::instance().settings().textures.useDepthTexture) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (_useFXAA) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Engine::instance().useNormalTexture()) {
+    if (Engine::instance().settings().textures.useNormalTexture) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Engine::instance().usePositionTexture()) {
+    if (Engine::instance().settings().textures.usePositionTexture) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
@@ -1125,39 +1625,87 @@ void Window::loadShaders() {
     ZoneScoped;
     TracyGpuZone("Load Shaders");
 
-    if (_stereoMode <= StereoMode::Active || _stereoMode >= StereoMode::SideBySide) {
-        return;
+    {
+        ZoneScopedN("Quad Shader");
+        _fboQuad = ShaderProgram("FBOQuadShader");
+        _fboQuad.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
+        _fboQuad.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
+        _fboQuad.createAndLinkProgram();
+        _fboQuad.bind();
+        glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
     }
 
-    // reload shader program if it exists
-    _stereo.shader.deleteProgram();
+    {
+        ZoneScopedN("Overlay Shader");
+        _overlay = ShaderProgram("OverlayShader");
+        _overlay.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
+        _overlay.addShaderSource(shaders::OverlayFrag, GL_FRAGMENT_SHADER);
+        _overlay.createAndLinkProgram();
+        _overlay.bind();
+        glUniform1i(glGetUniformLocation(_overlay.id(), "tex"), 0);
+    }
 
-    const std::string_view stereoVertShader = shaders::BaseVert;
-    const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
-        using SM = StereoMode;
-        switch (mode) {
-            case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
-            case SM::AnaglyphAmberBlue: return shaders::AnaglyphAmberBlueFrag;
-            case SM::AnaglyphRedCyanWimmer: return shaders::AnaglyphRedCyanWimmerFrag;
-            case SM::Checkerboard: return shaders::CheckerBoardFrag;
-            case SM::CheckerboardInverted: return shaders::CheckerBoardInvertedFrag;
-            case SM::VerticalInterlaced: return shaders::VerticalInterlacedFrag;
-            case SM::VerticalInterlacedInverted:
-                return shaders::VerticalInterlacedInvertedFrag;
-            case SM::Dummy: return shaders::DummyStereoFrag;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }(_stereoMode);
+    if (_useFXAA) {
+        ZoneScopedN("FXAA shader");
 
-    _stereo.shader = ShaderProgram("StereoShader");
-    _stereo.shader.addShaderSource(stereoVertShader, GL_VERTEX_SHADER);
-    _stereo.shader.addShaderSource(stereoFragShader, GL_FRAGMENT_SHADER);
-    _stereo.shader.createAndLinkProgram();
-    _stereo.shader.bind();
-    _stereo.leftTexLoc = glGetUniformLocation(_stereo.shader.id(), "leftTex");
-    glUniform1i(_stereo.leftTexLoc, 0);
-    _stereo.rightTexLoc = glGetUniformLocation(_stereo.shader.id(), "rightTex");
-    glUniform1i(_stereo.rightTexLoc, 1);
+        _fxaa = FXAAShader();
+        _fxaa->shader = ShaderProgram("FXAAShader");
+        _fxaa->shader.addShaderSource(shaders::FXAAVert, GL_VERTEX_SHADER);
+        _fxaa->shader.addShaderSource(shaders::FXAAFrag, GL_FRAGMENT_SHADER);
+        _fxaa->shader.createAndLinkProgram();
+        _fxaa->shader.bind();
+
+        const int id = _fxaa->shader.id();
+        _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
+        const ivec2 framebufferSize = framebufferResolution();
+        glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
+
+        _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
+        glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
+
+        _fxaa->subPixTrim = glGetUniformLocation(id, "FXAA_SUBPIX_TRIM");
+        glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
+
+        _fxaa->subPixOffset = glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET");
+        glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
+
+        glUniform1i(glGetUniformLocation(id, "tex"), 0);
+    }
+
+
+    if (_stereoMode > StereoMode::Active && _stereoMode < StereoMode::SideBySide) {
+        ZoneScopedN("Stereo shader");
+        // reload shader program if it exists
+        _stereo.shader.deleteProgram();
+
+        const std::string_view stereoVertShader = shaders::BaseVert;
+        const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
+            using SM = StereoMode;
+            switch (mode) {
+                case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
+                case SM::AnaglyphAmberBlue: return shaders::AnaglyphAmberBlueFrag;
+                case SM::AnaglyphRedCyanWimmer: return shaders::AnaglyphRedCyanWimmerFrag;
+                case SM::Checkerboard: return shaders::CheckerBoardFrag;
+                case SM::CheckerboardInverted: return shaders::CheckerBoardInvertedFrag;
+                case SM::VerticalInterlaced: return shaders::VerticalInterlacedFrag;
+                case SM::VerticalInterlacedInverted:
+                    return shaders::VerticalInterlacedInvertedFrag;
+                case SM::Dummy: return shaders::DummyStereoFrag;
+                default: throw std::logic_error("Unhandled case label");
+            }
+        }(_stereoMode);
+
+        _stereo.shader = ShaderProgram("StereoShader");
+        _stereo.shader.addShaderSource(stereoVertShader, GL_VERTEX_SHADER);
+        _stereo.shader.addShaderSource(stereoFragShader, GL_FRAGMENT_SHADER);
+        _stereo.shader.createAndLinkProgram();
+        _stereo.shader.bind();
+        _stereo.leftTexLoc = glGetUniformLocation(_stereo.shader.id(), "leftTex");
+        glUniform1i(_stereo.leftTexLoc, 0);
+        _stereo.rightTexLoc = glGetUniformLocation(_stereo.shader.id(), "rightTex");
+        glUniform1i(_stereo.rightTexLoc, 1);
+    }
+
     ShaderProgram::unbind();
 }
 
@@ -1167,10 +1715,6 @@ void Window::renderScreenQuad() const {
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-}
-
-OffScreenBuffer* Window::fbo() const {
-    return _finalFBO.get();
 }
 
 GLFWwindow* Window::windowHandle() const {
@@ -1228,10 +1772,6 @@ void Window::setNumberOfAASamples(int samples) {
     _nAASamples = samples;
 }
 
-int Window::numberOfAASamples() const {
-    return _nAASamples;
-}
-
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
     loadShaders();
@@ -1262,49 +1802,8 @@ float Window::aspectRatio() const {
     return _aspectRatio;
 }
 
-bool Window::hasAnyMasks() const {
-    return _hasAnyMasks;
-}
-
-bool Window::useFXAA() const {
-    return _useFXAA;
-}
-
-void Window::bindStereoShaderProgram() const {
-    _stereo.shader.bind();
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
-
-    glUniform1i(_stereo.leftTexLoc, 0);
-    glUniform1i(_stereo.rightTexLoc, 1);
-}
-
-bool Window::shouldCallDraw2DFunction() const {
-    return _hasCallDraw2DFunction;
-}
-
-bool Window::shouldCallDraw3DFunction() const {
-    return _hasCallDraw3DFunction;
-}
-
-int Window::blitWindowId() const {
-    return _blitWindowId;
-}
-
 bool Window::shouldTakeScreenshot() const {
     return _takeScreenshot;
-}
-
-bool Window::flipX() const {
-    return _mirrorX;
-}
-
-bool Window::flipY() const {
-    return _mirrorY;
 }
 
 bool Window::needsCompatibilityProfile() const {

@@ -85,6 +85,14 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.omitWindowNameInScreenshot = true;
             arg.erase(arg.begin() + i);
         }
+        else if (arg[i] == "--print-wait-message") {
+            config.printWaitMessage = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--wait-timeout") {
+            config.waitTimeout = std::stof(arg[i + 1]);
+            arg.erase(arg.begin() + 1, arg.begin() + i + 2);
+        }
         else {
             // Ignore unknown commands
             i++;

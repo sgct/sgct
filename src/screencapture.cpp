@@ -23,7 +23,7 @@ namespace sgct {
 
 ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
                              int bytesPerColor, unsigned int colorDataType)
-    : _nThreads(Engine::instance().numberCaptureThreads())
+    : _nThreads(Engine::instance().settings().capture.nCaptureThreads)
     , _downloadType(colorDataType)
     , _bytesPerColor(bytesPerColor)
     , _eyeIndex(ei)
@@ -90,9 +90,9 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     ZoneScoped;
 
     uint64_t number = Engine::instance().screenShotNumber();
-    if (Engine::instance().screenshotLimit()) {
-        uint64_t begin = Engine::instance().screenshotLimit()->first;
-        uint64_t end = Engine::instance().screenshotLimit()->second;
+    if (Engine::instance().settings().capture.limits) {
+        uint64_t begin = Engine::instance().settings().capture.limits->first;
+        uint64_t end = Engine::instance().settings().capture.limits->second;
 
         if (number < begin || number >= end) {
             Log::Debug(std::format(
@@ -194,19 +194,19 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     std::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
     std::filesystem::path file;
-    if (!Engine::instance().capturePath().empty()) {
-        file = Engine::instance().capturePath() / "";
+    if (!Engine::instance().settings().capture.capturePath.empty()) {
+        file = Engine::instance().settings().capture.capturePath / "";
     }
-    if (!Engine::instance().prefixScreenshot().empty()) {
-        file += Engine::instance().prefixScreenshot();
+    if (!Engine::instance().settings().capture.prefix.empty()) {
+        file += Engine::instance().settings().capture.prefix;
         file += '_';
     }
-    if (Engine::instance().addNodeNameToScreenshot() &&
+    if (Engine::instance().settings().capture.addNodeName &&
         ClusterManager::instance().numberOfNodes() > 1)
     {
         file += std::format("node{}_", ClusterManager::instance().thisNodeId());
     }
-    if (Engine::instance().addWindowNameToScreenshot()) {
+    if (Engine::instance().settings().capture.addWindowName) {
         file +=
             _window.name().empty() ? std::format("win{}", _window.id()) : _window.name();
         file += '_';

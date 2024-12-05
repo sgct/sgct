@@ -53,7 +53,8 @@ namespace {
     // Callback wrappers for GLFW
     std::function<void(Key, Modifier, Action, int, Window*)> gKeyboardCallback = nullptr;
     std::function<void(unsigned int, int, Window*)> gCharCallback = nullptr;
-    std::function<void(MouseButton, Modifier, Action, Window*)> gMouseButtonCallback = nullptr;
+    std::function<void(MouseButton, Modifier, Action, Window*)>
+        gMouseButtonCallback = nullptr;
     std::function<void(double, double, Window*)> gMousePosCallback = nullptr;
     std::function<void(double, double, Window*)> gMouseScrollCallback = nullptr;
     std::function<void(std::vector<std::string_view>)> gDropCallback = nullptr;
@@ -213,43 +214,43 @@ config::Cluster loadCluster(std::optional<std::filesystem::path> path) {
         }
     }
     else {
-        config::Cluster cluster;
-        cluster.success = true;
-
-        // Create a default configuration
-        constexpr float hFov = 90.f;
-        constexpr float vFov = hFov / (16.f / 9.f);
-
-        sgct::config::PlanarProjection proj;
-        sgct::config::PlanarProjection::FOV fov;
-        fov.down = -vFov / 2.f;
-        fov.up = vFov / 2.f;
-        fov.left = -hFov / 2.f;
-        fov.right = hFov / 2.f;
-        proj.fov = fov;
-
-        sgct::config::Viewport viewport;
-        viewport.projection = proj;
-
-        sgct::config::Window window;
-        window.id = 0;
-        window.isFullScreen = false;
-        window.size = ivec2{ 1280, 720 };
-        window.viewports.push_back(viewport);
-
-        sgct::config::Node node;
-        node.address = "localhost";
-        node.port = 20401;
-        node.windows.push_back(window);
-
-        sgct::config::User user;
-        user.eyeSeparation = 0.06f;
-        user.position = vec3{ 0.f, 0.f, 0.f };
-        cluster.users.push_back(user);
-
-        cluster.masterAddress = "localhost";
-        cluster.nodes.push_back(node);
-        return cluster;
+        return {
+            .success = true,
+            .masterAddress = "localhost",
+            .nodes = {
+                sgct::config::Node {
+                    .address = "localhost",
+                    .port = 20401,
+                    .windows = {
+                        sgct::config::Window {
+                            .id = 0,
+                            .isFullScreen = false,
+                            .size = ivec2 { 1280, 720 },
+                            .viewports = {
+                                sgct::config::Viewport {
+                                    .projection = {
+                                        sgct::config::PlanarProjection {
+                                            .fov = {
+                                                .down = -(90.f / (16.f / 9.f)) / 2.f,
+                                                .left = -90.f / 2.f,
+                                                .right = 90.f / 2.f,
+                                                .up = (90.f / (16.f / 9.f)) / 2.f
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            .users = {
+                sgct::config::User {
+                    .eyeSeparation = 0.06f,
+                    .position = vec3 { 0.f, 0.f, 0.f }
+                }
+            }
+        };
     }
 }
 
@@ -519,11 +520,7 @@ void Engine::initialize() {
         _initOpenGLFn(share);
     }
 
-    for (const std::unique_ptr<Window>& win : wins) {
-        win->initOGL();
-        const std::vector<std::unique_ptr<Viewport>>& vps = win->viewports();
-        std::for_each(vps.cbegin(), vps.cend(), std::mem_fn(&Viewport::linkUserName));
-    }
+    std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::initialize));
 
     updateFrustums();
 
@@ -549,7 +546,7 @@ void Engine::initialize() {
     Window::setBarrier(true);
     Window::resetSwapGroupFrameNumber();
 
-    std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::initContextSpecificOGL));
+    std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::initializeContextSpecific));
 
 #ifdef SGCT_HAS_VRPN
     // start sampling tracking data
@@ -598,8 +595,8 @@ Engine::~Engine() {
     // de-init window and unbind swapgroups
     // There might not be any thisNode as its creation might have failed
     if (hasNode) {
-        const std::vector<std::unique_ptr<Window>>& windows = cm.thisNode().windows();
-        std::for_each(windows.cbegin(), windows.cend(), std::mem_fn(&Window::close));
+        const std::vector<std::unique_ptr<Window>>& wins = cm.thisNode().windows();
+        std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::closeWindow));
     }
 
     // close TCP connections
@@ -877,8 +874,6 @@ void Engine::exec() {
 
         // Render Viewports / Draw
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::draw));
-
-        // Render to screen
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::renderFBOTexture));
 
         Window::makeSharedContextCurrent();
@@ -1103,11 +1098,11 @@ void Engine::resetScreenshotNumber() {
     _shotCounter = 0;
 }
 
-const std::function<void(const RenderData&)>& Engine::drawFunction() const {
+Engine::DrawFunction Engine::drawFunction() const {
     return _drawFn;
 }
 
-const std::function<void(const RenderData&)>& Engine::draw2DFunction() const {
+Engine::DrawFunction Engine::draw2DFunction() const {
     return _draw2DFn;
 }
 

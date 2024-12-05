@@ -224,7 +224,6 @@ void Window::initNvidiaSwapGroups() {
 #endif // WIN32
 }
 
-
 void Window::resetSwapGroupFrameNumber() {
 #ifdef WIN32
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
@@ -268,6 +267,65 @@ unsigned int Window::swapGroupFrameNumber() {
     return frameNumber;
 }
 
+
+config::Window createScalableConfiguration(std::filesystem::path path) {
+    config::Window res;
+
+    EasyBlendSDK_Mesh mesh;
+    std::string p = path.string();
+    EasyBlendSDKError err = EasyBlendSDK_Initialize(
+        p.c_str(),
+        &mesh,
+        EasyBlendSDK_SDKMODE_ClientData,
+        [](EasyBlendSDK_Mesh*, void*) { return static_cast<unsigned long>(0); }
+    );
+    if (err != EasyBlendSDK_ERR_S_OK) {
+        throw Error(
+            sgct::Error::Component::Config,
+            1104,
+            std::format("Could not read ScalableMesh '{}' with error: {}", path, err)
+        );
+    }
+
+    res.isDecorated = false;
+    res.pos = ivec2 { 0, 0 };
+    res.size = ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
+
+    // Set projection values
+    config::PlanarProjection proj;
+    proj.fov = {
+        .down = static_cast<float>(mesh.Frustum.BottomAngle),
+        .left = static_cast<float>(mesh.Frustum.LeftAngle),
+        .right = static_cast<float>(mesh.Frustum.RightAngle),
+        .up = static_cast<float>(mesh.Frustum.TopAngle)
+    };
+    double heading = 0.0;
+    double pitch = 0.0;
+    double roll = 0.0;
+    EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
+    // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
+    // right-handed coordinate system
+    const glm::quat q = glm::quat(glm::vec3(
+        glm::radians(-pitch),
+        glm::radians(-heading),
+        glm::radians(roll)
+    ));
+    proj.orientation = quat(q.x, q.y, q.z, q.w);
+    proj.offset = vec3{
+        static_cast<float>(mesh.Frustum.XOffset),
+        static_cast<float>(mesh.Frustum.YOffset),
+        static_cast<float>(mesh.Frustum.ZOffset)
+    };
+
+    res.viewports = {
+        config::Viewport{ .projection = proj }
+    };
+
+    EasyBlendSDK_Uninitialize(&mesh);
+    return res;
+}
+
+
 Window::Window(const config::Window& window)
     : _name(window.name.value_or(""))
     , _id(window.id)
@@ -305,78 +363,12 @@ Window::Window(const config::Window& window)
 {
     ZoneScoped;
 
-    // If a scalable mesh is set, we abort straight after this
-#ifdef SGCT_HAS_SCALABLE
-    if (window.scalableMesh.has_value()) {
-        _scalableMesh.sdk = new EasyBlendSDK_Mesh;
-        _scalableMesh.path = window.scalableMesh->string();
+    _windowRes = window.size;
+    _aspectRatio = static_cast<float>(window.size.x) / static_cast<float>(window.size.y);
 
-        // We have to load the mesh file twice;  SGCT needs to load it here to get the
-        // correct resolution, but we don't have an OpenGL context yet. The "correct"
-        // initialization needs a valid OpenGL context
-        EasyBlendSDK_Mesh mesh;
-        EasyBlendSDKError err = EasyBlendSDK_Initialize(
-            _scalableMesh.path.c_str(),
-            &mesh,
-            EasyBlendSDK_SDKMODE_ClientData,
-            [](EasyBlendSDK_Mesh*, void*) { return static_cast<unsigned long>(0); }
-        );
-        if (err != EasyBlendSDK_ERR_S_OK) {
-            throw Error(
-                sgct::Error::Component::Config,
-                1104,
-                std::format(
-                    "Could not read ScalableMesh '{}' with error: {}",
-                    _scalableMesh.path, err
-                )
-            );
-        }
-
-        // Set expected windows values
-        setWindowDecoration(false);
-        _windowPos = ivec2{ 0,0 };
-        initWindowResolution({
-            static_cast<int>(mesh.Xres),
-            static_cast<int>(mesh.Yres)
-        });
-
-        // Set projection values
-        config::PlanarProjection proj;
-        proj.fov = {
-            .down = static_cast<float>(mesh.Frustum.BottomAngle),
-            .left = static_cast<float>(mesh.Frustum.LeftAngle),
-            .right = static_cast<float>(mesh.Frustum.RightAngle),
-            .up = static_cast<float>(mesh.Frustum.TopAngle)
-        };
-        double heading = 0.0;
-        double pitch = 0.0;
-        double roll = 0.0;
-        EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
-        // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
-        // right-handed coordinate system
-        pitch *= -1.0;
-        heading *= -1.0;
-        const glm::quat q = glm::quat(glm::vec3(
-            glm::radians(pitch),
-            glm::radians(heading),
-            glm::radians(roll)
-        ));
-        proj.orientation = quat(q.x, q.y, q.z, q.w);
-        proj.offset = vec3 {
-            static_cast<float>(mesh.Frustum.XOffset),
-            static_cast<float>(mesh.Frustum.YOffset),
-            static_cast<float>(mesh.Frustum.ZOffset)
-        };
-
-        auto v = std::make_unique<Viewport>(config::Viewport{ .projection = proj }, this);
-        addViewport(std::move(v));
-
-        EasyBlendSDK_Uninitialize(&mesh);
-        return;
+    if (!_useFixResolution) {
+        _framebufferRes = window.size;
     }
-#endif // SGCT_HAS_SCALABLE
-
-    initWindowResolution(window.size);
 
     if (window.resolution) {
         ZoneScopedN("Resolution");
@@ -415,7 +407,7 @@ bool Window::isFocused() const {
     return _hasFocus;
 }
 
-void Window::close() {
+void Window::closeWindow() {
     ZoneScoped;
 
 #ifdef SGCT_HAS_SCALABLE
@@ -451,7 +443,7 @@ void Window::close() {
 
     _fboQuad.deleteProgram();
     _overlay.deleteProgram();
-    _stereo.shader.deleteProgram();
+    _stereo.deleteProgram();
     if (_fxaa) {
         _fxaa->shader.deleteProgram();
     }
@@ -475,16 +467,22 @@ void Window::close() {
 #endif // WIN32
 }
 
-void Window::initOGL() {
+void Window::initialize() {
     ZoneScoped;
 
     createTextures();
     createVBOs();
-    createFBOs();
+
+    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
+
+    Log::Debug(std::format(
+        "Window {}: FBO initiated successfully. Number of samples: {}",
+        _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
+    ));
 
     const ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
-        resolution() :
+        windowResolution() :
         framebufferResolution();
 
     if (_screenCaptureLeftOrMono) {
@@ -513,7 +511,7 @@ void Window::initOGL() {
     }
 }
 
-void Window::initContextSpecificOGL() {
+void Window::initializeContextSpecific() {
     ZoneScoped;
 
     makeOpenGLContextCurrent();
@@ -546,22 +544,6 @@ unsigned int Window::frameBufferTextureEye(Eye eye) const {
     }
 }
 
-unsigned int Window::frameBufferTextureIntermediate() const {
-    return _frameBufferTextures.intermediate;
-}
-
-unsigned int Window::frameBufferTextureDepth() const {
-    return _frameBufferTextures.depth;
-}
-
-unsigned int Window::frameBufferTextureNormals() const {
-    return _frameBufferTextures.normals;
-}
-
-unsigned int Window::frameBufferTexturePositions() const {
-    return _frameBufferTextures.positions;
-}
-
 void Window::setVisible(bool state) {
     if (state != _isVisible && _windowHandle) {
         if (state) {
@@ -576,11 +558,6 @@ void Window::setVisible(bool state) {
 
 void Window::setRenderWhileHidden(bool state) {
     _shouldRenderWhileHidden = state;
-}
-
-void Window::setWindowTitle(std::string title) {
-    ZoneScoped;
-    glfwSetWindowTitle(_windowHandle, title.c_str());
 }
 
 void Window::setFramebufferResolution(ivec2 resolution) {
@@ -694,17 +671,6 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
-void Window::initWindowResolution(ivec2 resolution) {
-    ZoneScoped;
-
-    _windowRes = resolution;
-    _aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
-
-    if (!_useFixResolution) {
-        _framebufferRes = resolution;
-    }
-}
-
 void Window::update() {
     ZoneScoped;
 
@@ -717,7 +683,7 @@ void Window::update() {
 
     const ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
-        resolution() :
+        windowResolution() :
         framebufferResolution();
     if (_screenCaptureLeftOrMono) {
         _screenCaptureLeftOrMono->resize(res);
@@ -793,10 +759,6 @@ void Window::setWindowResizable(bool state) {
     _isResizable = state;
 }
 
-void Window::setFullScreenMonitorIndex(int index) {
-    _monitorIndex = index;
-}
-
 void Window::setFixResolution(bool state) {
     _useFixResolution = state;
 }
@@ -807,10 +769,6 @@ void Window::setCallDraw2DFunction(bool state) {
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
-}
-
-void Window::setBlitWindowId(int id) {
-    _blitWindowId = id;
 }
 
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
@@ -950,7 +908,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
             colorDataType
         );
     }
-    _finalFBO = std::make_unique<OffScreenBuffer>();
+    _finalFBO = std::make_unique<OffScreenBuffer>(_internalColorFormat);
 
     if (!_isFullScreen) {
         if (_windowPos) {
@@ -1000,7 +958,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _id
     );
 
-    setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
+    glfwSetWindowTitle(_windowHandle, _name.empty() ? title.c_str() : _name.c_str());
 
     {
         // swap the buffers and update the window
@@ -1078,16 +1036,16 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
     _finalFBO->attachColorTexture(frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
 
     if (Engine::instance().settings().useDepthTexture) {
-        _finalFBO->attachDepthTexture(frameBufferTextureDepth());
+        _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
     }
 
     if (Engine::instance().settings().useNormalTexture) {
-        _finalFBO->attachColorTexture(frameBufferTextureNormals(), GL_COLOR_ATTACHMENT1);
+        _finalFBO->attachColorTexture(_frameBufferTextures.normals, GL_COLOR_ATTACHMENT1);
     }
 
     if (Engine::instance().settings().usePositionTexture) {
         _finalFBO->attachColorTexture(
-            frameBufferTexturePositions(),
+            _frameBufferTextures.positions,
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1154,7 +1112,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
                         vp->projection(frustum).projectionMatrix(),
                         vp->projection(frustum).viewProjectionMatrix() *
                             ClusterManager::instance().sceneTransform(),
-                        finalFBODimensions()
+                        framebufferResolution()
                     };
                     Engine::instance().drawFunction()(renderData);
                 }
@@ -1208,19 +1166,19 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
             );
 
             if (Engine::instance().settings().useDepthTexture) {
-                _finalFBO->attachDepthTexture(frameBufferTextureDepth());
+                _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
             }
 
             if (Engine::instance().settings().useNormalTexture) {
                 _finalFBO->attachColorTexture(
-                    frameBufferTextureNormals(),
+                    _frameBufferTextures.normals,
                     GL_COLOR_ATTACHMENT1
                 );
             }
 
             if (Engine::instance().settings().usePositionTexture) {
                 _finalFBO->attachColorTexture(
-                    frameBufferTexturePositions(),
+                    _frameBufferTextures.positions,
                     GL_COLOR_ATTACHMENT2
                 );
             }
@@ -1261,7 +1219,7 @@ void Window::renderFXAA(Eye eye) const {
 
     glActiveTexture(GL_TEXTURE0);
 
-    glBindTexture(GL_TEXTURE_2D, frameBufferTextureIntermediate());
+    glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.intermediate);
 
     _fxaa->shader.bind();
     glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
@@ -1311,7 +1269,7 @@ void Window::render2D(FrustumMode frustum) const {
                 vp->projection(frustum).projectionMatrix(),
                 vp->projection(frustum).viewProjectionMatrix() *
                     ClusterManager::instance().sceneTransform(),
-                finalFBODimensions()
+                framebufferResolution()
             };
             Engine::instance().draw2DFunction()(renderData);
         }
@@ -1338,8 +1296,8 @@ void Window::renderFBOTexture() {
         FrustumMode::Mono;
 
     const ivec2 size = ivec2{
-        static_cast<int>(std::ceil(scale().x * resolution().x)),
-        static_cast<int>(std::ceil(scale().y * resolution().y))
+        static_cast<int>(std::ceil(scale().x * windowResolution().x)),
+        static_cast<int>(std::ceil(scale().y * windowResolution().y))
     };
 
     glViewport(0, 0, size.x, size.y);
@@ -1350,7 +1308,7 @@ void Window::renderFBOTexture() {
     if (_stereoMode > Window::StereoMode::Active &&
         _stereoMode < Window::StereoMode::SideBySide)
     {
-        _stereo.shader.bind();
+        _stereo.bind();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
@@ -1358,8 +1316,6 @@ void Window::renderFBOTexture() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
 
-        glUniform1i(_stereo.leftTexLoc, 0);
-        glUniform1i(_stereo.rightTexLoc, 1);
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
     }
     else {
@@ -1472,7 +1428,7 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
         case FrustumMode::StereoLeft:
             return prevWindow.frameBufferTextureEye(Eye::Right);
         case FrustumMode::StereoRight:
-            return prevWindow.frameBufferTextureIntermediate();
+            return prevWindow._frameBufferTextures.intermediate;
         default:
             throw std::logic_error("Missing case label");
         }
@@ -1563,19 +1519,6 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 }
 
-void Window::createFBOs() {
-    ZoneScoped;
-    TracyGpuZone("Create FBOs");
-
-    _finalFBO->setInternalColorFormat(_internalColorFormat);
-    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
-
-    Log::Debug(std::format(
-        "Window {}: FBO initiated successfully. Number of samples: {}",
-        _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
-    ));
-}
-
 void Window::createVBOs() {
     ZoneScoped;
     TracyGpuZone("Create VBOs");
@@ -1628,8 +1571,8 @@ void Window::loadShaders() {
     {
         ZoneScopedN("Quad Shader");
         _fboQuad = ShaderProgram("FBOQuadShader");
-        _fboQuad.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
-        _fboQuad.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
+        _fboQuad.addVertexShader(shaders::BaseVert);
+        _fboQuad.addFragmentShader(shaders::BaseFrag);
         _fboQuad.createAndLinkProgram();
         _fboQuad.bind();
         glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
@@ -1638,8 +1581,8 @@ void Window::loadShaders() {
     {
         ZoneScopedN("Overlay Shader");
         _overlay = ShaderProgram("OverlayShader");
-        _overlay.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
-        _overlay.addShaderSource(shaders::OverlayFrag, GL_FRAGMENT_SHADER);
+        _overlay.addVertexShader(shaders::BaseVert);
+        _overlay.addFragmentShader(shaders::OverlayFrag);
         _overlay.createAndLinkProgram();
         _overlay.bind();
         glUniform1i(glGetUniformLocation(_overlay.id(), "tex"), 0);
@@ -1650,8 +1593,8 @@ void Window::loadShaders() {
 
         _fxaa = FXAAShader();
         _fxaa->shader = ShaderProgram("FXAAShader");
-        _fxaa->shader.addShaderSource(shaders::FXAAVert, GL_VERTEX_SHADER);
-        _fxaa->shader.addShaderSource(shaders::FXAAFrag, GL_FRAGMENT_SHADER);
+        _fxaa->shader.addVertexShader(shaders::FXAAVert);
+        _fxaa->shader.addFragmentShader(shaders::FXAAFrag);
         _fxaa->shader.createAndLinkProgram();
         _fxaa->shader.bind();
 
@@ -1663,12 +1606,8 @@ void Window::loadShaders() {
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
         glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
 
-        _fxaa->subPixTrim = glGetUniformLocation(id, "FXAA_SUBPIX_TRIM");
-        glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
-
-        _fxaa->subPixOffset = glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET");
-        glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
-
+        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_TRIM"), FxaaSubPixTrim);
+        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET"), FxaaSubPixOffset);
         glUniform1i(glGetUniformLocation(id, "tex"), 0);
     }
 
@@ -1676,7 +1615,7 @@ void Window::loadShaders() {
     if (_stereoMode > StereoMode::Active && _stereoMode < StereoMode::SideBySide) {
         ZoneScopedN("Stereo shader");
         // reload shader program if it exists
-        _stereo.shader.deleteProgram();
+        _stereo.deleteProgram();
 
         const std::string_view stereoVertShader = shaders::BaseVert;
         const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
@@ -1695,15 +1634,13 @@ void Window::loadShaders() {
             }
         }(_stereoMode);
 
-        _stereo.shader = ShaderProgram("StereoShader");
-        _stereo.shader.addShaderSource(stereoVertShader, GL_VERTEX_SHADER);
-        _stereo.shader.addShaderSource(stereoFragShader, GL_FRAGMENT_SHADER);
-        _stereo.shader.createAndLinkProgram();
-        _stereo.shader.bind();
-        _stereo.leftTexLoc = glGetUniformLocation(_stereo.shader.id(), "leftTex");
-        glUniform1i(_stereo.leftTexLoc, 0);
-        _stereo.rightTexLoc = glGetUniformLocation(_stereo.shader.id(), "rightTex");
-        glUniform1i(_stereo.rightTexLoc, 1);
+        _stereo = ShaderProgram("StereoShader");
+        _stereo.addVertexShader(stereoVertShader);
+        _stereo.addFragmentShader(stereoFragShader);
+        _stereo.createAndLinkProgram();
+        _stereo.bind();
+        glUniform1i(glGetUniformLocation(_stereo.id(), "leftTex"), 0);
+        glUniform1i(glGetUniformLocation(_stereo.id(), "rightTex"), 1);
     }
 
     ShaderProgram::unbind();
@@ -1719,10 +1656,6 @@ void Window::renderScreenQuad() const {
 
 GLFWwindow* Window::windowHandle() const {
     return _windowHandle;
-}
-
-ivec2 Window::finalFBODimensions() const {
-    return _framebufferRes;
 }
 
 void Window::resizeFBOs() {
@@ -1768,10 +1701,6 @@ const std::vector<std::unique_ptr<Viewport>>& Window::viewports() const {
     return _viewports;
 }
 
-void Window::setNumberOfAASamples(int samples) {
-    _nAASamples = samples;
-}
-
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
     loadShaders();
@@ -1785,7 +1714,7 @@ float Window::horizFieldOfViewDegrees() const {
     return _viewports[0]->horizontalFieldOfViewDegrees();
 }
 
-ivec2 Window::resolution() const {
+ivec2 Window::windowResolution() const {
     assert(_windowRes);
     return *_windowRes;
 }

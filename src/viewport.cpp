@@ -55,7 +55,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
     , _isTracked(viewport.isTracked.value_or(false))
 {
     if (viewport.user) {
-        setUserName(*viewport.user);
+        linkUserName(*viewport.user);
     }
     if (viewport.eye) {
         _eye = convert(*viewport.eye);
@@ -136,7 +136,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
 Viewport::~Viewport() = default;
 
 void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-                          unsigned int format, unsigned int type, int samples)
+                          unsigned int format, unsigned int type, uint8_t samples)
 {
     if (_nonLinearProjection) {
         _nonLinearProjection->setStereo(hasStereo);

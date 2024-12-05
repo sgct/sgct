@@ -24,10 +24,6 @@ namespace sgct {
 class SGCT_EXPORT Node {
 public:
     Node(const config::Node& node, bool initializeWindows);
-    Node(const Node&) = delete;
-    Node(Node&&) = default;
-    Node& operator=(const Node&) = delete;
-    Node& operator=(Node&&) = default;
 
     /**
      * Add a window to this node.
@@ -62,9 +58,9 @@ public:
     int dataTransferPort() const;
 
 private:
-    std::string _address;
-    const int _syncPort;
-    const int _dataTransferPort;
+    const std::string _address;
+    const uint16_t _syncPort;
+    const uint16_t _dataTransferPort;
     const bool _useSwapGroups;
 
     std::vector<std::unique_ptr<Window>> _windows;

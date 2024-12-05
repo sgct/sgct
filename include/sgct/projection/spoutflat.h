@@ -40,8 +40,9 @@ public:
     void setSpoutDrawMain(bool drawMain);
 
 protected:
-    void initTextures() override;
-    void initFBO() override;
+    void initTextures(unsigned int internalFormat, unsigned int format,
+        unsigned int type) override;
+    void initFBO(unsigned int internalFormat) override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;

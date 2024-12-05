@@ -49,16 +49,13 @@ NonLinearProjection::~NonLinearProjection() {
 }
 
 void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int format,
-                                     unsigned int type, int samples)
+                                     unsigned int type, uint8_t samples)
 {
-    _texInternalFormat = internalFormat;
-    _texFormat = format;
-    _texType = type;
     _samples = samples;
 
     initViewports();
-    initTextures();
-    initFBO();
+    initTextures(internalFormat, format, type);
+    initFBO(internalFormat);
     initVBO();
     initShaders();
 }
@@ -117,8 +114,10 @@ ivec2 NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
 }
 
-void NonLinearProjection::initTextures() {
-    generateCubeMap(_textures.cubeMapColor, _texInternalFormat, _texFormat, _texType);
+void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int format,
+                                       unsigned int type)
+{
+    generateCubeMap(_textures.cubeMapColor, internalFormat, format, type);
     Log::Debug(std::format(
         "{}x{} color cube map texture (id: {}) generated",
         _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapColor
@@ -149,7 +148,7 @@ void NonLinearProjection::initTextures() {
                 _cubemapResolution.x, _cubemapResolution.y, _textures.depthSwap
             ));
 
-            generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
+            generateMap(_textures.colorSwap, internalFormat, format, type);
             Log::Debug(std::format(
                 "{}x{} color swap map texture (id: {}) generated",
                 _cubemapResolution.x, _cubemapResolution.y, _textures.colorSwap
@@ -174,9 +173,8 @@ void NonLinearProjection::initTextures() {
     }
 }
 
-void NonLinearProjection::initFBO() {
-    _cubeMapFbo = std::make_unique<OffScreenBuffer>();
-    _cubeMapFbo->setInternalColorFormat(_texInternalFormat);
+void NonLinearProjection::initFBO(unsigned int internalFormat) {
+    _cubeMapFbo = std::make_unique<OffScreenBuffer>(internalFormat);
     _cubeMapFbo->createFBO(_cubemapResolution.x, _cubemapResolution.y, _samples);
 }
 

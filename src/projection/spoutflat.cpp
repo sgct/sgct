@@ -116,8 +116,10 @@ void SpoutFlatProjection::setSpoutDrawMain(bool drawMain) {
     _spoutDrawMain = drawMain;
 }
 
-void SpoutFlatProjection::initTextures() {
-    generateMap(_textureIdentifiers.spoutColor, _texInternalFormat, _texFormat, _texType);
+void SpoutFlatProjection::initTextures(unsigned int internalFormat, unsigned int format,
+                                       unsigned int type)
+{
+    generateMap(_textureIdentifiers.spoutColor, internalFormat, format, type);
     Log::Debug(std::format(
         "{0}x{1} color spout texture (id: {2}) generated",
         _resolutionX, _resolutionY, _textureIdentifiers.spoutColor
@@ -148,12 +150,7 @@ void SpoutFlatProjection::initTextures() {
                 _resolutionX, _resolutionY, _textureIdentifiers.depthSwap
             ));
 
-            generateMap(
-                _textureIdentifiers.colorSwap,
-                _texInternalFormat,
-                _texFormat,
-                _texType
-            );
+            generateMap(_textureIdentifiers.colorSwap, internalFormat, format, type);
             Log::Debug(std::format(
                 "{0}x{1} color swap map texture (id: {2}) generated",
                 _resolutionX, _resolutionY, _textureIdentifiers.colorSwap
@@ -194,9 +191,8 @@ void SpoutFlatProjection::initTextures() {
 #endif // SGCT_HAS_SPOUT
 }
 
-void SpoutFlatProjection::initFBO() {
-    _spoutFbo = std::make_unique<OffScreenBuffer>();
-    _spoutFbo->setInternalColorFormat(_texInternalFormat);
+void SpoutFlatProjection::initFBO(unsigned int internalFormat) {
+    _spoutFbo = std::make_unique<OffScreenBuffer>(internalFormat);
     _spoutFbo->createFBO(_resolutionX, _resolutionY, _samples);
 }
 
@@ -415,8 +411,8 @@ void SpoutFlatProjection::initViewports() {
 void SpoutFlatProjection::initShaders() {
     _shader.deleteProgram();
     _shader = ShaderProgram("SpoutShader");
-    _shader.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(shaders::BaseVert);
+    _shader.addFragmentShader(shaders::BaseFrag);
     _shader.createAndLinkProgram();
     _shader.bind();
     glUniform1i(glGetUniformLocation(_shader.id(), "tex"), 0);

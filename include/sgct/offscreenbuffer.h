@@ -21,11 +21,11 @@ class SGCT_EXPORT OffScreenBuffer {
 public:
     static void unbind();
 
+    explicit OffScreenBuffer(unsigned int internalFormat);
     ~OffScreenBuffer();
 
     void createFBO(int width, int height, int samples = 1, bool mirrored = false);
     void resizeFBO(int width, int height, int samples = 1);
-    void setInternalColorFormat(unsigned int internalFormat);
 
     /**
      * \param texId GL id of the texture to attach
@@ -67,7 +67,7 @@ private:
     unsigned int _normalBuffer = 0;
     unsigned int _positionBuffer = 0;
     unsigned int _depthBuffer = 0;
-    unsigned int _internalColorFormat = 0x8058; // GL_RGBA8;
+    const unsigned int _internalColorFormat = 0x8058; // GL_RGBA8;
 
     ivec2 _size = ivec2{ -1, -1 };
     bool _isMultiSampled = false;

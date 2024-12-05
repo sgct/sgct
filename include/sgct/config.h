@@ -63,7 +63,7 @@ struct SGCT_EXPORT Settings {
     enum class BufferFloatPrecision { Float16Bit, Float32Bit};
 
     struct Display {
-        std::optional<int> swapInterval;
+        std::optional<int8_t> swapInterval;
         std::optional<int> refreshRate;
     };
 
@@ -292,7 +292,7 @@ struct SGCT_EXPORT Window {
         TopBottomInverted
     };
 
-    int id = 0;
+    int8_t id = 0;
     std::optional<std::string> name;
     std::vector<std::string> tags;
     std::optional<ColorBitDepth> bufferBitDepth;
@@ -303,7 +303,7 @@ struct SGCT_EXPORT Window {
     std::optional<bool> alwaysRender;
     std::optional<bool> isHidden;
     std::optional<bool> takeScreenshot;
-    std::optional<int> msaa;
+    std::optional<uint8_t> msaa;
     std::optional<bool> useFxaa;
     std::optional<bool> isDecorated;
     std::optional<bool> isResizable;
@@ -311,10 +311,10 @@ struct SGCT_EXPORT Window {
     std::optional<bool> draw3D;
     std::optional<bool> isMirrored;
     std::optional<bool> noError;
-    std::optional<int> blitWindowId;
+    std::optional<int8_t> blitWindowId;
     std::optional<bool> mirrorX;
     std::optional<bool> mirrorY;
-    std::optional<int> monitor;
+    std::optional<uint8_t> monitor;
     std::optional<StereoMode> stereo;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
@@ -330,8 +330,8 @@ SGCT_EXPORT void validateWindow(const Window& window);
 
 struct SGCT_EXPORT Node {
     std::string address;
-    int port = 0;
-    std::optional<int> dataTransferPort;
+    uint16_t port = 0;
+    std::optional<uint16_t> dataTransferPort;
     std::optional<bool> swapLock;
     std::vector<Window> windows;
 };

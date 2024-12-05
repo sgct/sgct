@@ -68,7 +68,7 @@ namespace {
 
 using namespace sgct;
 
-void draw(RenderData data) {
+void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -140,8 +140,6 @@ void preWindowInit() {
 
     const std::vector<std::unique_ptr<Window>>& win = Engine::instance().windows();
     for (int i = 0; i < win.size(); i++) {
-        win[i]->setFixResolution(true);
-
         if (win[i]->isStereo()) {
             senderNames.push_back(baseName + std::to_string(i) + "_Left");
             windowData.push_back(std::pair(i, true));

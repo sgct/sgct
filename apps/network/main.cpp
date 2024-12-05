@@ -226,10 +226,6 @@ void initOGL(GLFWwindow*) {
     matrixLoc = glGetUniformLocation(prg.id(), "mvp");
     glUniform1i(glGetUniformLocation(prg.id(), "tex"), 0);
     prg.unbind();
-
-    for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {
-        win->setWindowTitle(isServer ? "SERVER" : "CLIENT");
-    }
 }
 
 std::vector<std::byte> encode() {

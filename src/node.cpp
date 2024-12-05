@@ -28,8 +28,23 @@ Node::Node(const config::Node& node, bool initializeWindows)
 
     if (initializeWindows) {
         for (const config::Window& window : node.windows) {
-            auto win = std::make_unique<Window>(window);
-            addWindow(std::move(win));
+            if (window.scalableMesh.has_value()) {
+#ifdef SGCT_HAS_SCALABLE
+                auto win = std::make_unique<Window>(
+                    createScalableConfiguration(*window.scalableMesh)
+                );
+                addWindow(std::move(win));
+#else // ^^^^ SGCT_HAS_SCALABLE // !SGCT_HAS_SCALABLE vvvv
+                Log::Error(
+                    "Trying to load a ScalableMesh configuration but the program was "
+                    "compiled without support for it"
+                );
+#endif // SGCT_HAS_SCALABLE
+            }
+            else {
+                auto win = std::make_unique<Window>(window);
+                addWindow(std::move(win));
+            }
         }
     }
 }

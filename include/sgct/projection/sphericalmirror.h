@@ -46,7 +46,8 @@ public:
     void setTilt(float angle);
 
 private:
-    void initTextures() override;
+    void initTextures(unsigned int internalFormat, unsigned int format,
+        unsigned int type) override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;

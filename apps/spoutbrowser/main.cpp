@@ -165,7 +165,7 @@ void draw(const RenderData& data) {
         glGetUniformLocation(prog.id(), "texSize"),
         senders[currentSender].width, senders[currentSender].height
     );
-    ivec2 res = data.window.resolution();
+    ivec2 res = data.window.windowResolution();
     glUniform2i(glGetUniformLocation(prog.id(), "windowSize"), res.x, res.y);
 
     glBindVertexArray(vao);

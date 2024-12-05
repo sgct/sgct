@@ -1231,14 +1231,7 @@ TEST_CASE("Load: Spout Output Cubemap", "[parse]") {
     const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    REQUIRE(p.mapping.has_value());
-    CHECK(*p.mapping == SpoutOutputProjection::Mapping::Cubemap);
-    CHECK(p.mappingSpoutName == "OS_CUBEMAP");
-    REQUIRE(p.background.has_value());
-    CHECK(p.background->x == 0.1f);
-    CHECK(p.background->y == 0.1f);
-    CHECK(p.background->z == 0.1f);
-    CHECK(p.background->w == 1.f);
+    CHECK(p.spoutName == "OS_CUBEMAP");
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);
@@ -1318,14 +1311,7 @@ TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
     const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    REQUIRE(p.mapping.has_value());
-    CHECK(*p.mapping == SpoutOutputProjection::Mapping::Equirectangular);
-    CHECK(p.mappingSpoutName == "OS_EQUIRECTANGULAR");
-    REQUIRE(p.background.has_value());
-    CHECK(p.background->x == 0.1f);
-    CHECK(p.background->y == 0.1f);
-    CHECK(p.background->z == 0.1f);
-    CHECK(p.background->w == 1.f);
+    CHECK(p.spoutName == "OS_EQUIRECTANGULAR");
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);
@@ -1386,6 +1372,7 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
     CHECK(*w.msaa == 4);
     CHECK(w.size.x == 1024);
     CHECK(w.size.y == 1024);
+    CHECK(w.spoutName == "OS_FISHEYE");
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -1400,14 +1387,6 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
     const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    REQUIRE(p.mapping.has_value());
-    CHECK(*p.mapping == SpoutOutputProjection::Mapping::Fisheye);
-    CHECK(p.mappingSpoutName == "OS_FISHEYE");
-    REQUIRE(p.background.has_value());
-    CHECK(p.background->x == 0.1f);
-    CHECK(p.background->y == 0.1f);
-    CHECK(p.background->z == 0.1f);
-    CHECK(p.background->w == 1.f);
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);

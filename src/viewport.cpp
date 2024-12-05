@@ -20,7 +20,6 @@
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirror.h>
 #include <sgct/projection/spout.h>
-#include <sgct/projection/spoutflat.h>
 #include <algorithm>
 #include <array>
 #include <optional>
@@ -109,14 +108,6 @@ Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
 #ifdef SGCT_HAS_SPOUT
             _nonLinearProjection =
                 std::make_unique<SpoutOutputProjection>(_parent, _user, p);
-#else  // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
-            Log::Error("Spout library not added to SGCT");
-#endif // SGCT_HAS_SPOUT
-        },
-        [this]([[maybe_unused]] const config::SpoutFlatProjection& p) {
-#ifdef SGCT_HAS_SPOUT
-            _nonLinearProjection =
-                std::make_unique<SpoutFlatProjection>(_parent, _user, p);
 #else  // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
             Log::Error("Spout library not added to SGCT");
 #endif // SGCT_HAS_SPOUT

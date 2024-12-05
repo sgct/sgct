@@ -179,7 +179,6 @@ SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
 
 struct SGCT_EXPORT SpoutOutputProjection {
-    enum class Mapping { Fisheye, Equirectangular, Cubemap };
     struct Channels {
         bool right = true;
         bool zLeft = true;
@@ -189,26 +188,11 @@ struct SGCT_EXPORT SpoutOutputProjection {
         bool zRight = true;
     };
     std::optional<int> quality;
-    std::optional<Mapping> mapping;
-    std::string mappingSpoutName;
-    std::optional<vec4> background;
+    std::string spoutName;
     std::optional<Channels> channels;
     std::optional<vec3> orientation;
-    std::optional<bool> drawMain;
 };
 SGCT_EXPORT void validateProjection(const SpoutOutputProjection& proj);
-
-
-
-struct SGCT_EXPORT SpoutFlatProjection {
-    PlanarProjection proj;
-    std::optional<int> width;
-    std::optional<int> height;
-    std::string mappingSpoutName;
-    std::optional<vec4> background;
-    std::optional<bool> drawMain;
-};
-SGCT_EXPORT void validateProjection(const SpoutFlatProjection& proj);
 
 
 
@@ -239,8 +223,7 @@ SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
 
 using Projections = std::variant<NoProjection, CylindricalProjection,
     EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
-    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection,
-    TextureMappedProjection>;
+    SphericalMirrorProjection, SpoutOutputProjection, TextureMappedProjection>;
 
 
 
@@ -316,6 +299,7 @@ struct SGCT_EXPORT Window {
     std::optional<bool> mirrorY;
     std::optional<uint8_t> monitor;
     std::optional<StereoMode> stereo;
+    std::optional<std::string> spoutName;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;

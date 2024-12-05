@@ -16,6 +16,11 @@
 #include <array>
 #include <memory>
 
+#ifdef SGCT_HAS_SPOUT
+struct SPOUTLIBRARY;
+typedef SPOUTLIBRARY* SPOUTHANDLE;
+#endif // SGCT_HAS_SPOUT
+
 namespace sgct {
 
 class OffScreenBuffer;
@@ -25,17 +30,10 @@ class OffScreenBuffer;
  */
 class SGCT_EXPORT SpoutOutputProjection final : public NonLinearProjection {
 public:
-    enum class Mapping { Fisheye, Equirectangular, Cubemap };
-
     SpoutOutputProjection(const Window* parent, User* user,
         const config::SpoutOutputProjection& config);
     virtual ~SpoutOutputProjection() override;
 
-    void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
-        bool zRight);
-    void setSpoutDrawMain(bool drawMain);
-    void setSpoutMappingName(std::string name);
-    void setSpoutMapping(Mapping type);
     void setSpoutRigOrientation(vec3 orientation);
 
     /**
@@ -53,13 +51,7 @@ public:
      */
     void renderCubemap(FrustumMode frustumMode) const override;
 
-    void updateFrustums(FrustumMode mode, float nearClip, float farClip) override;
-    void setUser(User& user) override;
-
 private:
-    static constexpr int NTextures = 7;
-    static constexpr int NFaces = 6;
-
     void initTextures(unsigned int internalFormat, unsigned int format,
         unsigned int type) override;
     void initVBO() override;
@@ -84,24 +76,20 @@ private:
 
     struct SpoutInfo {
         bool enabled;
-        void* handle;
+#ifdef SGCT_HAS_SPOUT
+        SPOUTHANDLE handle;
+#endif // SGCT_HAS_SPOUT
         unsigned int texture;
     };
-    std::array<SpoutInfo, NTextures> _spout;
+    std::array<SpoutInfo, 6> _spout;
 
-    void* _mappingHandle = nullptr;
     unsigned int _mappingTexture = 0;
-    Mapping _mappingType;
-    std::string _mappingName = "SPOUT_OS_MAPPING";
+    std::string _spoutName;
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
-
-    BaseViewport _mainViewport;
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
     ShaderProgram _shader;
-    ShaderProgram _flatShader;
-    ShaderProgram _depthCorrectionShader;
 
     int _mappingWidth = 0;
     int _mappingHeight = 0;

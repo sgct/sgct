@@ -31,6 +31,16 @@
 #include "EasyBlendSDK.h"
 #endif // SGCT_HAS_SCALABLE
 
+#ifdef SGCT_HAS_SPOUT
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif // NOMINMAX
+#include <SpoutLibrary.h>
+#endif // SGCT_HAS_SPOUT
+
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -346,6 +356,7 @@ Window::Window(const config::Window& window)
     , _isVisible(!window.isHidden.value_or(false))
     , _stereoMode(convert(window.stereo.value_or(config::Window::StereoMode::NoStereo)))
     , _windowPos(window.pos)
+    , _spoutName(window.spoutName.value_or(""))
     , _internalColorFormat(colorBitDepthToColorFormat(
         window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
     ))
@@ -587,6 +598,13 @@ void Window::closeWindow() {
     }
 #endif // SGCT_HAS_SCALABLE
 
+#ifdef SGCT_HAS_SPOUT
+    if (_spoutHandle) {
+        _spoutHandle->ReleaseSender();
+        _spoutHandle->Release();
+    }
+#endif // SGCT_HAS_SPOUT
+
     makeSharedContextCurrent();
 
     Log::Info(std::format("Deleting screen capture data for window {}", _id));
@@ -661,6 +679,25 @@ void Window::initialize() {
     }
 
     loadShaders();
+
+    if (!_spoutName.empty()) {
+#ifdef SGCT_HAS_SPOUT
+        _spoutHandle = GetSpout();
+        bool success = false;
+        if (_spoutHandle) {
+            success = _spoutHandle->CreateSender(
+                _spoutName.c_str(),
+                _framebufferRes.x,
+                _framebufferRes.y
+            );
+        }
+        if (!success) {
+            Log::Error(std::format("Error creating SPOUT handle for {}", _spoutName));
+        }
+#else // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
+        Log::Warning("SpoutName provided but compiled without SPOUT support");
+#endif // SGCT_HAS_SPOUT
+    }
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         const vec2 viewportSize = vec2{
@@ -944,6 +981,23 @@ void Window::renderFBOTexture() {
 
     ShaderProgram::unbind();
     glDisable(GL_BLEND);
+
+#ifdef SGCT_HAS_SPOUT
+    if (_spoutHandle) {
+        // Share the window via Spout
+        const bool s = _spoutHandle->SendTexture(
+            _frameBufferTextures.leftEye,
+            static_cast<GLuint>(GL_TEXTURE_2D),
+            _framebufferRes.x,
+            _framebufferRes.y
+        );
+        if (!s) {
+            Log::Error(std::format(
+                "Error sending Spout texture for '{}'", _spoutName
+            ));
+        }
+    }
+#endif // SGCT_HAS_SPOUT
 }
 
 void Window::swapBuffers(bool takeScreenshot) {

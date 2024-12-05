@@ -23,9 +23,7 @@
               "projection": {
                 "type": "SpoutOutputProjection",
                 "quality": "1k",
-                "mapping": "cubemap",
-                "mappingspoutname": "OS_CUBEMAP",
-                "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 },
+                "spoutname": "OS_CUBEMAP",
                 "channels": {
                   "right": true,
                   "zleft": true,

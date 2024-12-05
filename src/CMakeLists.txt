@@ -95,7 +95,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirror.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/spout.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/projection/spoutflat.h
 
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/openvr.h>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h>
@@ -146,7 +145,6 @@ target_sources(
     projection/projectionplane.cpp
     projection/sphericalmirror.cpp
     projection/spout.cpp
-    projection/spoutflat.cpp
 
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr.cpp>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:trackingmanager.cpp>

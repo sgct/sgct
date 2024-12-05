@@ -248,8 +248,8 @@ void validateWindow(const Window& w) {
     if (std::any_of(w.tags.begin(), w.tags.end(), std::mem_fn(&std::string::empty))) {
         throw Error(1101, "Empty tags are not allowed for windows");
     }
-    if (w.msaa && *w.msaa < 0) {
-        throw Error(1102, "Number of MSAA samples must be non-negative");
+    if (w.msaa && *w.msaa < 0 && *w.msaa >= std::numeric_limits<uint8_t>::max()) {
+        throw Error(1102, "Number of MSAA samples must be between 0 and 127");
     }
     if (w.monitor && *w.monitor < -1) {
         throw Error(1103, "Monitor index must be non-negative or -1");
@@ -301,13 +301,18 @@ void validateNode(const Node& n) {
         usedIds.push_back(win.id);
 
         if (win.blitWindowId) {
+            if (*win.blitWindowId < 0 ||
+                *win.blitWindowId > std::numeric_limits<int8_t>::max())
+            {
+                throw Error(1108, "BlitWindowId must be between 0 and 127");
+            }
             auto it = std::find_if(
                 n.windows.cbegin(), n.windows.cend(),
                 [id = *win.blitWindowId](const Window& w) { return w.id == id; }
             );
             if (it == n.windows.cend()) {
                 throw Error(
-                    1108,
+                    1109,
                     std::format(
                         "Tried to configure window {} to be blitted from window {}, but "
                         "no such window was specified", win.id, *win.blitWindowId
@@ -316,7 +321,7 @@ void validateNode(const Node& n) {
             }
             if (win.id == *win.blitWindowId) {
                 throw Error(
-                    1109,
+                    1110,
                     std::format(
                         "Window {} tried to blit from itself, which cannot work", win.id
                     )
@@ -592,7 +597,7 @@ namespace {
         return buffer.str();
     }
 
-    constexpr int InvalidWindowIndex = -128;
+    constexpr int8_t InvalidWindowIndex = std::numeric_limits<int8_t>::min();
 
     template <typename T> struct is_optional : std::false_type {};
     template <typename T> struct is_optional<std::optional<T>> : std::true_type {};
@@ -1710,7 +1715,7 @@ void to_json(nlohmann::json& j, const Viewport& v) {
 }
 
 void from_json(const nlohmann::json& j, Window& w) {
-    std::optional<int> id;
+    std::optional<int8_t> id;
     parseValue(j, "id", id);
     w.id = id.value_or(InvalidWindowIndex);
 
@@ -1915,9 +1920,12 @@ void from_json(const nlohmann::json& j, Node& n) {
     parseValue(j, "swaplock", n.swapLock);
 
     parseValue(j, "windows", n.windows);
+    if (n.windows.size() > std::numeric_limits<int8_t>::max()) {
+        throw Err(6042, "Only 127 windows are supported");
+    }
     for (size_t i = 0; i < n.windows.size(); i += 1) {
         if (n.windows[i].id == InvalidWindowIndex) {
-            n.windows[i].id = static_cast<int>(i);
+            n.windows[i].id = static_cast<int8_t>(i);
         }
     }
 }

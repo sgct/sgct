@@ -51,8 +51,8 @@ void ShaderManager::addShaderProgram(std::string name, std::string_view vertexSr
 
     // If shader don't exist, create it and add to container
     ShaderProgram sp = ShaderProgram(std::move(name));
-    sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER);
-    sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER);
+    sp.addVertexShader(vertexSrc);
+    sp.addFragmentShader(fragmentSrc);
     sp.createAndLinkProgram();
     _shaderPrograms.push_back(std::move(sp));
 }

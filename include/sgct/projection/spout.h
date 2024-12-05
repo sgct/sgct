@@ -60,11 +60,12 @@ private:
     static constexpr int NTextures = 7;
     static constexpr int NFaces = 6;
 
-    void initTextures() override;
+    void initTextures(unsigned int internalFormat, unsigned int format,
+        unsigned int type) override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
-    void initFBO() override;
+    void initFBO(unsigned int internalFormat) override;
 
     // shader locations
     struct {

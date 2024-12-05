@@ -49,16 +49,20 @@ public:
     void deleteProgram();
 
     /**
-     * Will create and add a shader to the program.
+     * Will create and add a vertex shader to the program.
      *
      * \param src The shader source string
-     * \param type Type of shader can be one of the following: `GL_COMPUTE_SHADER`,
-     *             `GL_VERTEX_SHADER`, `GL_TESS_CONTROL_SHADER`,
-     *             `GL_TESS_EVALUATION_SHADER`, `GL_GEOMETRY_SHADER`, or
-     *             `GL_FRAGMENT_SHADER`
      * \throw std::runtime_error If the adding of the shaders failed
      */
-    void addShaderSource(std::string_view src, unsigned int type);
+    void addVertexShader(std::string_view src);
+
+    /**
+     * Will create and add a fragment shader to the program.
+     *
+     * \param src The shader source string
+     * \throw std::runtime_error If the adding of the shaders failed
+     */
+    void addFragmentShader(std::string_view src);
 
     /**
      * Will create the program and link the shaders. The shader sources must have been set
@@ -80,12 +84,12 @@ public:
     /**
      * \return The name of the program
      */
-    std::string name() const;
+    std::string_view name() const;
 
     /**
      * \return The program ID
      */
-    int id() const;
+    unsigned int id() const;
 
 private:
     /**
@@ -96,7 +100,7 @@ private:
     /// Name of the program, has to be unique
     std::string _name;
     /// Unique program id
-    int _programId = 0;
+    unsigned int _programId = 0;
 
     std::vector<unsigned int> _shaders;
 };

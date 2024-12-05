@@ -388,8 +388,11 @@ void SpoutOutputProjection::setSpoutRigOrientation(vec3 orientation) {
     _rigOrientation = std::move(orientation);
 }
 
-void SpoutOutputProjection::initTextures() {
-    NonLinearProjection::initTextures();
+void SpoutOutputProjection::initTextures(unsigned int internalFormat, unsigned int format,
+                                         unsigned int type)
+{
+    NonLinearProjection::initTextures(internalFormat, format, type);
+
     Log::Debug("SpoutOutputProjection initTextures");
 
     switch (_mappingType) {
@@ -431,12 +434,12 @@ void SpoutOutputProjection::initTextures() {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
-                _texInternalFormat,
+                internalFormat,
                 _mappingWidth,
                 _mappingHeight,
                 0,
-                _texFormat,
-                _texType,
+                format,
+                type,
                 nullptr
             );
         }
@@ -474,12 +477,12 @@ void SpoutOutputProjection::initTextures() {
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
-            _texInternalFormat,
+            internalFormat,
             _mappingWidth,
             _mappingHeight,
             0,
-            _texFormat,
-            _texType,
+            format,
+            type,
             nullptr
         );
         break;
@@ -516,12 +519,12 @@ void SpoutOutputProjection::initTextures() {
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
-            _texInternalFormat,
+            internalFormat,
             _mappingWidth,
             _mappingHeight,
             0,
-            _texFormat,
-            _texType,
+            format,
+            type,
             nullptr
         );
         break;
@@ -545,12 +548,12 @@ void SpoutOutputProjection::initTextures() {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
-                _texInternalFormat,
+                internalFormat,
                 _cubemapResolution.x,
                 _cubemapResolution.y,
                 0,
-                _texFormat,
-                _texType,
+                format,
+                type,
                 nullptr
             );
         }
@@ -617,7 +620,7 @@ void SpoutOutputProjection::initViewports() {
     // main
     {
         const float angleCorrection = _mappingType == Mapping::Fisheye ? 0.f : -90.f;
-        _mainViewport.setPos(vec2{ 0.f, 0.f });
+        _mainViewport.setPosition(vec2{ 0.f, 0.f });
         _mainViewport.setSize(vec2{ 1.f, 1.f });
 
         glm::vec4 lowerLeft = lowerLeftBase;
@@ -662,7 +665,7 @@ void SpoutOutputProjection::initViewports() {
 
     // left
     {
-        _subViewports.left.setPos(vec2{ 0.f, 0.f });
+        _subViewports.left.setPosition(vec2{ 0.f, 0.f });
         _subViewports.left.setSize(vec2{ 1.f, 1.f });
 
         glm::vec4 lowerLeft = lowerLeftBase;
@@ -687,7 +690,7 @@ void SpoutOutputProjection::initViewports() {
 
     // bottom
     {
-        _subViewports.bottom.setPos(vec2{ 0.f, 0.f });
+        _subViewports.bottom.setPosition(vec2{ 0.f, 0.f });
         _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
 
         glm::vec4 lowerLeft = lowerLeftBase;
@@ -833,8 +836,8 @@ void SpoutOutputProjection::initShaders() {
     }(_mappingType);
 
     _shader = ShaderProgram(std::move(name));
-    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(frag, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(shaders_fisheye::BaseVert);
+    _shader.addFragmentShader(frag);
 
     const std::string_view samplerShaderCode = [](Mapping mappingType) {
         switch (mappingType) {
@@ -843,12 +846,12 @@ void SpoutOutputProjection::initShaders() {
             default:                       return shaders_fisheye::SampleFun;
         }
     }(_mappingType);
-    _shader.addShaderSource(samplerShaderCode, GL_FRAGMENT_SHADER);
-    _shader.addShaderSource(shaders_fisheye::RotationFun, GL_FRAGMENT_SHADER);
-    _shader.addShaderSource(
+    _shader.addFragmentShader(samplerShaderCode);
+    _shader.addFragmentShader(shaders_fisheye::RotationFun);
+    _shader.addFragmentShader(
         _interpolationMode == InterpolationMode::Cubic ?
         shaders_fisheye::InterpolateCubicFun :
-        shaders_fisheye::InterpolateLinearFun, GL_FRAGMENT_SHADER
+        shaders_fisheye::InterpolateLinearFun
     );
     _shader.createAndLinkProgram();
     _shader.bind();
@@ -907,8 +910,8 @@ void SpoutOutputProjection::initShaders() {
 
     _flatShader.deleteProgram();
     _flatShader = ShaderProgram("SpoutShader");
-    _flatShader.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
-    _flatShader.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
+    _flatShader.addVertexShader(shaders::BaseVert);
+    _flatShader.addFragmentShader(shaders::BaseFrag);
     _flatShader.createAndLinkProgram();
     _flatShader.bind();
     glUniform1i(glGetUniformLocation(_flatShader.id(), "tex"), 0);
@@ -917,13 +920,9 @@ void SpoutOutputProjection::initShaders() {
 
     if (Engine::instance().settings().useDepthTexture) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
-        _depthCorrectionShader.addShaderSource(
-            shaders_fisheye::BaseVert,
-            GL_VERTEX_SHADER
-        );
-        _depthCorrectionShader.addShaderSource(
-            shaders_fisheye::FisheyeDepthCorrectionFrag,
-            GL_FRAGMENT_SHADER
+        _depthCorrectionShader.addVertexShader(shaders_fisheye::BaseVert);
+        _depthCorrectionShader.addFragmentShader(
+            shaders_fisheye::FisheyeDepthCorrectionFrag
         );
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
@@ -939,11 +938,10 @@ void SpoutOutputProjection::initShaders() {
     }
 }
 
-void SpoutOutputProjection::initFBO() {
-    NonLinearProjection::initFBO();
+void SpoutOutputProjection::initFBO(unsigned int internalFormat) {
+    NonLinearProjection::initFBO(internalFormat);
 
-    _spoutFBO = std::make_unique<OffScreenBuffer>();
-    _spoutFBO->setInternalColorFormat(_texInternalFormat);
+    _spoutFBO = std::make_unique<OffScreenBuffer>(internalFormat);
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
     glGenFramebuffers(1, &_blitFbo);
 }

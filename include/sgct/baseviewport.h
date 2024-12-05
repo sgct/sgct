@@ -29,11 +29,10 @@ public:
     BaseViewport(const Window* parent);
     virtual ~BaseViewport();
 
-    void setPos(vec2 position);
+    void setPosition(vec2 position);
     void setSize(vec2 size);
     void setEnabled(bool state);
     void setUser(User* user);
-    void setUserName(std::string userName);
     void setEye(FrustumMode eye);
 
     const vec2& position() const;
@@ -50,7 +49,7 @@ public:
     ProjectionPlane& projectionPlane();
 
     bool isEnabled() const;
-    void linkUserName();
+    void linkUserName(std::string_view userName);
 
     virtual void calculateFrustum(FrustumMode mode, float nearClip, float farClip);
     void setupViewport(FrustumMode frustum) const;
@@ -72,14 +71,14 @@ protected:
     Projection _stereoRightProj;
 
     ProjectionPlane _projPlane;
+
+    bool _isEnabled = true;
     FrustumMode _eye = FrustumMode::Mono;
 
-    User* _user;
-
-    std::string _userName;
-    bool _isEnabled = true;
     vec2 _position = vec2{ 0.f, 0.f };
     vec2 _size = vec2{ 1.f, 1.f };
+
+    User* _user;
 
     struct {
         vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };

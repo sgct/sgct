@@ -179,12 +179,16 @@ void SphericalMirrorProjection::setTilt(float angle) {
     _tilt = angle;
 }
 
-void SphericalMirrorProjection::initTextures() {
-    auto generate = [this](const BaseViewport& bv, unsigned int& texture) {
+void SphericalMirrorProjection::initTextures(unsigned int internalFormat,
+                                             unsigned int format, unsigned int type)
+{
+    auto generate = [this, internalFormat, format, type]
+                    (const BaseViewport& bv, unsigned int& texture)
+    {
         if (!bv.isEnabled()) {
             return;
         }
-        generateMap(texture, _texInternalFormat, _texFormat, _texType);
+        generateMap(texture, internalFormat, format, type);
         Log::Debug(std::format(
             "{}x{} cube face texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, texture
@@ -303,8 +307,8 @@ void SphericalMirrorProjection::initShaders() {
     _shader.deleteProgram();
 
     _shader = ShaderProgram("SphericalMirrorShader");
-    _shader.addShaderSource(SphericalProjectionVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(SphericalProjectionFrag, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(SphericalProjectionVert);
+    _shader.addFragmentShader(SphericalProjectionFrag);
     _shader.createAndLinkProgram();
     _shader.bind();
 

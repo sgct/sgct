@@ -103,7 +103,7 @@ bool bindSpout() {
     return false;
 }
 
-void draw(RenderData data) {
+void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 

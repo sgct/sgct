@@ -63,6 +63,8 @@ SGCT_EXPORT double time();
  */
 class SGCT_EXPORT Engine {
 public:
+    using DrawFunction = void (*)(const RenderData&);
+
     /**
      * Structure with all statistics gathered about different frametimes. The newest value
      * is always at the front of the different arrays, the remaining values being sorted
@@ -121,16 +123,12 @@ public:
         ///    0 = vertical sync off
         ///    1 = wait for vertical sync
         ///    2..inf = wait for every n-th vertical sync
-        int swapInterval = 1;
+        int8_t swapInterval = 1;
 
         /// If this is true, a log message is printed to the console while a client is
         /// waiting for the master to connect or while the master is waiting for one or
         /// more clients
         bool printSyncMessage = true;
-
-        /// The number of seconds that SGCT will wait for the master or clients to connect
-        /// before aborting
-        float syncTimeout = 60.f;
 
         /// Get if capture should use backbuffer data or texture. Backbuffer data includes
         /// masks and warping
@@ -140,21 +138,25 @@ public:
         bool useNormalTexture = false;
         bool usePositionTexture = false;
 
-        struct {
+        /// The number of seconds that SGCT will wait for the master or clients to connect
+        /// before aborting
+        float syncTimeout = 60.f;
+
+        struct SS{
             /// The location where the screenshots are being saved
             std::filesystem::path capturePath;
 
             // The number of capture threads
             int nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
 
-            /// The prefix to be used for all screenshots
-            std::string prefix;
-
             /// If set to true, the node name is added to screenshots
             bool addNodeName = false;
 
             /// If set to true, the window name is added to screenshots
             bool addWindowName = true;
+
+            /// The prefix to be used for all screenshots
+            std::string prefix;
 
             /**
              * Information about the screenshot limits. If there is no screenshot limit,
@@ -174,75 +176,75 @@ public:
         /// This function is called before the window is created (before OpenGL context is
         /// created). At this stage the configuration file has been read and network
         /// is initialized.
-        std::function<void()> preWindow;
+        void (*preWindow)() = nullptr;
 
         /// This function is called once before the starting the render loop and after
         /// creation of the OpenGL context. The window that is passed in this callback is
         /// the shared context between all created windows
-        std::function<void(GLFWwindow*)> initOpenGL;
+        void (*initOpenGL)(GLFWwindow*) = nullptr;
 
         /// This function is called before the synchronization stage.
-        std::function<void()> preSync;
+        void (*preSync)() = nullptr;
 
         /// This function is called once per frame after sync but before draw stage.
-        std::function<void()> postSyncPreDraw;
+        void (*postSyncPreDraw)() = nullptr;
 
         /// This function draws the scene and could be called several times per frame
         /// as it's called once per viewport and once per eye if stereoscopy is used.
-        std::function<void(const RenderData&)> draw;
+        void (*draw)(const RenderData&) = nullptr;
 
         /// This function is be called after overlays and post effects has been drawn and
         /// can used to render text and HUDs that will not be filtered or antialiased.
-        std::function<void(const RenderData&)> draw2D;
+        void (*draw2D)(const RenderData&) = nullptr;
 
         /// This function is called after the draw stage but before the OpenGL buffer
         /// swap.
-        std::function<void()> postDraw;
+        void (*postDraw)() = nullptr;
 
         /// This is called before all SGCT components will be destroyed. The same shared
         /// context is active that was passed in the Callbacks::initOpenGL callback
-        std::function<void()> cleanup;
+        void (*cleanup)() = nullptr;
 
         /// This function is called to encode all shared data that is sent to the
         /// connected nodes in a clustered setup.
-        std::function<std::vector<std::byte>()> encode;
+        std::vector<std::byte> (*encode)() = nullptr;
 
         /// This function is called by decode all shared data sent to us from the master
         /// The parameter is the block of data that contains the data to be decoded.
-        std::function<void(const std::vector<std::byte>&)> decode;
+        void (*decode)(const std::vector<std::byte>&) = nullptr;
 
         /// This function is called when a TCP message is received.
-        std::function<void(const char*, int)> externalDecode;
+        void (*externalDecode)(const char*, int) = nullptr;
 
         /// This function is called when the connection status changes.
-        std::function<void(bool)> externalStatus;
+        void (*externalStatus)(bool) = nullptr;
 
         /// This function is called when a TCP message is received.
-        std::function<void(void*, int, int, int)> dataTransferDecode;
+        void (*dataTransferDecode)(void*, int, int, int) = nullptr;
 
         /// This function is called when the connection status changes.
-        std::function<void(bool, int)> dataTransferStatus;
+        void (*dataTransferStatus)(bool, int) = nullptr;
 
         /// This function is called when data is successfully sent.
-        std::function<void(int, int)> dataTransferAcknowledge;
+        void (*dataTransferAcknowledge)(int, int) = nullptr;
 
         /// This function sets the keyboard callback (GLFW wrapper) for all windows.
-        std::function<void(Key, Modifier, Action, int, Window*)> keyboard;
+        void (*keyboard)(Key, Modifier, Action, int, Window*) = nullptr;
 
         /// All windows are connected to this callback.
-        std::function<void(unsigned int, int, Window*)> character;
+        void (*character)(unsigned int, int, Window*) = nullptr;
 
         /// This function sets the mouse button callback (GLFW wrapper) for all windows.
-        std::function<void(MouseButton, Modifier, Action, Window*)> mouseButton;
+        void (*mouseButton)(MouseButton, Modifier, Action, Window*) = nullptr;
 
         /// All windows are connected to this callback.
-        std::function<void(double, double, Window*)> mousePos;
+        void (*mousePos)(double, double, Window*) = nullptr;
 
         /// All windows are connected to this callback.
-        std::function<void(double, double, Window*)> mouseScroll;
+        void (*mouseScroll)(double, double, Window*) = nullptr;
 
         /// Drop files to any window. All windows are connected to this callback.
-        std::function<void(const std::vector<std::string_view>&)> drop;
+        void (*drop)(const std::vector<std::string_view>&) = nullptr;
     };
 
     /**
@@ -413,9 +415,9 @@ public:
      *
      * \return The currently bound draw function
      */
-    const std::function<void(const RenderData&)>& drawFunction() const;
+    Engine::DrawFunction drawFunction() const;
 
-    const std::function<void(const RenderData&)>& draw2DFunction() const;
+    Engine::DrawFunction draw2DFunction() const;
 
 
     /**
@@ -538,28 +540,28 @@ private:
     void waitForAllWindowsInSwapGroupToOpen();
 
     /// The function pointer that is called before any windows are created
-    std::function<void()> _preWindowFn;
+    void (*_preWindowFn)() = nullptr;
 
     /// The function pointer that is called after all windows have been created
-    std::function<void(GLFWwindow*)> _initOpenGLFn;
+    void (*_initOpenGLFn)(GLFWwindow*) = nullptr;
 
     /// Function pointer that is called before the synchronization step of the frame
-    std::function<void()> _preSyncFn;
+    void (*_preSyncFn)() = nullptr;
 
     /// Function pointer that is called after the synchronization but before rendering
-    std::function<void()> _postSyncPreDrawFn;
+    void (*_postSyncPreDrawFn)() = nullptr;
 
     /// Function pointer that is called for the 3D portion of the rendering
-    std::function<void(const RenderData&)> _drawFn;
+    void (*_drawFn)(const RenderData&) = nullptr;
 
     /// Function pointer that is called for the 2D portion of the rendering
-    std::function<void(const RenderData&)> _draw2DFn;
+    void (*_draw2DFn)(const RenderData&) = nullptr;
 
     /// Function pointer that is called after all rendering has finished
-    std::function<void()> _postDrawFn;
+    void (*_postDrawFn)() = nullptr;
 
     /// Function pointer that is called when the Engine is being destroyed
-    std::function<void()> _cleanupFn;
+    void (*_cleanupFn)() = nullptr;
 
     /// The near clipping plane used in the rendering and set through
     /// #setNearAndFarClippingPlanes
@@ -582,12 +584,12 @@ private:
     /// Whether SGCT should take a screenshot in the next frame
     bool _shouldTakeScreenshot = false;
 
+    /// Whether SGCT should terminate in the next frame
+    bool _shouldTerminate = false;
+
     /// Contains the list of window ids that should have a screenshot taken. If this
     /// vector is empty, all windows will have a screenshot
     std::vector<int> _shouldTakeScreenshotIds;
-
-    /// Whether SGCT should terminate in the next frame
-    bool _shouldTerminate = false;
 
     Settings _settings;
 

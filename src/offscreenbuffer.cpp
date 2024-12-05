@@ -49,6 +49,10 @@ namespace {
 
 namespace sgct {
 
+OffScreenBuffer::OffScreenBuffer(unsigned int internalFormat)
+    : _internalColorFormat(internalFormat)
+{}
+
 OffScreenBuffer::~OffScreenBuffer() {
     glDeleteFramebuffers(1, &_frameBuffer);
     glDeleteRenderbuffers(1, &_depthBuffer);
@@ -215,10 +219,6 @@ void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     glDeleteRenderbuffers(1, &_normalBuffer);
     glDeleteRenderbuffers(1, &_positionBuffer);
     createFBO(width, height, samples);
-}
-
-void OffScreenBuffer::setInternalColorFormat(unsigned int internalFormat) {
-    _internalColorFormat = internalFormat;
 }
 
 void OffScreenBuffer::bind() const {

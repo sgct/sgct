@@ -42,7 +42,7 @@ public:
     ~Viewport() override;
 
     void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-        unsigned int format, unsigned int type, int samples);
+        unsigned int format, unsigned int type, uint8_t samples);
 
     void loadData();
 
@@ -69,10 +69,10 @@ private:
     std::filesystem::path _blackLevelMaskFilename;
     std::filesystem::path _meshFilename;
     bool _isTracked;
+    bool _useTextureMappedProjection = false;
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;
     unsigned int _blackLevelMaskTextureIndex = 0;
-    bool _useTextureMappedProjection = false;
 
     // @TODO (abock, 2020-01-06) This can be replace with a std::variant as we have a
     // fixed list of overloads and this would remove the virtual function calls

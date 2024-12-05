@@ -199,7 +199,7 @@ void EquirectangularProjection::initViewports() {
 
     // -X face
     {
-        _subViewports.left.setPos(vec2{ 0.f, 0.f });
+        _subViewports.left.setPosition(vec2{ 0.f, 0.f });
         _subViewports.left.setSize(vec2{ 1.f, 1.f });
 
         const glm::mat4 rotMat = glm::rotate(
@@ -225,7 +225,7 @@ void EquirectangularProjection::initViewports() {
 
     // +Y face
     {
-        _subViewports.bottom.setPos(vec2{ 0.f, 0.f });
+        _subViewports.bottom.setPosition(vec2{ 0.f, 0.f });
         _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
 
         const glm::mat4 rotMat = glm::rotate(
@@ -306,8 +306,8 @@ void EquirectangularProjection::initShaders() {
     _shader.deleteProgram();
 
     _shader = ShaderProgram("CylindricalProjectinoShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(shaders_fisheye::BaseVert);
+    _shader.addFragmentShader(FragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();
 

@@ -25,7 +25,7 @@ class Window;
  */
 class SGCT_EXPORT NonLinearProjection {
 public:
-    enum class InterpolationMode { Linear, Cubic };
+    enum class InterpolationMode : uint8_t { Linear, Cubic };
 
     NonLinearProjection(const Window* parent);
 
@@ -36,7 +36,7 @@ public:
      * settings for the parent window's FBO target.
      */
     virtual void initialize(unsigned int internalFormat, unsigned int format,
-        unsigned int type, int samples);
+        unsigned int type, uint8_t samples);
 
     virtual void render(const BaseViewport& viewport, FrustumMode frustumMode) const = 0;
     virtual void renderCubemap(FrustumMode frustumMode) const = 0;
@@ -76,8 +76,9 @@ public:
     ivec2 cubemapResolution() const;
 
 protected:
-    virtual void initTextures();
-    virtual void initFBO();
+    virtual void initTextures(unsigned int internalFormat, unsigned int format,
+        unsigned int type);
+    virtual void initFBO(unsigned int internalFormat);
     virtual void initVBO() = 0;
     virtual void initViewports() = 0;
     virtual void initShaders() = 0;
@@ -119,14 +120,13 @@ protected:
     InterpolationMode _interpolationMode = InterpolationMode::Linear;
     FrustumMode _preferedMonoFrustumMode = FrustumMode::Mono;
 
-    ivec2 _cubemapResolution = ivec2(512, 512);
-    vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);
     bool _useDepthTransformation = false;
     bool _isStereo = false;
-    unsigned int _texInternalFormat = 0;
-    unsigned int _texFormat = 0;
-    unsigned int _texType = 0;
-    int _samples = 1;
+
+    uint8_t _samples = 1;
+
+    ivec2 _cubemapResolution = ivec2(512, 512);
+    vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);
 
     std::unique_ptr<OffScreenBuffer> _cubeMapFbo;
 };

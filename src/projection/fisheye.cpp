@@ -395,7 +395,7 @@ void FisheyeProjection::initViewports() {
 
         // -X face
         {
-            _subViewports.left.setPos(vec2{ cropLevel, 0.f });
+            _subViewports.left.setPosition(vec2{ cropLevel, 0.f });
             _subViewports.left.setSize(vec2{ 1.f - cropLevel, 1.f });
 
             const glm::mat4 rotMat = glm::rotate(
@@ -421,7 +421,7 @@ void FisheyeProjection::initViewports() {
 
         // +Y face
         {
-            _subViewports.bottom.setPos(vec2{ 0.f, cropLevel });
+            _subViewports.bottom.setPosition(vec2{ 0.f, cropLevel });
             _subViewports.bottom.setSize(vec2{ 1.f, 1.f - cropLevel });
 
             const glm::mat4 rotMat = glm::rotate(
@@ -663,27 +663,20 @@ void FisheyeProjection::initShaders() {
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
 
     _shader = ShaderProgram("FisheyeShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(fragmentShader, GL_FRAGMENT_SHADER);
-    _shader.addShaderSource(samplerShader, GL_FRAGMENT_SHADER);
-    _shader.addShaderSource(
+    _shader.addVertexShader(shaders_fisheye::BaseVert);
+    _shader.addFragmentShader(fragmentShader);
+    _shader.addFragmentShader(samplerShader);
+    _shader.addFragmentShader(
         isCubic ?
             shaders_fisheye::InterpolateCubicFun :
-            shaders_fisheye::InterpolateLinearFun,
-        GL_FRAGMENT_SHADER
+            shaders_fisheye::InterpolateLinearFun
     );
     if (_method == FisheyeMethod::FourFaceCube) {
-        _shader.addShaderSource(
-            shaders_fisheye::RotationFourFaceCubeFun,
-            GL_FRAGMENT_SHADER
-        );
+        _shader.addFragmentShader(shaders_fisheye::RotationFourFaceCubeFun);
     }
     else {
         // five or six face
-        _shader.addShaderSource(
-            shaders_fisheye::RotationFiveSixFaceCubeFun,
-            GL_FRAGMENT_SHADER
-        );
+        _shader.addFragmentShader(shaders_fisheye::RotationFiveSixFaceCubeFun);
     }
 
 
@@ -729,13 +722,9 @@ void FisheyeProjection::initShaders() {
 
     if (Engine::instance().settings().useDepthTexture) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
-        _depthCorrectionShader.addShaderSource(
-            shaders_fisheye::BaseVert,
-            GL_VERTEX_SHADER
-        );
-        _depthCorrectionShader.addShaderSource(
-            shaders_fisheye::FisheyeDepthCorrectionFrag,
-            GL_FRAGMENT_SHADER
+        _depthCorrectionShader.addVertexShader(shaders_fisheye::BaseVert);
+        _depthCorrectionShader.addFragmentShader(
+            shaders_fisheye::FisheyeDepthCorrectionFrag
         );
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();

@@ -28,7 +28,7 @@ BaseViewport::BaseViewport(const Window* parent)
 
 BaseViewport::~BaseViewport() = default;
 
-void BaseViewport::setPos(vec2 position) {
+void BaseViewport::setPosition(vec2 position) {
     _position = std::move(position);
 }
 
@@ -85,22 +85,17 @@ ProjectionPlane& BaseViewport::projectionPlane() {
     return _projPlane;
 }
 
-void BaseViewport::setUserName(std::string userName) {
-    _userName = std::move(userName);
-    linkUserName();
-}
-
-void BaseViewport::linkUserName() {
+void BaseViewport::linkUserName(std::string_view userName) {
     ZoneScoped;
 
-    if (!_userName.empty()) {
-        User* user = ClusterManager::instance().user(_userName);
+    if (!userName.empty()) {
+        User* user = ClusterManager::instance().user(userName);
         if (user) {
             // If the user name is not empty, the User better exists
             _user = user;
         }
         else {
-            Log::Warning(std::format("Could not find user with name '{}'", _userName));
+            Log::Warning(std::format("Could not find user with name '{}'", userName));
         }
     }
 }

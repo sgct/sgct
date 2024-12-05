@@ -45,7 +45,7 @@ namespace {
 namespace sgct {
 
 Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
-    : BaseViewport(parent)
+    : BaseViewport(parent, convert(viewport.eye.value_or(config::Viewport::Eye::Mono)))
     , _overlayFilename(viewport.overlayTexture.value_or(std::filesystem::path()))
     , _blendMaskFilename(viewport.blendMaskTexture.value_or(std::filesystem::path()))
     , _blackLevelMaskFilename(
@@ -55,10 +55,15 @@ Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
     , _isTracked(viewport.isTracked.value_or(false))
 {
     if (viewport.user) {
-        linkUserName(*viewport.user);
-    }
-    if (viewport.eye) {
-        _eye = convert(*viewport.eye);
+        User* user = ClusterManager::instance().user(*viewport.user);
+        if (!user) {
+            Log::Warning(
+                std::format("Could not find user with name '{}'", *viewport.user)
+            );
+        }
+
+        // If the user name is not empty, the User better exists
+        _user = user;
     }
 
     _position = viewport.position.value_or(_position);

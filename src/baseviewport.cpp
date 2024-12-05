@@ -21,121 +21,22 @@
 
 namespace sgct {
 
-BaseViewport::BaseViewport(const Window* parent)
+BaseViewport::BaseViewport(const Window* parent, FrustumMode eye)
     : _parent(parent)
+    , _eye(eye)
     , _user(&ClusterManager::instance().defaultUser())
-{}
+{
+    assert(_parent);
+    assert(_user);
+}
 
 BaseViewport::~BaseViewport() = default;
-
-void BaseViewport::setPosition(vec2 position) {
-    _position = std::move(position);
-}
-
-void BaseViewport::setSize(vec2 size) {
-    _size = std::move(size);
-}
-
-void BaseViewport::setEnabled(bool state) {
-    _isEnabled = state;
-}
-
-bool BaseViewport::isEnabled() const {
-    return _isEnabled;
-}
-
-void BaseViewport::setEye(FrustumMode eye) {
-    _eye = eye;
-}
-
-const vec2& BaseViewport::position() const {
-    return _position;
-}
-
-const vec2& BaseViewport::size() const {
-    return _size;
-}
-
-void BaseViewport::setUser(User* user) {
-    _user = user;
-}
-
-User& BaseViewport::user() const {
-    return *_user;
-}
-
-const Window& BaseViewport::window() const {
-    return *_parent;
-}
-
-FrustumMode BaseViewport::eye() const {
-    return _eye;
-}
-
-const Projection& BaseViewport::projection(FrustumMode frustumMode) const {
-    switch (frustumMode) {
-        case FrustumMode::Mono:        return _monoProj;
-        case FrustumMode::StereoLeft:  return _stereoLeftProj;
-        case FrustumMode::StereoRight: return _stereoRightProj;
-        default:                           throw std::logic_error("Unhandled case label");
-    }
-}
-
-ProjectionPlane& BaseViewport::projectionPlane() {
-    return _projPlane;
-}
-
-void BaseViewport::linkUserName(std::string_view userName) {
-    ZoneScoped;
-
-    if (!userName.empty()) {
-        User* user = ClusterManager::instance().user(userName);
-        if (user) {
-            // If the user name is not empty, the User better exists
-            _user = user;
-        }
-        else {
-            Log::Warning(std::format("Could not find user with name '{}'", userName));
-        }
-    }
-}
-
-void BaseViewport::calculateFrustum(FrustumMode mode, float nearClip, float farClip) {
-    ZoneScoped;
-
-    switch (mode) {
-        case FrustumMode::Mono:
-            _monoProj.calculateProjection(
-                _user->posMono(),
-                _projPlane,
-                nearClip,
-                farClip
-            );
-            break;
-        case FrustumMode::StereoLeft:
-            _stereoLeftProj.calculateProjection(
-                _user->posLeftEye(),
-                _projPlane,
-                nearClip,
-                farClip
-            );
-            break;
-        case FrustumMode::StereoRight:
-            _stereoRightProj.calculateProjection(
-                _user->posRightEye(),
-                _projPlane,
-                nearClip,
-                farClip
-            );
-            break;
-    }
-}
 
 void BaseViewport::setupViewport(FrustumMode frustum) const {
     ZoneScoped;
 
     const ivec2 res = _parent->framebufferResolution();
-    ivec4 vpCoordinates = ivec4{
+    ivec4 vpCoordinates = ivec4 {
         static_cast<int>(position().x * res.x),
         static_cast<int>(position().y * res.y),
         static_cast<int>(size().x * res.x),
@@ -190,6 +91,50 @@ void BaseViewport::setupViewport(FrustumMode frustum) const {
 
     glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
+}
+
+const Projection& BaseViewport::projection(FrustumMode frustumMode) const {
+    switch (frustumMode) {
+        case FrustumMode::Mono:        return _monoProj;
+        case FrustumMode::StereoLeft:  return _stereoLeftProj;
+        case FrustumMode::StereoRight: return _stereoRightProj;
+        default:                       throw std::logic_error("Unhandled case label");
+    }
+}
+
+ProjectionPlane& BaseViewport::projectionPlane() {
+    return _projPlane;
+}
+
+void BaseViewport::calculateFrustum(FrustumMode mode, float nearClip, float farClip) {
+    ZoneScoped;
+
+    switch (mode) {
+        case FrustumMode::Mono:
+            _monoProj.calculateProjection(
+                _user->posMono(),
+                _projPlane,
+                nearClip,
+                farClip
+            );
+            break;
+        case FrustumMode::StereoLeft:
+            _stereoLeftProj.calculateProjection(
+                _user->posLeftEye(),
+                _projPlane,
+                nearClip,
+                farClip
+            );
+            break;
+        case FrustumMode::StereoRight:
+            _stereoRightProj.calculateProjection(
+                _user->posRightEye(),
+                _projPlane,
+                nearClip,
+                farClip
+            );
+            break;
+    }
 }
 
 void BaseViewport::calculateNonLinearFrustum(FrustumMode mode, float nearClip,
@@ -272,15 +217,40 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
     );
 }
 
-float BaseViewport::horizontalFieldOfViewDegrees() const {
-    // Using the unrotated original viewplane to calculate the field-of-view here
-    const float xDist = (_viewPlane.upperRight.x - _viewPlane.upperLeft.x) / 2.f;
-    const float zDist = _viewPlane.upperRight.z;
-    return (glm::degrees(std::atan(std::abs(xDist / zDist)))) * 2.f;
+void BaseViewport::setEnabled(bool state) {
+    _isEnabled = state;
 }
 
-const Window* BaseViewport::parent() const {
-    return _parent;
+bool BaseViewport::isEnabled() const {
+    return _isEnabled;
+}
+
+void BaseViewport::setPosition(vec2 position) {
+    _position = std::move(position);
+}
+
+const vec2& BaseViewport::position() const {
+    return _position;
+}
+
+void BaseViewport::setSize(vec2 size) {
+    _size = std::move(size);
+}
+
+const vec2& BaseViewport::size() const {
+    return _size;
+}
+
+void BaseViewport::setUser(User& user) {
+    _user = &user;
+}
+
+User& BaseViewport::user() const {
+    return *_user;
+}
+
+FrustumMode BaseViewport::eye() const {
+    return _eye;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
@@ -307,6 +277,17 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
         _rotation,
         std::abs(upperLeft.z)
     );
+}
+
+float BaseViewport::horizontalFieldOfViewDegrees() const {
+    // Using the unrotated original viewplane to calculate the field-of-view here
+    const float xDist = (_viewPlane.upperRight.x - _viewPlane.upperLeft.x) / 2.f;
+    const float zDist = _viewPlane.upperRight.z;
+    return (glm::degrees(std::atan(std::abs(xDist / zDist)))) * 2.f;
+}
+
+const Window& BaseViewport::window() const {
+    return *_parent;
 }
 
 } // namespace sgct

@@ -22,7 +22,7 @@ namespace sgct {
 /**
  * Base class for non linear projections.
  */
-class SGCT_EXPORT SpoutFlatProjection : public NonLinearProjection {
+class SGCT_EXPORT SpoutFlatProjection final : public NonLinearProjection {
 public:
     SpoutFlatProjection(const Window* parent, User* user,
         const config::SpoutFlatProjection& config);

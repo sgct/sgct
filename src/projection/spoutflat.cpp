@@ -63,7 +63,7 @@ SpoutFlatProjection::SpoutFlatProjection(const Window* parent, User* user,
     }
     , _spoutOrientation(config.proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }))
 {
-    setUser(user);
+    setUser(*user);
     if (config.width) {
         setResolutionWidth(*config.width);
     }
@@ -332,7 +332,7 @@ void SpoutFlatProjection::render(const BaseViewport& viewport,
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _textureIdentifiers.spoutColor);
         _shader.bind();
-        viewport.parent()->renderScreenQuad();
+        viewport.window().renderScreenQuad();
         ShaderProgram::unbind();
     }
 
@@ -358,7 +358,7 @@ void SpoutFlatProjection::renderCubemap(FrustumMode frustumMode) const {
     }
 
     const RenderData renderData = {
-        *_subViewports.front.parent(),
+        _subViewports.front.window(),
         _subViewports.front,
         frustumMode,
         ClusterManager::instance().sceneTransform(),

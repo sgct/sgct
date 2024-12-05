@@ -45,7 +45,7 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, Us
     , _cropTop(config.crop ? config.crop->top : 0.f)
     , _keepAspectRatio(config.keepAspectRatio.value_or(true))
 {
-    setUser(user);
+    setUser(*user);
 
     if (config.quality) {
         setCubemapResolution(*config.quality);
@@ -233,7 +233,7 @@ void FisheyeProjection::renderCubemap(FrustumMode frustumMode) const {
             glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
             glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
 
-            vp.parent()->renderScreenQuad();
+            vp.window().renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);

@@ -877,7 +877,7 @@ void Window::renderFBOTexture() {
     }
     else {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::MonoOrLeft));
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
 
         _fboQuad.bind();
         maskShaderSet = true;
@@ -904,7 +904,7 @@ void Window::renderFBOTexture() {
                 FrustumMode::StereoRight
             );
 
-            glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::Right));
+            glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
             std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
         }
     }
@@ -1515,25 +1515,19 @@ void Window::render2D(FrustumMode frustum) const {
     ZoneScoped;
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        // if viewport has overlay
-        if (!vp->hasOverlayTexture() || !vp->isEnabled()) {
-            continue;
-        }
-
-        vp->setupViewport(frustum);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
-        _overlay.bind();
-        renderScreenQuad();
-    }
-    ShaderProgram::unbind();
-
-    for (const std::unique_ptr<Viewport>& vp : _viewports) {
         if (!vp->isEnabled()) {
             continue;
         }
+
         vp->setupViewport(frustum);
+
+        // if viewport has overlay
+        if (vp->hasOverlayTexture()) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
+            _overlay.bind();
+            renderScreenQuad();
+        }
 
         if (Engine::instance().statisticsRenderer()) {
             Engine::instance().statisticsRenderer()->render(*this, *vp);
@@ -1577,16 +1571,16 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
     glActiveTexture(GL_TEXTURE0);
     const unsigned int tex = [&prevWindow](FrustumMode v) {
         switch (v) {
-        case FrustumMode::Mono:
-            return prevWindow.frameBufferTextureEye(Eye::MonoOrLeft);
-        case FrustumMode::StereoLeft:
-            return prevWindow.frameBufferTextureEye(Eye::Right);
-        case FrustumMode::StereoRight:
-            return prevWindow._frameBufferTextures.intermediate;
-        default:
-            throw std::logic_error("Missing case label");
+            case FrustumMode::Mono:
+                return prevWindow._frameBufferTextures.leftEye;
+            case FrustumMode::StereoLeft:
+                return prevWindow._frameBufferTextures.rightEye;
+            case FrustumMode::StereoRight:
+                return prevWindow._frameBufferTextures.intermediate;
+            default:
+                throw std::logic_error("Missing case label");
         }
-        }(mode);
+    }(mode);
     glBindTexture(GL_TEXTURE_2D, tex);
 
     renderScreenQuad();
@@ -1719,7 +1713,6 @@ void Window::loadShaders() {
 
     ShaderProgram::unbind();
 }
-
 
 unsigned int Window::frameBufferTextureEye(Eye eye) const {
     switch (eye) {

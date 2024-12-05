@@ -211,21 +211,9 @@ bool operator==(const SpoutOutputProjection::Channels& lhs,
 bool operator==(const SpoutOutputProjection& lhs, const SpoutOutputProjection& rhs) {
     return
         lhs.quality == rhs.quality &&
-        lhs.mapping == rhs.mapping &&
-        lhs.mappingSpoutName == rhs.mappingSpoutName &&
-        lhs.background == rhs.background &&
+        lhs.spoutName == rhs.spoutName &&
         lhs.channels == rhs.channels &&
         lhs.orientation == rhs.orientation;
-}
-
-bool operator==(const SpoutFlatProjection& lhs, const SpoutFlatProjection& rhs) {
-    return
-        lhs.proj == rhs.proj &&
-        lhs.width == rhs.width &&
-        lhs.height == rhs.height &&
-        lhs.mappingSpoutName == rhs.mappingSpoutName &&
-        lhs.background == rhs.background &&
-        lhs.drawMain == rhs.drawMain;
 }
 
 bool operator==(const CylindricalProjection& lhs, const CylindricalProjection& rhs) {

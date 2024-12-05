@@ -23,7 +23,6 @@
 #include <iterator>
 #include <numeric>
 
-
 #define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
 
 namespace {
@@ -174,38 +173,11 @@ void validateProjection(const SphericalMirrorProjection& p) {
 void validateProjection(const SpoutOutputProjection& p) {
     ZoneScoped;
 
-    if (p.mappingSpoutName.empty()) {
+    if (p.spoutName.empty()) {
         throw Error(1080, "Spout Mapping name must not be empty");
     }
     if (p.quality && *p.quality <= 0) {
         throw Error(1081, "Quality value must be positive");
-    }
-    if (p.background) {
-        const vec4 b = *p.background;
-        if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
-            throw Error(1083, "All background color components have to be positive");
-        }
-    }
-}
-
-void validateProjection(const SpoutFlatProjection& p) {
-    ZoneScoped;
-
-    validateProjection(p.proj);
-    if (p.mappingSpoutName.empty()) {
-        throw Error(1084, "Spout Mapping name must not be empty");
-    }
-    if (p.width && *p.width <= 0) {
-        throw Error(1085, "Width value must be positive");
-    }
-    if (p.height && *p.height <= 0) {
-        throw Error(1086, "Height value must be positive");
-    }
-    if (p.background) {
-        const vec4 b = *p.background;
-        if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
-            throw Error(1088, "All background color components have to be positive");
-        }
     }
 }
 
@@ -574,17 +546,6 @@ namespace {
         if (i == "linear") { return FisheyeProjection::Interpolation::Linear; }
 
         throw Err(6023, "Unregnozed interpolation");
-    }
-
-    sgct::config::SpoutOutputProjection::Mapping parseMapping(std::string_view mapping) {
-        using namespace sgct::config;
-        if (mapping == "fisheye") { return SpoutOutputProjection::Mapping::Fisheye; }
-        if (mapping == "equirectangular") {
-            return SpoutOutputProjection::Mapping::Equirectangular;
-        }
-        if (mapping == "cubemap") { return SpoutOutputProjection::Mapping::Cubemap; }
-
-        throw Err(6086, std::format("Unknown spout output mapping: {}", mapping));
     }
 
     std::string stringifyJsonFile(const std::filesystem::path& filename) {
@@ -1326,24 +1287,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
-    if (auto it = j.find("drawmain");  it != j.end()) {
-        p.drawMain = it->get<bool>();
-    }
-
-    if (auto it = j.find("mapping");  it != j.end()) {
-        const std::string mapping = it->get<std::string>();
-        p.mapping = parseMapping(mapping);
-    }
-
-    parseValue(j, "mappingspoutname", p.mappingSpoutName);
-    if (auto it = j.find("background");  it != j.end()) {
-        sgct::vec4 background;
-        it->at("r").get_to(background.x);
-        it->at("g").get_to(background.y);
-        it->at("b").get_to(background.z);
-        it->at("a").get_to(background.w);
-        p.background = background;
-    }
+    parseValue(j, "spoutname", p.spoutName);
 
     if (auto it = j.find("channels");  it != j.end()) {
         SpoutOutputProjection::Channels c;
@@ -1372,30 +1316,7 @@ void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
         j["quality"] = std::to_string(*p.quality);
     }
 
-    if (p.mapping.has_value()) {
-        switch (*p.mapping) {
-            case SpoutOutputProjection::Mapping::Fisheye:
-                j["mapping"] = "fisheye";
-                break;
-            case SpoutOutputProjection::Mapping::Equirectangular:
-                j["mapping"] = "equirectangular";
-                break;
-            case SpoutOutputProjection::Mapping::Cubemap:
-                j["mapping"] = "cubemap";
-                break;
-        }
-    }
-
-    j["mappingspoutname"] = p.mappingSpoutName;
-
-    if (p.background.has_value()) {
-        nlohmann::json background = nlohmann::json::object();
-        background["r"] = p.background->x;
-        background["g"] = p.background->y;
-        background["b"] = p.background->z;
-        background["a"] = p.background->w;
-        j["background"] = background;
-    }
+    j["spoutname"] = p.spoutName;
 
     if (p.channels.has_value()) {
         nlohmann::json channels = nlohmann::json::object();
@@ -1415,66 +1336,6 @@ void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
         orientation["roll"] = p.orientation->z;
         j["orientation"] = orientation;
     }
-}
-
-void from_json(const nlohmann::json& j, SpoutFlatProjection& p) {
-    if (auto it = j.find("width");  it != j.end()) {
-        p.width = it->get<int>();
-    }
-
-    if (auto it = j.find("height");  it != j.end()) {
-        p.height = it->get<int>();
-    }
-
-    if (auto it = j.find("mappingspoutname");  it != j.end()) {
-        p.mappingSpoutName = it->get<std::string>();
-    }
-
-    if (auto it = j.find("drawmain");  it != j.end()) {
-        p.drawMain = it->get<bool>();
-    }
-
-    if (auto it = j.find("background");  it != j.end()) {
-        sgct::vec4 background;
-        it->at("r").get_to(background.x);
-        it->at("g").get_to(background.y);
-        it->at("b").get_to(background.z);
-        it->at("a").get_to(background.w);
-        p.background = background;
-    }
-
-    if (auto it = j.find("planarprojection");  it != j.end()) {
-        it->get_to(p.proj);
-    }
-}
-
-void to_json(nlohmann::json& j, const SpoutFlatProjection& p) {
-    j = nlohmann::json::object();
-
-    if (p.width.has_value()) {
-        j["width"] = std::to_string(*p.width);
-    }
-
-    if (p.height.has_value()) {
-        j["height"] = std::to_string(*p.height);
-    }
-
-    j["mappingspoutname"] = p.mappingSpoutName;
-
-    if (p.background.has_value()) {
-        nlohmann::json background = nlohmann::json::object();
-        background["r"] = p.background->x;
-        background["g"] = p.background->y;
-        background["b"] = p.background->z;
-        background["a"] = p.background->w;
-        j["background"] = background;
-    }
-
-    if (p.drawMain.has_value()) {
-        j["drawMain"] = *p.drawMain;
-    }
-
-    j["PlanarProjection"] = p.proj;
 }
 
 void from_json(const nlohmann::json& j, CylindricalProjection& p) {
@@ -1590,9 +1451,6 @@ void from_json(const nlohmann::json& j, Viewport& v) {
             else if (type == "SpoutOutputProjection") {
                 v.projection = it->get<SpoutOutputProjection>();
             }
-            else if (type == "SpoutFlatProjection") {
-                v.projection = it->get<SpoutFlatProjection>();
-            }
             else if (type == "CylindricalProjection") {
                 v.projection = it->get<CylindricalProjection>();
             }
@@ -1691,11 +1549,6 @@ void to_json(nlohmann::json& j, const Viewport& v) {
             proj["type"] = "SpoutOutputProjection";
             return proj;
         },
-        [](const config::SpoutFlatProjection& p) {
-            nlohmann::json proj = p;
-            proj["type"] = "SpoutFlatProjection";
-            return proj;
-        },
         [](const config::CylindricalProjection& p) {
             nlohmann::json proj = p;
             proj["type"] = "CylindricalProjection";
@@ -1760,6 +1613,8 @@ void from_json(const nlohmann::json& j, Window& w) {
     if (auto it = j.find("stereo");  it != j.end()) {
         w.stereo = parseStereoType(it->get<std::string>());
     }
+
+    parseValue(j, "spoutname", w.spoutName);
 
     parseValue(j, "pos", w.pos);
     parseValue(j, "size", w.size);
@@ -1878,6 +1733,10 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.stereo.has_value()) {
         j["stereo"] = toString(*w.stereo);
+    }
+
+    if (w.spoutName.has_value()) {
+        j["spoutname"] = *w.spoutName;
     }
 
     if (w.pos.has_value()) {

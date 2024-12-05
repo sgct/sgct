@@ -4128,97 +4128,7 @@ TEST_CASE("SpoutOutputProjection/Quality", "[roundtrip]") {
     }
 }
 
-TEST_CASE("SpoutOutputProjection/Mapping", "[roundtrip]") {
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .mapping = std::nullopt
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .mapping = sgct::config::SpoutOutputProjection::Mapping::Fisheye
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .mapping = sgct::config::SpoutOutputProjection::Mapping::Equirectangular
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-}
-
-TEST_CASE("SpoutOutputProjection/MappingSpoutName", "[roundtrip]") {
+TEST_CASE("SpoutOutputProjection/SpoutName", "[roundtrip]") {
     sgct::config::Cluster input = {
         .success = true
     };
@@ -4229,7 +4139,7 @@ TEST_CASE("SpoutOutputProjection/MappingSpoutName", "[roundtrip]") {
     sgct::config::Window window;
     window.viewports.push_back({
         .projection = sgct::config::SpoutOutputProjection {
-            .mappingSpoutName = "abc"
+            .spoutName = "abc"
         }
     });
     node.windows.push_back(window);
@@ -4238,74 +4148,6 @@ TEST_CASE("SpoutOutputProjection/MappingSpoutName", "[roundtrip]") {
     const std::string str = sgct::serializeConfig(input);
     const sgct::config::Cluster output = sgct::readJsonConfig(str);
     REQUIRE(input == output);
-}
-
-TEST_CASE("SpoutOutputProjection/Background", "[roundtrip]") {
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .background = std::nullopt
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .background = sgct::vec4(1.f, 2.f, 3.f, 4.f)
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input = {
-            .success = true
-        };
-        sgct::config::Node node = {
-            .address = "abc",
-            .port = 1
-        };
-        sgct::config::Window window;
-        window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .background = sgct::vec4(5.f, 6.f, 7.f, 8.f)
-            }
-        });
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        const std::string str = sgct::serializeConfig(input);
-        const sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
 }
 
 TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {

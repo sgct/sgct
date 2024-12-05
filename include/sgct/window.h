@@ -19,6 +19,11 @@
 
 struct GLFWwindow;
 
+#ifdef SGCT_HAS_SPOUT
+struct SPOUTLIBRARY;
+typedef SPOUTLIBRARY* SPOUTHANDLE;
+#endif // SGCT_HAS_SPOUT
+
 namespace sgct {
 
 namespace config { struct Window; }
@@ -381,6 +386,10 @@ private:
     float _aspectRatio = 1.f;
     vec2 _scale = vec2{ 0.f, 0.f };
 
+#ifdef SGCT_HAS_SPOUT
+    std::string _spoutName;
+    SPOUTHANDLE _spoutHandle = nullptr;
+#endif // SGCT_HAS_SPOUT
 
     const unsigned int _internalColorFormat;
     const unsigned int _colorDataType;

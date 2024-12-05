@@ -225,6 +225,7 @@ config::Cluster loadCluster(std::optional<std::filesystem::path> path) {
                         sgct::config::Window {
                             .id = 0,
                             .isFullScreen = false,
+                            .spoutName = "SPUT_ABC",
                             .size = ivec2 { 1280, 720 },
                             .viewports = {
                                 sgct::config::Viewport {

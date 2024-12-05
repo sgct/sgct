@@ -1,16 +1,6 @@
 {
   "version": 1,
   "masteraddress": "localhost",
-  "scene": {
-    "offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
-    "orientation": { "yaw": 0.0, "pitch": -90.0, "roll": 0.0 },
-    "scale": 1.0
-  },
-  "settings": {
-    "display": {
-      "swapinterval": 0
-    }
-  },
   "nodes": [
     {
       "address": "localhost",
@@ -18,28 +8,15 @@
       "windows": [
         {
           "fullscreen": false,
-          "stereo": "none",
-          "msaa": 4,
-          "size": { "x": 1024, "y": 1024 },
+          "size": { "x": 1280, "y": 720 },
+          "spoutname": "OS_EQUIRECTANGULAR",
           "viewports": [
             {
               "pos": { "x": 0.0, "y": 0.0 },
               "size": { "x": 1.0, "y": 1.0 },
               "projection": {
-                "type": "SpoutOutputProjection",
-                "quality": "1k",
-                "mapping": "equirectangular",
-                "mappingspoutname": "OS_EQUIRECTANGULAR",
-                "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 },
-                "channels": {
-                  "right": true,
-                  "zleft": true,
-                  "bottom": true,
-                  "top": true,
-                  "left": true,
-                  "zright": true
-                },
-                "orientation": { "yaw": 0.0, "pitch": 0.0, "roll": 0.0 }
+                "type": "EquirectangularProjection",
+                "quality": "1k"
               }
             }
           ]

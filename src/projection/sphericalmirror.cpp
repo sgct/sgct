@@ -64,7 +64,7 @@ SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, User*
     , _meshPathRight(config.mesh.right)
     , _meshPathTop(config.mesh.top)
 {
-    setUser(user);
+    setUser(*user);
     setUseDepthTransformation(false);
     if (config.quality) {
         setCubemapResolution(*config.quality);
@@ -87,7 +87,7 @@ void SphericalMirrorProjection::render(const BaseViewport& viewport,
     viewport.setupViewport(frustumMode);
 
     const float aspect =
-        viewport.parent()->aspectRatio() * viewport.size().x / viewport.size().y;
+        viewport.window().aspectRatio() * viewport.size().x / viewport.size().y;
     const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
@@ -145,7 +145,7 @@ void SphericalMirrorProjection::renderCubemap(FrustumMode frustumMode) const {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         const RenderData renderData = {
-            *bv.parent(),
+            bv.window(),
             bv,
             frustumMode,
             ClusterManager::instance().sceneTransform(),

@@ -17,18 +17,6 @@
 #include <string>
 #include <vector>
 
-namespace sgct::config {
-    struct CylindricalProjection;
-    struct EquirectangularProjection;
-    struct FisheyeProjection;
-    struct PlanarProjection;
-    struct SphericalMirrorProjection;
-    struct SpoutOutputProjection;
-    struct SpoutFlatProjection;
-    struct TextureMappedProjection;
-    struct Viewport;
-} // namespace sgct::config
-
 namespace sgct {
 
 class NonLinearProjection;
@@ -74,8 +62,6 @@ private:
     unsigned int _blendMaskTextureIndex = 0;
     unsigned int _blackLevelMaskTextureIndex = 0;
 
-    // @TODO (abock, 2020-01-06) This can be replace with a std::variant as we have a
-    // fixed list of overloads and this would remove the virtual function calls
     std::unique_ptr<NonLinearProjection> _nonLinearProjection;
 };
 

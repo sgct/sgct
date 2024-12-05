@@ -101,7 +101,7 @@ void NonLinearProjection::setStereo(bool state) {
     _isStereo = state;
 }
 
-void NonLinearProjection::setUser(User* user) {
+void NonLinearProjection::setUser(User& user) {
     _subViewports.right.setUser(user);
     _subViewports.left.setUser(user);
     _subViewports.bottom.setUser(user);
@@ -389,7 +389,7 @@ void NonLinearProjection::renderCubeFace(const BaseViewport& vp, int idx,
     }
 
     const RenderData renderData = {
-        *vp.parent(),
+        vp.window(),
         vp,
         mode,
         ClusterManager::instance().sceneTransform(),

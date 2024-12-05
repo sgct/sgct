@@ -68,7 +68,7 @@ public:
      */
     void setStereo(bool state);
 
-    virtual void setUser(User* user);
+    virtual void setUser(User& user);
 
     /**
      * \return the resolution of the cubemap

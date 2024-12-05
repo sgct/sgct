@@ -23,7 +23,7 @@ class OffScreenBuffer;
 /**
  * This class manages and renders non-linear fisheye projections.
  */
-class SGCT_EXPORT SpoutOutputProjection : public NonLinearProjection {
+class SGCT_EXPORT SpoutOutputProjection final : public NonLinearProjection {
 public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
 
@@ -54,7 +54,7 @@ public:
     void renderCubemap(FrustumMode frustumMode) const override;
 
     void updateFrustums(FrustumMode mode, float nearClip, float farClip) override;
-    void setUser(User* user) override;
+    void setUser(User& user) override;
 
 private:
     static constexpr int NTextures = 7;

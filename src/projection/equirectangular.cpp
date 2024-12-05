@@ -57,7 +57,7 @@ EquirectangularProjection::EquirectangularProjection(const Window* parent, User*
                                           const config::EquirectangularProjection& config)
     : NonLinearProjection(parent)
 {
-    setUser(user);
+    setUser(*user);
     setUseDepthTransformation(true);
     if (config.quality) {
         setCubemapResolution(*config.quality);

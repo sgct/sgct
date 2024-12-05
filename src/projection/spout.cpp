@@ -87,7 +87,7 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
     }
     , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
 {
-    setUser(user);
+    setUser(*user);
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
@@ -140,7 +140,7 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _spout[6].texture);
         _flatShader.bind();
-        viewport.parent()->renderScreenQuad();
+        viewport.window().renderScreenQuad();
         ShaderProgram::unbind();
     }
 
@@ -305,7 +305,7 @@ void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
             glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
             glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
 
-            vp.parent()->renderScreenQuad();
+            vp.window().renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -775,7 +775,7 @@ void SpoutOutputProjection::updateFrustums(FrustumMode mode, float nearClip,
     NonLinearProjection::updateFrustums(mode, nearClip, farClip);
 }
 
-void SpoutOutputProjection::setUser(User* user) {
+void SpoutOutputProjection::setUser(User& user) {
     _mainViewport.setUser(user);
     NonLinearProjection::setUser(user);
 }
@@ -783,7 +783,6 @@ void SpoutOutputProjection::setUser(User* user) {
 void SpoutOutputProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
-
 
     const std::string_view frag = [](bool useDepth, bool useNormal, bool usePosition) {
         // It would be nice to do a multidimensional switch statement -.-

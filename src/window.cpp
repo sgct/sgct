@@ -51,9 +51,6 @@
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
-    constexpr float FxaaSubPixTrim = 1.f / 4.f;
-    constexpr float FxaaSubPixOffset = 1.f / 2.f;
-
     sgct::Window::StereoMode convert(sgct::config::Window::StereoMode mode) {
         using SM = sgct::config::Window::StereoMode;
         switch (mode) {
@@ -267,7 +264,6 @@ unsigned int Window::swapGroupFrameNumber() {
     return frameNumber;
 }
 
-
 config::Window createScalableConfiguration(std::filesystem::path path) {
     config::Window res;
 
@@ -325,7 +321,6 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
     return res;
 }
 
-
 Window::Window(const config::Window& window)
     : _name(window.name.value_or(""))
     , _id(window.id)
@@ -381,394 +376,6 @@ Window::Window(const config::Window& window)
         auto vp = std::make_unique<Viewport>(viewport, this);
         addViewport(std::move(vp));
     }
-}
-
-void Window::setName(std::string name) {
-    _name = std::move(name);
-}
-
-void Window::setTags(std::vector<std::string> tags) {
-    _tags = std::move(tags);
-}
-
-const std::string& Window::name() const {
-    return _name;
-}
-
-bool Window::hasTag(std::string_view tag) const {
-    return std::find(_tags.cbegin(), _tags.cend(), tag) != _tags.cend();
-}
-
-int Window::id() const {
-    return _id;
-}
-
-bool Window::isFocused() const {
-    return _hasFocus;
-}
-
-void Window::closeWindow() {
-    ZoneScoped;
-
-#ifdef SGCT_HAS_SCALABLE
-    if (_scalableMesh.sdk) {
-        EasyBlendSDK_Uninitialize(
-            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
-        );
-        delete _scalableMesh.sdk;
-        _scalableMesh.sdk = nullptr;
-    }
-#endif // SGCT_HAS_SCALABLE
-
-    makeSharedContextCurrent();
-
-    Log::Info(std::format("Deleting screen capture data for window {}", _id));
-    _screenCaptureLeftOrMono = nullptr;
-    _screenCaptureRight = nullptr;
-
-    // delete FBO stuff
-    if (_finalFBO) {
-        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
-        _finalFBO = nullptr;
-        destroyFBOs();
-    }
-
-    Log::Info(std::format("Deleting VBOs for window {}", _id));
-    glDeleteBuffers(1, &_vbo);
-    _vbo = 0;
-
-    Log::Info(std::format("Deleting VAOs for window {}", _id));
-    glDeleteVertexArrays(1, &_vao);
-    _vao = 0;
-
-    _fboQuad.deleteProgram();
-    _overlay.deleteProgram();
-    _stereo.deleteProgram();
-    if (_fxaa) {
-        _fxaa->shader.deleteProgram();
-    }
-
-    // Current handle must be set at the end to properly destroy the window
-    makeOpenGLContextCurrent();
-
-    _viewports.clear();
-
-    glfwSetWindowSizeCallback(_windowHandle, nullptr);
-    glfwSetFramebufferSizeCallback(_windowHandle, nullptr);
-    glfwSetWindowFocusCallback(_windowHandle, nullptr);
-    glfwSetWindowIconifyCallback(_windowHandle, nullptr);
-
-#ifdef WIN32
-    if (_useSwapGroups && glfwExtensionSupported("WGL_NV_swap_group")) {
-        HDC hDC = wglGetCurrentDC();
-        wglBindSwapBarrierNV(1, 0); // un-bind
-        wglJoinSwapGroupNV(hDC, 0); // un-join
-    }
-#endif // WIN32
-}
-
-void Window::initialize() {
-    ZoneScoped;
-
-    createTextures();
-    createVBOs();
-
-    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
-
-    Log::Debug(std::format(
-        "Window {}: FBO initiated successfully. Number of samples: {}",
-        _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
-    ));
-
-    const ivec2 res =
-        Engine::instance().settings().captureBackBuffer ?
-        windowResolution() :
-        framebufferResolution();
-
-    if (_screenCaptureLeftOrMono) {
-        _screenCaptureLeftOrMono->resize(res);
-    }
-
-    if (_screenCaptureRight) {
-        _screenCaptureRight->resize(res);
-    }
-
-    loadShaders();
-
-    for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        const vec2 viewportSize = vec2{
-            _framebufferRes.x * vp->size().x,
-            _framebufferRes.y * vp->size().y
-        };
-        vp->initialize(
-            viewportSize,
-            _stereoMode != StereoMode::NoStereo,
-            _internalColorFormat,
-            GL_BGRA,
-            _colorDataType,
-            _nAASamples
-        );
-    }
-}
-
-void Window::initializeContextSpecific() {
-    ZoneScoped;
-
-    makeOpenGLContextCurrent();
-    std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
-    _hasAnyMasks = std::any_of(
-        _viewports.cbegin(),
-        _viewports.cend(),
-        [](const std::unique_ptr<Viewport>& vp) {
-            return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
-        }
-    );
-
-#ifdef SGCT_HAS_SCALABLE
-    if (!_scalableMesh.path.empty()) {
-        [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
-            _scalableMesh.path.c_str(),
-            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
-        );
-        // We already loaded the path in the constructor and verified that it works
-        assert(err == EasyBlendSDK_ERR_S_OK);
-    }
-#endif // SGCT_HAS_SCALABLE
-}
-
-unsigned int Window::frameBufferTextureEye(Eye eye) const {
-    switch (eye) {
-        case Eye::MonoOrLeft: return _frameBufferTextures.leftEye;
-        case Eye::Right:      return _frameBufferTextures.rightEye;
-        default:              throw std::logic_error("Missing case label");
-    }
-}
-
-void Window::setVisible(bool state) {
-    if (state != _isVisible && _windowHandle) {
-        if (state) {
-            glfwShowWindow(_windowHandle);
-        }
-        else {
-            glfwHideWindow(_windowHandle);
-        }
-    }
-    _isVisible = state;
-}
-
-void Window::setRenderWhileHidden(bool state) {
-    _shouldRenderWhileHidden = state;
-}
-
-void Window::setFramebufferResolution(ivec2 resolution) {
-    // Defer actual update of framebuffer resolution until next call to updateResolutions.
-    // (Same reason as described for setWindowResolution above.)
-    if (!_useFixResolution) {
-        _pendingFramebufferRes = std::move(resolution);
-    }
-}
-
-void Window::swapBuffers(bool takeScreenshot) {
-    if (!(_isVisible || _shouldRenderWhileHidden)) {
-        return;
-    }
-
-    makeOpenGLContextCurrent();
-
-    if (takeScreenshot) {
-        ZoneScopedN("Take Screenshot");
-        if (Engine::instance().settings().captureBackBuffer) {
-            if (_screenCaptureLeftOrMono) {
-                _screenCaptureLeftOrMono->saveScreenCapture(
-                    0,
-                    _stereoMode == StereoMode::Active ?
-                        ScreenCapture::CaptureSource::LeftBackBuffer :
-                        ScreenCapture::CaptureSource::BackBuffer
-                );
-            }
-            if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
-                _screenCaptureLeftOrMono->saveScreenCapture(
-                    0,
-                    ScreenCapture::CaptureSource::RightBackBuffer
-                );
-            }
-        }
-        else {
-            if (_screenCaptureLeftOrMono) {
-                _screenCaptureLeftOrMono->saveScreenCapture(_frameBufferTextures.leftEye);
-            }
-            if (_screenCaptureRight && _stereoMode > StereoMode::NoStereo &&
-                _stereoMode < Window::StereoMode::SideBySide)
-            {
-                _screenCaptureRight->saveScreenCapture(_frameBufferTextures.rightEye);
-            }
-        }
-    }
-
-    // swap
-    _windowResChanged = false;
-
-#ifdef SGCT_HAS_SCALABLE
-    if (_scalableMesh.sdk) {
-        EasyBlendSDK_TransformInputToOutput(
-            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
-        );
-    }
-#endif // SGCT_HAS_SCALABLE
-
-    {
-        ZoneScopedN("glfwSwapBuffers");
-        glfwSwapBuffers(_windowHandle);
-    }
-}
-
-void Window::updateResolutions() {
-    ZoneScoped;
-
-    if (_pendingWindowRes) {
-        _windowRes = *_pendingWindowRes;
-        _windowResChanged = true;
-        float ratio =
-            static_cast<float>(_windowRes->x) / static_cast<float>(_windowRes->y);
-
-        // Set field of view of each of this window's viewports to match new aspect ratio,
-        // adjusting only the horizontal (x) values
-        for (const std::unique_ptr<Viewport>& vp : _viewports) {
-            vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Log::Debug(std::format(
-                "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
-            ));
-        }
-        _aspectRatio = ratio;
-
-        // Redraw window
-        glfwSetWindowSize(_windowHandle, _windowRes->x, _windowRes->y);
-
-        Log::Debug(std::format(
-            "Resolution changed to {}x{} in window {}", _windowRes->x, _windowRes->y, _id
-        ));
-        _pendingWindowRes = std::nullopt;
-    }
-
-    if (_pendingFramebufferRes) {
-        _framebufferRes = *_pendingFramebufferRes;
-
-        Log::Debug(std::format(
-            "Framebuffer resolution changed to {}x{} for window {}",
-            _framebufferRes.x, _framebufferRes.y, _id
-        ));
-
-        _pendingFramebufferRes = std::nullopt;
-    }
-}
-
-void Window::setHorizFieldOfView(float hFovDeg) {
-    // Set field of view of each of this window's viewports to match new horiz/vert
-    // aspect ratio, adjusting only the horizontal (x) values
-    for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        vp->setHorizontalFieldOfView(hFovDeg);
-    }
-    Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
-}
-
-void Window::update() {
-    ZoneScoped;
-
-    if (!_isVisible || !isWindowResized()) {
-        return;
-    }
-    makeOpenGLContextCurrent();
-
-    resizeFBOs();
-
-    const ivec2 res =
-        Engine::instance().settings().captureBackBuffer ?
-        windowResolution() :
-        framebufferResolution();
-    if (_screenCaptureLeftOrMono) {
-        _screenCaptureLeftOrMono->resize(res);
-    }
-    if (_screenCaptureRight) {
-        _screenCaptureRight->resize(res);
-    }
-
-    // resize non linear projection buffers
-    for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        if (vp->hasSubViewports()) {
-            const vec2 viewport = vec2{
-                _framebufferRes.x * vp->size().x,
-                _framebufferRes.y * vp->size().y
-            };
-            vp->nonLinearProjection()->update(viewport);
-        }
-    }
-}
-
-void Window::makeOpenGLContextCurrent() {
-    ZoneScoped;
-
-    if (_activeContext == _windowHandle) {
-        // glfwMakeContextCurrent is expensive even if we don't change the context
-        return;
-    }
-    _activeContext = _windowHandle;
-    glfwMakeContextCurrent(_windowHandle);
-}
-
-bool Window::isWindowResized() const {
-    return _windowResChanged;
-}
-
-bool Window::isVisible() const {
-    return _isVisible;
-}
-
-bool Window::isRenderingWhileHidden() const {
-    return _shouldRenderWhileHidden;
-}
-
-bool Window::isFixResolution() const {
-    return _useFixResolution;
-}
-
-bool Window::isStereo() const {
-    return _stereoMode != StereoMode::NoStereo;
-}
-
-void Window::setFullscreen(bool fullscreen) {
-    _isFullScreen = fullscreen;
-}
-
-void Window::setAutoiconify(bool shouldAutoiconify) {
-    _shouldAutoiconify = shouldAutoiconify;
-}
-
-void Window::setFloating(bool floating) {
-    _isFloating = floating;
-}
-
-void Window::setTakeScreenshot(bool takeScreenshot) {
-    _takeScreenshot = takeScreenshot;
-}
-
-void Window::setWindowDecoration(bool state) {
-    _isDecorated = state;
-}
-
-void Window::setWindowResizable(bool state) {
-    _isResizable = state;
-}
-
-void Window::setFixResolution(bool state) {
-    _useFixResolution = state;
-}
-
-void Window::setCallDraw2DFunction(bool state) {
-    _hasCallDraw2DFunction = state;
-}
-
-void Window::setCallDraw3DFunction(bool state) {
-    _hasCallDraw3DFunction = state;
 }
 
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
@@ -967,6 +574,208 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     }
 }
 
+void Window::closeWindow() {
+    ZoneScoped;
+
+#ifdef SGCT_HAS_SCALABLE
+    if (_scalableMesh.sdk) {
+        EasyBlendSDK_Uninitialize(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        delete _scalableMesh.sdk;
+        _scalableMesh.sdk = nullptr;
+    }
+#endif // SGCT_HAS_SCALABLE
+
+    makeSharedContextCurrent();
+
+    Log::Info(std::format("Deleting screen capture data for window {}", _id));
+    _screenCaptureLeftOrMono = nullptr;
+    _screenCaptureRight = nullptr;
+
+    // delete FBO stuff
+    if (_finalFBO) {
+        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
+        _finalFBO = nullptr;
+        destroyFBOs();
+    }
+
+    Log::Info(std::format("Deleting VBOs for window {}", _id));
+    glDeleteBuffers(1, &_vbo);
+    _vbo = 0;
+
+    Log::Info(std::format("Deleting VAOs for window {}", _id));
+    glDeleteVertexArrays(1, &_vao);
+    _vao = 0;
+
+    _fboQuad.deleteProgram();
+    _overlay.deleteProgram();
+    _stereo.deleteProgram();
+    if (_fxaa) {
+        _fxaa->shader.deleteProgram();
+    }
+
+    // Current handle must be set at the end to properly destroy the window
+    makeOpenGLContextCurrent();
+
+    _viewports.clear();
+
+    glfwSetWindowSizeCallback(_windowHandle, nullptr);
+    glfwSetFramebufferSizeCallback(_windowHandle, nullptr);
+    glfwSetWindowFocusCallback(_windowHandle, nullptr);
+    glfwSetWindowIconifyCallback(_windowHandle, nullptr);
+
+#ifdef WIN32
+    if (_useSwapGroups && glfwExtensionSupported("WGL_NV_swap_group")) {
+        HDC hDC = wglGetCurrentDC();
+        wglBindSwapBarrierNV(1, 0); // un-bind
+        wglJoinSwapGroupNV(hDC, 0); // un-join
+    }
+#endif // WIN32
+}
+
+void Window::initialize() {
+    ZoneScoped;
+
+    createTextures();
+    createVBOs();
+
+    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
+
+    Log::Debug(std::format(
+        "Window {}: FBO initiated successfully. Number of samples: {}",
+        _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
+    ));
+
+    const ivec2 res =
+        Engine::instance().settings().captureBackBuffer ?
+        windowResolution() :
+        framebufferResolution();
+
+    if (_screenCaptureLeftOrMono) {
+        _screenCaptureLeftOrMono->resize(res);
+    }
+
+    if (_screenCaptureRight) {
+        _screenCaptureRight->resize(res);
+    }
+
+    loadShaders();
+
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        const vec2 viewportSize = vec2{
+            _framebufferRes.x * vp->size().x,
+            _framebufferRes.y * vp->size().y
+        };
+        vp->initialize(
+            viewportSize,
+            _stereoMode != StereoMode::NoStereo,
+            _internalColorFormat,
+            GL_BGRA,
+            _colorDataType,
+            _nAASamples
+        );
+    }
+}
+
+void Window::initializeContextSpecific() {
+    ZoneScoped;
+
+    makeOpenGLContextCurrent();
+    std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
+    _hasAnyMasks = std::any_of(
+        _viewports.cbegin(),
+        _viewports.cend(),
+        [](const std::unique_ptr<Viewport>& vp) {
+            return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
+        }
+    );
+
+#ifdef SGCT_HAS_SCALABLE
+    if (!_scalableMesh.path.empty()) {
+        [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        // We already loaded the path in the constructor and verified that it works
+        assert(err == EasyBlendSDK_ERR_S_OK);
+    }
+#endif // SGCT_HAS_SCALABLE
+}
+
+void Window::updateResolutions() {
+    ZoneScoped;
+
+    if (_pendingWindowRes) {
+        _windowRes = *_pendingWindowRes;
+        _windowResChanged = true;
+        float ratio =
+            static_cast<float>(_windowRes->x) / static_cast<float>(_windowRes->y);
+
+        // Set field of view of each of this window's viewports to match new aspect ratio,
+        // adjusting only the horizontal (x) values
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
+            vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
+            Log::Debug(std::format(
+                "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
+            ));
+        }
+        _aspectRatio = ratio;
+
+        // Redraw window
+        glfwSetWindowSize(_windowHandle, _windowRes->x, _windowRes->y);
+
+        Log::Debug(std::format(
+            "Resolution changed to {}x{} in window {}", _windowRes->x, _windowRes->y, _id
+        ));
+        _pendingWindowRes = std::nullopt;
+    }
+
+    if (_pendingFramebufferRes) {
+        _framebufferRes = *_pendingFramebufferRes;
+
+        Log::Debug(std::format(
+            "Framebuffer resolution changed to {}x{} for window {}",
+            _framebufferRes.x, _framebufferRes.y, _id
+        ));
+
+        _pendingFramebufferRes = std::nullopt;
+    }
+}
+
+void Window::update() {
+    ZoneScoped;
+
+    if (!_isVisible || !isWindowResized()) {
+        return;
+    }
+    makeOpenGLContextCurrent();
+
+    resizeFBOs();
+
+    const ivec2 res =
+        Engine::instance().settings().captureBackBuffer ?
+        windowResolution() :
+        framebufferResolution();
+    if (_screenCaptureLeftOrMono) {
+        _screenCaptureLeftOrMono->resize(res);
+    }
+    if (_screenCaptureRight) {
+        _screenCaptureRight->resize(res);
+    }
+
+    // resize non linear projection buffers
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        if (vp->hasSubViewports()) {
+            const vec2 viewport = vec2{
+                _framebufferRes.x * vp->size().x,
+                _framebufferRes.y * vp->size().y
+            };
+            vp->nonLinearProjection()->update(viewport);
+        }
+    }
+}
+
 void Window::draw() {
     ZoneScopedN("Render window");
 
@@ -1022,6 +831,485 @@ void Window::draw() {
     else {
         renderViewports(FrustumMode::StereoRight, Eye::Right);
     }
+}
+
+void Window::renderFBOTexture() {
+    ZoneScoped;
+
+    if (!_isVisible) [[unlikely]] {
+        return;
+    }
+
+    OffScreenBuffer::unbind();
+
+    makeOpenGLContextCurrent();
+
+    glDisable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    const FrustumMode frustum =
+        (stereoMode() == Window::StereoMode::Active) ?
+        FrustumMode::StereoLeft :
+        FrustumMode::Mono;
+
+    const ivec2 size = ivec2{
+        static_cast<int>(std::ceil(scale().x * windowResolution().x)),
+        static_cast<int>(std::ceil(scale().y * windowResolution().y))
+    };
+
+    glViewport(0, 0, size.x, size.y);
+    setAndClearBuffer(*this, BufferMode::BackBufferBlack, frustum);
+
+    bool maskShaderSet = false;
+    const std::vector<std::unique_ptr<Viewport>>& vps = _viewports;
+    if (_stereoMode > Window::StereoMode::Active &&
+        _stereoMode < Window::StereoMode::SideBySide)
+    {
+        _stereo.bind();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
+
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+    }
+    else {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::MonoOrLeft));
+
+        _fboQuad.bind();
+        maskShaderSet = true;
+
+        glUniform1i(
+            glGetUniformLocation(_fboQuad.id(), "flipX"),
+            _mirrorX ? 1 : 0
+        );
+        glUniform1i(
+            glGetUniformLocation(_fboQuad.id(), "flipY"),
+            _mirrorY ? 1 : 0
+        );
+
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+
+        // render right eye in active stereo mode
+        if (_stereoMode == Window::StereoMode::Active) {
+            glViewport(0, 0, size.x, size.y);
+
+            // clear buffers
+            setAndClearBuffer(
+                *this,
+                BufferMode::BackBufferBlack,
+                FrustumMode::StereoRight
+            );
+
+            glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::Right));
+            std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+        }
+    }
+
+    // render mask (mono)
+    if (_hasAnyMasks) {
+        if (!maskShaderSet) {
+            _fboQuad.bind();
+
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), _mirrorX ? 1 : 0);
+            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), _mirrorY ? 1 : 0);
+        }
+
+        glDrawBuffer(GL_BACK);
+        glReadBuffer(GL_BACK);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_BLEND);
+
+        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
+        // render blend masks
+        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
+            ZoneScopedN("Render Viewport");
+
+            if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
+                glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
+                vp->renderMaskMesh();
+            }
+            if (vp->hasBlackLevelMaskTexture() && vp->isEnabled()) {
+                glBindTexture(GL_TEXTURE_2D, vp->blackLevelMaskTextureIndex());
+                vp->renderMaskMesh();
+            }
+        }
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    ShaderProgram::unbind();
+    glDisable(GL_BLEND);
+}
+
+void Window::swapBuffers(bool takeScreenshot) {
+    if (!(_isVisible || _shouldRenderWhileHidden)) {
+        return;
+    }
+
+    makeOpenGLContextCurrent();
+
+    if (takeScreenshot) {
+        ZoneScopedN("Take Screenshot");
+        if (Engine::instance().settings().captureBackBuffer) {
+            if (_screenCaptureLeftOrMono) {
+                _screenCaptureLeftOrMono->saveScreenCapture(
+                    0,
+                    _stereoMode == StereoMode::Active ?
+                        ScreenCapture::CaptureSource::LeftBackBuffer :
+                        ScreenCapture::CaptureSource::BackBuffer
+                );
+            }
+            if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
+                _screenCaptureLeftOrMono->saveScreenCapture(
+                    0,
+                    ScreenCapture::CaptureSource::RightBackBuffer
+                );
+            }
+        }
+        else {
+            if (_screenCaptureLeftOrMono) {
+                _screenCaptureLeftOrMono->saveScreenCapture(_frameBufferTextures.leftEye);
+            }
+            if (_screenCaptureRight && _stereoMode > StereoMode::NoStereo &&
+                _stereoMode < Window::StereoMode::SideBySide)
+            {
+                _screenCaptureRight->saveScreenCapture(_frameBufferTextures.rightEye);
+            }
+        }
+    }
+
+    // swap
+    _windowResChanged = false;
+
+#ifdef SGCT_HAS_SCALABLE
+    if (_scalableMesh.sdk) {
+        EasyBlendSDK_TransformInputToOutput(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+    }
+#endif // SGCT_HAS_SCALABLE
+
+    {
+        ZoneScopedN("glfwSwapBuffers");
+        glfwSwapBuffers(_windowHandle);
+    }
+}
+
+void Window::makeOpenGLContextCurrent() {
+    ZoneScoped;
+
+    if (_activeContext == _windowHandle) {
+        // glfwMakeContextCurrent is expensive even if we don't change the context
+        return;
+    }
+    _activeContext = _windowHandle;
+    glfwMakeContextCurrent(_windowHandle);
+}
+
+bool Window::needsCompatibilityProfile() const {
+    return _scalableMesh.sdk != nullptr;
+}
+
+bool Window::shouldTakeScreenshot() const {
+    return _takeScreenshot;
+}
+
+vec2 Window::scale() const {
+    return _scale;
+}
+
+float Window::aspectRatio() const {
+    return _aspectRatio;
+}
+
+ivec2 Window::windowResolution() const {
+    assert(_windowRes);
+    return *_windowRes;
+}
+
+GLFWwindow* Window::windowHandle() const {
+    return _windowHandle;
+}
+
+void Window::addViewport(std::unique_ptr<Viewport> vpPtr) {
+    _viewports.push_back(std::move(vpPtr));
+}
+
+const std::vector<std::unique_ptr<Viewport>>& Window::viewports() const {
+    return _viewports;
+}
+
+void Window::updateFrustums(float nearClip, float farClip) {
+    ZoneScoped;
+
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        if (vp->isTracked()) {
+            // if not tracked update, otherwise this is done on the fly
+            continue;
+        }
+
+        vp->calculateFrustum(FrustumMode::Mono, nearClip, farClip);
+        vp->calculateFrustum(FrustumMode::StereoLeft, nearClip, farClip);
+        vp->calculateFrustum(FrustumMode::StereoRight, nearClip, farClip);
+    }
+}
+
+void Window::renderScreenQuad() const {
+    TracyGpuZone("Render Screen Quad")
+
+    glBindVertexArray(_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+void Window::setFramebufferResolution(ivec2 resolution) {
+    // Defer actual update of framebuffer resolution until next call to updateResolutions.
+    // (Same reason as described for setWindowResolution above.)
+    if (!_useFixResolution) {
+        _pendingFramebufferRes = std::move(resolution);
+    }
+}
+
+ivec2 Window::framebufferResolution() const {
+    return _framebufferRes;
+}
+
+bool Window::isWindowResized() const {
+    return _windowResChanged;
+}
+
+bool Window::isFocused() const {
+    return _hasFocus;
+}
+
+int Window::id() const {
+    return _id;
+}
+
+void Window::setName(std::string name) {
+    _name = std::move(name);
+}
+
+const std::string& Window::name() const {
+    return _name;
+}
+
+void Window::setTags(std::vector<std::string> tags) {
+    _tags = std::move(tags);
+}
+
+bool Window::hasTag(std::string_view tag) const {
+    return std::find(_tags.cbegin(), _tags.cend(), tag) != _tags.cend();
+}
+
+void Window::setVisible(bool state) {
+    if (state != _isVisible && _windowHandle) {
+        if (state) {
+            glfwShowWindow(_windowHandle);
+        }
+        else {
+            glfwHideWindow(_windowHandle);
+        }
+    }
+    _isVisible = state;
+}
+
+bool Window::isVisible() const {
+    return _isVisible;
+}
+
+void Window::setRenderWhileHidden(bool state) {
+    _shouldRenderWhileHidden = state;
+}
+
+bool Window::isRenderingWhileHidden() const {
+    return _shouldRenderWhileHidden;
+}
+
+void Window::setFullscreen(bool fullscreen) {
+    _isFullScreen = fullscreen;
+}
+
+void Window::setAutoiconify(bool shouldAutoiconify) {
+    _shouldAutoiconify = shouldAutoiconify;
+}
+
+void Window::setFloating(bool floating) {
+    _isFloating = floating;
+}
+
+void Window::setTakeScreenshot(bool takeScreenshot) {
+    _takeScreenshot = takeScreenshot;
+}
+
+void Window::setWindowDecoration(bool state) {
+    _isDecorated = state;
+}
+
+void Window::setWindowResizable(bool state) {
+    _isResizable = state;
+}
+
+void Window::setFixResolution(bool state) {
+    _useFixResolution = state;
+}
+
+bool Window::isFixResolution() const {
+    return _useFixResolution;
+}
+
+void Window::setHorizFieldOfView(float hFovDeg) {
+    // Set field of view of each of this window's viewports to match new horiz/vert
+    // aspect ratio, adjusting only the horizontal (x) values
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        vp->setHorizontalFieldOfView(hFovDeg);
+    }
+    Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
+}
+
+float Window::horizFieldOfViewDegrees() const {
+    return _viewports[0]->horizontalFieldOfViewDegrees();
+}
+
+void Window::setCallDraw2DFunction(bool state) {
+    _hasCallDraw2DFunction = state;
+}
+
+void Window::setCallDraw3DFunction(bool state) {
+    _hasCallDraw3DFunction = state;
+}
+
+void Window::setStereoMode(StereoMode sm) {
+    _stereoMode = sm;
+    loadShaders();
+}
+
+Window::StereoMode Window::stereoMode() const {
+    return _stereoMode;
+}
+
+bool Window::isStereo() const {
+    return _stereoMode != StereoMode::NoStereo;
+}
+
+void Window::createTextures() {
+    ZoneScoped;
+    TracyGpuZone("Create Textures");
+
+    GLint max = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+    if (_framebufferRes.x > max || _framebufferRes.y > max) {
+        Log::Error(std::format(
+            "Window {}: Requested framebuffer too big (Max: {})", _id, max
+        ));
+        return;
+    }
+
+    // Create left and right color & depth textures; don't allocate the right eye image if
+    // stereo is not used create a postFX texture for effects
+    generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
+    if (useRightEyeTexture()) {
+        generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
+    }
+    if (Engine::instance().settings().useDepthTexture) {
+        generateTexture(_frameBufferTextures.depth, TextureType::Depth);
+    }
+    if (_useFXAA) {
+        generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
+    }
+    if (Engine::instance().settings().useNormalTexture) {
+        generateTexture(_frameBufferTextures.normals, TextureType::Normal);
+    }
+    if (Engine::instance().settings().usePositionTexture) {
+        generateTexture(_frameBufferTextures.positions, TextureType::Position);
+    }
+
+    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
+}
+
+void Window::generateTexture(unsigned int& id, Window::TextureType type) {
+    ZoneScoped;
+    TracyGpuZone("Generate Textures");
+
+    glDeleteTextures(1, &id);
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+
+    // Determine the internal texture format, the texture format, and the pixel type
+    const std::tuple<GLenum, GLenum, GLenum> formats =
+        [this](Window::TextureType t) -> std::tuple<GLenum, GLenum, GLenum>
+    {
+        switch (t) {
+            case TextureType::Color:
+                return { _internalColorFormat, GL_BGRA, _colorDataType };
+            case TextureType::Depth:
+                return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
+            case TextureType::Normal:
+            case TextureType::Position:
+                return { GL_RGB32F, GL_RGB, GL_FLOAT };
+            default:
+                throw std::logic_error("Unhandled case label");
+        }
+    }(type);
+
+    const ivec2 res = _framebufferRes;
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        std::get<0>(formats),
+        res.x,
+        res.y,
+        0,
+        std::get<1>(formats),
+        std::get<2>(formats),
+        nullptr
+    );
+    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+}
+
+void Window::resizeFBOs() {
+    if (_useFixResolution) {
+        return;
+    }
+
+    makeSharedContextCurrent();
+    destroyFBOs();
+    createTextures();
+
+    _finalFBO->resizeFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
+
+    if (!_finalFBO->isMultiSampled()) {
+        _finalFBO->bind();
+        _finalFBO->attachColorTexture(_frameBufferTextures.leftEye, GL_COLOR_ATTACHMENT0);
+        OffScreenBuffer::unbind();
+    }
+}
+
+void Window::destroyFBOs() {
+    glDeleteTextures(1, &_frameBufferTextures.leftEye);
+    _frameBufferTextures.leftEye = 0;
+    glDeleteTextures(1, &_frameBufferTextures.rightEye);
+    _frameBufferTextures.rightEye = 0;
+    glDeleteTextures(1, &_frameBufferTextures.depth);
+    _frameBufferTextures.depth = 0;
+    glDeleteTextures(1, &_frameBufferTextures.intermediate);
+    _frameBufferTextures.intermediate = 0;
+    glDeleteTextures(1, &_frameBufferTextures.positions);
+    _frameBufferTextures.positions = 0;
+}
+
+bool Window::useRightEyeTexture() const {
+    return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
 }
 
 void Window::renderViewports(FrustumMode frustum, Eye eye) const {
@@ -1187,7 +1475,30 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
 
 
         if (_useFXAA) {
-            renderFXAA(eye);
+            assert(_fxaa);
+
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+            // bind target FBO
+            _finalFBO->attachColorTexture(
+                frameBufferTextureEye(eye),
+                GL_COLOR_ATTACHMENT0
+            );
+
+            const ivec2 framebufferSize = framebufferResolution();
+            glViewport(0, 0, framebufferSize.x, framebufferSize.y);
+            glClearColor(0.f, 0.f, 0.f, 0.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glActiveTexture(GL_TEXTURE0);
+
+            glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.intermediate);
+
+            _fxaa->shader.bind();
+            glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
+            glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
+
+            renderScreenQuad();
+            ShaderProgram::unbind();
         }
 
         render2D(frustum);
@@ -1198,35 +1509,6 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
     }
 
     glDisable(GL_BLEND);
-}
-
-void Window::renderFXAA(Eye eye) const {
-    ZoneScoped;
-
-    assert(_fxaa);
-
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    // bind target FBO
-    _finalFBO->attachColorTexture(
-        frameBufferTextureEye(eye),
-        GL_COLOR_ATTACHMENT0
-    );
-
-    const ivec2 framebufferSize = framebufferResolution();
-    glViewport(0, 0, framebufferSize.x, framebufferSize.y);
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glActiveTexture(GL_TEXTURE0);
-
-    glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.intermediate);
-
-    _fxaa->shader.bind();
-    glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
-    glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
-
-    renderScreenQuad();
-    ShaderProgram::unbind();
 }
 
 void Window::render2D(FrustumMode frustum) const {
@@ -1276,134 +1558,6 @@ void Window::render2D(FrustumMode frustum) const {
     }
 }
 
-void Window::renderFBOTexture() {
-    ZoneScoped;
-
-    if (!_isVisible) [[unlikely]] {
-        return;
-    }
-
-    OffScreenBuffer::unbind();
-
-    makeOpenGLContextCurrent();
-
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    const FrustumMode frustum =
-        (stereoMode() == Window::StereoMode::Active) ?
-        FrustumMode::StereoLeft :
-        FrustumMode::Mono;
-
-    const ivec2 size = ivec2{
-        static_cast<int>(std::ceil(scale().x * windowResolution().x)),
-        static_cast<int>(std::ceil(scale().y * windowResolution().y))
-    };
-
-    glViewport(0, 0, size.x, size.y);
-    setAndClearBuffer(*this, BufferMode::BackBufferBlack, frustum);
-
-    bool maskShaderSet = false;
-    const std::vector<std::unique_ptr<Viewport>>& vps = _viewports;
-    if (_stereoMode > Window::StereoMode::Active &&
-        _stereoMode < Window::StereoMode::SideBySide)
-    {
-        _stereo.bind();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
-
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-    }
-    else {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::MonoOrLeft));
-
-        _fboQuad.bind();
-        maskShaderSet = true;
-
-        glUniform1i(
-            glGetUniformLocation(_fboQuad.id(), "flipX"),
-            _mirrorX ? 1 : 0
-        );
-        glUniform1i(
-            glGetUniformLocation(_fboQuad.id(), "flipY"),
-            _mirrorY ? 1 : 0
-        );
-
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-
-        // render right eye in active stereo mode
-        if (_stereoMode == Window::StereoMode::Active) {
-            glViewport(0, 0, size.x, size.y);
-
-            // clear buffers
-            setAndClearBuffer(
-                *this,
-                BufferMode::BackBufferBlack,
-                FrustumMode::StereoRight
-            );
-
-            glBindTexture(GL_TEXTURE_2D, frameBufferTextureEye(Eye::Right));
-            std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-        }
-    }
-
-    // render mask (mono)
-    if (_hasAnyMasks) {
-        if (!maskShaderSet) {
-            _fboQuad.bind();
-
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), _mirrorX ? 1 : 0);
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), _mirrorY ? 1 : 0);
-        }
-
-        glDrawBuffer(GL_BACK);
-        glReadBuffer(GL_BACK);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_BLEND);
-
-        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-        // render blend masks
-        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (const std::unique_ptr<Viewport>& vp : _viewports) {
-            ZoneScopedN("Render Viewport");
-
-            if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
-                vp->renderMaskMesh();
-            }
-            if (vp->hasBlackLevelMaskTexture() && vp->isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp->blackLevelMaskTextureIndex());
-                vp->renderMaskMesh();
-            }
-        }
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-
-    ShaderProgram::unbind();
-    glDisable(GL_BLEND);
-}
-
-void Window::updateFrustums(float nearClip, float farClip) {
-    ZoneScoped;
-
-    for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        if (vp->isTracked()) {
-            // if not tracked update, otherwise this is done on the fly
-            continue;
-        }
-
-        vp->calculateFrustum(FrustumMode::Mono, nearClip, farClip);
-        vp->calculateFrustum(FrustumMode::StereoLeft, nearClip, farClip);
-        vp->calculateFrustum(FrustumMode::StereoRight, nearClip, farClip);
-    }
-}
-
 void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
                                 FrustumMode mode) const
 {
@@ -1437,86 +1591,6 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
 
     renderScreenQuad();
     ShaderProgram::unbind();
-}
-
-void Window::createTextures() {
-    ZoneScoped;
-    TracyGpuZone("Create Textures");
-
-    GLint max = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-    if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error(std::format(
-            "Window {}: Requested framebuffer too big (Max: {})", _id, max
-        ));
-        return;
-    }
-
-    // Create left and right color & depth textures; don't allocate the right eye image if
-    // stereo is not used create a postFX texture for effects
-    generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
-    if (useRightEyeTexture()) {
-        generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
-    }
-    if (Engine::instance().settings().useDepthTexture) {
-        generateTexture(_frameBufferTextures.depth, TextureType::Depth);
-    }
-    if (_useFXAA) {
-        generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
-    }
-    if (Engine::instance().settings().useNormalTexture) {
-        generateTexture(_frameBufferTextures.normals, TextureType::Normal);
-    }
-    if (Engine::instance().settings().usePositionTexture) {
-        generateTexture(_frameBufferTextures.positions, TextureType::Position);
-    }
-
-    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
-}
-
-void Window::generateTexture(unsigned int& id, Window::TextureType type) {
-    ZoneScoped;
-    TracyGpuZone("Generate Textures");
-
-    glDeleteTextures(1, &id);
-    glGenTextures(1, &id);
-    glBindTexture(GL_TEXTURE_2D, id);
-
-    // Determine the internal texture format, the texture format, and the pixel type
-    const std::tuple<GLenum, GLenum, GLenum> formats =
-        [this](Window::TextureType t) -> std::tuple<GLenum, GLenum, GLenum>
-    {
-        switch (t) {
-            case TextureType::Color:
-                return { _internalColorFormat, GL_BGRA, _colorDataType };
-            case TextureType::Depth:
-                return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
-            case TextureType::Normal:
-            case TextureType::Position:
-                return { GL_RGB32F, GL_RGB, GL_FLOAT };
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
-    }(type);
-
-    const ivec2 res = _framebufferRes;
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        std::get<0>(formats),
-        res.x,
-        res.y,
-        0,
-        std::get<1>(formats),
-        std::get<2>(formats),
-        nullptr
-    );
-    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 }
 
 void Window::createVBOs() {
@@ -1606,8 +1680,8 @@ void Window::loadShaders() {
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
         glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
 
-        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_TRIM"), FxaaSubPixTrim);
-        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET"), FxaaSubPixOffset);
+        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_TRIM"), 1.f / 4.f);
+        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET"), 1.f / 2.f);
         glUniform1i(glGetUniformLocation(id, "tex"), 0);
     }
 
@@ -1646,97 +1720,13 @@ void Window::loadShaders() {
     ShaderProgram::unbind();
 }
 
-void Window::renderScreenQuad() const {
-    TracyGpuZone("Render Screen Quad")
 
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
-
-GLFWwindow* Window::windowHandle() const {
-    return _windowHandle;
-}
-
-void Window::resizeFBOs() {
-    if (_useFixResolution) {
-        return;
+unsigned int Window::frameBufferTextureEye(Eye eye) const {
+    switch (eye) {
+        case Eye::MonoOrLeft: return _frameBufferTextures.leftEye;
+        case Eye::Right:      return _frameBufferTextures.rightEye;
+        default:              throw std::logic_error("Missing case label");
     }
-
-    makeSharedContextCurrent();
-    destroyFBOs();
-    createTextures();
-
-    _finalFBO->resizeFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
-
-    if (!_finalFBO->isMultiSampled()) {
-        _finalFBO->bind();
-        _finalFBO->attachColorTexture(_frameBufferTextures.leftEye, GL_COLOR_ATTACHMENT0);
-        OffScreenBuffer::unbind();
-    }
-}
-
-void Window::destroyFBOs() {
-    glDeleteTextures(1, &_frameBufferTextures.leftEye);
-    _frameBufferTextures.leftEye = 0;
-    glDeleteTextures(1, &_frameBufferTextures.rightEye);
-    _frameBufferTextures.rightEye = 0;
-    glDeleteTextures(1, &_frameBufferTextures.depth);
-    _frameBufferTextures.depth = 0;
-    glDeleteTextures(1, &_frameBufferTextures.intermediate);
-    _frameBufferTextures.intermediate = 0;
-    glDeleteTextures(1, &_frameBufferTextures.positions);
-    _frameBufferTextures.positions = 0;
-}
-
-Window::StereoMode Window::stereoMode() const {
-    return _stereoMode;
-}
-
-void Window::addViewport(std::unique_ptr<Viewport> vpPtr) {
-    _viewports.push_back(std::move(vpPtr));
-}
-
-const std::vector<std::unique_ptr<Viewport>>& Window::viewports() const {
-    return _viewports;
-}
-
-void Window::setStereoMode(StereoMode sm) {
-    _stereoMode = sm;
-    loadShaders();
-}
-
-bool Window::useRightEyeTexture() const {
-    return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
-}
-
-float Window::horizFieldOfViewDegrees() const {
-    return _viewports[0]->horizontalFieldOfViewDegrees();
-}
-
-ivec2 Window::windowResolution() const {
-    assert(_windowRes);
-    return *_windowRes;
-}
-
-ivec2 Window::framebufferResolution() const {
-    return _framebufferRes;
-}
-
-vec2 Window::scale() const {
-    return _scale;
-}
-
-float Window::aspectRatio() const {
-    return _aspectRatio;
-}
-
-bool Window::shouldTakeScreenshot() const {
-    return _takeScreenshot;
-}
-
-bool Window::needsCompatibilityProfile() const {
-    return _scalableMesh.sdk != nullptr;
 }
 
 } // namespace sgct

@@ -343,7 +343,6 @@ private:
     void blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
         FrustumMode mode) const;
 
-    void renderFXAA(Eye eye) const;
     std::string _name;
     std::vector<std::string> _tags;
     int8_t _id = -1;

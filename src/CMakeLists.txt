@@ -222,6 +222,7 @@ target_link_libraries(sgct
     nlohmann_json_schema_validator::nlohmann_json_schema_validator
     $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:scalable>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
+    $<$<BOOL:${SGCT_NDI_SUPPORT}>:ndi>
 )
 
 target_compile_definitions(sgct
@@ -233,6 +234,7 @@ target_compile_definitions(sgct
   PRIVATE
     $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:SGCT_HAS_SCALABLE>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:SGCT_HAS_VRPN>
+    $<$<BOOL:${SGCT_NDI_SUPPORT}>:SGCT_HAS_NDI>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
 )
 
@@ -254,16 +256,16 @@ endif ()
 
 if (SGCT_INSTALL)
   include(GNUInstallDirs)
-  install(TARGETS sgct EXPORT sgctTargets 
+  install(TARGETS sgct EXPORT sgctTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
   install(
-    EXPORT sgctTargets 
+    EXPORT sgctTargets
     FILE sgctTargets.cmake
-    NAMESPACE sgct:: 
+    NAMESPACE sgct::
     DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
   )
   install(

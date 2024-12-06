@@ -356,7 +356,12 @@ Window::Window(const config::Window& window)
     , _isVisible(!window.isHidden.value_or(false))
     , _stereoMode(convert(window.stereo.value_or(config::Window::StereoMode::NoStereo)))
     , _windowPos(window.pos)
+    , _windowRes(window.size)
+    , _framebufferRes(window.size)
+    , _aspectRatio(static_cast<float>(window.size.x) / static_cast<float>(window.size.y))
+#ifdef SGCT_HAS_SPOUT
     , _spoutName(window.spoutName.value_or(""))
+#endif // SGCT_HAS_SPOUT
     , _internalColorFormat(colorBitDepthToColorFormat(
         window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
     ))
@@ -369,19 +374,47 @@ Window::Window(const config::Window& window)
 {
     ZoneScoped;
 
-    _windowRes = window.size;
-    _aspectRatio = static_cast<float>(window.size.x) / static_cast<float>(window.size.y);
-
-    if (!_useFixResolution) {
-        _framebufferRes = window.size;
-    }
-
     if (window.resolution) {
         ZoneScopedN("Resolution");
 
         setFramebufferResolution(*window.resolution);
         setFixResolution(true);
     }
+
+#ifdef SGCT_HAS_NDI
+    if (window.sendNDI.value_or(false)) {
+        const bool initializeSuccess = NDIlib_initialize();
+        if (!initializeSuccess) {
+            Log::Error("Error initializing NDI");
+        }
+
+        std::string name = window.name.value_or("OpenSpace");
+        NDIlib_send_create_t createDesc;
+        createDesc.p_ndi_name = "ABC";
+        createDesc.p_groups = "OpenSpace";
+        createDesc.clock_video = false;
+
+        _ndiHandle = NDIlib_send_create(&createDesc);
+        if (!_ndiHandle) {
+            Log::Error("Error creating NDI sender");
+        }
+
+        ivec2 res = window.resolution.value_or(window.size);
+        _videoFrame.xres = res.x;
+        _videoFrame.yres = res.y;
+        _videoFrame.FourCC = NDIlib_FourCC_type_BGRA;
+        _videoFrame.line_stride_in_bytes = res.x * 4;
+        _videoFrame.frame_rate_N = 60000; // 60 fps
+        _videoFrame.frame_rate_D = 1000;  // 60 fps
+        _videoFrame.picture_aspect_ratio =
+            static_cast<float>(res.x) / static_cast<float>(res.y);
+        _videoFrame.frame_format_type = NDIlib_frame_format_type_progressive;
+        _videoFrame.timecode = 0;
+
+        _videoBufferPing.resize(res.x * res.y * 4);
+        _videoBufferPong.resize(res.x * res.y * 4);
+    }
+#endif // SGCT_HAS_NDI
 
     for (const config::Viewport& viewport : window.viewports) {
         auto vp = std::make_unique<Viewport>(viewport, this);
@@ -605,6 +638,15 @@ void Window::closeWindow() {
     }
 #endif // SGCT_HAS_SPOUT
 
+#ifdef SGCT_HAS_NDI
+    // One of the two buffers might be still in flight so we have to flush the pipeline
+    // before we can destroy the video or we might risk NDI accessing dead memory and
+    // crashing
+    NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
+
+    NDIlib_send_destroy(_ndiHandle);
+#endif // SGCT_HAS_NDI
+
     makeSharedContextCurrent();
 
     Log::Info(std::format("Deleting screen capture data for window {}", _id));
@@ -766,6 +808,24 @@ void Window::updateResolutions() {
             "Resolution changed to {}x{} in window {}", _windowRes->x, _windowRes->y, _id
         ));
         _pendingWindowRes = std::nullopt;
+
+#ifdef SGCT_HAS_NDI
+        if (!_useFixResolution) {
+            _videoFrame.xres = _windowRes->x;
+            _videoFrame.yres = _windowRes->y;
+            _videoFrame.picture_aspect_ratio =
+                static_cast<float>(_windowRes->x) / static_cast<float>(_windowRes->y);
+            _videoFrame.line_stride_in_bytes = _windowRes->x * 4;
+
+            // We need to send an "empty" frame as otherwise NDI might be in the middle of
+            // sending out one of the buffers that we are resizing. This extra call will
+            // force a synchronization
+            NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
+            _videoBufferPing.resize(_windowRes->x * _windowRes->y * 4);
+            _videoBufferPong.resize(_windowRes->x * _windowRes->y * 4);
+
+        }
+#endif // SGCT_HAS_NDI
     }
 
     if (_pendingFramebufferRes) {
@@ -998,6 +1058,26 @@ void Window::renderFBOTexture() {
         }
     }
 #endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+    glGetTexImage(
+        GL_TEXTURE_2D,
+        0,
+        GL_BGRA,
+        GL_UNSIGNED_BYTE,
+        _currentVideoBuffer->data()
+    );
+
+    assert(_videoFrame.xres == _framebufferRes.x);
+    assert(_videoFrame.yres == _framebufferRes.y);
+    _videoFrame.p_data = reinterpret_cast<uint8_t*>(_currentVideoBuffer->data());
+
+    NDIlib_send_send_video_v2(_ndiHandle, &_videoFrame);
+    //NDIlib_send_send_video_async_v2(_ndiHandle, &_videoFrame);
+    // Switch the current buffer
+    _currentVideoBuffer =
+        _currentVideoBuffer == &_videoBufferPing ? &_videoBufferPong : &_videoBufferPing;
+#endif // SGCT_HAS_NDI
 }
 
 void Window::swapBuffers(bool takeScreenshot) {
@@ -1122,8 +1202,6 @@ void Window::renderScreenQuad() const {
 }
 
 void Window::setFramebufferResolution(ivec2 resolution) {
-    // Defer actual update of framebuffer resolution until next call to updateResolutions.
-    // (Same reason as described for setWindowResolution above.)
     if (!_useFixResolution) {
         _pendingFramebufferRes = std::move(resolution);
     }

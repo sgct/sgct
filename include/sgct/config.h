@@ -300,6 +300,7 @@ struct SGCT_EXPORT Window {
     std::optional<uint8_t> monitor;
     std::optional<StereoMode> stereo;
     std::optional<std::string> spoutName;
+    std::optional<bool> sendNDI;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;

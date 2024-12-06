@@ -1614,6 +1614,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     }
 
     parseValue(j, "spoutname", w.spoutName);
+    parseValue(j, "sendndi", w.sendNDI);
 
     parseValue(j, "pos", w.pos);
     parseValue(j, "size", w.size);

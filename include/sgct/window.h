@@ -24,6 +24,10 @@ struct SPOUTLIBRARY;
 typedef SPOUTLIBRARY* SPOUTHANDLE;
 #endif // SGCT_HAS_SPOUT
 
+#ifdef SGCT_HAS_NDI
+#include <Processing.NDI.Lib.h>
+#endif // SGCT_HAS_NDI
+
 namespace sgct {
 
 namespace config { struct Window; }
@@ -390,6 +394,14 @@ private:
     std::string _spoutName;
     SPOUTHANDLE _spoutHandle = nullptr;
 #endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+    NDIlib_send_instance_t _ndiHandle = nullptr;
+    NDIlib_video_frame_v2_t _videoFrame;
+    std::vector<std::byte> _videoBufferPing;
+    std::vector<std::byte> _videoBufferPong;
+    std::vector<std::byte>* _currentVideoBuffer = &_videoBufferPing;
+#endif // SGCT_HAS_NDI
 
     const unsigned int _internalColorFormat;
     const unsigned int _colorDataType;

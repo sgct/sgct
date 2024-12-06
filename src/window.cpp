@@ -382,19 +382,25 @@ Window::Window(const config::Window& window)
     }
 
 #ifdef SGCT_HAS_NDI
-    if (window.sendNDI.value_or(false)) {
+    if (window.ndi && window.ndi->enabled) {
+        _ndiName = window.ndi->name.value_or(_ndiName);
+        _ndiGroups = window.ndi->groups.value_or(_ndiGroups);
+
         const bool initializeSuccess = NDIlib_initialize();
         if (!initializeSuccess) {
             Log::Error("Error initializing NDI");
         }
 
-        std::string name = window.name.value_or("OpenSpace");
         NDIlib_send_create_t createDesc;
-        createDesc.p_ndi_name = "ABC";
-        createDesc.p_groups = "OpenSpace";
-        createDesc.clock_video = false;
+        if (!_ndiName.empty()) {
+            createDesc.p_ndi_name = _ndiName.c_str();
+        }
+        if (!_ndiGroups.empty()) {
+            createDesc.p_groups = _ndiGroups.c_str();
+        }
 
         _ndiHandle = NDIlib_send_create(&createDesc);
+        
         if (!_ndiHandle) {
             Log::Error("Error creating NDI sender");
         }
@@ -402,8 +408,10 @@ Window::Window(const config::Window& window)
         ivec2 res = window.resolution.value_or(window.size);
         _videoFrame.xres = res.x;
         _videoFrame.yres = res.y;
-        _videoFrame.FourCC = NDIlib_FourCC_type_BGRA;
-        _videoFrame.line_stride_in_bytes = res.x * 4;
+        _videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
+        // We have a negative stride to account for the fact that OpenGL textures have
+        // their y-axis flipped compared to DirectX textures
+        _videoFrame.line_stride_in_bytes = -res.x * 4;
         _videoFrame.frame_rate_N = 60000; // 60 fps
         _videoFrame.frame_rate_D = 1000;  // 60 fps
         _videoFrame.picture_aspect_ratio =
@@ -815,7 +823,9 @@ void Window::updateResolutions() {
             _videoFrame.yres = _windowRes->y;
             _videoFrame.picture_aspect_ratio =
                 static_cast<float>(_windowRes->x) / static_cast<float>(_windowRes->y);
-            _videoFrame.line_stride_in_bytes = _windowRes->x * 4;
+            // We have a negative stride to account for the fact that OpenGL textures have
+            // their y-axis flipped compared to DirectX textures
+            _videoFrame.line_stride_in_bytes = -_windowRes->x * 4;
 
             // We need to send an "empty" frame as otherwise NDI might be in the middle of
             // sending out one of the buffers that we are resizing. This extra call will
@@ -1045,6 +1055,18 @@ void Window::renderFBOTexture() {
 #ifdef SGCT_HAS_SPOUT
     if (_spoutHandle) {
         // Share the window via Spout
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
+        glCopyTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            0,
+            0,
+            _internalColorFormat,
+            _framebufferRes.x,
+            _framebufferRes.y,
+            0
+        );
+
         const bool s = _spoutHandle->SendTexture(
             _frameBufferTextures.leftEye,
             static_cast<GLuint>(GL_TEXTURE_2D),
@@ -1060,23 +1082,47 @@ void Window::renderFBOTexture() {
 #endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_NDI
-    glGetTexImage(
-        GL_TEXTURE_2D,
-        0,
-        GL_BGRA,
-        GL_UNSIGNED_BYTE,
-        _currentVideoBuffer->data()
-    );
+    if (_ndiHandle) {
+        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
+        glCopyTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            0,
+            0,
+            _framebufferRes.x,
+            _framebufferRes.y,
+            0
+        );
+        glGetTexImage(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            _currentVideoBuffer->data()
+        );
 
-    assert(_videoFrame.xres == _framebufferRes.x);
-    assert(_videoFrame.yres == _framebufferRes.y);
-    _videoFrame.p_data = reinterpret_cast<uint8_t*>(_currentVideoBuffer->data());
+        assert(_videoFrame.xres == _framebufferRes.x);
+        assert(_videoFrame.yres == _framebufferRes.y);
+        // We are using a negative line stride to correct for the y-axis flip going from
+        // OpenGL to DirectX.  So our "start point has to be the beginning of the *last*
+        // line of the image as NDI then steps backwards through the image to send it to
+        // the receiver.
+        // So we start at data() (=0), move to the end (+size) and then backtrack one line
+        // (- -line_stride = +line_stride)
+        _videoFrame.p_data = reinterpret_cast<uint8_t*>(
+            _currentVideoBuffer->data() + _currentVideoBuffer->size() +
+            _videoFrame.line_stride_in_bytes
+        );
 
-    NDIlib_send_send_video_v2(_ndiHandle, &_videoFrame);
-    //NDIlib_send_send_video_async_v2(_ndiHandle, &_videoFrame);
-    // Switch the current buffer
-    _currentVideoBuffer =
-        _currentVideoBuffer == &_videoBufferPing ? &_videoBufferPong : &_videoBufferPing;
+        //NDIlib_send_send_video_v2(_ndiHandle, &_videoFrame);
+        NDIlib_send_send_video_async_v2(_ndiHandle, &_videoFrame);
+        // Switch the current buffer
+        _currentVideoBuffer =
+            _currentVideoBuffer == &_videoBufferPing ?
+            &_videoBufferPong :
+            &_videoBufferPing;
+    }
 #endif // SGCT_HAS_NDI
 }
 

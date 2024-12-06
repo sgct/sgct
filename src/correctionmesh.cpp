@@ -273,7 +273,6 @@ void CorrectionMesh::renderQuadMesh() const {
 }
 
 void CorrectionMesh::renderWarpMesh() const {
-
     if (_warpGeometry) {
         TracyGpuZone("Render Warp mesh")
         _warpGeometry->render();

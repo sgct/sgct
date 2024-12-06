@@ -275,6 +275,12 @@ struct SGCT_EXPORT Window {
         TopBottomInverted
     };
 
+    struct NDI {
+        bool enabled = true;
+        std::optional<std::string> name;
+        std::optional<std::string> groups;
+    };
+
     int8_t id = 0;
     std::optional<std::string> name;
     std::vector<std::string> tags;
@@ -300,7 +306,7 @@ struct SGCT_EXPORT Window {
     std::optional<uint8_t> monitor;
     std::optional<StereoMode> stereo;
     std::optional<std::string> spoutName;
-    std::optional<bool> sendNDI;
+    std::optional<NDI> ndi;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;

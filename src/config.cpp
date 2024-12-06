@@ -1566,6 +1566,12 @@ void to_json(nlohmann::json& j, const Viewport& v) {
         }, v.projection);
 }
 
+void from_json(const nlohmann::json& j, Window::NDI& n) {
+    parseValue(j, "enabled", n.enabled);
+    parseValue(j, "name", n.name);
+    parseValue(j, "groups", n.groups);
+}
+
 void from_json(const nlohmann::json& j, Window& w) {
     std::optional<int8_t> id;
     parseValue(j, "id", id);
@@ -1614,13 +1620,23 @@ void from_json(const nlohmann::json& j, Window& w) {
     }
 
     parseValue(j, "spoutname", w.spoutName);
-    parseValue(j, "sendndi", w.sendNDI);
+    parseValue(j, "ndi", w.ndi);
 
     parseValue(j, "pos", w.pos);
     parseValue(j, "size", w.size);
     parseValue(j, "res", w.resolution);
 
     parseValue(j, "viewports", w.viewports);
+}
+
+void to_json(nlohmann::json& j, const Window::NDI& n) {
+    j["enabled"] = n.enabled;
+    if (n.name) {
+        j["name"] = *n.name;
+    }
+    if (n.groups) {
+        j["groups"] = *n.groups;
+    }
 }
 
 void to_json(nlohmann::json& j, const Window& w) {
@@ -1737,6 +1753,10 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.spoutName.has_value()) {
         j["spoutname"] = *w.spoutName;
+    }
+
+    if (w.ndi.has_value()) {
+        j["ndi"] = *w.ndi;
     }
 
     if (w.pos.has_value()) {

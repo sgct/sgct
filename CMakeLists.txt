@@ -41,7 +41,8 @@ option(SGCT_TRACY_SUPPORT "Build SGCT with Tracy" OFF)
 option(SGCT_MEMORY_PROFILING "Override new and delete for memory profiling in Tracy" OFF)
 
 if (WIN32)
-  option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
+  option(SGCT_SPOUT_SUPPORT "SGCT Spout support" ON)
+  option(SGCT_NDI_SUPPORT "SGCT NDI Support" ON)
 endif ()
 
 # Exceptions for external libraries

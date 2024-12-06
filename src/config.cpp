@@ -173,11 +173,8 @@ void validateProjection(const SphericalMirrorProjection& p) {
 void validateProjection(const SpoutOutputProjection& p) {
     ZoneScoped;
 
-    if (p.spoutName.empty()) {
-        throw Error(1080, "Spout Mapping name must not be empty");
-    }
     if (p.quality && *p.quality <= 0) {
-        throw Error(1081, "Quality value must be positive");
+        throw Error(1080, "Quality value must be positive");
     }
 }
 
@@ -1316,7 +1313,9 @@ void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
         j["quality"] = std::to_string(*p.quality);
     }
 
-    j["spoutname"] = p.spoutName;
+    if (p.spoutName) {
+        j["spoutname"] = *p.spoutName;
+    }
 
     if (p.channels.has_value()) {
         nlohmann::json channels = nlohmann::json::object();

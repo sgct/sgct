@@ -8,19 +8,11 @@
 
 #include <sgct/projection/spout.h>
 
-#include <sgct/clustermanager.h>
-#include <sgct/engine.h>
-#include <sgct/format.h>
-#include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/window.h>
-#include <algorithm>
-#include <bitset>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #ifdef SGCT_HAS_SPOUT
 #ifndef WIN32_LEAN_AND_MEAN
@@ -32,31 +24,12 @@
 #include <SpoutLibrary.h>
 #endif // SGCT_HAS_SPOUT
 
-#ifdef SGCT_HAS_SPOUT
-namespace {
-    constexpr int NFaces = 6;
-    constexpr std::array<const char*, NFaces> CubeMapFaceName = {
-        "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
-    };
-} // namespace
-#endif // SGCT_HAS_SPOUT
-
-namespace {
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
-} // namespace
-
 namespace sgct {
 
 SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
                                               const config::SpoutOutputProjection& config)
     : NonLinearProjection(parent)
-    , _spoutName(config.spoutName)
+    , _spoutName(config.spoutName.value_or(""))
     , _spout {
         SpoutInfo { config.channels ? config.channels->right : true, nullptr, 0 },
         SpoutInfo { config.channels ? config.channels->left : true, nullptr, 0 },
@@ -71,6 +44,8 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
+
+    _clearColor = vec4(0.f, 0.f, 0.f, 1.f);
 }
 
 SpoutOutputProjection::~SpoutOutputProjection() {
@@ -84,12 +59,6 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     }
 #endif // SGCT_HAS_SPOUT
 
-    glDeleteTextures(1, &_mappingTexture);
-
-    glDeleteBuffers(1, &_vbo);
-    glDeleteVertexArrays(1, &_vao);
-    _shader.deleteProgram();
-
     glDeleteFramebuffers(1, &_blitFbo);
 }
 
@@ -100,6 +69,7 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
 {
     ZoneScoped;
 
+#ifdef SGCT_HAS_SPOUT
     glEnable(GL_SCISSOR_TEST);
     viewport.setupViewport(frustumMode);
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
@@ -111,8 +81,7 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
     GLint saveFrameBuffer = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &saveFrameBuffer);
 
-#ifdef SGCT_HAS_SPOUT
-    for (int i = 0; i < NFaces; i++) {
+    for (int i = 0; i < 6; i++) {
         if (!_spout[i].enabled) {
             continue;
         }
@@ -120,8 +89,8 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
         const bool s = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->SendTexture(
             _spout[i].texture,
             static_cast<GLuint>(GL_TEXTURE_2D),
-            _mappingWidth,
-            _mappingHeight
+            _cubemapResolution.x,
+            _cubemapResolution.y
         );
         if (!s) {
             Log::Error(std::format(
@@ -129,66 +98,10 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
             ));
         }
     }
-#endif // SGCT_HAS_SPOUT
 
     glBindTexture(GL_TEXTURE_2D, saveTexture);
     glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
-}
-
-void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
-    ZoneScoped;
-
-    auto render = [this](const BaseViewport& vp, int idx, FrustumMode mode) {
-        if (!_spout[idx].enabled || !vp.isEnabled()) {
-            return;
-        }
-
-        const int safeIdx = idx % 6;
-        renderCubeFace(vp, safeIdx, mode);
-
-        OffScreenBuffer::unbind();
-
-        if (_spout[idx].handle) {
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
-            glFramebufferTexture2D(
-                GL_READ_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + safeIdx,
-                _textures.cubeMapColor,
-                0
-            );
-            glFramebufferTexture2D(
-                GL_DRAW_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT1,
-                GL_TEXTURE_2D,
-                _spout[idx].texture,
-                0
-            );
-            glDrawBuffer(GL_COLOR_ATTACHMENT1);
-            glBlitFramebuffer(
-                0,
-                0,
-                _mappingWidth,
-                _mappingHeight,
-                0,
-                0,
-                _mappingWidth,
-                _mappingHeight,
-                GL_COLOR_BUFFER_BIT,
-                GL_NEAREST
-            );
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        }
-    };
-
-    render(_subViewports.right, 0, frustumMode);
-    render(_subViewports.left, 1, frustumMode);
-    render(_subViewports.bottom, 2, frustumMode);
-    render(_subViewports.top, 3, frustumMode);
-    render(_subViewports.front, 4, frustumMode);
-    render(_subViewports.back, 5, frustumMode);
+#endif // SGCT_HAS_SPOUT
 }
 
 void SpoutOutputProjection::setSpoutRigOrientation(vec3 orientation) {
@@ -200,24 +113,29 @@ void SpoutOutputProjection::initTextures(unsigned int internalFormat, unsigned i
 {
     NonLinearProjection::initTextures(internalFormat, format, type);
 
+#ifdef SGCT_HAS_SPOUT
     Log::Debug("SpoutOutputProjection initTextures");
 
-    _mappingWidth = _cubemapResolution.x;
-    _mappingHeight = _cubemapResolution.y;
-
-    for (int i = 0; i < NFaces; i++) {
-#ifdef SGCT_HAS_SPOUT
+    for (int i = 0; i < 6; i++) {
         Log::Debug(std::format("SpoutOutputProjection initTextures {}", i));
         if (!_spout[i].enabled) {
             continue;
         }
         _spout[i].handle = GetSpout();
         if (_spout[i].handle) {
+            constexpr std::array<const char*, 6> CubeMapFaceName = {
+                "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
+            };
+
             SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle);
+            const std::string fullName =
+                _spoutName.empty() ?
+                CubeMapFaceName[i] :
+                std::format("{}-{}", _spoutName, CubeMapFaceName[i]);
             bool success = h->CreateSender(
-                CubeMapFaceName[i],
-                _mappingWidth,
-                _mappingHeight
+                fullName.c_str(),
+                _cubemapResolution.x,
+                _cubemapResolution.y
             );
             if (!success) {
                 Log::Error(std::format(
@@ -225,7 +143,6 @@ void SpoutOutputProjection::initTextures(unsigned int internalFormat, unsigned i
                 ));
             }
         }
-#endif // SGCT_HAS_SPOUT
         glGenTextures(1, &_spout[i].texture);
         glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
 
@@ -240,46 +157,18 @@ void SpoutOutputProjection::initTextures(unsigned int internalFormat, unsigned i
             GL_TEXTURE_2D,
             0,
             internalFormat,
-            _mappingWidth,
-            _mappingHeight,
+            _cubemapResolution.x,
+            _cubemapResolution.y,
             0,
             format,
             type,
             nullptr
         );
     }
+#endif // SGCT_HAS_SPOUT
 }
 
-void SpoutOutputProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    const std::array<const Vertex, 4> v = {
-        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
-    };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vertex), v.data(), GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, s))
-    );
-
-    glBindVertexArray(0);
-}
+void SpoutOutputProjection::initVBO() {}
 
 void SpoutOutputProjection::initViewports() {
     // distance is needed to calculate the distance to all view planes
@@ -287,9 +176,9 @@ void SpoutOutputProjection::initViewports() {
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
-    const glm::vec4 lowerLeftBase(-Distance, -Distance, Distance, 1.f);
-    const glm::vec4 upperLeftBase(-Distance, Distance, Distance, 1.f);
-    const glm::vec4 upperRightBase(Distance, Distance, Distance, 1.f);
+    const glm::vec4 lowerLeftBase = glm::vec4(-Distance, -Distance, Distance, 1.f);
+    const glm::vec4 upperLeftBase = glm::vec4(-Distance, Distance, Distance, 1.f);
+    const glm::vec4 upperRightBase = glm::vec4(Distance, Distance, Distance, 1.f);
 
     const glm::mat4 pitchRot = glm::rotate(
         glm::mat4(1.f),
@@ -309,8 +198,6 @@ void SpoutOutputProjection::initViewports() {
 
     // right
     {
-        _subViewports.right.setSize(vec2{ 1.f, 1.f });
-
         glm::vec4 upperRight = upperRightBase;
         upperRight.x = Distance;
 
@@ -331,9 +218,6 @@ void SpoutOutputProjection::initViewports() {
 
     // left
     {
-        _subViewports.left.setPosition(vec2{ 0.f, 0.f });
-        _subViewports.left.setSize(vec2{ 1.f, 1.f });
-
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.x = -Distance;
         glm::vec4 upperLeft = upperLeftBase;
@@ -356,9 +240,6 @@ void SpoutOutputProjection::initViewports() {
 
     // bottom
     {
-        _subViewports.bottom.setPosition(vec2{ 0.f, 0.f });
-        _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
-
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.y = -Distance;
 
@@ -431,123 +312,67 @@ void SpoutOutputProjection::initViewports() {
     }
 }
 
-void SpoutOutputProjection::initShaders() {
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
-    const std::string_view frag = [](bool useDepth, bool useNormal, bool usePosition) {
-        // It would be nice to do a multidimensional switch statement -.-
-
-        constexpr auto tuple = [](bool depth, bool normal, bool position) {
-            // Injective mapping from <bool, bool, bool> to uint8_t
-            uint8_t value = 0;
-            value |= depth ? 0b000 : 0b001;
-            value |= normal ? 0b000 : 0b010;
-            value |= position ? 0b000 : 0b100;
-            return value;
-        };
-
-        switch (tuple(useDepth, useNormal, usePosition)) {
-            case tuple(true, false, false):
-                return shaders_fisheye::FisheyeFragDepth;
-            case tuple(true, true, false):
-                return shaders_fisheye::FisheyeFragDepthNormal;
-            case tuple(true, false, true):
-                return shaders_fisheye::FisheyeFragDepthPosition;
-            case tuple(true, true, true):
-                return shaders_fisheye::FisheyeFragDepthNormalPosition;
-
-            case tuple(false, false, false):
-                return shaders_fisheye::FisheyeFrag;
-            case tuple(false, true, false):
-                return shaders_fisheye::FisheyeFragNormal;
-            case tuple(false, false, true):
-                return shaders_fisheye::FisheyeFragPosition;
-            case tuple(false, true, true):
-                return shaders_fisheye::FisheyeFragNormalPosition;
-
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
-    }(
-        Engine::instance().settings().useDepthTexture,
-        Engine::instance().settings().useNormalTexture,
-        Engine::instance().settings().usePositionTexture
-    );
-
-
-    _shader = ShaderProgram("Spout");
-    _shader.addVertexShader(shaders_fisheye::BaseVert);
-    _shader.addFragmentShader(frag);
-    _shader.addFragmentShader(shaders_fisheye::SampleFun);
-    _shader.addFragmentShader(shaders_fisheye::RotationFun);
-    _shader.addFragmentShader(
-        _interpolationMode == InterpolationMode::Cubic ?
-        shaders_fisheye::InterpolateCubicFun :
-        shaders_fisheye::InterpolateLinearFun
-    );
-    _shader.createAndLinkProgram();
-    _shader.bind();
-
-
-    {
-        const glm::mat4 pitchRot = glm::rotate(
-            glm::mat4(1.f),
-            glm::radians(_rigOrientation.x),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
-        const glm::mat4 yawRot = glm::rotate(
-            pitchRot,
-            glm::radians(_rigOrientation.y),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
-        const glm::mat4 rollRot = glm::rotate(
-            yawRot,
-            glm::radians(_rigOrientation.z),
-            glm::vec3(0.f, 0.f, 1.f)
-        );
-        const GLint rotMat = glGetUniformLocation(_shader.id(), "rotMatrix");
-        glUniformMatrix4fv(rotMat, 1, GL_FALSE, glm::value_ptr(rollRot));
-    }
-
-    glUniform4fv(glGetUniformLocation(_shader.id(), "bgColor"), 1, &_clearColor.x);
-    if (_interpolationMode == InterpolationMode::Cubic) {
-        glUniform1f(
-            glGetUniformLocation(_shader.id(), "size"),
-            static_cast<float>(_cubemapResolution.x)
-        );
-    }
-
-    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemap, 0);
-
-    if (Engine::instance().settings().useDepthTexture) {
-        _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
-        glUniform1i(_shaderLoc.depthCubemap, 1);
-    }
-
-    if (Engine::instance().settings().useNormalTexture) {
-        _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
-        glUniform1i(_shaderLoc.normalCubemap, 2);
-    }
-
-    if (Engine::instance().settings().usePositionTexture) {
-        _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
-        glUniform1i(_shaderLoc.positionCubemap, 3);
-    }
-
-    _shaderLoc.halfFov = glGetUniformLocation(_shader.id(), "halfFov");
-    glUniform1f(_shaderLoc.halfFov, glm::half_pi<float>());
-
-    ShaderProgram::unbind();
-}
+void SpoutOutputProjection::initShaders() {}
 
 void SpoutOutputProjection::initFBO(unsigned int internalFormat) {
     NonLinearProjection::initFBO(internalFormat);
 
     _spoutFBO = std::make_unique<OffScreenBuffer>(internalFormat);
-    _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
+    _spoutFBO->createFBO(_cubemapResolution.x, _cubemapResolution.y, 1);
     glGenFramebuffers(1, &_blitFbo);
+}
+
+void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
+    ZoneScoped;
+
+    auto render = [this](const BaseViewport& vp, int index, FrustumMode mode) {
+        if (!_spout[index].enabled) {
+            return;
+        }
+
+        renderCubeFace(vp, index, mode);
+
+        if (_spout[index].handle) {
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
+            glFramebufferTexture2D(
+                GL_READ_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0,
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
+                _textures.cubeMapColor,
+                0
+            );
+            glFramebufferTexture2D(
+                GL_DRAW_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT1,
+                GL_TEXTURE_2D,
+                _spout[index].texture,
+                0
+            );
+            glDrawBuffer(GL_COLOR_ATTACHMENT1);
+            glBlitFramebuffer(
+                0,
+                0,
+                _cubemapResolution.x,
+                _cubemapResolution.y,
+                0,
+                0,
+                _cubemapResolution.x,
+                _cubemapResolution.y,
+                GL_COLOR_BUFFER_BIT,
+                GL_NEAREST
+            );
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+    };
+
+    render(_subViewports.right, 0, frustumMode);
+    render(_subViewports.left, 1, frustumMode);
+    render(_subViewports.bottom, 2, frustumMode);
+    render(_subViewports.top, 3, frustumMode);
+    render(_subViewports.front, 4, frustumMode);
+    render(_subViewports.back, 5, frustumMode);
 }
 
 } // namespace sgct

@@ -180,8 +180,6 @@ void CylindricalProjection::initViewports() {
 
     // +X face
     {
-        _subViewports.right.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(-90.f),
@@ -203,9 +201,6 @@ void CylindricalProjection::initViewports() {
 
     // -X face
     {
-        _subViewports.left.setPosition(vec2{ 0.f, 0.f });
-        _subViewports.left.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(90.f),
@@ -229,9 +224,6 @@ void CylindricalProjection::initViewports() {
 
     // +Y face
     {
-        _subViewports.bottom.setPosition(vec2{ 0.f, 0.f });
-        _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(-90.f),
@@ -253,8 +245,6 @@ void CylindricalProjection::initViewports() {
 
     // -Y face
     {
-        _subViewports.top.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(90.f),

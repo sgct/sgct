@@ -188,7 +188,7 @@ struct SGCT_EXPORT SpoutOutputProjection {
         bool zRight = true;
     };
     std::optional<int> quality;
-    std::string spoutName;
+    std::optional<std::string> spoutName;
     std::optional<Channels> channels;
     std::optional<vec3> orientation;
 };

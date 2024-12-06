@@ -34,8 +34,6 @@ public:
         const config::SpoutOutputProjection& config);
     virtual ~SpoutOutputProjection() override;
 
-    void setSpoutRigOrientation(vec3 orientation);
-
     /**
      * Update projection when aspect ratio changes for the viewport.
      */
@@ -49,7 +47,8 @@ public:
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(FrustumMode frustumMode) const override;
+
+    void setSpoutRigOrientation(vec3 orientation);
 
 private:
     void initTextures(unsigned int internalFormat, unsigned int format,
@@ -59,18 +58,7 @@ private:
     void initShaders() override;
     void initFBO(unsigned int internalFormat) override;
 
-    // shader locations
-    struct {
-        int cubemap = -1;
-        int depthCubemap = -1;
-        int normalCubemap = -1;
-        int positionCubemap = -1;
-        int halfFov = -1;
-        int swapColor = -1;
-        int swapDepth = -1;
-        int swapNear = -1;
-        int swapFar = -1;
-    } _shaderLoc;
+    void renderCubemap(FrustumMode frustumMode) const override;
 
     std::unique_ptr<OffScreenBuffer> _spoutFBO;
 
@@ -83,16 +71,8 @@ private:
     };
     std::array<SpoutInfo, 6> _spout;
 
-    unsigned int _mappingTexture = 0;
     std::string _spoutName;
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
-
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
-    ShaderProgram _shader;
-
-    int _mappingWidth = 0;
-    int _mappingHeight = 0;
 
     unsigned int _blitFbo = 0;
 };

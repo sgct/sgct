@@ -398,6 +398,8 @@ private:
 #ifdef SGCT_HAS_NDI
     NDIlib_send_instance_t _ndiHandle = nullptr;
     NDIlib_video_frame_v2_t _videoFrame;
+    std::string _ndiName;
+    std::string _ndiGroups;
     std::vector<std::byte> _videoBufferPing;
     std::vector<std::byte> _videoBufferPong;
     std::vector<std::byte>* _currentVideoBuffer = &_videoBufferPing;

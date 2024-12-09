@@ -226,8 +226,8 @@ void CubemapProjection::render(const BaseViewport& viewport,
                 &_cubeFaces[i].ndi.videoBufferPong :
                 &_cubeFaces[i].ndi.videoBufferPing;
         }
+#endif // SGCT_HAS_NDI
     }
-#endif SGCT_HAS_NDI
 }
 
 void CubemapProjection::setSpoutRigOrientation(vec3 orientation) {

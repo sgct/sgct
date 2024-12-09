@@ -14,12 +14,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace {
-    std::string trackerName(const std::optional<sgct::config::User::Tracking>& tracking) {
-        return tracking ? tracking->tracker : std::string();
-    }
-} // namespace
-
 namespace sgct {
 
 User::User(const config::User& user)

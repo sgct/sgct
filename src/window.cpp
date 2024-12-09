@@ -246,13 +246,13 @@ void Window::resetSwapGroupFrameNumber() {
 #endif // WIN32
 }
 
-void Window::setBarrier(bool state) {
+void Window::setBarrier([[maybe_unused]] bool state) {
 #ifdef WIN32
     if (_useSwapGroups && state != _isBarrierActive) {
         Log::Info("Enabling Nvidia swap barrier");
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
-#endif // WIN32
     }
+#endif // WIN32
 }
 
 bool Window::isBarrierActive() {

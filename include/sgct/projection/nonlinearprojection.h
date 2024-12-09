@@ -27,7 +27,7 @@ class SGCT_EXPORT NonLinearProjection {
 public:
     enum class InterpolationMode : uint8_t { Linear, Cubic };
 
-    NonLinearProjection(const Window* parent);
+    NonLinearProjection(const Window& parent);
 
     virtual ~NonLinearProjection();
 
@@ -36,7 +36,7 @@ public:
      * settings for the parent window's FBO target.
      */
     virtual void initialize(unsigned int internalFormat, unsigned int format,
-        unsigned int type, uint8_t samples);
+        unsigned int type, int nSamples);
 
     virtual void render(const BaseViewport& viewport, FrustumMode frustumMode) const = 0;
     virtual void renderCubemap(FrustumMode frustumMode) const = 0;
@@ -78,7 +78,7 @@ public:
 protected:
     virtual void initTextures(unsigned int internalFormat, unsigned int format,
         unsigned int type);
-    virtual void initFBO(unsigned int internalFormat);
+    virtual void initFBO(unsigned int internalFormat, int nSamples);
     virtual void initVBO() = 0;
     virtual void initViewports() = 0;
     virtual void initShaders() = 0;
@@ -122,8 +122,6 @@ protected:
 
     bool _useDepthTransformation = false;
     bool _isStereo = false;
-
-    uint8_t _samples = 1;
 
     ivec2 _cubemapResolution = ivec2(512, 512);
     vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);

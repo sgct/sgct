@@ -26,7 +26,7 @@ class User;
  */
 class SGCT_EXPORT BaseViewport {
 public:
-    BaseViewport(const Window* parent, FrustumMode eye = FrustumMode::Mono);
+    BaseViewport(const Window& parent, FrustumMode eye = FrustumMode::Mono);
     virtual ~BaseViewport();
 
     void setupViewport(FrustumMode frustum) const;
@@ -64,7 +64,7 @@ public:
     const Window& window() const;
 
 protected:
-    const Window* _parent = nullptr;
+    const Window& _parent;
 
     Projection _monoProj;
     Projection _stereoLeftProj;

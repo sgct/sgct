@@ -21,8 +21,8 @@ namespace sgct {
  */
 class SGCT_EXPORT SphericalMirrorProjection final : public NonLinearProjection {
 public:
-    SphericalMirrorProjection(const Window* parent, User* user,
-        const config::SphericalMirrorProjection& config);
+    SphericalMirrorProjection(const config::SphericalMirrorProjection& config,
+        const Window& parent, User& user);
     virtual ~SphericalMirrorProjection() final;
 
     void update(const vec2& size) const override;

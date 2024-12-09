@@ -43,7 +43,7 @@ namespace {
 
 namespace sgct {
 
-Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
+Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
     : BaseViewport(parent, convert(viewport.eye.value_or(config::Viewport::Eye::Mono)))
     , _overlayFilename(viewport.overlayTexture.value_or(std::filesystem::path()))
     , _blendMaskFilename(viewport.blendMaskTexture.value_or(std::filesystem::path()))
@@ -64,6 +64,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
         // If the user name is not empty, the User better exists
         _user = user;
     }
+    assert(_user);
 
     _position = viewport.position.value_or(_position);
     _size = viewport.size.value_or(_size);
@@ -98,27 +99,31 @@ Viewport::Viewport(const config::Viewport& viewport, const Window* parent)
             }
         },
         [this](const config::FisheyeProjection& p) {
-            _nonLinearProjection = std::make_unique<FisheyeProjection>(p, _user, _parent);
+            _nonLinearProjection = std::make_unique<FisheyeProjection>(
+                p,
+                _parent,
+                *_user
+            );
         },
         [this](const config::SphericalMirrorProjection& p) {
             _nonLinearProjection =
-                std::make_unique<SphericalMirrorProjection>(_parent, _user, p);
+                std::make_unique<SphericalMirrorProjection>(p, _parent, *_user);
         },
         [this]([[maybe_unused]] const config::SpoutOutputProjection& p) {
 #ifdef SGCT_HAS_SPOUT
             _nonLinearProjection =
-                std::make_unique<SpoutOutputProjection>(_parent, _user, p);
+                std::make_unique<SpoutOutputProjection>(p, _parent, *_user);
 #else  // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
             Log::Error("Spout library not added to SGCT");
 #endif // SGCT_HAS_SPOUT
         },
         [this](const config::CylindricalProjection& p) {
             _nonLinearProjection =
-                std::make_unique<CylindricalProjection>(_parent, _user, p);
+                std::make_unique<CylindricalProjection>(p, _parent, *_user);
         },
         [this](const config::EquirectangularProjection& p) {
             _nonLinearProjection =
-                std::make_unique<EquirectangularProjection>(_parent, _user, p);
+                std::make_unique<EquirectangularProjection>(p, _parent, *_user);
         },
         [this](const config::ProjectionPlane& p) {
             _projPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);

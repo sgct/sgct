@@ -23,8 +23,8 @@ class SGCT_EXPORT FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
-    FisheyeProjection(const config::FisheyeProjection& config, User* user,
-        const Window* parent);
+    FisheyeProjection(const config::FisheyeProjection& config, const Window& parent,
+        User& user);
     ~FisheyeProjection() final;
 
     /**

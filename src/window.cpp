@@ -425,7 +425,7 @@ Window::Window(const config::Window& window)
 #endif // SGCT_HAS_NDI
 
     for (const config::Viewport& viewport : window.viewports) {
-        auto vp = std::make_unique<Viewport>(viewport, this);
+        auto vp = std::make_unique<Viewport>(viewport, *this);
         addViewport(std::move(vp));
     }
 }
@@ -1105,7 +1105,7 @@ void Window::renderFBOTexture() {
         assert(_videoFrame.xres == _framebufferRes.x);
         assert(_videoFrame.yres == _framebufferRes.y);
         // We are using a negative line stride to correct for the y-axis flip going from
-        // OpenGL to DirectX.  So our "start point has to be the beginning of the *last*
+        // OpenGL to DirectX.  So our start point has to be the beginning of the *last*
         // line of the image as NDI then steps backwards through the image to send it to
         // the receiver.
         // So we start at data() (=0), move to the end (+size) and then backtrack one line
@@ -1115,7 +1115,6 @@ void Window::renderFBOTexture() {
             _videoFrame.line_stride_in_bytes
         );
 
-        //NDIlib_send_send_video_v2(_ndiHandle, &_videoFrame);
         NDIlib_send_send_video_async_v2(_ndiHandle, &_videoFrame);
         // Switch the current buffer
         _currentVideoBuffer =

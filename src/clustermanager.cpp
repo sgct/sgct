@@ -45,10 +45,8 @@ void ClusterManager::create(const config::Cluster& cluster, int clusterID) {
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         ZoneScopedN("Create Node");
 
-        auto n = std::make_unique<Node>(
-            cluster.nodes[i],
-            static_cast<int>(i) == _instance->_thisNodeId
-        );
+        const bool initializeWindows = static_cast<int>(i) == _instance->_thisNodeId;
+        auto n = std::make_unique<Node>(cluster.nodes[i], initializeWindows);
         _instance->_nodes.push_back(std::move(n));
     }
 }

@@ -33,8 +33,8 @@ namespace {
 
 namespace sgct {
 
-FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, User* user,
-                                     const Window* parent)
+FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config,
+                                     const Window& parent, User& user)
     : NonLinearProjection(parent)
     , _fov(config.fov.value_or(180.f))
     , _tilt(config.tilt.value_or(0.f))
@@ -45,7 +45,7 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config, Us
     , _cropTop(config.crop ? config.crop->top : 0.f)
     , _keepAspectRatio(config.keepAspectRatio.value_or(true))
 {
-    setUser(*user);
+    setUser(user);
 
     if (config.quality) {
         setCubemapResolution(*config.quality);

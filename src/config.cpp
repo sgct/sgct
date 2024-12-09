@@ -34,8 +34,6 @@ namespace {
 namespace sgct::config {
 
 void validateUser(const User& u) {
-    ZoneScoped;
-
     if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
         throw Error(1000, "Eye separation must be zero or a positive number");
     }
@@ -51,8 +49,6 @@ void validateUser(const User& u) {
 }
 
 void validateCapture(const Capture& c) {
-    ZoneScoped;
-
     if (c.path && c.path->empty()) {
         throw Error(1010, "Capture path must not be empty");
     }
@@ -67,8 +63,6 @@ void validateCapture(const Capture& c) {
 void validateScene(const Scene&) {}
 
 void validateSettings(const Settings& s) {
-    ZoneScoped;
-
     if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
         throw Error(1020, "Swap interval must not be negative");
     }
@@ -78,8 +72,6 @@ void validateSettings(const Settings& s) {
 }
 
 void validateDevice(const Device& d) {
-    ZoneScoped;
-
     auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty(); };
 
     if (d.name.empty()) {
@@ -99,8 +91,6 @@ void validateDevice(const Device& d) {
 }
 
 void validateTracker(const Tracker& t) {
-    ZoneScoped;
-
     if (t.name.empty()) {
         throw Error(1040, "Tracker name must not be empty");
     }
@@ -108,8 +98,6 @@ void validateTracker(const Tracker& t) {
 }
 
 void validateProjection(const PlanarProjection& p) {
-    ZoneScoped;
-
     if (p.fov.up == p.fov.down) {
         throw Error(1050, "Up and down field of views can not be the same");
     }
@@ -119,14 +107,10 @@ void validateProjection(const PlanarProjection& p) {
 }
 
 void validateProjection(const TextureMappedProjection& p) {
-    ZoneScoped;
-
     validateProjection(static_cast<const PlanarProjection&>(p));
 }
 
 void validateProjection(const FisheyeProjection& p) {
-    ZoneScoped;
-
     if (p.fov && *p.fov <= 0.f) {
         throw Error(1060, "Field of view setting must be positive");
     }
@@ -154,8 +138,6 @@ void validateProjection(const FisheyeProjection& p) {
 }
 
 void validateProjection(const SphericalMirrorProjection& p) {
-    ZoneScoped;
-
     if (p.quality && *p.quality <= 0) {
         throw Error(1070, "Quality value must be positive");
     }
@@ -171,8 +153,6 @@ void validateProjection(const SphericalMirrorProjection& p) {
 }
 
 void validateProjection(const SpoutOutputProjection& p) {
-    ZoneScoped;
-
     if (p.quality && *p.quality <= 0) {
         throw Error(1080, "Quality value must be positive");
     }
@@ -187,8 +167,6 @@ void validateProjection(const ProjectionPlane&) {}
 void validateProjection(const NoProjection&) {}
 
 void validateViewport(const Viewport& v) {
-    ZoneScoped;
-
     if (v.user && v.user->empty()) {
         throw Error(1090, "User must not be empty");
     }
@@ -209,8 +187,6 @@ void validateViewport(const Viewport& v) {
 }
 
 void validateWindow(const Window& w) {
-    ZoneScoped;
-
     if (w.name && w.name->empty()) {
         throw Error(1100, "Window name must not be empty");
     }
@@ -236,8 +212,6 @@ void validateWindow(const Window& w) {
 }
 
 void validateNode(const Node& n) {
-    ZoneScoped;
-
     if (n.address.empty()) {
         throw Error(1110, "Node address must not be empty");
     }
@@ -301,8 +275,6 @@ void validateNode(const Node& n) {
 }
 
 void validateCluster(const Cluster& c) {
-    ZoneScoped;
-
     if (c.masterAddress.empty()) {
         throw Error(1120, "Cluster master address must not be empty");
     }
@@ -594,42 +566,42 @@ namespace {
 
 namespace sgct {
 
-    void from_json(const nlohmann::json& j, sgct::ivec2& v) {
+static void from_json(const nlohmann::json& j, sgct::ivec2& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
 }
 
-void to_json(nlohmann::json& j, const sgct::ivec2& v) {
+static void to_json(nlohmann::json& j, const sgct::ivec2& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
 }
 
-void from_json(const nlohmann::json& j, sgct::vec2& v) {
+static void from_json(const nlohmann::json& j, sgct::vec2& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
 }
 
-void to_json(nlohmann::json& j, const sgct::vec2& v) {
+static void to_json(nlohmann::json& j, const sgct::vec2& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
 }
 
-void from_json(const nlohmann::json& j, sgct::vec3& v) {
+static void from_json(const nlohmann::json& j, sgct::vec3& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
     j.at("z").get_to(v.z);
 }
 
-void to_json(nlohmann::json& j, const sgct::vec3& v) {
+static void to_json(nlohmann::json& j, const sgct::vec3& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
     j["z"] = v.z;
 }
 
-void from_json(const nlohmann::json& j, sgct::vec4& v) {
+static void from_json(const nlohmann::json& j, sgct::vec4& v) {
     auto itX = j.find("x");
     auto itY = j.find("y");
     auto itZ = j.find("z");
@@ -654,7 +626,7 @@ void from_json(const nlohmann::json& j, sgct::vec4& v) {
     }
 }
 
-void to_json(nlohmann::json& j, const sgct::vec4& v) {
+static void to_json(nlohmann::json& j, const sgct::vec4& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
@@ -662,14 +634,14 @@ void to_json(nlohmann::json& j, const sgct::vec4& v) {
     j["w"] = v.w;
 }
 
-void from_json(const nlohmann::json& j, sgct::mat4& m) {
+static void from_json(const nlohmann::json& j, sgct::mat4& m) {
     std::array<double, 16> vs = j.get<std::array<double, 16>>();
     for (int i = 0; i < 16; i += 1) {
         m.values[i] = static_cast<float>(vs[i]);
     }
 }
 
-void to_json(nlohmann::json& j, const sgct::mat4& m) {
+static void to_json(nlohmann::json& j, const sgct::mat4& m) {
     std::array<double, 16> vs;
     for (int i = 0; i < 16; i += 1) {
         vs[i] = m.values[i];
@@ -677,7 +649,7 @@ void to_json(nlohmann::json& j, const sgct::mat4& m) {
     j = vs;
 }
 
-void from_json(const nlohmann::json& j, sgct::quat& q) {
+static void from_json(const nlohmann::json& j, sgct::quat& q) {
     auto itPitch = j.find("pitch");
     auto itYaw = j.find("yaw");
     auto itRoll = j.find("roll");
@@ -705,7 +677,7 @@ void from_json(const nlohmann::json& j, sgct::quat& q) {
     }
 }
 
-void to_json(nlohmann::json& j, const sgct::quat& q) {
+static void to_json(nlohmann::json& j, const sgct::quat& q) {
     j = nlohmann::json::object();
     j["x"] = q.x;
     j["y"] = q.y;
@@ -717,13 +689,13 @@ void to_json(nlohmann::json& j, const sgct::quat& q) {
 
 namespace sgct::config {
 
-void from_json(const nlohmann::json& j, Scene& s) {
+static void from_json(const nlohmann::json& j, Scene& s) {
     parseValue(j, "offset", s.offset);
     parseValue(j, "orientation", s.orientation);
     parseValue(j, "scale", s.scale);
 }
 
-void to_json(nlohmann::json& j, const Scene& s) {
+static void to_json(nlohmann::json& j, const Scene& s) {
     j = nlohmann::json::object();
 
     if (s.offset.has_value()) {
@@ -737,7 +709,7 @@ void to_json(nlohmann::json& j, const Scene& s) {
     }
 }
 
-void from_json(const nlohmann::json& j, User& u) {
+static void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "name", u.name);
     parseValue(j, "eyeseparation", u.eyeSeparation);
     parseValue(j, "pos", u.position);
@@ -770,7 +742,7 @@ void from_json(const nlohmann::json& j, User& u) {
     }
 }
 
-void to_json(nlohmann::json& j, const User& u) {
+static void to_json(nlohmann::json& j, const User& u) {
     j = nlohmann::json::object();
 
     if (u.name.has_value()) {
@@ -797,7 +769,7 @@ void to_json(nlohmann::json& j, const User& u) {
     }
 }
 
-void from_json(const nlohmann::json& j, Settings& s) {
+static void from_json(const nlohmann::json& j, Settings& s) {
     parseValue(j, "depthbuffertexture", s.useDepthTexture);
     parseValue(j, "normaltexture", s.useNormalTexture);
     parseValue(j, "positiontexture", s.usePositionTexture);
@@ -823,7 +795,7 @@ void from_json(const nlohmann::json& j, Settings& s) {
     }
 }
 
-void to_json(nlohmann::json& j, const Settings& s) {
+static void to_json(nlohmann::json& j, const Settings& s) {
     j = nlohmann::json::object();
 
     if (s.useDepthTexture.has_value()) {
@@ -861,7 +833,7 @@ void to_json(nlohmann::json& j, const Settings& s) {
     }
 }
 
-void from_json(const nlohmann::json& j, Capture& c) {
+static void from_json(const nlohmann::json& j, Capture& c) {
     parseValue(j, "path", c.path);
     if (auto it = j.find("format");  it != j.end()) {
         const std::string format = it->get<std::string>();
@@ -885,7 +857,7 @@ void from_json(const nlohmann::json& j, Capture& c) {
     }
 }
 
-void to_json(nlohmann::json& j, const Capture& c) {
+static void to_json(nlohmann::json& j, const Capture& c) {
     j = nlohmann::json::object();
 
     if (c.path.has_value()) {
@@ -912,43 +884,43 @@ void to_json(nlohmann::json& j, const Capture& c) {
     }
 }
 
-void from_json(const nlohmann::json& j, Device::Sensors& s) {
+static void from_json(const nlohmann::json& j, Device::Sensors& s) {
     j.at("vrpnaddress").get_to(s.vrpnAddress);
     j.at("id").get_to(s.identifier);
 }
 
-void to_json(nlohmann::json& j, const Device::Sensors& s) {
+static void to_json(nlohmann::json& j, const Device::Sensors& s) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = s.vrpnAddress;
     j["id"] = s.identifier;
 }
 
-void from_json(const nlohmann::json& j, Device::Buttons& b) {
+static void from_json(const nlohmann::json& j, Device::Buttons& b) {
     j.at("vrpnaddress").get_to(b.vrpnAddress);
     j.at("count").get_to(b.count);
 }
 
-void to_json(nlohmann::json& j, const Device::Buttons& b) {
+static void to_json(nlohmann::json& j, const Device::Buttons& b) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = b.vrpnAddress;
     j["count"] = b.count;
 }
 
-void from_json(const nlohmann::json& j, Device::Axes& a) {
+static void from_json(const nlohmann::json& j, Device::Axes& a) {
     j.at("vrpnaddress").get_to(a.vrpnAddress);
     j.at("count").get_to(a.count);
 }
 
-void to_json(nlohmann::json& j, const Device::Axes& a) {
+static void to_json(nlohmann::json& j, const Device::Axes& a) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = a.vrpnAddress;
     j["count"] = a.count;
 }
 
-void from_json(const nlohmann::json& j, Device& d) {
+static void from_json(const nlohmann::json& j, Device& d) {
     parseValue(j, "name", d.name);
     parseValue(j, "sensors", d.sensors);
     parseValue(j, "buttons", d.buttons);
@@ -957,7 +929,7 @@ void from_json(const nlohmann::json& j, Device& d) {
     parseValue(j, "matrix", d.transformation);
 }
 
-void to_json(nlohmann::json& j, const Device& d) {
+static void to_json(nlohmann::json& j, const Device& d) {
     j = nlohmann::json::object();
 
     j["name"] = d.name;
@@ -974,7 +946,7 @@ void to_json(nlohmann::json& j, const Device& d) {
     }
 }
 
-void from_json(const nlohmann::json& j, Tracker& t) {
+static void from_json(const nlohmann::json& j, Tracker& t) {
     if (auto it = j.find("name");  it != j.end()) {
         it->get_to(t.name);
     }
@@ -995,7 +967,7 @@ void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "matrix", t.transformation);
 }
 
-void to_json(nlohmann::json& j, const Tracker& t) {
+static void to_json(nlohmann::json& j, const Tracker& t) {
     j = nlohmann::json::object();
 
     j["name"] = t.name;
@@ -1014,7 +986,7 @@ void to_json(nlohmann::json& j, const Tracker& t) {
     }
 }
 
-void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
+static void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     auto itHFov = j.find("hfov");
     auto itVFov = j.find("vfov");
 
@@ -1070,7 +1042,7 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     parseValue(j, "distance", f.distance);
 }
 
-void to_json(nlohmann::json& j, const PlanarProjection::FOV& f) {
+static void to_json(nlohmann::json& j, const PlanarProjection::FOV& f) {
     j = nlohmann::json::object();
 
     if (f.left == f.right) {
@@ -1090,7 +1062,7 @@ void to_json(nlohmann::json& j, const PlanarProjection::FOV& f) {
     }
 }
 
-void from_json(const nlohmann::json& j, PlanarProjection& p) {
+static void from_json(const nlohmann::json& j, PlanarProjection& p) {
     if (auto it = j.find("fov");  it == j.end()) {
         throw Err(6000, "Missing specification of field-of-view values");
     }
@@ -1102,7 +1074,7 @@ void from_json(const nlohmann::json& j, PlanarProjection& p) {
     parseValue(j, "offset", p.offset);
 }
 
-void to_json(nlohmann::json& j, const PlanarProjection& p) {
+static void to_json(nlohmann::json& j, const PlanarProjection& p) {
     j = nlohmann::json::object();
 
     j["fov"] = p.fov;
@@ -1120,7 +1092,7 @@ void to_json(nlohmann::json& j, const PlanarProjection& p) {
     }
 }
 
-void from_json(const nlohmann::json& j, FisheyeProjection& p) {
+static void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     parseValue(j, "fov", p.fov);
 
     if (auto it = j.find("quality");  it != j.end()) {
@@ -1164,7 +1136,7 @@ void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     parseValue(j, "background", p.background);
 }
 
-void to_json(nlohmann::json& j, const FisheyeProjection& p) {
+static void to_json(nlohmann::json& j, const FisheyeProjection& p) {
     j = nlohmann::json::object();
 
     if (p.fov.has_value()) {
@@ -1212,30 +1184,18 @@ void to_json(nlohmann::json& j, const FisheyeProjection& p) {
     }
 
     if (p.background.has_value()) {
-        nlohmann::json background = nlohmann::json::object();
-        background["r"] = p.background->x;
-        background["g"] = p.background->y;
-        background["b"] = p.background->z;
-        background["a"] = p.background->w;
-        j["background"] = background;
+        j["background"] = *p.background;
     }
 }
 
-void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
+static void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
     parseValue(j, "tilt", p.tilt);
-    if (auto it = j.find("background");  it != j.end()) {
-        sgct::vec4 background;
-        it->at("r").get_to(background.x);
-        it->at("g").get_to(background.y);
-        it->at("b").get_to(background.z);
-        it->at("a").get_to(background.w);
-        p.background = background;
-    }
+    parseValue(j, "background", p.background);
 
     if (auto it = j.find("geometry");  it != j.end()) {
         SphericalMirrorProjection::Mesh mesh;
@@ -1250,7 +1210,7 @@ void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
     }
 }
 
-void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
+static void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
     j = nlohmann::json::object();
 
     if (p.quality.has_value()) {
@@ -1262,12 +1222,7 @@ void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
     }
 
     if (p.background.has_value()) {
-        nlohmann::json background = nlohmann::json::object();
-        background["r"] = p.background->x;
-        background["g"] = p.background->y;
-        background["b"] = p.background->z;
-        background["a"] = p.background->w;
-        j["background"] = background;
+        j["background"] = *p.background;
     }
 
     nlohmann::json mesh = nlohmann::json::object();
@@ -1278,7 +1233,7 @@ void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
     j["geometry"] = mesh;
 }
 
-void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
+static void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
@@ -1306,7 +1261,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     }
 }
 
-void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
+static void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
     j = nlohmann::json::object();
 
     if (p.quality.has_value()) {
@@ -1337,7 +1292,7 @@ void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
     }
 }
 
-void from_json(const nlohmann::json& j, CylindricalProjection& p) {
+static void from_json(const nlohmann::json& j, CylindricalProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
@@ -1348,7 +1303,7 @@ void from_json(const nlohmann::json& j, CylindricalProjection& p) {
     parseValue(j, "radius", p.radius);
 }
 
-void to_json(nlohmann::json& j, const CylindricalProjection& p) {
+static void to_json(nlohmann::json& j, const CylindricalProjection& p) {
     j = nlohmann::json::object();
 
     if (p.quality.has_value()) {
@@ -1368,20 +1323,20 @@ void to_json(nlohmann::json& j, const CylindricalProjection& p) {
     }
 }
 
-void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
+static void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 }
 
-void to_json(nlohmann::json& j, const EquirectangularProjection& p) {
+static void to_json(nlohmann::json& j, const EquirectangularProjection& p) {
     if (p.quality.has_value()) {
         j["quality"] = std::to_string(*p.quality);
     }
 }
 
-void from_json(const nlohmann::json& j, ProjectionPlane& p) {
+static void from_json(const nlohmann::json& j, ProjectionPlane& p) {
     auto itLl = j.find("lowerleft");
     auto itUl = j.find("upperleft");
     auto itUr = j.find("upperright");
@@ -1395,13 +1350,13 @@ void from_json(const nlohmann::json& j, ProjectionPlane& p) {
     j.at("upperright").get_to(p.upperRight);
 }
 
-void to_json(nlohmann::json& j, const ProjectionPlane& p) {
+static void to_json(nlohmann::json& j, const ProjectionPlane& p) {
     j["lowerleft"] = p.lowerLeft;
     j["upperleft"] = p.upperLeft;
     j["upperright"] = p.upperRight;
 }
 
-void from_json(const nlohmann::json& j, Viewport& v) {
+static void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "user", v.user);
     if (auto it = j.find("overlay");  it != j.end()) {
         v.overlayTexture = std::filesystem::absolute(it->get<std::string>());
@@ -1472,7 +1427,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     }
 }
 
-void to_json(nlohmann::json& j, const Viewport& v) {
+static void to_json(nlohmann::json& j, const Viewport& v) {
     if (v.user.has_value()) {
         j["user"] = *v.user;
     }
@@ -1566,13 +1521,13 @@ void to_json(nlohmann::json& j, const Viewport& v) {
         }, v.projection);
 }
 
-void from_json(const nlohmann::json& j, Window::NDI& n) {
+static void from_json(const nlohmann::json& j, Window::NDI& n) {
     parseValue(j, "enabled", n.enabled);
     parseValue(j, "name", n.name);
     parseValue(j, "groups", n.groups);
 }
 
-void from_json(const nlohmann::json& j, Window& w) {
+static void from_json(const nlohmann::json& j, Window& w) {
     std::optional<int8_t> id;
     parseValue(j, "id", id);
     w.id = id.value_or(InvalidWindowIndex);
@@ -1629,7 +1584,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "viewports", w.viewports);
 }
 
-void to_json(nlohmann::json& j, const Window::NDI& n) {
+static void to_json(nlohmann::json& j, const Window::NDI& n) {
     j["enabled"] = n.enabled;
     if (n.name) {
         j["name"] = *n.name;
@@ -1639,7 +1594,7 @@ void to_json(nlohmann::json& j, const Window::NDI& n) {
     }
 }
 
-void to_json(nlohmann::json& j, const Window& w) {
+static void to_json(nlohmann::json& j, const Window& w) {
     j["id"] = w.id;
 
     if (w.name.has_value()) {
@@ -1774,7 +1729,7 @@ void to_json(nlohmann::json& j, const Window& w) {
     }
 }
 
-void from_json(const nlohmann::json& j, Node& n) {
+static void from_json(const nlohmann::json& j, Node& n) {
     if (auto it = j.find("address");  it != j.end()) {
         it->get_to(n.address);
         std::transform(
@@ -1809,7 +1764,7 @@ void from_json(const nlohmann::json& j, Node& n) {
     }
 }
 
-void to_json(nlohmann::json& j, const Node& n) {
+static void to_json(nlohmann::json& j, const Node& n) {
     j["address"] = n.address;
     j["port"] = n.port;
 
@@ -1826,19 +1781,19 @@ void to_json(nlohmann::json& j, const Node& n) {
     }
 }
 
-void from_json(const nlohmann::json& j, GeneratorVersion& v) {
+static void from_json(const nlohmann::json& j, GeneratorVersion& v) {
     parseValue(j, "name", v.name);
     parseValue(j, "major", v.major);
     parseValue(j, "minor", v.minor);
 }
 
-void to_json(nlohmann::json& j, const GeneratorVersion& v) {
+static void to_json(nlohmann::json& j, const GeneratorVersion& v) {
     j["name"] = v.name;
     j["major"] = v.major;
     j["minor"] = v.minor;
 }
 
-void from_json(const nlohmann::json& j, Meta& m) {
+static void from_json(const nlohmann::json& j, Meta& m) {
     if (j.find("description") != j.end()) {
         parseValue(j, "description", m.description);
     }
@@ -1856,7 +1811,7 @@ void from_json(const nlohmann::json& j, Meta& m) {
     }
 }
 
-void to_json(nlohmann::json& j, const Meta& m) {
+static void to_json(nlohmann::json& j, const Meta& m) {
     if (!m.description.empty()) {
         j["description"] = m.description;
     }
@@ -1874,7 +1829,7 @@ void to_json(nlohmann::json& j, const Meta& m) {
     }
 }
 
-void from_json(const nlohmann::json& j, Cluster& c) {
+static void from_json(const nlohmann::json& j, Cluster& c) {
     if (auto it = j.find("masteraddress");  it != j.end()) {
         it->get_to(c.masterAddress);
     }
@@ -1898,7 +1853,7 @@ void from_json(const nlohmann::json& j, Cluster& c) {
     parseValue(j, "meta", c.meta);
 }
 
-void to_json(nlohmann::json& j, const Cluster& c) {
+static void to_json(nlohmann::json& j, const Cluster& c) {
     j["masteraddress"] = c.masterAddress;
 
     if (c.setThreadAffinity.has_value()) {
@@ -1935,6 +1890,14 @@ void to_json(nlohmann::json& j, const Cluster& c) {
 
     if (!c.nodes.empty()) {
         j["nodes"] = c.nodes;
+    }
+
+    if (c.generator) {
+        j["generator"] = *c.generator;
+    }
+
+    if (c.meta) {
+        j["meta"] = *c.meta;
     }
 }
 

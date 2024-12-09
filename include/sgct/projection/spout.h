@@ -30,8 +30,8 @@ class OffScreenBuffer;
  */
 class SGCT_EXPORT SpoutOutputProjection final : public NonLinearProjection {
 public:
-    SpoutOutputProjection(const Window* parent, User* user,
-        const config::SpoutOutputProjection& config);
+    SpoutOutputProjection(const config::SpoutOutputProjection& config,
+        const Window& parent, User& user);
     virtual ~SpoutOutputProjection() override;
 
     /**
@@ -56,7 +56,7 @@ private:
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
-    void initFBO(unsigned int internalFormat) override;
+    void initFBO(unsigned int internalFormat, int nSamples) override;
 
     void renderCubemap(FrustumMode frustumMode) const override;
 

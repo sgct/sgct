@@ -20,8 +20,8 @@ namespace sgct {
 
 class SGCT_EXPORT EquirectangularProjection final : public NonLinearProjection {
 public:
-    EquirectangularProjection(const Window* parent, User* user,
-        const config::EquirectangularProjection& config);
+    EquirectangularProjection(const config::EquirectangularProjection& config,
+        const Window& parent, User& user);
     ~EquirectangularProjection() final;
 
     void render(const BaseViewport& viewport, FrustumMode mode) const override;

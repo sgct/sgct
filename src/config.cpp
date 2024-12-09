@@ -152,7 +152,7 @@ void validateProjection(const SphericalMirrorProjection& p) {
     }
 }
 
-void validateProjection(const SpoutOutputProjection& p) {
+void validateProjection(const CubemapProjection& p) {
     if (p.quality && *p.quality <= 0) {
         throw Error(1080, "Quality value must be positive");
     }
@@ -1233,7 +1233,7 @@ static void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
     j["geometry"] = mesh;
 }
 
-static void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
+static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
@@ -1242,7 +1242,7 @@ static void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     parseValue(j, "spoutname", p.spoutName);
 
     if (auto it = j.find("channels");  it != j.end()) {
-        SpoutOutputProjection::Channels c;
+        CubemapProjection::Channels c;
         parseValue(*it, "right", c.right);
         parseValue(*it, "zleft", c.zLeft);
         parseValue(*it, "bottom", c.bottom);
@@ -1261,7 +1261,7 @@ static void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
     }
 }
 
-static void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
+static void to_json(nlohmann::json& j, const CubemapProjection& p) {
     j = nlohmann::json::object();
 
     if (p.quality.has_value()) {
@@ -1390,20 +1390,8 @@ static void from_json(const nlohmann::json& j, Viewport& v) {
         }
         else {
             type = it->at("type").get<std::string>();
-            if (type == "PlanarProjection") {
-                v.projection = it->get<PlanarProjection>();
-            }
-            else if (type == "TextureMappedProjection") {
-                v.projection = it->get<TextureMappedProjection>();
-            }
-            else if (type == "FisheyeProjection") {
-                v.projection = it->get<FisheyeProjection>();
-            }
-            else if (type == "SphericalMirrorProjection") {
-                v.projection = it->get<SphericalMirrorProjection>();
-            }
-            else if (type == "SpoutOutputProjection") {
-                v.projection = it->get<SpoutOutputProjection>();
+            if (type == "CubemapProjection") {
+                v.projection = it->get<CubemapProjection>();
             }
             else if (type == "CylindricalProjection") {
                 v.projection = it->get<CylindricalProjection>();
@@ -1411,8 +1399,20 @@ static void from_json(const nlohmann::json& j, Viewport& v) {
             else if (type == "EquirectangularProjection") {
                 v.projection = it->get<EquirectangularProjection>();
             }
+            else if (type == "FisheyeProjection") {
+                v.projection = it->get<FisheyeProjection>();
+            }
+            else if (type == "PlanarProjection") {
+                v.projection = it->get<PlanarProjection>();
+            }
             else if (type == "ProjectionPlane") {
                 v.projection = it->get<ProjectionPlane>();
+            }
+            else if (type == "SphericalMirrorProjection") {
+                v.projection = it->get<SphericalMirrorProjection>();
+            }
+            else if (type == "TextureMappedProjection") {
+                v.projection = it->get<TextureMappedProjection>();
             }
             else {
                 throw Err(6089, std::format("Unknown projection type '{}'", type));
@@ -1498,9 +1498,9 @@ static void to_json(nlohmann::json& j, const Viewport& v) {
             proj["type"] = "SphericalMirrorProjection";
             return proj;
         },
-        [](const config::SpoutOutputProjection& p) {
+        [](const config::CubemapProjection& p) {
             nlohmann::json proj = p;
-            proj["type"] = "SpoutOutputProjection";
+            proj["type"] = "CubemapProjection";
             return proj;
         },
         [](const config::CylindricalProjection& p) {

@@ -2042,8 +2042,8 @@ TEST_CASE("Parse/SGCT: Spout Output Cubemap", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<CubemapProjection>(v.projection));
+    const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
     CHECK(p.spoutName == "OS_CUBEMAP");
@@ -2178,8 +2178,8 @@ TEST_CASE("Parse/SGCT: Spout Output Equirectangular", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<CubemapProjection>(v.projection));
+    const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
     CHECK(p.spoutName == "OS_EQUIRECTANGULAR");
@@ -2304,8 +2304,8 @@ TEST_CASE("Parse/SGCT: Spout Output Fisheye", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<CubemapProjection>(v.projection));
+    const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
     CHECK(p.spoutName == "OS_FISHEYE");
@@ -4104,8 +4104,8 @@ TEST_CASE("Parse/OpenSpace: Spout Output", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<CubemapProjection>(v.projection));
+    const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
     CHECK(p.spoutName == "OpenSpace");

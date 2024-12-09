@@ -6,8 +6,9 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/projection/spout.h>
+#include <sgct/projection/cubemap.h>
 
+#include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
@@ -24,10 +25,89 @@
 #include <SpoutLibrary.h>
 #endif // SGCT_HAS_SPOUT
 
+namespace {
+    constexpr std::string_view FragmentShader = R"(
+  #version 330 core
+
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
+
+  uniform sampler2D right;
+  uniform sampler2D zLeft;
+  uniform sampler2D bottom;
+  uniform sampler2D top;
+  uniform sampler2D left;
+  uniform sampler2D zRight;
+
+  void main() {
+    // Determine the relative position of the fragment in the 3x2 grid
+    float column = tr_uv.x * 3.0; // 3 columns
+    float row = tr_uv.y * 2.0;    // 2 rows
+    
+    // Figure out which cell the fragment belongs to
+    int col = int(floor(column));
+    int rowId = int(floor(row));
+    
+    // Compute local texture coordinates for the current cell (0.0 to 1.0 range)
+    vec2 localCoord = vec2(fract(column), fract(row));
+    
+    // Select the appropriate texture for the current cell
+    if (rowId == 0 && col == 0) {
+        out_diffuse = texture(zRight, localCoord);
+    } 
+    else if (rowId == 0 && col == 1) {
+        out_diffuse = texture(top, localCoord);
+    } 
+    else if (rowId == 0 && col == 2) {
+        out_diffuse = texture(left, localCoord);
+    } 
+    else if (rowId == 1 && col == 0) {
+        out_diffuse = texture(zLeft, localCoord);
+    } 
+    else if (rowId == 1 && col == 1) {
+        out_diffuse = texture(bottom, localCoord);
+    } 
+    else if (rowId == 1 && col == 2) {
+        out_diffuse = texture(right, localCoord);
+    } 
+
+/*
+    out_diffuse = vec4(1.0, 0.0, 0.0, 1.0);
+    if (tr_uv.x < (1.0/3.0)) {
+        if (tr_uv.y < (1.0/2.0)) {
+            // Top left panel -> zRight
+            vec2 uv = tr_uv * vec2(3.0, 2.0);
+            out_diffuse = texture(zRight, uv);
+        }
+        else {
+            // Bottom left panel -> zLeft
+        }
+    }
+    else if (tr_uv.x < (2.0/3.0)) {
+        if (tr_uv.y < (1.0/2.0)) {
+            // Top center panel -> Top
+        }
+        else {
+            // Bottom center panel -> Bottom
+        }
+    }
+    else {
+        if (tr_uv.y < (1.0/2.0)) {
+            // Top right panel -> Left
+        }
+        else {
+            // Bottom right panel -> Right
+        }
+    }
+*/
+  }
+)";
+} // namespace
+
 namespace sgct {
 
-SpoutOutputProjection::SpoutOutputProjection(const config::SpoutOutputProjection& config,
-                                             const Window& parent, User& user)
+CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
+                                     const Window& parent, User& user)
     : NonLinearProjection(parent)
     , _spoutName(config.spoutName.value_or(""))
     , _spout {
@@ -48,7 +128,7 @@ SpoutOutputProjection::SpoutOutputProjection(const config::SpoutOutputProjection
     _clearColor = vec4(0.f, 0.f, 0.f, 1.f);
 }
 
-SpoutOutputProjection::~SpoutOutputProjection() {
+CubemapProjection::~CubemapProjection() {
 #ifdef SGCT_HAS_SPOUT
     for (const SpoutInfo& info : _spout) {
         if (info.handle) {
@@ -60,12 +140,16 @@ SpoutOutputProjection::~SpoutOutputProjection() {
 #endif // SGCT_HAS_SPOUT
 
     glDeleteFramebuffers(1, &_blitFbo);
+
+    glDeleteBuffers(1, &_vbo);
+    glDeleteVertexArrays(1, &_vao);
+    _shader.deleteProgram();
 }
 
-void SpoutOutputProjection::update(const vec2&) const {}
+void CubemapProjection::update(const vec2&) const {}
 
-void SpoutOutputProjection::render(const BaseViewport& viewport,
-                                   FrustumMode frustumMode) const
+void CubemapProjection::render(const BaseViewport& viewport,
+                               FrustumMode frustumMode) const
 {
     ZoneScoped;
 
@@ -102,22 +186,51 @@ void SpoutOutputProjection::render(const BaseViewport& viewport,
     glBindTexture(GL_TEXTURE_2D, saveTexture);
     glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
 #endif // SGCT_HAS_SPOUT
+
+
+    glEnable(GL_SCISSOR_TEST);
+    viewport.setupViewport(frustumMode);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+
+    _shader.bind();
+
+    // if for some reson the active texture has been reset
+    for (int i = 0; i < 6; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
+    }
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+
+    glBindVertexArray(_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    ShaderProgram::unbind();
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 }
 
-void SpoutOutputProjection::setSpoutRigOrientation(vec3 orientation) {
+void CubemapProjection::setSpoutRigOrientation(vec3 orientation) {
     _rigOrientation = std::move(orientation);
 }
 
-void SpoutOutputProjection::initTextures(unsigned int internalFormat, unsigned int format,
+void CubemapProjection::initTextures(unsigned int internalFormat, unsigned int format,
                                          unsigned int type)
 {
     NonLinearProjection::initTextures(internalFormat, format, type);
 
 #ifdef SGCT_HAS_SPOUT
-    Log::Debug("SpoutOutputProjection initTextures");
+    Log::Debug("CubemapProjection initTextures");
 
     for (int i = 0; i < 6; i++) {
-        Log::Debug(std::format("SpoutOutputProjection initTextures {}", i));
+        Log::Debug(std::format("CubemapProjection initTextures {}", i));
         if (!_spout[i].enabled) {
             continue;
         }
@@ -168,9 +281,46 @@ void SpoutOutputProjection::initTextures(unsigned int internalFormat, unsigned i
 #endif // SGCT_HAS_SPOUT
 }
 
-void SpoutOutputProjection::initVBO() {}
+void CubemapProjection::initVBO() {
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
+    };
 
-void SpoutOutputProjection::initViewports() {
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+    constexpr std::array<float, 20> v = {
+        -1.f, -1.f, -1.f, 0.f, 0.f,
+        -1.f,  1.f, -1.f, 0.f, 1.f,
+         1.f, -1.f, -1.f, 1.f, 0.f,
+         1.f,  1.f, -1.f, 1.f, 1.f
+    };
+    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        reinterpret_cast<void*>(offsetof(Vertex, s))
+    );
+
+    glBindVertexArray(0);
+}
+
+void CubemapProjection::initViewports() {
     // distance is needed to calculate the distance to all view planes
     constexpr float Distance = 1.f;
 
@@ -312,9 +462,27 @@ void SpoutOutputProjection::initViewports() {
     }
 }
 
-void SpoutOutputProjection::initShaders() {}
+void CubemapProjection::initShaders() {
+    // reload shader program if it exists
+    _shader.deleteProgram();
 
-void SpoutOutputProjection::initFBO(unsigned int internalFormat, int nSamples) {
+    _shader = ShaderProgram("CylindricalProjectinoShader");
+    _shader.addVertexShader(shaders::BaseVert);
+    _shader.addFragmentShader(FragmentShader);
+    _shader.createAndLinkProgram();
+    _shader.bind();
+
+    glUniform1i(glGetUniformLocation(_shader.id(), "right"), 0);
+    glUniform1i(glGetUniformLocation(_shader.id(), "zLeft"), 1);
+    glUniform1i(glGetUniformLocation(_shader.id(), "bottom"), 2);
+    glUniform1i(glGetUniformLocation(_shader.id(), "top"), 3);
+    glUniform1i(glGetUniformLocation(_shader.id(), "left"), 4);
+    glUniform1i(glGetUniformLocation(_shader.id(), "zRight"), 5);
+
+    ShaderProgram::unbind();
+}
+
+void CubemapProjection::initFBO(unsigned int internalFormat, int nSamples) {
     NonLinearProjection::initFBO(internalFormat, nSamples);
 
     _spoutFBO = std::make_unique<OffScreenBuffer>(internalFormat);
@@ -322,7 +490,7 @@ void SpoutOutputProjection::initFBO(unsigned int internalFormat, int nSamples) {
     glGenFramebuffers(1, &_blitFbo);
 }
 
-void SpoutOutputProjection::renderCubemap(FrustumMode frustumMode) const {
+void CubemapProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     auto render = [this](const BaseViewport& vp, int index, FrustumMode mode) {

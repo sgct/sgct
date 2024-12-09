@@ -14,12 +14,12 @@
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
 #include <sgct/texturemanager.h>
+#include <sgct/projection/cubemap.h>
 #include <sgct/projection/cylindrical.h>
 #include <sgct/projection/equirectangular.h>
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirror.h>
-#include <sgct/projection/spout.h>
 #include <algorithm>
 #include <array>
 #include <optional>
@@ -109,13 +109,9 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
             _nonLinearProjection =
                 std::make_unique<SphericalMirrorProjection>(p, _parent, *_user);
         },
-        [this]([[maybe_unused]] const config::SpoutOutputProjection& p) {
-#ifdef SGCT_HAS_SPOUT
+        [this]([[maybe_unused]] const config::CubemapProjection& p) {
             _nonLinearProjection =
-                std::make_unique<SpoutOutputProjection>(p, _parent, *_user);
-#else  // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
-            Log::Error("Spout library not added to SGCT");
-#endif // SGCT_HAS_SPOUT
+                std::make_unique<CubemapProjection>(p, _parent, *_user);
         },
         [this](const config::CylindricalProjection& p) {
             _nonLinearProjection =

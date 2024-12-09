@@ -4050,7 +4050,7 @@ TEST_CASE("SpoutOutputProjection", "[roundtrip]") {
     };
     sgct::config::Window window;
     window.viewports.push_back({
-        .projection = sgct::config::SpoutOutputProjection()
+        .projection = sgct::config::CubemapProjection()
     });
     node.windows.push_back(window);
     input.nodes.push_back(node);
@@ -4071,7 +4071,7 @@ TEST_CASE("SpoutOutputProjection/Quality", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .quality = std::nullopt
             }
         });
@@ -4093,7 +4093,7 @@ TEST_CASE("SpoutOutputProjection/Quality", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .quality = 256
             }
         });
@@ -4115,7 +4115,7 @@ TEST_CASE("SpoutOutputProjection/Quality", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .quality = 512
             }
         });
@@ -4138,7 +4138,7 @@ TEST_CASE("SpoutOutputProjection/SpoutName", "[roundtrip]") {
     };
     sgct::config::Window window;
     window.viewports.push_back({
-        .projection = sgct::config::SpoutOutputProjection {
+        .projection = sgct::config::CubemapProjection {
             .spoutName = "abc"
         }
     });
@@ -4161,7 +4161,7 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .channels = std::nullopt
             }
         });
@@ -4183,8 +4183,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4212,8 +4212,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4241,8 +4241,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4270,8 +4270,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4299,8 +4299,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4328,8 +4328,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4357,8 +4357,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4386,8 +4386,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -4415,8 +4415,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4444,8 +4444,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4473,8 +4473,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4502,8 +4502,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4531,8 +4531,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4560,8 +4560,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4589,8 +4589,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4618,8 +4618,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = true,
@@ -4647,8 +4647,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4676,8 +4676,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4705,8 +4705,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4734,8 +4734,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4763,8 +4763,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4792,8 +4792,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4821,8 +4821,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4850,8 +4850,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = false,
@@ -4879,8 +4879,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -4908,8 +4908,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -4937,8 +4937,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -4966,8 +4966,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -4995,8 +4995,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -5024,8 +5024,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -5053,8 +5053,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -5082,8 +5082,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = true,
                     .bottom = true,
@@ -5111,8 +5111,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5140,8 +5140,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5169,8 +5169,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = false,
                     .zLeft = false,
                     .bottom = false,
@@ -5198,8 +5198,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5227,8 +5227,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5256,8 +5256,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5285,8 +5285,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5314,8 +5314,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = false,
@@ -5343,8 +5343,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5372,8 +5372,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5401,8 +5401,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5430,8 +5430,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5459,8 +5459,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5488,8 +5488,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5517,8 +5517,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5546,8 +5546,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = false,
                     .bottom = true,
@@ -5575,8 +5575,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5604,8 +5604,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5633,8 +5633,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5662,8 +5662,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5691,8 +5691,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5720,8 +5720,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5749,8 +5749,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5778,8 +5778,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = false,
@@ -5807,8 +5807,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -5836,8 +5836,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -5865,8 +5865,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -5894,8 +5894,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -5923,8 +5923,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -5952,8 +5952,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -5981,8 +5981,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -6010,8 +6010,8 @@ TEST_CASE("SpoutOutputProjection/Channels", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
-                .channels = sgct::config::SpoutOutputProjection::Channels {
+            .projection = sgct::config::CubemapProjection {
+                .channels = sgct::config::CubemapProjection::Channels {
                     .right = true,
                     .zLeft = true,
                     .bottom = true,
@@ -6041,7 +6041,7 @@ TEST_CASE("SpoutOutputProjection/Orientation", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .orientation = std::nullopt
             }
         });
@@ -6063,7 +6063,7 @@ TEST_CASE("SpoutOutputProjection/Orientation", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .orientation = sgct::vec3(1.f, 2.f, 3.f)
             }
         });
@@ -6085,7 +6085,7 @@ TEST_CASE("SpoutOutputProjection/Orientation", "[roundtrip]") {
         };
         sgct::config::Window window;
         window.viewports.push_back({
-            .projection = sgct::config::SpoutOutputProjection {
+            .projection = sgct::config::CubemapProjection {
                 .orientation = sgct::vec3(4.f, 5.f, 6.f)
             }
         });

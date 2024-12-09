@@ -23,6 +23,8 @@ struct SGCT_EXPORT User {
     struct Tracking {
         std::string tracker;
         std::string device;
+
+        auto operator<=>(const Tracking&) const noexcept = default;
     };
 
     std::optional<std::string> name;
@@ -30,21 +32,25 @@ struct SGCT_EXPORT User {
     std::optional<vec3> position;
     std::optional<mat4> transformation;
     std::optional<Tracking> tracking;
+
+    auto operator<=>(const User&) const noexcept = default;
 };
 SGCT_EXPORT void validateUser(const User& user);
 
 
 
 struct SGCT_EXPORT Capture {
-    enum class Format { PNG, JPG, TGA };
     struct ScreenShotRange {
         int first = -1; // inclusive
         int last = -1;  // exclusive
+
+        auto operator<=>(const ScreenShotRange&) const noexcept = default;
     };
 
     std::optional<std::filesystem::path> path;
-    std::optional<Format> format;
     std::optional<ScreenShotRange> range;
+
+    auto operator<=>(const Capture&) const noexcept = default;
 };
 SGCT_EXPORT void validateCapture(const Capture& capture);
 
@@ -54,6 +60,8 @@ struct SGCT_EXPORT Scene {
     std::optional<vec3> offset;
     std::optional<quat> orientation;
     std::optional<float> scale;
+
+    auto operator<=>(const Scene&) const noexcept = default;
 };
 SGCT_EXPORT void validateScene(const Scene& scene);
 
@@ -65,6 +73,8 @@ struct SGCT_EXPORT Settings {
     struct Display {
         std::optional<int8_t> swapInterval;
         std::optional<int> refreshRate;
+
+        auto operator<=>(const Display&) const noexcept = default;
     };
 
     std::optional<bool> useDepthTexture;
@@ -72,31 +82,41 @@ struct SGCT_EXPORT Settings {
     std::optional<bool> usePositionTexture;
     std::optional<BufferFloatPrecision> bufferFloatPrecision;
     std::optional<Display> display;
+
+    auto operator<=>(const Settings&) const noexcept = default;
 };
 SGCT_EXPORT void validateSettings(const Settings& settings);
 
 
 
 struct SGCT_EXPORT Device {
-    struct Sensors {
+    struct Sensor {
         std::string vrpnAddress;
         int identifier = -1;
+
+        auto operator<=>(const Sensor&) const noexcept = default;
     };
-    struct Buttons {
+    struct Button {
         std::string vrpnAddress;
         int count = 0;
+
+        auto operator<=>(const Button&) const noexcept = default;
     };
-    struct Axes {
+    struct Axis {
         std::string vrpnAddress;
         int count = 0;
+
+        auto operator<=>(const Axis&) const noexcept = default;
     };
 
     std::string name;
-    std::vector<Sensors> sensors;
-    std::vector<Buttons> buttons;
-    std::vector<Axes> axes;
+    std::vector<Sensor> sensors;
+    std::vector<Button> buttons;
+    std::vector<Axis> axes;
     std::optional<vec3> offset;
     std::optional<mat4> transformation;
+
+    auto operator<=>(const Device&) const noexcept = default;
 };
 SGCT_EXPORT void validateDevice(const Device& device);
 
@@ -108,33 +128,76 @@ struct SGCT_EXPORT Tracker {
     std::optional<vec3> offset;
     std::optional<double> scale;
     std::optional<mat4> transformation;
+
+    auto operator<=>(const Tracker&) const noexcept = default;
 };
 SGCT_EXPORT void validateTracker(const Tracker& tracker);
 
 
 
-struct SGCT_EXPORT NoProjection {};
-
-
-
-struct SGCT_EXPORT PlanarProjection {
-    struct FOV {
-        float down = 0.f;
-        float left = 0.f;
-        float right = 0.f;
-        float up = 0.f;
-        std::optional<float> distance;
-    };
-    FOV fov;
-    std::optional<quat> orientation;
-    std::optional<vec3> offset;
+struct SGCT_EXPORT NoProjection {
+    auto operator<=>(const NoProjection&) const noexcept = default;
 };
-SGCT_EXPORT void validateProjection(const PlanarProjection& proj);
 
 
 
-struct SGCT_EXPORT TextureMappedProjection : PlanarProjection { };
-SGCT_EXPORT void validateProjection(const TextureMappedProjection& proj);
+struct SGCT_EXPORT CubemapProjection {
+    struct Channels {
+        bool right = true;
+        bool zLeft = true;
+        bool bottom = true;
+        bool top = true;
+        bool left = true;
+        bool zRight = true;
+
+        auto operator<=>(const Channels&) const noexcept = default;
+    };
+
+    struct Spout {
+        bool enabled = true;
+        std::optional<std::string> name;
+
+        auto operator<=>(const Spout&) const noexcept = default;
+    };
+
+    struct NDI {
+        bool enabled = true;
+        std::optional<std::string> name;
+        std::optional<std::string> groups;
+
+        auto operator<=>(const NDI&) const noexcept = default;
+    };
+
+    std::optional<int> quality;
+    std::optional<Spout> spout;
+    std::optional<NDI> ndi;
+    std::optional<Channels> channels;
+    std::optional<vec3> orientation;
+
+    auto operator<=>(const CubemapProjection&) const noexcept = default;
+};
+SGCT_EXPORT void validateProjection(const CubemapProjection& proj);
+
+
+
+struct SGCT_EXPORT CylindricalProjection {
+    std::optional<int> quality;
+    std::optional<float> rotation;
+    std::optional<float> heightOffset;
+    std::optional<float> radius;
+
+    auto operator<=>(const CylindricalProjection&) const noexcept = default;
+};
+SGCT_EXPORT void validateProjection(const CylindricalProjection& proj);
+
+
+
+struct SGCT_EXPORT EquirectangularProjection {
+    std::optional<int> quality;
+
+    auto operator<=>(const EquirectangularProjection&) const noexcept = default;
+};
+SGCT_EXPORT void validateProjection(const EquirectangularProjection& proj);
 
 
 
@@ -147,6 +210,8 @@ struct SGCT_EXPORT FisheyeProjection {
         float right = 0.f;
         float bottom = 0.f;
         float top = 0.f;
+
+        auto operator<=>(const Crop&) const noexcept = default;
     };
     std::optional<float> fov;
     std::optional<int> quality;
@@ -157,8 +222,41 @@ struct SGCT_EXPORT FisheyeProjection {
     std::optional<bool> keepAspectRatio;
     std::optional<vec3> offset;
     std::optional<vec4> background;
+
+    auto operator<=>(const FisheyeProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const FisheyeProjection& proj);
+
+
+
+struct SGCT_EXPORT PlanarProjection {
+    struct FOV {
+        float down = 0.f;
+        float left = 0.f;
+        float right = 0.f;
+        float up = 0.f;
+        std::optional<float> distance;
+
+        auto operator<=>(const FOV&) const noexcept = default;
+    };
+    FOV fov;
+    std::optional<quat> orientation;
+    std::optional<vec3> offset;
+
+    auto operator<=>(const PlanarProjection&) const noexcept = default;
+};
+SGCT_EXPORT void validateProjection(const PlanarProjection& proj);
+
+
+
+struct SGCT_EXPORT ProjectionPlane {
+    vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };
+    vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
+    vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
+
+    auto operator<=>(const ProjectionPlane&) const noexcept = default;
+};
+SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
 
 
 
@@ -168,69 +266,22 @@ struct SGCT_EXPORT SphericalMirrorProjection {
         std::string left;
         std::string right;
         std::string top;
+
+        auto operator<=>(const Mesh&) const noexcept = default;
     };
     std::optional<int> quality;
     std::optional<float> tilt;
     std::optional<vec4> background;
     Mesh mesh;
+
+    auto operator<=>(const SphericalMirrorProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
 
 
-struct SGCT_EXPORT CubemapProjection {
-    struct Channels {
-        bool right = true;
-        bool zLeft = true;
-        bool bottom = true;
-        bool top = true;
-        bool left = true;
-        bool zRight = true;
-    };
-
-    struct Spout {
-        bool enabled = true;
-        std::optional<std::string> name;
-    };
-
-    struct NDI {
-        bool enabled = true;
-        std::optional<std::string> name;
-        std::optional<std::string> groups;
-    };
-
-    std::optional<int> quality;
-    std::optional<Spout> spout;
-    std::optional<NDI> ndi;
-    std::optional<Channels> channels;
-    std::optional<vec3> orientation;
-};
-SGCT_EXPORT void validateProjection(const CubemapProjection& proj);
-
-
-
-struct SGCT_EXPORT CylindricalProjection {
-    std::optional<int> quality;
-    std::optional<float> rotation;
-    std::optional<float> heightOffset;
-    std::optional<float> radius;
-};
-SGCT_EXPORT void validateProjection(const CylindricalProjection& proj);
-
-
-
-struct SGCT_EXPORT EquirectangularProjection {
-    std::optional<int> quality;
-};
-SGCT_EXPORT void validateProjection(const EquirectangularProjection& proj);
-
-
-struct SGCT_EXPORT ProjectionPlane {
-    vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };
-    vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
-    vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
-};
-SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
+struct SGCT_EXPORT TextureMappedProjection : PlanarProjection {};
+SGCT_EXPORT void validateProjection(const TextureMappedProjection& proj);
 
 
 
@@ -253,7 +304,9 @@ struct SGCT_EXPORT Viewport {
     std::optional<vec2> position;
     std::optional<vec2> size;
 
-    Projections projection;
+    Projections projection = NoProjection();
+
+    auto operator<=>(const Viewport&) const noexcept = default;
 };
 SGCT_EXPORT void validateViewport(const Viewport& viewport);
 
@@ -288,10 +341,19 @@ struct SGCT_EXPORT Window {
         TopBottomInverted
     };
 
+    struct Spout {
+        bool enabled = true;
+        std::optional<std::string> name;
+
+        auto operator<=>(const Spout&) const noexcept = default;
+    };
+
     struct NDI {
         bool enabled = true;
         std::optional<std::string> name;
         std::optional<std::string> groups;
+
+        auto operator<=>(const NDI&) const noexcept = default;
     };
 
     int8_t id = 0;
@@ -318,15 +380,15 @@ struct SGCT_EXPORT Window {
     std::optional<bool> mirrorY;
     std::optional<uint8_t> monitor;
     std::optional<StereoMode> stereo;
-    std::optional<std::string> spoutName;
+    std::optional<Spout> spout;
     std::optional<NDI> ndi;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;
-
+    std::optional<std::filesystem::path> scalableMesh;
     std::vector<Viewport> viewports;
 
-    std::optional<std::filesystem::path> scalableMesh;
+    auto operator<=>(const Window&) const noexcept = default;
 };
 SGCT_EXPORT void validateWindow(const Window& window);
 
@@ -338,6 +400,8 @@ struct SGCT_EXPORT Node {
     std::optional<uint16_t> dataTransferPort;
     std::optional<bool> swapLock;
     std::vector<Window> windows;
+
+    auto operator<=>(const Node&) const noexcept = default;
 };
 SGCT_EXPORT void validateNode(const Node& node);
 
@@ -348,7 +412,7 @@ struct SGCT_EXPORT GeneratorVersion {
     int major = 0;
     int minor = 0;
 
-    bool operator==(const GeneratorVersion& rhs) const noexcept;
+    auto operator<=>(const GeneratorVersion&) const noexcept = default;
 
     bool versionCheck(GeneratorVersion check) const;
 
@@ -364,6 +428,8 @@ struct SGCT_EXPORT Meta {
     std::string license;
     std::string name;
     std::string version;
+
+    auto operator<=>(const Meta&) const noexcept = default;
 };
 
 
@@ -384,6 +450,8 @@ struct SGCT_EXPORT Cluster {
 
     std::optional<GeneratorVersion> generator;
     std::optional<Meta> meta;
+
+    auto operator<=>(const Cluster&) const noexcept = default;
 };
 SGCT_EXPORT void validateCluster(const Cluster& cluster);
 

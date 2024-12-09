@@ -365,16 +365,17 @@ Window::Window(const config::Window& window)
     , _framebufferRes(window.size)
     , _aspectRatio(static_cast<float>(window.size.x) / static_cast<float>(window.size.y))
 #ifdef SGCT_HAS_SPOUT
-    , _spoutName(window.spoutName.value_or(""))
+    , _spoutEnabled(window.spout.has_value() && window.spout->enabled)
+    , _spoutName(window.spout ? window.spout->name.value_or("") : "")
 #endif // SGCT_HAS_SPOUT
     , _internalColorFormat(colorBitDepthToColorFormat(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
+        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
     ))
     , _colorDataType(colorBitDepthToDataType(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
+        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
     ))
     , _bytesPerColor(colorBitDepthToBytesPerColor(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth32Float)
+        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
     ))
 {
     ZoneScoped;
@@ -730,8 +731,10 @@ void Window::initialize() {
 
     loadShaders();
 
-    if (!_spoutName.empty()) {
+    if (_spoutEnabled) {
 #ifdef SGCT_HAS_SPOUT
+        _spoutName = _spoutName.empty() ? "OpenSpace" : _spoutName;
+
         _spoutHandle = GetSpout();
         bool success = false;
         if (_spoutHandle) {
@@ -1074,9 +1077,7 @@ void Window::renderFBOTexture() {
             _framebufferRes.y
         );
         if (!s) {
-            Log::Error(std::format(
-                "Error sending Spout texture for '{}'", _spoutName
-            ));
+            Log::Error(std::format("Error sending Spout texture for '{}'", _spoutName));
         }
     }
 #endif // SGCT_HAS_SPOUT

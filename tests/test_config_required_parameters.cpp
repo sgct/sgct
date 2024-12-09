@@ -717,38 +717,6 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
-    constexpr std::string_view Sources = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "size": { "x": 1, "y": 2 },
-          "viewports": [
-            {
-              "projection": {
-                "type": "SpoutOutputProjection"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-)";
-    CHECK_THROWS_MATCHES(
-        sgct::readJsonConfig(Sources),
-        std::runtime_error,
-        Catch::Matchers::Message("Could not find required key 'mappingspoutname'")
-    );
-}
-
 TEST_CASE("Parse Required: User/Tracking/Tracker", "[parse]") {
     constexpr std::string_view Sources = R"(
 {

@@ -29,7 +29,6 @@ public:
     /**
      * The different file formats supported.
      */
-    enum class CaptureFormat { PNG, TGA, JPEG };
     enum class CaptureSource { Texture, BackBuffer, LeftBackBuffer, RightBackBuffer };
     enum class EyeIndex { Mono, StereoLeft, StereoRight };
 

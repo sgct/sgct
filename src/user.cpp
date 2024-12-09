@@ -27,8 +27,8 @@ User::User(const config::User& user)
     , _eyeSeparation(user.eyeSeparation.value_or(0.06f))
     , _posMono(user.position.value_or(vec3{ 0.f, 0.f, 0.f }))
     , _transform(user.transformation.value_or(mat4(1.0)))
-    , _headTrackerName(user.tracking ? user.tracking->tracker : std::string())
     , _headTrackerDeviceName(user.tracking ? user.tracking->device : std::string())
+    , _headTrackerName(user.tracking ? user.tracking->tracker : std::string())
 {
     updateEyeTransform();
     updateEyeSeparation();

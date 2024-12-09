@@ -277,6 +277,7 @@ unsigned int Window::swapGroupFrameNumber() {
 config::Window createScalableConfiguration(std::filesystem::path path) {
     config::Window res;
 
+#ifdef SGCT_HAS_SCALABLE
     EasyBlendSDK_Mesh mesh;
     std::string p = path.string();
     EasyBlendSDKError err = EasyBlendSDK_Initialize(
@@ -328,6 +329,10 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
     };
 
     EasyBlendSDK_Uninitialize(&mesh);
+#else // ^^^^ SGCT_HAS_SCALABLE // !SGCT_HAS_SCALABLE vvvv
+    assert(false);
+#endif // SGCT_HAS_SCALABLE
+
     return res;
 }
 

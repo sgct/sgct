@@ -391,6 +391,7 @@ private:
     vec2 _scale = vec2{ 0.f, 0.f };
 
 #ifdef SGCT_HAS_SPOUT
+    bool _spoutEnabled;
     std::string _spoutName;
     SPOUTHANDLE _spoutHandle = nullptr;
 #endif // SGCT_HAS_SPOUT

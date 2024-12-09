@@ -382,10 +382,6 @@ void validateCluster(const Cluster& c) {
 
 void validateGeneratorVersion(const GeneratorVersion&) {}
 
-bool GeneratorVersion::operator==(const GeneratorVersion& rhs) const noexcept {
-    return (name == rhs.name) && (major == rhs.major) && (minor == rhs.minor);
-}
-
 bool GeneratorVersion::versionCheck(GeneratorVersion check) const {
     if (check.name != name) {
         return false;
@@ -489,15 +485,6 @@ namespace {
         if (quality == "64k" || quality == "65536") { return 65536; }
 
         throw Err(6087, std::format("Unknown resolution {} for cube map", quality));
-    }
-
-    sgct::config::Capture::Format parseImageFormat(std::string_view format) {
-        using namespace sgct::config;
-
-        if (format == "png" || format == "PNG") { return Capture::Format::PNG; }
-        if (format == "tga" || format == "TGA") { return Capture::Format::TGA; }
-        if (format == "jpg" || format == "JPG") { return Capture::Format::JPG; }
-        throw Err(6060, "Unknown capturing format");
     }
 
     sgct::config::Viewport::Eye parseEye(std::string_view eye) {
@@ -835,10 +822,6 @@ static void to_json(nlohmann::json& j, const Settings& s) {
 
 static void from_json(const nlohmann::json& j, Capture& c) {
     parseValue(j, "path", c.path);
-    if (auto it = j.find("format");  it != j.end()) {
-        const std::string format = it->get<std::string>();
-        c.format = parseImageFormat(format);
-    }
 
     std::optional<int> rangeBeg;
     parseValue(j, "rangebegin", rangeBeg);
@@ -864,56 +847,42 @@ static void to_json(nlohmann::json& j, const Capture& c) {
         j["path"] = *c.path;
     }
 
-    if (c.format.has_value()) {
-        switch (*c.format) {
-            case Capture::Format::PNG:
-                j["format"] = "png";
-                break;
-            case Capture::Format::TGA:
-                j["format"] = "tga";
-                break;
-            case Capture::Format::JPG:
-                j["format"] = "jpg";
-                break;
-        }
-    }
-
     if (c.range.has_value()) {
         j["rangebegin"] = c.range->first;
         j["rangeend"] = c.range->last;
     }
 }
 
-static void from_json(const nlohmann::json& j, Device::Sensors& s) {
+static void from_json(const nlohmann::json& j, Device::Sensor& s) {
     j.at("vrpnaddress").get_to(s.vrpnAddress);
     j.at("id").get_to(s.identifier);
 }
 
-static void to_json(nlohmann::json& j, const Device::Sensors& s) {
+static void to_json(nlohmann::json& j, const Device::Sensor& s) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = s.vrpnAddress;
     j["id"] = s.identifier;
 }
 
-static void from_json(const nlohmann::json& j, Device::Buttons& b) {
+static void from_json(const nlohmann::json& j, Device::Button& b) {
     j.at("vrpnaddress").get_to(b.vrpnAddress);
     j.at("count").get_to(b.count);
 }
 
-static void to_json(nlohmann::json& j, const Device::Buttons& b) {
+static void to_json(nlohmann::json& j, const Device::Button& b) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = b.vrpnAddress;
     j["count"] = b.count;
 }
 
-static void from_json(const nlohmann::json& j, Device::Axes& a) {
+static void from_json(const nlohmann::json& j, Device::Axis& a) {
     j.at("vrpnaddress").get_to(a.vrpnAddress);
     j.at("count").get_to(a.count);
 }
 
-static void to_json(nlohmann::json& j, const Device::Axes& a) {
+static void to_json(nlohmann::json& j, const Device::Axis& a) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = a.vrpnAddress;
@@ -1556,6 +1525,11 @@ static void to_json(nlohmann::json& j, const Viewport& v) {
         }, v.projection);
 }
 
+static void from_json(const nlohmann::json& j, Window::Spout& n) {
+    parseValue(j, "enabled", n.enabled);
+    parseValue(j, "name", n.name);
+}
+
 static void from_json(const nlohmann::json& j, Window::NDI& n) {
     parseValue(j, "enabled", n.enabled);
     parseValue(j, "name", n.name);
@@ -1609,7 +1583,7 @@ static void from_json(const nlohmann::json& j, Window& w) {
         w.stereo = parseStereoType(it->get<std::string>());
     }
 
-    parseValue(j, "spoutname", w.spoutName);
+    parseValue(j, "spout", w.spout);
     parseValue(j, "ndi", w.ndi);
 
     parseValue(j, "pos", w.pos);
@@ -1617,6 +1591,13 @@ static void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "res", w.resolution);
 
     parseValue(j, "viewports", w.viewports);
+}
+
+static void to_json(nlohmann::json& j, const Window::Spout& n) {
+    j["enabled"] = n.enabled;
+    if (n.name) {
+        j["name"] = *n.name;
+    }
 }
 
 static void to_json(nlohmann::json& j, const Window::NDI& n) {
@@ -1737,12 +1718,20 @@ static void to_json(nlohmann::json& j, const Window& w) {
         j["monitor"] = *w.monitor;
     }
 
+    if (w.mirrorX.has_value()) {
+        j["mirrorx"] = *w.mirrorX;
+    }
+
+    if (w.mirrorY.has_value()) {
+        j["mirrory"] = *w.mirrorY;
+    }
+
     if (w.stereo.has_value()) {
         j["stereo"] = toString(*w.stereo);
     }
 
-    if (w.spoutName.has_value()) {
-        j["spoutname"] = *w.spoutName;
+    if (w.spout.has_value()) {
+        j["spout"] = *w.spout;
     }
 
     if (w.ndi.has_value()) {
@@ -1757,6 +1746,12 @@ static void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.resolution.has_value()) {
         j["res"] = *w.resolution;
+    }
+
+    if (w.scalableMesh.has_value()) {
+        // We add the current path to the mesh in the loading step, so here we need to
+        // remove it again to make the paths patch
+        j["scalablemesh"] = *w.scalableMesh;
     }
 
     if (!w.viewports.empty()) {

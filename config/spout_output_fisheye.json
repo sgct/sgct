@@ -10,7 +10,10 @@
           "fullscreen": false,
           "stereo": "none",
           "size": { "x": 512, "y": 512 },
-          "spoutname": "OS_FISHEYE",
+          "spout": {
+            "enabled": true,
+            "name": "OS_FISHEYE"
+          },
           "viewports": [
             {
               "type": "FisheyeProjection",

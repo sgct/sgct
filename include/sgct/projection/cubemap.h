@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__SPOUT__H__
-#define __SGCT__SPOUT__H__
+#ifndef __SGCT__CUBEMAP__H__
+#define __SGCT__CUBEMAP__H__
 
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
@@ -28,11 +28,11 @@ class OffScreenBuffer;
 /**
  * This class manages and renders non-linear fisheye projections.
  */
-class SGCT_EXPORT SpoutOutputProjection final : public NonLinearProjection {
+class SGCT_EXPORT CubemapProjection final : public NonLinearProjection {
 public:
-    SpoutOutputProjection(const config::SpoutOutputProjection& config,
+    CubemapProjection(const config::CubemapProjection& config,
         const Window& parent, User& user);
-    virtual ~SpoutOutputProjection() override;
+    virtual ~CubemapProjection() override;
 
     /**
      * Update projection when aspect ratio changes for the viewport.
@@ -74,9 +74,12 @@ private:
     std::string _spoutName;
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
 
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
+    ShaderProgram _shader;
     unsigned int _blitFbo = 0;
 };
 
 } // namespace sgct
 
-#endif // __SGCT__SPOUT__H__
+#endif // __SGCT__CUBEMAP__H__

@@ -41,14 +41,6 @@ namespace {
     out_diffuse = texture(cubemap, vec3(x, y, z));
   }
 )";
-
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
 } // namespace
 
 namespace sgct {
@@ -96,8 +88,6 @@ void EquirectangularProjection::render(const BaseViewport& viewport,
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shaderLoc.cubemap, 0);
-
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
@@ -123,6 +113,14 @@ void EquirectangularProjection::renderCubemap(FrustumMode frustumMode) const {
 void EquirectangularProjection::update(const vec2&) const {}
 
 void EquirectangularProjection::initVBO() {
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
+    };
+
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
@@ -303,8 +301,7 @@ void EquirectangularProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemap, 0);
+    glUniform1i(glGetUniformLocation(_shader.id(), "cubemap"), 0);
 
     ShaderProgram::unbind();
 }

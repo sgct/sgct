@@ -35,9 +35,6 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    struct {
-        int cubemap = -1;
-    } _shaderLoc;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
     ShaderProgram _shader;

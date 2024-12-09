@@ -43,9 +43,9 @@ bool operator==(const FisheyeProjection::Crop& lhs, const FisheyeProjection::Cro
 bool operator==(const FisheyeProjection& lhs, const FisheyeProjection& rhs);
 bool operator==(const SphericalMirrorProjection& lhs,
     const SphericalMirrorProjection& rhs);
-bool operator==(const SpoutOutputProjection::Channels& lhs,
-    const SpoutOutputProjection::Channels& rhs);
-bool operator==(const SpoutOutputProjection& lhs, const SpoutOutputProjection& rhs);
+bool operator==(const CubemapProjection::Channels& lhs,
+    const CubemapProjection::Channels& rhs);
+bool operator==(const CubemapProjection& lhs, const CubemapProjection& rhs);
 bool operator==(const CylindricalProjection& lhs, const CylindricalProjection& rhs);
 bool operator==(const EquirectangularProjection& lhs,
     const EquirectangularProjection& rhs);

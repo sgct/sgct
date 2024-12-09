@@ -178,7 +178,7 @@ SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
 
 
-struct SGCT_EXPORT SpoutOutputProjection {
+struct SGCT_EXPORT CubemapProjection {
     struct Channels {
         bool right = true;
         bool zLeft = true;
@@ -192,7 +192,7 @@ struct SGCT_EXPORT SpoutOutputProjection {
     std::optional<Channels> channels;
     std::optional<vec3> orientation;
 };
-SGCT_EXPORT void validateProjection(const SpoutOutputProjection& proj);
+SGCT_EXPORT void validateProjection(const CubemapProjection& proj);
 
 
 
@@ -221,9 +221,9 @@ SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
 
 
 
-using Projections = std::variant<NoProjection, CylindricalProjection,
+using Projections = std::variant<NoProjection, CubemapProjection, CylindricalProjection,
     EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
-    SphericalMirrorProjection, SpoutOutputProjection, TextureMappedProjection>;
+    SphericalMirrorProjection, TextureMappedProjection>;
 
 
 

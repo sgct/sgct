@@ -88,13 +88,13 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/sciss.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/simcad.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/skyskan.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/projection/cubemap.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/cylindrical.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/equirectangular.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/fisheye.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/nonlinearprojection.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirror.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/projection/spout.h
 
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/openvr.h>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h>
@@ -138,13 +138,13 @@ target_sources(
     correction/sciss.cpp
     correction/simcad.cpp
     correction/skyskan.cpp
+    projection/cubemap.cpp
     projection/cylindrical.cpp
     projection/equirectangular.cpp
     projection/fisheye.cpp
     projection/nonlinearprojection.cpp
     projection/projectionplane.cpp
     projection/sphericalmirror.cpp
-    projection/spout.cpp
 
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr.cpp>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:trackingmanager.cpp>

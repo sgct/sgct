@@ -196,8 +196,8 @@ bool operator==(const SphericalMirrorProjection& lhs,
         lhs.mesh.top == rhs.mesh.top;
 }
 
-bool operator==(const SpoutOutputProjection::Channels& lhs,
-                const SpoutOutputProjection::Channels& rhs)
+bool operator==(const CubemapProjection::Channels& lhs,
+                const CubemapProjection::Channels& rhs)
 {
     return
         lhs.right == rhs.right &&
@@ -208,7 +208,7 @@ bool operator==(const SpoutOutputProjection::Channels& lhs,
         lhs.zRight == rhs.zRight;
 }
 
-bool operator==(const SpoutOutputProjection& lhs, const SpoutOutputProjection& rhs) {
+bool operator==(const CubemapProjection& lhs, const CubemapProjection& rhs) {
     return
         lhs.quality == rhs.quality &&
         lhs.spoutName == rhs.spoutName &&

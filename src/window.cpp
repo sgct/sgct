@@ -338,8 +338,8 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
 
 Window::Window(const config::Window& window)
     : _name(window.name.value_or(""))
-    , _id(window.id)
     , _tags(window.tags)
+    , _id(window.id)
     , _hideMouseCursor(window.hideMouseCursor.value_or(false))
     , _takeScreenshot(window.takeScreenshot.value_or(true))
     , _hasCallDraw2DFunction(window.draw2D.value_or(true))
@@ -747,8 +747,8 @@ void Window::initialize() {
         if (!success) {
             Log::Error(std::format("Error creating SPOUT handle for {}", _spoutName));
         }
-#endif // SGCT_HAS_SPOUT
     }
+#endif // SGCT_HAS_SPOUT
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         const vec2 viewportSize = vec2{

@@ -110,9 +110,9 @@ FontManager::FontManager() {
 #elif defined(__APPLE__)
     // System Fonts
     SystemFontPath = "/System/Library/Fonts/";
-#else
+#else // !WIN32 && !__APPLE__
     SystemFontPath = "/usr/share/fonts/truetype/freefont/";
-#endif
+#endif // WIN32
 }
 
 FontManager::~FontManager() {
@@ -199,8 +199,8 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     static bool isShaderCreated = false;
     if (!isShaderCreated) {
         _shader = ShaderProgram("FontShader");
-        _shader.addShaderSource(FontVertShader, GL_VERTEX_SHADER);
-        _shader.addShaderSource(FontFragShader, GL_FRAGMENT_SHADER);
+        _shader.addVertexShader(FontVertShader);
+        _shader.addFragmentShader(FontFragShader);
         _shader.createAndLinkProgram();
         _shader.bind();
 

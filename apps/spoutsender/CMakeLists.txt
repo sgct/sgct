@@ -6,7 +6,7 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-add_executable(spoutsender main.cpp)
+add_executable(spoutsender main.cpp box.cpp)
 set_compile_options(spoutsender)
 find_package(glm REQUIRED)
 target_link_libraries(spoutsender PRIVATE sgct::sgct glm::glm)

@@ -6,9 +6,9 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include "box.h"
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <sgct/utils/box.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -38,7 +38,7 @@ namespace {
 
     bool isRunning = true;
 
-    std::unique_ptr<sgct::utils::Box> box;
+    std::unique_ptr<Box> box;
     GLint matrixLoc = -1;
 
     // variables to share across cluster
@@ -300,7 +300,7 @@ void initOGL(GLFWwindow* win) {
     }
 
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
-    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
+    box = std::make_unique<Box>(2.f, Box::TextureMappingMode::Regular);
 
     // Set up backface culling
     glCullFace(GL_BACK);

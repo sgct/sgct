@@ -21,11 +21,12 @@
               "pos": { "x": 0.0, "y": 0.0 },
               "size": { "x": 1.0, "y": 1.0 },
               "projection": {
-                "type": "SpoutOutputProjection",
+                "type": "CubemapProjection",
                 "quality": "1k",
-                "mapping": "cubemap",
-                "mappingspoutname": "OS_CUBEMAP",
-                "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 },
+                "spout": {
+                  "enabled": true,
+                  "name": "OS_CUBEMAP"
+                },
                 "channels": {
                   "right": true,
                   "zleft": true,

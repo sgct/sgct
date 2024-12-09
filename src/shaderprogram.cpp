@@ -107,25 +107,39 @@ void ShaderProgram::deleteProgram() {
     _programId = 0;
 }
 
-void ShaderProgram::addShaderSource(std::string_view src, GLenum type) {
+void ShaderProgram::addVertexShader(std::string_view src) {
     // Prepare source code for shader
     constexpr char Null = '\0';
 
-    const unsigned int id = glCreateShader(type);
+    const unsigned int id = glCreateShader(GL_VERTEX_SHADER);
     
     const char* shaderSrc[] = { src.data(), &Null };
     glShaderSource(id, 1, shaderSrc, nullptr);
     glCompileShader(id);
-    checkCompilationStatus(type, id);
+    checkCompilationStatus(GL_VERTEX_SHADER, id);
 
     _shaders.push_back(id);
 }
 
-std::string ShaderProgram::name() const {
+void ShaderProgram::addFragmentShader(std::string_view src) {
+    // Prepare source code for shader
+    constexpr char Null = '\0';
+
+    const unsigned int id = glCreateShader(GL_FRAGMENT_SHADER);
+
+    const char* shaderSrc[] = { src.data(), &Null };
+    glShaderSource(id, 1, shaderSrc, nullptr);
+    glCompileShader(id);
+    checkCompilationStatus(GL_FRAGMENT_SHADER, id);
+
+    _shaders.push_back(id);
+}
+
+std::string_view ShaderProgram::name() const {
     return _name;
 }
 
-int ShaderProgram::id() const {
+unsigned int ShaderProgram::id() const {
     return _programId;
 }
 

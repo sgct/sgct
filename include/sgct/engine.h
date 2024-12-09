@@ -13,7 +13,7 @@
 #include <sgct/actions.h>
 #include <sgct/callbackdata.h>
 #include <sgct/config.h>
-#include <sgct/frustum.h>
+#include <sgct/definitions.h>
 #include <sgct/joystick.h>
 #include <sgct/keys.h>
 #include <sgct/modifiers.h>
@@ -56,12 +56,15 @@ SGCT_EXPORT config::Cluster loadCluster(
  */
 SGCT_EXPORT double time();
 
+
 /**
  * The Engine class is the central part of SGCT and handles most of the callbacks,
  * rendering, network handling, input devices, etc.
  */
 class SGCT_EXPORT Engine {
 public:
+    using DrawFunction = void (*)(const RenderData&);
+
     /**
      * Structure with all statistics gathered about different frametimes. The newest value
      * is always at the front of the different arrays, the remaining values being sorted
@@ -109,6 +112,62 @@ public:
         double maxDt() const;
     };
 
+    struct SGCT_EXPORT Settings {
+        /// Stores the configuration option whether the created OpenGL contexts should be
+        /// debug contexts or regular ones. This value is only in use between the
+        /// constructor and the #initialize function
+        bool createDebugContext = false;
+
+        /// Sets the swap interval to be used by the application
+        ///   -1 = adaptive sync(Nvidia)
+        ///    0 = vertical sync off
+        ///    1 = wait for vertical sync
+        ///    2..inf = wait for every n-th vertical sync
+        int8_t swapInterval = 1;
+
+        /// If this is true, a log message is printed to the console while a client is
+        /// waiting for the master to connect or while the master is waiting for one or
+        /// more clients
+        bool printSyncMessage = true;
+
+        /// Get if capture should use backbuffer data or texture. Backbuffer data includes
+        /// masks and warping
+        bool captureBackBuffer = false;
+
+        bool useDepthTexture = false;
+        bool useNormalTexture = false;
+        bool usePositionTexture = false;
+
+        /// The number of seconds that SGCT will wait for the master or clients to connect
+        /// before aborting
+        float syncTimeout = 60.f;
+
+        struct SS{
+            /// The location where the screenshots are being saved
+            std::filesystem::path capturePath;
+
+            // The number of capture threads
+            int nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
+
+            /// If set to true, the node name is added to screenshots
+            bool addNodeName = false;
+
+            /// If set to true, the window name is added to screenshots
+            bool addWindowName = true;
+
+            /// The prefix to be used for all screenshots
+            std::string prefix;
+
+            /**
+             * Information about the screenshot limits. If there is no screenshot limit,
+             * this function returns `std::nullopt`. Otherwise the first component is the
+             * index of the first screenshot that will be rendered. The second component
+             * is the index of the last screenshot that will not be rendered anymore.
+             */
+            std::optional<std::pair<uint64_t, uint64_t>> limits;
+        } capture;
+    };
+
     /**
      * This struct holds all of the callback functions that can be used by the client
      * library to be called during the different times of the frame.
@@ -117,75 +176,75 @@ public:
         /// This function is called before the window is created (before OpenGL context is
         /// created). At this stage the configuration file has been read and network
         /// is initialized.
-        std::function<void()> preWindow;
+        void (*preWindow)() = nullptr;
 
         /// This function is called once before the starting the render loop and after
         /// creation of the OpenGL context. The window that is passed in this callback is
         /// the shared context between all created windows
-        std::function<void(GLFWwindow*)> initOpenGL;
+        void (*initOpenGL)(GLFWwindow*) = nullptr;
 
         /// This function is called before the synchronization stage.
-        std::function<void()> preSync;
+        void (*preSync)() = nullptr;
 
         /// This function is called once per frame after sync but before draw stage.
-        std::function<void()> postSyncPreDraw;
+        void (*postSyncPreDraw)() = nullptr;
 
         /// This function draws the scene and could be called several times per frame
         /// as it's called once per viewport and once per eye if stereoscopy is used.
-        std::function<void(const RenderData&)> draw;
+        void (*draw)(const RenderData&) = nullptr;
 
         /// This function is be called after overlays and post effects has been drawn and
         /// can used to render text and HUDs that will not be filtered or antialiased.
-        std::function<void(const RenderData&)> draw2D;
+        void (*draw2D)(const RenderData&) = nullptr;
 
         /// This function is called after the draw stage but before the OpenGL buffer
         /// swap.
-        std::function<void()> postDraw;
+        void (*postDraw)() = nullptr;
 
         /// This is called before all SGCT components will be destroyed. The same shared
         /// context is active that was passed in the Callbacks::initOpenGL callback
-        std::function<void()> cleanup;
+        void (*cleanup)() = nullptr;
 
         /// This function is called to encode all shared data that is sent to the
         /// connected nodes in a clustered setup.
-        std::function<std::vector<std::byte>()> encode;
+        std::vector<std::byte> (*encode)() = nullptr;
 
         /// This function is called by decode all shared data sent to us from the master
         /// The parameter is the block of data that contains the data to be decoded.
-        std::function<void(const std::vector<std::byte>&)> decode;
+        void (*decode)(const std::vector<std::byte>&) = nullptr;
 
         /// This function is called when a TCP message is received.
-        std::function<void(const char*, int)> externalDecode;
+        void (*externalDecode)(const char*, int) = nullptr;
 
         /// This function is called when the connection status changes.
-        std::function<void(bool)> externalStatus;
+        void (*externalStatus)(bool) = nullptr;
 
         /// This function is called when a TCP message is received.
-        std::function<void(void*, int, int, int)> dataTransferDecode;
+        void (*dataTransferDecode)(void*, int, int, int) = nullptr;
 
         /// This function is called when the connection status changes.
-        std::function<void(bool, int)> dataTransferStatus;
+        void (*dataTransferStatus)(bool, int) = nullptr;
 
         /// This function is called when data is successfully sent.
-        std::function<void(int, int)> dataTransferAcknowledge;
+        void (*dataTransferAcknowledge)(int, int) = nullptr;
 
         /// This function sets the keyboard callback (GLFW wrapper) for all windows.
-        std::function<void(Key, Modifier, Action, int, Window*)> keyboard;
+        void (*keyboard)(Key, Modifier, Action, int, Window*) = nullptr;
 
         /// All windows are connected to this callback.
-        std::function<void(unsigned int, int, Window*)> character;
+        void (*character)(unsigned int, int, Window*) = nullptr;
 
         /// This function sets the mouse button callback (GLFW wrapper) for all windows.
-        std::function<void(MouseButton, Modifier, Action, Window*)> mouseButton;
+        void (*mouseButton)(MouseButton, Modifier, Action, Window*) = nullptr;
 
         /// All windows are connected to this callback.
-        std::function<void(double, double, Window*)> mousePos;
+        void (*mousePos)(double, double, Window*) = nullptr;
 
         /// All windows are connected to this callback.
-        std::function<void(double, double, Window*)> mouseScroll;
+        void (*mouseScroll)(double, double, Window*) = nullptr;
 
         /// Drop files to any window. All windows are connected to this callback.
-        std::function<void(const std::vector<std::string_view>&)> drop;
+        void (*drop)(const std::vector<std::string_view>&) = nullptr;
     };
 
     /**
@@ -273,14 +332,6 @@ public:
     void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
 
     /**
-     * Set the eye separation (interocular distance) for all users. This operation
-     * recalculates all frustums for all viewports.
-     *
-     * \param eyeSeparation The eye separation in meters
-     */
-    void setEyeSeparation(float eyeSeparation) const;
-
-    /**
      * This functions updates the frustum of all viewports. If a viewport is tracked, this
      * is done on the fly.
      */
@@ -364,7 +415,10 @@ public:
      *
      * \return The currently bound draw function
      */
-    const std::function<void(const RenderData&)>& drawFunction() const;
+    Engine::DrawFunction drawFunction() const;
+
+    Engine::DrawFunction draw2DFunction() const;
+
 
     /**
      * Returns a reference to the node that represents this computer.
@@ -407,35 +461,6 @@ public:
     unsigned int currentFrameNumber() const;
 
     /**
-     * Specifies the sync parameters to be used in the rendering loop.
-     *
-     * \param printMessage If `true` a message is print waiting for a frame every second
-     * \param timeout The timeout that the master and clients will wait for in seconds
-     */
-    void setSyncParameters(bool printMessage = true, float timeout = 60.f);
-
-    /**
-     * Set up the current viewport, the framebuffer resolutions, windowing, and scissoring
-     * in OpenGL. This is a function that is called by internal classes of SGCT and in
-     * general does not have to be called by any external application using this library.
-     *
-     * \param window The Window object for which the viewport should be set
-     * \param viewport The viewport of the \p window that should be set
-     * \param frustum The frustum of the BaseViewport that should be set
-     */
-    void setupViewport(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustum) const;
-
-    /**
-     * Get swap interval for all windows.
-     *   -1 = adaptive sync (Nvidia)
-     *    0 = vertical sync off
-     *    1 = wait for vertical sync
-     *    2 = fix when using swapgroups in xp and running half the framerate
-     */
-    int swapInterval() const;
-
-    /**
      * Set capture/screenshot path used by SGCT.
      *
      * \param path The path including filename without suffix
@@ -443,74 +468,14 @@ public:
     void setCapturePath(std::filesystem::path path);
 
     /**
-     * Get the capture/screenshot path.
-     */
-    const std::filesystem::path& capturePath() const;
-
-    /**
-     * Returns information about the screenshot limits. If there is no screenshot limit,
-     * this function returns `std::nullopt`. Otherwise the first component is the index of
-     * the first screenshot that will be rendered. The second component is the index of
-     * the last screenshot that will not be rendered anymore.
-     *
-     * \return Information about the limits of screenshot rendering
-     */
-    std::optional<std::pair<uint64_t, uint64_t>> screenshotLimit() const;
-
-    /**
-     * \return The prefix that is used for all screenshots
-     */
-    const std::string& prefixScreenshot() const;
-
-    /**
-     * \return Should screenshots contain the node name
-     */
-    bool addNodeNameToScreenshot() const;
-
-    /**
-     * \return Whether screenshots should contain the window name
-     */
-    bool addWindowNameToScreenshot() const;
-
-    /**
-     * \return The number of capture threads (for screenshot recording)
-     */
-    int numberCaptureThreads() const;
-
-    /**
-     * \return `true` if depth buffer is rendered to texture
-     */
-    bool useDepthTexture() const;
-
-    /**
-     * \return `true` if normals are rendered to texture
-     */
-    bool useNormalTexture() const;
-
-    /**
-     * \return `true` if positions are rendered to texture
-     */
-    bool usePositionTexture() const;
-
-    enum class DrawBufferType {
-        Diffuse,
-        DiffuseNormal,
-        DiffusePosition,
-        DiffuseNormalPosition
-    };
-    DrawBufferType drawBufferType() const;
-
-    /**
      * Set if capture should capture warped from backbuffer instead of texture. Backbuffer
      * data includes masks and warping.
      */
     void setCaptureFromBackBuffer(bool state);
 
-    /**
-     * Get if capture should use backbuffer data or texture. Backbuffer data includes
-     * masks and warping.
-     */
-    bool captureFromBackBuffer() const;
+    StatisticsRenderer* statisticsRenderer();
+
+    const Settings& settings() const;
 
 private:
     /**
@@ -567,52 +532,6 @@ private:
     void frameLockPostStage();
 
     /**
-     * Draw viewport overlays if there are any.
-     *
-     * \param window The Window object for which the overlays should be drawn
-     * \param frustum The frustum for which the overlay should be drawn
-     */
-    void drawOverlays(const Window& window, Frustum::Mode frustum) const;
-
-    /**
-     * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
-     * be a simple quad or a geometry correction and blending mesh.
-     *
-     * \param window The Window whose geometry should be drawn
-     */
-    void renderFBOTexture(Window& window) const;
-
-    /**
-     * This function combines a texture and a shader into a new texture while applying
-     * fast anti-aliasing (FXAA).
-     *
-     * \param window The Window object for which the FXAA operation should be performed
-     * \param targetIndex The texture index that should be used as the source for the FXAA
-     */
-    void renderFXAA(Window& window, Window::TextureIndex targetIndex) const;
-
-    /**
-     * Causes all of the viewports of the provided \p window be rendered with the
-     * \p frustum into the texture behind the provided \p ti texture index.
-     *
-     * \param window The window whose viewports should be rendered
-     * \param frustum The frustum that should be used to render the viewports
-     * \param ti The Window::TextureIndex that is pointing at the target where the
-     *        rendering should be placed
-     */
-    void renderViewports(Window& window, Frustum::Mode frustum,
-        Window::TextureIndex ti) const;
-
-    /**
-     * This function renders stats, OSD and overlays of the provided \p window and using
-     * the provided \p frustum.
-     *
-     * \param window The Window into of which the 2D rendering should be performed
-     * \param frustum The frustum that should be used to render the 2D component
-     */
-    void render2D(const Window& window, Frustum::Mode frustum) const;
-
-    /**
      * This function waits for all windows to be created on the whole cluster in order to
      * set the barrier (hardware swap-lock). Under some Nvidia drivers the stability is
      * improved by first join a swapgroup and then set the barrier then all windows in a
@@ -620,45 +539,29 @@ private:
      */
     void waitForAllWindowsInSwapGroupToOpen();
 
-    /**
-     * This function copies/render the result from the previous window same viewport (if
-     * it exists) into this window.
-     *
-     * \param prevWindow The source window whose content should be copied into the
-     *        \p window
-     * \param window The destination into which the contents of the \p prevWindow is
-     *        copied
-     * \param viewport The viewport of the window that should be compied
-     * \param mode The frustum that should be used to copy the window contents
-     *
-     * \pre The \p prevWindow and \p window must be different Window objects
-     */
-    void blitWindowViewport(Window& prevWindow, Window& window,
-        const Viewport& viewport, Frustum::Mode mode) const;
-
     /// The function pointer that is called before any windows are created
-    std::function<void()> _preWindowFn;
+    void (*_preWindowFn)() = nullptr;
 
     /// The function pointer that is called after all windows have been created
-    std::function<void(GLFWwindow*)> _initOpenGLFn;
+    void (*_initOpenGLFn)(GLFWwindow*) = nullptr;
 
     /// Function pointer that is called before the synchronization step of the frame
-    std::function<void()> _preSyncFn;
+    void (*_preSyncFn)() = nullptr;
 
     /// Function pointer that is called after the synchronization but before rendering
-    std::function<void()> _postSyncPreDrawFn;
+    void (*_postSyncPreDrawFn)() = nullptr;
 
     /// Function pointer that is called for the 3D portion of the rendering
-    std::function<void(const RenderData&)> _drawFn;
+    void (*_drawFn)(const RenderData&) = nullptr;
 
     /// Function pointer that is called for the 2D portion of the rendering
-    std::function<void(const RenderData&)> _draw2DFn;
+    void (*_draw2DFn)(const RenderData&) = nullptr;
 
     /// Function pointer that is called after all rendering has finished
-    std::function<void()> _postDrawFn;
+    void (*_postDrawFn)() = nullptr;
 
     /// Function pointer that is called when the Engine is being destroyed
-    std::function<void()> _cleanupFn;
+    void (*_cleanupFn)() = nullptr;
 
     /// The near clipping plane used in the rendering and set through
     /// #setNearAndFarClippingPlanes
@@ -681,77 +584,14 @@ private:
     /// Whether SGCT should take a screenshot in the next frame
     bool _shouldTakeScreenshot = false;
 
+    /// Whether SGCT should terminate in the next frame
+    bool _shouldTerminate = false;
+
     /// Contains the list of window ids that should have a screenshot taken. If this
     /// vector is empty, all windows will have a screenshot
     std::vector<int> _shouldTakeScreenshotIds;
 
-    /// Whether SGCT should terminate in the next frame
-    bool _shouldTerminate = false;
-
-    /// If this is true, a log message is printed to the console while a client is waiting
-    /// for the master to connect or while the master is waiting for one or more clients
-    bool _printSyncMessage = true;
-
-    /// The number of seconds that SGCT will wait for the master or clients to connect
-    /// before aborting
-    float _syncTimeout = 60.f;
-
-    struct {
-        /// Stores the configuration option whether the created OpenGL contexts should be
-        /// debug contexts or regular ones. This value is only in use between the
-        /// constructor and the #initialize function
-        bool createDebugContext = false;
-
-        /// Sets the swap interval to be used by the application
-        ///   -1 = adaptive sync(Nvidia)
-        ///    0 = vertical sync off
-        ///    1 = wait for vertical sync
-        ///    2..inf = wait for every n-th vertical sync
-        int swapInterval = 1;
-
-        /// Get if capture should use backbuffer data or texture. Backbuffer data includes
-        /// masks and warping
-        bool captureBackBuffer = false;
-
-        struct {
-            bool useDepthTexture = false;
-            bool useNormalTexture = false;
-            bool usePositionTexture = false;
-        } textures;
-
-        struct {
-            /// The location where the screenshots are being saved
-            std::filesystem::path capturePath;
-
-            // The number of capture threads
-            int nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
-
-            /// The prefix to be used for all screenshots
-            std::string prefix;
-
-            /// If set to true, the node name is added to screenshots
-            bool addNodeName = false;
-
-            /// If set to true, the window name is added to screenshots
-            bool addWindowName = true;
-
-            /// If specified, it limits the screenshots taken to be in [first, second)
-            std::optional<std::pair<uint64_t, uint64_t>> limits;
-        } capture;
-    } _settings;
-
-    /// Contains information about the FXAA shader that may be used in the rendering
-    struct FXAAShader {
-        ShaderProgram shader;
-        int sizeX = -1;
-        int sizeY = -1;
-        int subPixTrim = -1;
-        int subPixOffset = -1;
-    };
-    std::optional<FXAAShader> _fxaa;
-
-    ShaderProgram _fboQuad;
-    ShaderProgram _overlay;
+    Settings _settings;
 
     std::unique_ptr<std::thread> _thread;
 

@@ -11,8 +11,6 @@ add_executable(SGCTTest)
 target_sources(
   SGCTTest
   PRIVATE
-    equality.cpp
-
     test_config_load.cpp
     test_config_parse.cpp
     test_config_required_parameters.cpp

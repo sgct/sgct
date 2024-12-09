@@ -13,7 +13,7 @@
 #define NOMINMAX
 #define VC_EXTRALEAN
 #include <windows.h>
-#endif
+#endif // WIN32
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
@@ -30,16 +30,45 @@
 
 #ifdef WIN32
     #include <ws2tcpip.h>
-#else // Use BSD sockets
+#else // ^^^^ WIN32 // !WIN32 vvvv
+    // Use BSD sockets
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <netdb.h>
     #include <unistd.h>
-#endif
+#endif // WIN32
 
 #define Error(code, msg) Error(Error::Component::Network, code, msg)
+
+namespace {
+
+    void prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
+                             int packageId)
+    {
+        int messageLength = length;
+
+        length += static_cast<int>(sgct::Network::HeaderSize);
+        buffer.resize(length);
+
+        buffer[0] = sgct::Network::DataId;
+        std::memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
+
+        // set uncompressed size to DefaultId since compression is not used
+        std::memset(buffer.data() + 9, sgct::Network::DefaultId, sizeof(int));
+
+        // add data to buffer
+        std::memcpy(
+            buffer.data() + sgct::Network::HeaderSize,
+            data,
+            length - sgct::Network::HeaderSize
+        );
+
+        std::memcpy(buffer.data() + 5, &messageLength, sizeof(messageLength));
+    }
+
+} // namespace
 
 namespace sgct {
 
@@ -99,7 +128,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
             throw Error(5020, "Winsock 2.2 startup failed");
         }
     }
-#endif
+#endif // WIN32
 
     Log::Debug("Getting host info");
 
@@ -112,13 +141,13 @@ NetworkManager::NetworkManager(NetworkMode nm,
         ZoneScopedN("gethostname");
 #ifdef WIN32
         const int res = gethostname(Buffer.data(), static_cast<int>(Buffer.size()));
-#else // WIN32
+#else // ^^^^ WIN32 // !WIN32 vvvv
         const size_t res = gethostname(Buffer.data(), Buffer.size());
 #endif // WIN32
         if (res != 0) {
 #ifdef WIN32
             WSACleanup();
-#endif
+#endif // WIN32
             throw Error(5027, "Failed to get local host name");
         }
     }
@@ -146,7 +175,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         //TODO(micah) why does getaddrinfo fail for 'macbookpro.local'
 #ifdef __APPLE__
             const int result = getaddrinfo("localhost", "http", &hints, &info);
-#else
+#else // ^^^^ __APPLE__ // !__APPLE__ vvvv
             const int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
 #endif // __APPLE__
     if (result != 0) {
@@ -196,7 +225,7 @@ NetworkManager::~NetworkManager() {
     cond.notify_all();
 
     // signal to terminate
-    for (std::unique_ptr<Network>& connection : _networkConnections) {
+    for (const std::unique_ptr<Network>& connection : _networkConnections) {
         connection->initShutdown();
     }
 
@@ -215,7 +244,7 @@ NetworkManager::~NetworkManager() {
 
 #ifdef WIN32
     WSACleanup();
-#endif
+#endif // WIN32
     Log::Info("Network API closed");
 }
 
@@ -284,11 +313,7 @@ void NetworkManager::initialize() {
         if (!_isServer) {
             addConnection(cm.thisNode().syncPort(), remoteAddress);
             _networkConnections.back()->setDecodeFunction(
-                // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
-                // when switching to C++20
-                [](const char* data, int length) {
-                    SharedData::instance().decode(data, length);
-                }
+                std::bind_front(&SharedData::decode, SharedData::instance())
             );
 
             // add data transfer connection
@@ -364,7 +389,7 @@ void NetworkManager::clearCallbacks() {
     _dataTransferAcknowledgeFn = nullptr;
 }
 
-std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
+std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) const {
     if (_syncConnections.empty()) {
         return std::nullopt;
     }
@@ -420,12 +445,12 @@ bool NetworkManager::isSyncComplete() const {
     const unsigned int counter = static_cast<unsigned int>(std::count_if(
         _syncConnections.cbegin(),
         _syncConnections.cend(),
-        [](Network* n) { return n->isUpdated(); }
+        std::mem_fn(&Network::isUpdated)
     ));
     return (counter == _nActiveSyncConnections);
 }
 
-void NetworkManager::transferData(const void* data, int length, int packageId) {
+void NetworkManager::transferData(const void* data, int length, int packageId) const {
     std::vector<char> buffer;
     prepareTransferData(data, buffer, length, packageId);
     for (Network* connection : _dataTransferConnections) {
@@ -436,37 +461,13 @@ void NetworkManager::transferData(const void* data, int length, int packageId) {
 }
 
 void NetworkManager::transferData(const void* data, int length, int packageId,
-                                  Network& connection)
+                                  const Network& connection) const
 {
     if (connection.isConnected()) {
         std::vector<char> buffer;
         prepareTransferData(data, buffer, length, packageId);
         connection.sendData(buffer.data(), length);
     }
-}
-
-void NetworkManager::prepareTransferData(const void* data, std::vector<char>& buffer,
-                                         int& length, int packageId)
-{
-    int messageLength = length;
-
-    length += static_cast<int>(Network::HeaderSize);
-    buffer.resize(length);
-
-    buffer[0] = Network::DataId;
-    std::memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
-
-    // set uncompressed size to DefaultId since compression is not used
-    std::memset(buffer.data() + 9, Network::DefaultId, sizeof(int));
-
-    // add data to buffer
-    std::memcpy(
-        buffer.data() + Network::HeaderSize,
-        data,
-        length - Network::HeaderSize
-    );
-
-    std::memcpy(buffer.data() + 5, &messageLength, sizeof(messageLength));
 }
 
 unsigned int NetworkManager::activeConnectionsCount() const {
@@ -492,8 +493,8 @@ const Network& NetworkManager::syncConnection(int index) const {
     return *_syncConnections[index];
 }
 
-void NetworkManager::updateConnectionStatus(Network* connection) {
-    Log::Debug(std::format("Updating status for connection {}", connection->id()));
+void NetworkManager::updateConnectionStatus(Network& connection) {
+    Log::Debug(std::format("Updating status for connection {}", connection.id()));
 
     int nConnections = 0;
     int nConnectedSync = 0;
@@ -543,8 +544,9 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_isServer) {
         mutex::DataSync.lock();
         // local copy (thread safe)
-        const bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
-                                    (nConnectedDataTransfer == totalNTransferConnections);
+        const bool allNodesConnected =
+            (nConnectedSync == totalNSyncConnections) &&
+            (nConnectedDataTransfer == totalNTransferConnections);
         _allNodesConnected = allNodesConnected;
         mutex::DataSync.unlock();
 
@@ -554,14 +556,14 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 if (!syncConnection->isConnected()) {
                     continue;
                 }
-                std::array<char, Network::HeaderSize> data;
+                std::array<char, Network::HeaderSize> data = {};
                 std::fill(data.begin(), data.end(), Network::DefaultId);
                 data[0] = Network::ConnectedId;
                 syncConnection->sendData(&data, Network::HeaderSize);
             }
             for (Network* dataConnection : _dataTransferConnections) {
                 if (dataConnection->isConnected()) {
-                    std::array<char, Network::HeaderSize> data;
+                    std::array<char, Network::HeaderSize> data = {};
                     std::fill(data.begin(), data.end(), Network::DefaultId);
                     data[0] = Network::ConnectedId;
                     dataConnection->sendData(&data, Network::HeaderSize);
@@ -570,12 +572,12 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // wake up the connection handler thread on server
-        connection->startConnectionConditionVar().notify_all();
+        connection.startConnectionConditionVar().notify_all();
     }
 
-    if (connection->type() == Network::ConnectionType::DataTransfer) {
+    if (connection.type() == Network::ConnectionType::DataTransfer) {
         if (_dataTransferStatusFn) {
-            _dataTransferStatusFn(connection->isConnected(), connection->id());
+            _dataTransferStatusFn(connection.isConnected(), connection.id());
         }
     }
 
@@ -616,7 +618,7 @@ void NetworkManager::addConnection(int port, std::string address,
     Log::Debug(std::format(
         "Initiating connection {} at port {}", _networkConnections.size(), port
     ));
-    net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
+    net->setUpdateFunction([this](Network& c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
     // must be initialized after binding

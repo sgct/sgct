@@ -62,7 +62,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     Log::Info(std::format("Reading SCISS mesh data from '{}'", path));
 
     
-    std::ifstream file(path, std::ifstream::binary);
+    std::ifstream file = std::ifstream(path, std::ifstream::binary);
     if (!file.good()) {
         throw Error(2070, std::format("Failed to open '{}'", path));
     }

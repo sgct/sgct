@@ -10,7 +10,6 @@
 #define __SGCT__PROJECTION__H__
 
 #include <sgct/sgctexports.h>
-#include <sgct/frustum.h>
 #include <sgct/math.h>
 
 namespace sgct {
@@ -30,6 +29,15 @@ public:
     const mat4& projectionMatrix() const;
 
 private:
+    struct Frustum {
+        float left = -1.f;
+        float right = 1.f;
+        float bottom = -1.f;
+        float top = 1.f;
+        float nearPlane = 0.1f;
+        float farPlane = 100.f;
+    };
+
     mat4 _viewMatrix = mat4(1.f);
     mat4 _viewProjectionMatrix = mat4(1.f);
     mat4 _projectionMatrix = mat4(1.f);

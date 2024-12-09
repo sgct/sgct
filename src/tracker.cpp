@@ -94,7 +94,7 @@ void Tracker::setTransform(mat4 mat) {
     _transform = std::move(mat);
 }
 
-mat4 Tracker::getTransform() const {
+mat4 Tracker::transform() const {
     const std::unique_lock lock(mutex::Tracking);
     return _transform;
 }

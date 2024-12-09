@@ -6,9 +6,9 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-add_executable(domeimageviewer main.cpp)
+add_executable(domeimageviewer main.cpp dome.cpp)
 set_compile_options(domeimageviewer)
-target_link_libraries(domeimageviewer PRIVATE sgct::sgct)
+target_link_libraries(domeimageviewer PRIVATE sgct::sgct glm::glm)
 
 add_custom_command(
   TARGET domeimageviewer POST_BUILD

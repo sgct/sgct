@@ -292,9 +292,6 @@ void EquirectangularProjection::initViewports() {
 }
 
 void EquirectangularProjection::initShaders() {
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
     _shader = ShaderProgram("CylindricalProjectinoShader");
     _shader.addVertexShader(shaders_fisheye::BaseVert);
     _shader.addFragmentShader(FragmentShader);

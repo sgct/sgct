@@ -305,9 +305,6 @@ void SphericalMirrorProjection::initShaders() {
         Log::Warning("Stereo not supported in spherical projection");
     }
 
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
     _shader = ShaderProgram("SphericalMirrorShader");
     _shader.addVertexShader(SphericalProjectionVert);
     _shader.addFragmentShader(SphericalProjectionFrag);

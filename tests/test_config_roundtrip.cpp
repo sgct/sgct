@@ -4139,7 +4139,10 @@ TEST_CASE("SpoutOutputProjection/SpoutName", "[roundtrip]") {
     sgct::config::Window window;
     window.viewports.push_back({
         .projection = sgct::config::CubemapProjection {
-            .spoutName = "abc"
+            .spout = sgct::config::CubemapProjection::Spout {
+                .enabled = true,
+                .name = "abc"
+            }
         }
     });
     node.windows.push_back(window);

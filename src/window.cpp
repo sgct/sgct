@@ -386,11 +386,6 @@ Window::Window(const config::Window& window)
         _ndiName = window.ndi->name.value_or(_ndiName);
         _ndiGroups = window.ndi->groups.value_or(_ndiGroups);
 
-        const bool initializeSuccess = NDIlib_initialize();
-        if (!initializeSuccess) {
-            Log::Error("Error initializing NDI");
-        }
-
         NDIlib_send_create_t createDesc;
         if (!_ndiName.empty()) {
             createDesc.p_ndi_name = _ndiName.c_str();
@@ -400,7 +395,6 @@ Window::Window(const config::Window& window)
         }
 
         _ndiHandle = NDIlib_send_create(&createDesc);
-        
         if (!_ndiHandle) {
             Log::Error("Error creating NDI sender");
         }
@@ -647,12 +641,13 @@ void Window::closeWindow() {
 #endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_NDI
-    // One of the two buffers might be still in flight so we have to flush the pipeline
-    // before we can destroy the video or we might risk NDI accessing dead memory and
-    // crashing
-    NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
-
-    NDIlib_send_destroy(_ndiHandle);
+    if (_ndiHandle) {
+        // One of the two buffers might be still in flight so we have to flush the
+        // pipeline before we can destroy the video or we might risk NDI accessing dead
+        // memory and crashing
+        NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
+        NDIlib_send_destroy(_ndiHandle);
+    }
 #endif // SGCT_HAS_NDI
 
     makeSharedContextCurrent();
@@ -1083,6 +1078,7 @@ void Window::renderFBOTexture() {
 
 #ifdef SGCT_HAS_NDI
     if (_ndiHandle) {
+        // Download the texture data from the GPU
         glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
         glCopyTexImage2D(
             GL_TEXTURE_2D,

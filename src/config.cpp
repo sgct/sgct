@@ -1233,24 +1233,36 @@ static void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
     j["geometry"] = mesh;
 }
 
+
+static void from_json(const nlohmann::json& j, CubemapProjection::Channels& c) {
+    parseValue(j, "right", c.right);
+    parseValue(j, "zleft", c.zLeft);
+    parseValue(j, "bottom", c.bottom);
+    parseValue(j, "top", c.top);
+    parseValue(j, "left", c.left);
+    parseValue(j, "zright", c.zRight);
+}
+
+static void from_json(const nlohmann::json& j, CubemapProjection::Spout& s) {
+    parseValue(j, "enabled", s.enabled);
+    parseValue(j, "name", s.name);
+}
+
+static void from_json(const nlohmann::json& j, CubemapProjection::NDI& n) {
+    parseValue(j, "enabled", n.enabled);
+    parseValue(j, "name", n.name);
+    parseValue(j, "groups", n.groups);
+}
+
 static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
-    parseValue(j, "spoutname", p.spoutName);
-
-    if (auto it = j.find("channels");  it != j.end()) {
-        CubemapProjection::Channels c;
-        parseValue(*it, "right", c.right);
-        parseValue(*it, "zleft", c.zLeft);
-        parseValue(*it, "bottom", c.bottom);
-        parseValue(*it, "top", c.top);
-        parseValue(*it, "left", c.left);
-        parseValue(*it, "zright", c.zRight);
-        p.channels = c;
-    }
+    parseValue(j, "spout", p.spout);
+    parseValue(j, "ndi", p.ndi);
+    parseValue(j, "channels", p.channels);
 
     if (auto it = j.find("orientation");  it != j.end()) {
         sgct::vec3 orientation;
@@ -1261,6 +1273,32 @@ static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     }
 }
 
+static void to_json(nlohmann::json& j, const CubemapProjection::Channels& c) {
+    j["right"] = c.right;
+    j["zleft"] = c.zLeft;
+    j["bottom"] = c.bottom;
+    j["top"] = c.top;
+    j["left"] = c.left;
+    j["zright"] = c.zRight;
+}
+
+static void to_json(nlohmann::json& j, const CubemapProjection::Spout& s) {
+    j["enabled"] = s.enabled;
+    if (s.name) {
+        j["name"] = *s.name;
+    }
+}
+
+static void to_json(nlohmann::json& j, const CubemapProjection::NDI& n) {
+    j["enabled"] = n.enabled;
+    if (n.name) {
+        j["name"] = *n.name;
+    }
+    if (n.groups) {
+        j["groups"] = *n.groups;
+    }
+}
+
 static void to_json(nlohmann::json& j, const CubemapProjection& p) {
     j = nlohmann::json::object();
 
@@ -1268,19 +1306,16 @@ static void to_json(nlohmann::json& j, const CubemapProjection& p) {
         j["quality"] = std::to_string(*p.quality);
     }
 
-    if (p.spoutName) {
-        j["spoutname"] = *p.spoutName;
+    if (p.spout) {
+        j["spout"] = *p.spout;
+    }
+
+    if (p.ndi) {
+        j["ndi"] = *p.ndi;
     }
 
     if (p.channels.has_value()) {
-        nlohmann::json channels = nlohmann::json::object();
-        channels["right"] = p.channels->right;
-        channels["zleft"] = p.channels->zLeft;
-        channels["bottom"] = p.channels->bottom;
-        channels["top"] = p.channels->top;
-        channels["left"] = p.channels->left;
-        channels["zright"] = p.channels->zRight;
-        j["channels"] = channels;
+        j["channels"] = *p.channels;
     }
 
     if (p.orientation.has_value()) {

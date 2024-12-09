@@ -26,8 +26,8 @@
 
 namespace sgct {
 
-SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
-                                              const config::SpoutOutputProjection& config)
+SpoutOutputProjection::SpoutOutputProjection(const config::SpoutOutputProjection& config,
+                                             const Window& parent, User& user)
     : NonLinearProjection(parent)
     , _spoutName(config.spoutName.value_or(""))
     , _spout {
@@ -40,7 +40,7 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent, User* user,
     }
     , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
 {
-    setUser(*user);
+    setUser(user);
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
@@ -314,8 +314,8 @@ void SpoutOutputProjection::initViewports() {
 
 void SpoutOutputProjection::initShaders() {}
 
-void SpoutOutputProjection::initFBO(unsigned int internalFormat) {
-    NonLinearProjection::initFBO(internalFormat);
+void SpoutOutputProjection::initFBO(unsigned int internalFormat, int nSamples) {
+    NonLinearProjection::initFBO(internalFormat, nSamples);
 
     _spoutFBO = std::make_unique<OffScreenBuffer>(internalFormat);
     _spoutFBO->createFBO(_cubemapResolution.x, _cubemapResolution.y, 1);

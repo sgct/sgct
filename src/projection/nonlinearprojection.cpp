@@ -22,7 +22,7 @@
 
 namespace sgct {
 
-NonLinearProjection::NonLinearProjection(const Window* parent)
+NonLinearProjection::NonLinearProjection(const Window& parent)
     : _subViewports{
         BaseViewport(parent),
         BaseViewport(parent),
@@ -49,13 +49,11 @@ NonLinearProjection::~NonLinearProjection() {
 }
 
 void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int format,
-                                     unsigned int type, uint8_t samples)
+                                     unsigned int type, int nSamples)
 {
-    _samples = samples;
-
     initViewports();
     initTextures(internalFormat, format, type);
-    initFBO(internalFormat);
+    initFBO(internalFormat, nSamples);
     initVBO();
     initShaders();
 }
@@ -173,9 +171,9 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
     }
 }
 
-void NonLinearProjection::initFBO(unsigned int internalFormat) {
+void NonLinearProjection::initFBO(unsigned int internalFormat, int nSamples) {
     _cubeMapFbo = std::make_unique<OffScreenBuffer>(internalFormat);
-    _cubeMapFbo->createFBO(_cubemapResolution.x, _cubemapResolution.y, _samples);
+    _cubeMapFbo->createFBO(_cubemapResolution.x, _cubemapResolution.y, nSamples);
 }
 
 void NonLinearProjection::setupViewport(const BaseViewport& vp) const {

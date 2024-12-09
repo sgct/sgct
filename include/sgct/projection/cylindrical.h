@@ -19,8 +19,8 @@ namespace sgct {
 
 class SGCT_EXPORT CylindricalProjection final : public NonLinearProjection {
 public:
-    CylindricalProjection(const Window* parent, User* user,
-        const config::CylindricalProjection& config);
+    CylindricalProjection(const config::CylindricalProjection& config,
+        const Window& parent, User& user);
     ~CylindricalProjection() final;
 
     void render(const BaseViewport& viewport, FrustumMode mode) const override;

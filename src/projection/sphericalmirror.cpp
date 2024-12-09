@@ -55,8 +55,10 @@ namespace {
 
 namespace sgct {
 
-SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, User* user,
-                                          const config::SphericalMirrorProjection& config)
+SphericalMirrorProjection::SphericalMirrorProjection(
+                                          const config::SphericalMirrorProjection& config,
+                                                                     const Window& parent,
+                                                                               User& user)
     : NonLinearProjection(parent)
     , _tilt(config.tilt.value_or(0.f))
     , _meshPathBottom(config.mesh.bottom)
@@ -64,7 +66,7 @@ SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, User*
     , _meshPathRight(config.mesh.right)
     , _meshPathTop(config.mesh.top)
 {
-    setUser(*user);
+    setUser(user);
     setUseDepthTransformation(false);
     if (config.quality) {
         setCubemapResolution(*config.quality);

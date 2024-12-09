@@ -21,12 +21,11 @@
 
 namespace sgct {
 
-BaseViewport::BaseViewport(const Window* parent, FrustumMode eye)
+BaseViewport::BaseViewport(const Window& parent, FrustumMode eye)
     : _parent(parent)
     , _eye(eye)
     , _user(&ClusterManager::instance().defaultUser())
 {
-    assert(_parent);
     assert(_user);
 }
 
@@ -35,17 +34,16 @@ BaseViewport::~BaseViewport() = default;
 void BaseViewport::setupViewport(FrustumMode frustum) const {
     ZoneScoped;
 
-    const ivec2 res = _parent->framebufferResolution();
+    const ivec2 res = _parent.framebufferResolution();
     ivec4 vpCoordinates = ivec4 {
-        static_cast<int>(position().x * res.x),
-        static_cast<int>(position().y * res.y),
-        static_cast<int>(size().x * res.x),
-        static_cast<int>(size().y * res.y)
+        static_cast<int>(_position.x * res.x),
+        static_cast<int>(_position.y * res.y),
+        static_cast<int>(_size.x * res.x),
+        static_cast<int>(_size.y * res.y)
     };
 
-    const Window::StereoMode sm = _parent->stereoMode();
     if (frustum == FrustumMode::StereoLeft) {
-        switch (sm) {
+        switch (_parent.stereoMode()) {
             case Window::StereoMode::SideBySide:
                 vpCoordinates.x /= 2;
                 vpCoordinates.z /= 2;
@@ -67,7 +65,7 @@ void BaseViewport::setupViewport(FrustumMode frustum) const {
         }
     }
     else {
-        switch (sm) {
+        switch (_parent.stereoMode()) {
             case Window::StereoMode::SideBySide:
                 vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
                 vpCoordinates.z /= 2;
@@ -140,42 +138,31 @@ void BaseViewport::calculateFrustum(FrustumMode mode, float nearClip, float farC
 void BaseViewport::calculateNonLinearFrustum(FrustumMode mode, float nearClip,
                                              float farClip)
 {
-    const vec3& eyePos = _user->posMono();
+    const vec3& pos = _user->posMono();
 
     switch (mode) {
         case FrustumMode::Mono:
-            _monoProj.calculateProjection(
-                eyePos,
-                _projPlane,
-                nearClip,
-                farClip
-            );
+            _monoProj.calculateProjection(pos, _projPlane, nearClip, farClip);
             break;
         case FrustumMode::StereoLeft:
         {
-            const vec3 p {
-                _user->posLeftEye().x - eyePos.x,
-                _user->posLeftEye().y - eyePos.y,
-                _user->posLeftEye().z - eyePos.z
+            const vec3 o = vec3 {
+                _user->posLeftEye().x - pos.x,
+                _user->posLeftEye().y - pos.y,
+                _user->posLeftEye().z - pos.z
             };
-            _stereoLeftProj.calculateProjection(eyePos, _projPlane, nearClip, farClip, p);
+            _stereoLeftProj.calculateProjection(pos, _projPlane, nearClip, farClip, o);
             break;
         }
         case FrustumMode::StereoRight:
         {
-            const vec3 p {
-                _user->posRightEye().x + eyePos.x,
-                _user->posRightEye().y + eyePos.y,
-                _user->posRightEye().z + eyePos.z
+            const vec3 o = vec3 {
+                _user->posRightEye().x + pos.x,
+                _user->posRightEye().y + pos.y,
+                _user->posRightEye().z + pos.z
             };
 
-            _stereoRightProj.calculateProjection(
-                eyePos,
-                _projPlane,
-                nearClip,
-                farClip,
-                p
-            );
+            _stereoRightProj.calculateProjection(pos, _projPlane, nearClip, farClip, o);
             break;
         }
     }
@@ -287,7 +274,7 @@ float BaseViewport::horizontalFieldOfViewDegrees() const {
 }
 
 const Window& BaseViewport::window() const {
-    return *_parent;
+    return _parent;
 }
 
 } // namespace sgct

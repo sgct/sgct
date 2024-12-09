@@ -53,11 +53,13 @@ namespace {
 
 namespace sgct {
 
-EquirectangularProjection::EquirectangularProjection(const Window* parent, User* user,
-                                          const config::EquirectangularProjection& config)
+EquirectangularProjection::EquirectangularProjection(
+                                          const config::EquirectangularProjection& config,
+                                                                     const Window& parent,
+                                                                               User& user)
     : NonLinearProjection(parent)
 {
-    setUser(*user);
+    setUser(user);
     setUseDepthTransformation(true);
     if (config.quality) {
         setCubemapResolution(*config.quality);

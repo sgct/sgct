@@ -731,8 +731,8 @@ void Window::initialize() {
 
     loadShaders();
 
-    if (_spoutEnabled) {
 #ifdef SGCT_HAS_SPOUT
+    if (_spoutEnabled) {
         _spoutName = _spoutName.empty() ? "OpenSpace" : _spoutName;
 
         _spoutHandle = GetSpout();
@@ -747,8 +747,6 @@ void Window::initialize() {
         if (!success) {
             Log::Error(std::format("Error creating SPOUT handle for {}", _spoutName));
         }
-#else // ^^^^ SGCT_HAS_SPOUT // !SGCT_HAS_SPOUT vvvv
-        Log::Warning("SpoutName provided but compiled without SPOUT support");
 #endif // SGCT_HAS_SPOUT
     }
 

@@ -282,9 +282,6 @@ void CylindricalProjection::initViewports() {
 }
 
 void CylindricalProjection::initShaders() {
-    // reload shader program if it exists
-    _shader.program.deleteProgram();
-
     _shader.program = ShaderProgram("CylindricalProjectionShader");
     _shader.program.addVertexShader(shaders_fisheye::BaseVert);
     _shader.program.addFragmentShader(FragmentShader);

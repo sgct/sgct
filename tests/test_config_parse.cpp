@@ -2046,7 +2046,8 @@ TEST_CASE("Parse/SGCT: Spout Output Cubemap", "[parse]") {
     const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    CHECK(p.spoutName == "OS_CUBEMAP");
+    REQUIRE(p.spout);
+    CHECK(p.spout->name == "OS_CUBEMAP");
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);
@@ -2182,7 +2183,8 @@ TEST_CASE("Parse/SGCT: Spout Output Equirectangular", "[parse]") {
     const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    CHECK(p.spoutName == "OS_EQUIRECTANGULAR");
+    REQUIRE(p.spout);
+    CHECK(p.spout->name == "OS_EQUIRECTANGULAR");
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);
@@ -2308,7 +2310,8 @@ TEST_CASE("Parse/SGCT: Spout Output Fisheye", "[parse]") {
     const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    CHECK(p.spoutName == "OS_FISHEYE");
+    REQUIRE(p.spout);
+    CHECK(p.spout->name == "OS_FISHEYE");
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);
@@ -4108,7 +4111,8 @@ TEST_CASE("Parse/OpenSpace: Spout Output", "[parse]") {
     const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    CHECK(p.spoutName == "OpenSpace");
+    REQUIRE(p.spout);
+    CHECK(p.spout->name == "OpenSpace");
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];

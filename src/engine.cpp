@@ -39,6 +39,10 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#ifdef SGCT_HAS_NDI
+#include <Processing.NDI.Lib.h>
+#endif // SGCT_HAS_NDI
+
 #define Err(code, msg) Error(Error::Component::Engine, code, msg)
 
 namespace sgct {
@@ -512,6 +516,13 @@ void Engine::initialize() {
     Log::Info(std::format("Renderer: {}", renderer));
 
     Window::makeSharedContextCurrent();
+
+#ifdef SGCT_HAS_NDI
+    const bool initializeSuccess = NDIlib_initialize();
+    if (!initializeSuccess) {
+        Log::Error("Error initializing NDI");
+    }
+#endif // SGCT_HAS_NDI
 
     if (_initOpenGLFn) {
         Log::Info("Calling initialization callback");

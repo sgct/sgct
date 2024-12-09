@@ -208,10 +208,28 @@ bool operator==(const CubemapProjection::Channels& lhs,
         lhs.zRight == rhs.zRight;
 }
 
+bool operator==(const CubemapProjection::Spout& lhs,
+                const CubemapProjection::Spout& rhs)
+{
+    return
+        lhs.enabled == rhs.enabled &&
+        lhs.name == rhs.name;
+}
+
+bool operator==(const CubemapProjection::NDI& lhs,
+                const CubemapProjection::NDI& rhs)
+{
+    return
+        lhs.enabled == rhs.enabled &&
+        lhs.name == rhs.name &&
+        lhs.groups == rhs.groups;
+}
+
 bool operator==(const CubemapProjection& lhs, const CubemapProjection& rhs) {
     return
         lhs.quality == rhs.quality &&
-        lhs.spoutName == rhs.spoutName &&
+        lhs.spout == rhs.spout &&
+        lhs.ndi == rhs.ndi &&
         lhs.channels == rhs.channels &&
         lhs.orientation == rhs.orientation;
 }

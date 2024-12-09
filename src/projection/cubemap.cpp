@@ -40,18 +40,14 @@ namespace {
   uniform sampler2D zRight;
 
   void main() {
-    // Determine the relative position of the fragment in the 3x2 grid
     float column = tr_uv.x * 3.0; // 3 columns
     float row = tr_uv.y * 2.0;    // 2 rows
     
-    // Figure out which cell the fragment belongs to
     int col = int(floor(column));
     int rowId = int(floor(row));
     
-    // Compute local texture coordinates for the current cell (0.0 to 1.0 range)
     vec2 localCoord = vec2(fract(column), fract(row));
     
-    // Select the appropriate texture for the current cell
     if (rowId == 0 && col == 0) {
         out_diffuse = texture(zRight, localCoord);
     } 
@@ -70,36 +66,6 @@ namespace {
     else if (rowId == 1 && col == 2) {
         out_diffuse = texture(right, localCoord);
     } 
-
-/*
-    out_diffuse = vec4(1.0, 0.0, 0.0, 1.0);
-    if (tr_uv.x < (1.0/3.0)) {
-        if (tr_uv.y < (1.0/2.0)) {
-            // Top left panel -> zRight
-            vec2 uv = tr_uv * vec2(3.0, 2.0);
-            out_diffuse = texture(zRight, uv);
-        }
-        else {
-            // Bottom left panel -> zLeft
-        }
-    }
-    else if (tr_uv.x < (2.0/3.0)) {
-        if (tr_uv.y < (1.0/2.0)) {
-            // Top center panel -> Top
-        }
-        else {
-            // Bottom center panel -> Bottom
-        }
-    }
-    else {
-        if (tr_uv.y < (1.0/2.0)) {
-            // Top right panel -> Left
-        }
-        else {
-            // Bottom right panel -> Right
-        }
-    }
-*/
   }
 )";
 } // namespace
@@ -109,15 +75,23 @@ namespace sgct {
 CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
                                      const Window& parent, User& user)
     : NonLinearProjection(parent)
-    , _spoutName(config.spoutName.value_or(""))
-    , _spout {
-        SpoutInfo { config.channels ? config.channels->right : true, nullptr, 0 },
-        SpoutInfo { config.channels ? config.channels->left : true, nullptr, 0 },
-        SpoutInfo { config.channels ? config.channels->bottom : true, nullptr, 0 },
-        SpoutInfo { config.channels ? config.channels->top : true, nullptr, 0 },
-        SpoutInfo { config.channels ? config.channels->zLeft : true, nullptr, 0 },
-        SpoutInfo { config.channels ? config.channels->zRight : true, nullptr, 0 },
+    , _cubeFaces{
+        Cubeface { config.channels ? config.channels->right : true },
+        Cubeface { config.channels ? config.channels->left : true },
+        Cubeface { config.channels ? config.channels->bottom : true },
+        Cubeface { config.channels ? config.channels->top : true },
+        Cubeface { config.channels ? config.channels->zLeft : true },
+        Cubeface { config.channels ? config.channels->zRight : true },
     }
+#ifdef SGCT_HAS_SPOUT
+    , _spoutEnabled(config.spout ? config.spout->enabled : false)
+    , _spoutName(config.spout ? config.spout->name.value_or("") : "")
+#endif // SGCT_HAS_SPOUT
+#ifdef SGCT_HAS_NDI
+    , _ndiEnabled(config.ndi ? config.ndi->enabled : false)
+    , _ndiName(config.ndi ? config.ndi->name.value_or("OpenSpace") : "OpenSpace")
+    , _ndiGroups(config.ndi ? config.ndi->groups.value_or("") : "")
+#endif // SGCT_HAS_NDI
     , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
 {
     setUser(user);
@@ -129,15 +103,26 @@ CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
 }
 
 CubemapProjection::~CubemapProjection() {
+    for (const Cubeface& info : _cubeFaces) {
+        glDeleteTextures(1, &info.texture);
+
 #ifdef SGCT_HAS_SPOUT
-    for (const SpoutInfo& info : _spout) {
-        if (info.handle) {
-            reinterpret_cast<SPOUTHANDLE>(info.handle)->ReleaseSender();
-            reinterpret_cast<SPOUTHANDLE>(info.handle)->Release();
-            glDeleteTextures(1, &info.texture);
+        if (info.spout.handle) {
+            reinterpret_cast<SPOUTHANDLE>(info.spout.handle)->ReleaseSender();
+            reinterpret_cast<SPOUTHANDLE>(info.spout.handle)->Release();
         }
-    }
 #endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+        if (info.ndi.handle) {
+            // One of the two buffers might be still in flight so we have to flush the
+            // pipeline before we can destroy the video or we might risk NDI accessing
+            // dead memory and crashing
+            NDIlib_send_send_video_async_v2(info.ndi.handle, nullptr);
+            NDIlib_send_destroy(info.ndi.handle);
+        }
+#endif // SGCT_HAS_NDI
+    }
 
     glDeleteFramebuffers(1, &_blitFbo);
 
@@ -153,41 +138,6 @@ void CubemapProjection::render(const BaseViewport& viewport,
 {
     ZoneScoped;
 
-#ifdef SGCT_HAS_SPOUT
-    glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(frustumMode);
-    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
-
-    GLint saveTexture = 0;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &saveTexture);
-    GLint saveFrameBuffer = 0;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &saveFrameBuffer);
-
-    for (int i = 0; i < 6; i++) {
-        if (!_spout[i].enabled) {
-            continue;
-        }
-        glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
-        const bool s = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->SendTexture(
-            _spout[i].texture,
-            static_cast<GLuint>(GL_TEXTURE_2D),
-            _cubemapResolution.x,
-            _cubemapResolution.y
-        );
-        if (!s) {
-            Log::Error(std::format(
-                "Error sending texture '{}' for face {}", _spout[i].texture, i
-            ));
-        }
-    }
-
-    glBindTexture(GL_TEXTURE_2D, saveTexture);
-    glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
-#endif // SGCT_HAS_SPOUT
-
-
     glEnable(GL_SCISSOR_TEST);
     viewport.setupViewport(frustumMode);
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
@@ -196,10 +146,9 @@ void CubemapProjection::render(const BaseViewport& viewport,
 
     _shader.bind();
 
-    // if for some reson the active texture has been reset
     for (int i = 0; i < 6; i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
+        glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].enabled ? _cubeFaces[i].texture : 0);
     }
 
     glDisable(GL_CULL_FACE);
@@ -215,6 +164,70 @@ void CubemapProjection::render(const BaseViewport& viewport,
 
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
+    ShaderProgram::unbind();
+
+    for (int i = 0; i < 6; i++) {
+        if (!_cubeFaces[i].enabled) {
+            continue;
+        }
+
+#ifdef SGCT_HAS_SPOUT
+        if (_spoutEnabled) {
+            glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].texture);
+            SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_cubeFaces[i].spout.handle);
+            const bool s = h->SendTexture(
+                _cubeFaces[i].texture,
+                static_cast<GLuint>(GL_TEXTURE_2D),
+                _cubemapResolution.x,
+                _cubemapResolution.y
+            );
+            if (!s) {
+                Log::Error(std::format(
+                    "Error sending texture '{}' for face {}", _cubeFaces[i].texture, i
+                ));
+            }
+        }
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+        if (_ndiEnabled) {
+            // Download the texture data from the GPU
+            glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].texture);
+            glGetTexImage(
+                GL_TEXTURE_2D,
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                _cubeFaces[i].ndi.currentVideoBuffer->data()
+            );
+
+            // We are using a negative line stride to correct for the y-axis flip going
+            // from OpenGL to DirectX. So our start point has to be the beginning of the
+            // *last* line of the image as NDI then steps backwards through the image to
+            // send it to the receiver.
+            // So we start at data() (=0), move to the end (+size) and then backtrack one
+            // line (- -line_stride = +line_stride)
+            _cubeFaces[i].ndi.videoFrame.p_data = reinterpret_cast<uint8_t*>(
+                _cubeFaces[i].ndi.currentVideoBuffer->data() +
+                _cubeFaces[i].ndi.currentVideoBuffer->size() +
+                _cubeFaces[i].ndi.videoFrame.line_stride_in_bytes
+            );
+
+            NDIlib_send_send_video_async_v2(
+                _cubeFaces[i].ndi.handle,
+                &_cubeFaces[i].ndi.videoFrame
+            );
+
+            // Switch the current buffer
+            _cubeFaces[i].ndi.currentVideoBuffer =
+                _cubeFaces[i].ndi.currentVideoBuffer ==
+                    &_cubeFaces[i].ndi.videoBufferPing ?
+                &_cubeFaces[i].ndi.videoBufferPong :
+                &_cubeFaces[i].ndi.videoBufferPing;
+        }
+    }
+#endif SGCT_HAS_NDI
 }
 
 void CubemapProjection::setSpoutRigOrientation(vec3 orientation) {
@@ -226,38 +239,16 @@ void CubemapProjection::initTextures(unsigned int internalFormat, unsigned int f
 {
     NonLinearProjection::initTextures(internalFormat, format, type);
 
-#ifdef SGCT_HAS_SPOUT
     Log::Debug("CubemapProjection initTextures");
 
     for (int i = 0; i < 6; i++) {
         Log::Debug(std::format("CubemapProjection initTextures {}", i));
-        if (!_spout[i].enabled) {
+        if (!_cubeFaces[i].enabled) {
             continue;
         }
-        _spout[i].handle = GetSpout();
-        if (_spout[i].handle) {
-            constexpr std::array<const char*, 6> CubeMapFaceName = {
-                "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
-            };
 
-            SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle);
-            const std::string fullName =
-                _spoutName.empty() ?
-                CubeMapFaceName[i] :
-                std::format("{}-{}", _spoutName, CubeMapFaceName[i]);
-            bool success = h->CreateSender(
-                fullName.c_str(),
-                _cubemapResolution.x,
-                _cubemapResolution.y
-            );
-            if (!success) {
-                Log::Error(std::format(
-                    "Error creating SPOUT handle for {}", CubeMapFaceName[i]
-                ));
-            }
-        }
-        glGenTextures(1, &_spout[i].texture);
-        glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
+        glGenTextures(1, &_cubeFaces[i].texture);
+        glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].texture);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -277,8 +268,77 @@ void CubemapProjection::initTextures(unsigned int internalFormat, unsigned int f
             type,
             nullptr
         );
-    }
+
+#ifdef SGCT_HAS_SPOUT
+        if (_spoutEnabled) {
+            _cubeFaces[i].spout.handle = GetSpout();
+            if (_cubeFaces[i].spout.handle) {
+                constexpr std::array<const char*, 6> CubeMapFaceName = {
+                    "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
+                };
+
+                SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_cubeFaces[i].spout.handle);
+                const std::string fullName =
+                    _spoutName.empty() ?
+                    CubeMapFaceName[i] :
+                    std::format("{}-{}", _spoutName, CubeMapFaceName[i]);
+                bool success = h->CreateSender(
+                    fullName.c_str(),
+                    _cubemapResolution.x,
+                    _cubemapResolution.y
+                );
+                if (!success) {
+                    Log::Error(std::format(
+                        "Error creating SPOUT handle for {}", CubeMapFaceName[i]
+                    ));
+                }
+            }
+        }
 #endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+        if (_ndiEnabled) {
+            constexpr std::array<const char*, 6> CubeMapFaceName = {
+                "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
+            };
+
+            _cubeFaces[i].ndi.name = std::format("{}-{}", _ndiName, CubeMapFaceName[i]);
+
+            NDIlib_send_create_t createDesc;
+            createDesc.p_ndi_name = _cubeFaces[i].ndi.name.c_str();
+            if (!_ndiGroups.empty()) {
+                createDesc.p_groups = _ndiGroups.c_str();
+            }
+
+            _cubeFaces[i].ndi.handle = NDIlib_send_create(&createDesc);
+            if (!_cubeFaces[i].ndi.handle) {
+                Log::Error("Error creating NDI sender");
+            }
+
+            _cubeFaces[i].ndi.videoFrame.xres = _cubemapResolution.x;
+            _cubeFaces[i].ndi.videoFrame.yres = _cubemapResolution.y;
+            _cubeFaces[i].ndi.videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
+            // We have a negative stride to account for the fact that OpenGL textures have
+            // their y-axis flipped compared to DirectX textures
+            _cubeFaces[i].ndi.videoFrame.line_stride_in_bytes = -_cubemapResolution.x * 4;
+            _cubeFaces[i].ndi.videoFrame.frame_rate_N = 60000; // 60 fps
+            _cubeFaces[i].ndi.videoFrame.frame_rate_D = 1000;  // 60 fps
+            _cubeFaces[i].ndi.videoFrame.picture_aspect_ratio = 1.f;
+            _cubeFaces[i].ndi.videoFrame.frame_format_type =
+                NDIlib_frame_format_type_progressive;
+            _cubeFaces[i].ndi.videoFrame.timecode = 0;
+
+            _cubeFaces[i].ndi.videoBufferPing.resize(
+                _cubemapResolution.x * _cubemapResolution.y * 4
+            );
+            _cubeFaces[i].ndi.videoBufferPong.resize(
+                _cubemapResolution.x * _cubemapResolution.y * 4
+            );
+
+            _cubeFaces[i].ndi.currentVideoBuffer = &_cubeFaces[i].ndi.videoBufferPing;
+        }
+#endif // SGCT_HAS_NDI
+    }
 }
 
 void CubemapProjection::initVBO() {
@@ -463,10 +523,7 @@ void CubemapProjection::initViewports() {
 }
 
 void CubemapProjection::initShaders() {
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
-    _shader = ShaderProgram("CylindricalProjectinoShader");
+    _shader = ShaderProgram("CubemapShader");
     _shader.addVertexShader(shaders::BaseVert);
     _shader.addFragmentShader(FragmentShader);
     _shader.createAndLinkProgram();
@@ -494,45 +551,43 @@ void CubemapProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
     auto render = [this](const BaseViewport& vp, int index, FrustumMode mode) {
-        if (!_spout[index].enabled) {
+        if (!_cubeFaces[index].enabled) {
             return;
         }
 
         renderCubeFace(vp, index, mode);
 
-        if (_spout[index].handle) {
-            glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-            glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
-            glFramebufferTexture2D(
-                GL_READ_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
-                _textures.cubeMapColor,
-                0
-            );
-            glFramebufferTexture2D(
-                GL_DRAW_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT1,
-                GL_TEXTURE_2D,
-                _spout[index].texture,
-                0
-            );
-            glDrawBuffer(GL_COLOR_ATTACHMENT1);
-            glBlitFramebuffer(
-                0,
-                0,
-                _cubemapResolution.x,
-                _cubemapResolution.y,
-                0,
-                0,
-                _cubemapResolution.x,
-                _cubemapResolution.y,
-                GL_COLOR_BUFFER_BIT,
-                GL_NEAREST
-            );
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        }
+        glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
+        glFramebufferTexture2D(
+            GL_READ_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
+            _textures.cubeMapColor,
+            0
+        );
+        glFramebufferTexture2D(
+            GL_DRAW_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT1,
+            GL_TEXTURE_2D,
+            _cubeFaces[index].texture,
+            0
+        );
+        glDrawBuffer(GL_COLOR_ATTACHMENT1);
+        glBlitFramebuffer(
+            0,
+            0,
+            _cubemapResolution.x,
+            _cubemapResolution.y,
+            0,
+            0,
+            _cubemapResolution.x,
+            _cubemapResolution.y,
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST
+        );
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     };
 
     render(_subViewports.right, 0, frustumMode);

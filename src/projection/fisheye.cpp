@@ -591,9 +591,6 @@ void FisheyeProjection::initShaders() {
         _isOffAxis = true;
     }
 
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
     const std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
                                                bool useNormal, bool usePosition)

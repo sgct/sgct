@@ -187,8 +187,21 @@ struct SGCT_EXPORT CubemapProjection {
         bool left = true;
         bool zRight = true;
     };
+
+    struct Spout {
+        bool enabled = true;
+        std::optional<std::string> name;
+    };
+
+    struct NDI {
+        bool enabled = true;
+        std::optional<std::string> name;
+        std::optional<std::string> groups;
+    };
+
     std::optional<int> quality;
-    std::optional<std::string> spoutName;
+    std::optional<Spout> spout;
+    std::optional<NDI> ndi;
     std::optional<Channels> channels;
     std::optional<vec3> orientation;
 };

@@ -21,6 +21,10 @@ struct SPOUTLIBRARY;
 typedef SPOUTLIBRARY* SPOUTHANDLE;
 #endif // SGCT_HAS_SPOUT
 
+#ifdef SGCT_HAS_NDI
+#include <Processing.NDI.Lib.h>
+#endif // SGCT_HAS_NDI
+
 namespace sgct {
 
 class OffScreenBuffer;
@@ -62,16 +66,40 @@ private:
 
     std::unique_ptr<OffScreenBuffer> _spoutFBO;
 
-    struct SpoutInfo {
-        bool enabled;
-#ifdef SGCT_HAS_SPOUT
-        SPOUTHANDLE handle;
-#endif // SGCT_HAS_SPOUT
-        unsigned int texture;
-    };
-    std::array<SpoutInfo, 6> _spout;
+    struct Cubeface {
+        bool enabled = true;
+        unsigned int texture = 0;
 
-    std::string _spoutName;
+#ifdef SGCT_HAS_SPOUT
+        struct {
+            SPOUTHANDLE handle = nullptr;
+        } spout;
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+        mutable struct {
+            NDIlib_send_instance_t handle = nullptr;
+            NDIlib_video_frame_v2_t videoFrame;
+            std::string name;
+            std::vector<std::byte> videoBufferPing;
+            std::vector<std::byte> videoBufferPong;
+            std::vector<std::byte>* currentVideoBuffer = nullptr;
+        } ndi;
+#endif // SGCT_HAS_NDI
+    };
+    std::array<Cubeface, 6> _cubeFaces;
+
+#ifdef SGCT_HAS_SPOUT
+    const bool _spoutEnabled;
+    const std::string _spoutName;
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+    const bool _ndiEnabled;
+    const std::string _ndiName;
+    const std::string _ndiGroups;
+#endif // SGCT_HAS_NDI
+
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
 
     unsigned int _vao = 0;

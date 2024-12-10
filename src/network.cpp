@@ -47,8 +47,6 @@
 
 namespace {
     constexpr int MaxNumberOfAttempts = 10;
-    // Ethernet's MTU is 1500, so let's get close to that
-    constexpr int SocketBufferSize = 1408; // 1024 + 256 + 128
 
     constexpr int MaxNetworkSyncFrameNumber = 10000;
 
@@ -274,40 +272,7 @@ void Network::setOptions(SGCT_SOCKET* socket) const {
         throw Err(5006, std::format("Failed to set reuse address: {}", SGCT_ERRNO));
     }
 
-    if (type() == Network::ConnectionType::SyncConnection) {
-        const int bufferSize = SocketBufferSize;
-        int iResult = setsockopt(
-            *socket,
-            SOL_SOCKET,
-            SO_RCVBUF,
-            reinterpret_cast<const char*>(&bufferSize),
-            sizeof(bufferSize)
-        );
-        if (iResult == SOCKET_ERROR) {
-            throw Err(
-                5007,
-                std::format(
-                    "Failed to set send buffer size to {}. {}", bufferSize, SGCT_ERRNO
-                )
-            );
-        }
-        iResult = setsockopt(
-            *socket,
-            SOL_SOCKET,
-            SO_SNDBUF,
-            reinterpret_cast<const char*>(&bufferSize),
-            sizeof(bufferSize)
-        );
-        if (iResult == SOCKET_ERROR) {
-            throw Err(
-                5008,
-                std::format(
-                    "Failed to set receive buffer size to {}. {}", bufferSize, SGCT_ERRNO
-                )
-            );
-        }
-    }
-    else {
+    if (type() != Network::ConnectionType::SyncConnection) {
         // set on all connections types, cluster nodes sends data several times per
         // second so there is no need so send alive packages
         const int iResult = setsockopt(
@@ -467,8 +432,15 @@ int Network::lastError() {
 }
 
 int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
-    long iResult = 0;
     int attempts = 1;
+
+#ifdef WIN32
+    int iResult = 0;
+    const auto sgctError = WSAEINTR;
+#else
+    ssize_t iResult = 0;
+    const auto sgctError = EINTR;
+#endif
 
     while (iResult < length) {
         const long tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);

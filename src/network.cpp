@@ -83,14 +83,14 @@ namespace {
     }
 
     void setOptions(SGCT_SOCKET socket, sgct::Network::ConnectionType connectionType) {
-        const int flag = 1;
+        constexpr int TrueFlag = 1;
 
         // insert no delay, disable nagle's algorithm
         const int delayRes = setsockopt(
             socket,       // socket affected
             IPPROTO_TCP,   // set option at TCP level
             TCP_NODELAY,   // name of option
-            reinterpret_cast<const char*>(&flag), // the cast is historical cruft
+            reinterpret_cast<const char*>(&TrueFlag), // the cast is historical cruft
             sizeof(int)    // length of option value
         );
 
@@ -102,21 +102,21 @@ namespace {
         }
 
         // set timeout
-        const int timeout = 0; // infinite
+        constexpr int Timeout = 0; // infinite
         setsockopt(
             socket,
             SOL_SOCKET,
             SO_SNDTIMEO,
-            reinterpret_cast<const char*>(&timeout),
-            sizeof(timeout)
+            reinterpret_cast<const char*>(&Timeout),
+            sizeof(Timeout)
         );
 
         const int sockoptRes = setsockopt(
             socket,
             SOL_SOCKET,
             SO_REUSEADDR,
-            reinterpret_cast<const char*>(&flag),
-            sizeof(flag)
+            reinterpret_cast<const char*>(&TrueFlag),
+            sizeof(TrueFlag)
         );
         if (sockoptRes == SOCKET_ERROR) {
             throw Err(5006, std::format("Failed to set reuse address: {}", SGCT_ERRNO));
@@ -129,8 +129,8 @@ namespace {
                 socket,
                 SOL_SOCKET,
                 SO_KEEPALIVE,
-                reinterpret_cast<const char*>(&flag),
-                sizeof(flag)
+                reinterpret_cast<const char*>(&TrueFlag),
+                sizeof(TrueFlag)
             );
             if (iResult == SOCKET_ERROR) {
                 throw Err(5009, std::format("Failed to set keep alive: {}", SGCT_ERRNO));
@@ -460,8 +460,8 @@ void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
     currSize = reqSize;
 }
 
-int Network::readSyncMessage(char* header, int32_t syncFrame, uint32_t dataSize,
-                             uint32_t uncompressedDataSize)
+int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSize,
+                             uint32_t& uncompressedDataSize)
 {
     int iResult = receiveData(_socket, header, static_cast<int>(HeaderSize), 0);
 
@@ -500,8 +500,8 @@ int Network::readSyncMessage(char* header, int32_t syncFrame, uint32_t dataSize,
     return iResult;
 }
 
-int Network::readDataTransferMessage(char* header, int32_t packageId, uint32_t dataSize,
-                                     uint32_t uncompressedDataSize)
+int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
+                                     uint32_t& uncompressedDataSize)
 {
     int iResult = receiveData(_socket, header, static_cast<int>(HeaderSize), 0);
 

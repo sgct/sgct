@@ -30,7 +30,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
 
     Log::Info(std::format("Reading Paul Bourke spherical mirror mesh from '{}'", path));
 
-    std::ifstream meshFile(path);
+    std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::PaulBourke, 2040,
@@ -61,7 +61,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
                 std::format("Invalid data in file '{}'", path)
             );
         }
-        auto [valX, valY] = r->values();
+        const auto& [valX, valY] = r->values();
         buf.vertices.reserve(static_cast<size_t>(valX) * static_cast<size_t>(valY));
         meshSize = glm::ivec2(valX, valY);
     }
@@ -70,7 +70,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     while (std::getline(meshFile, line)) {
         auto r = scn::scan<float, float, float, float, float>(line, "{} {} {} {} {}");
         if (r) {
-            auto [x, y, s, t, intensity] = r->values();
+            const auto& [x, y, s, t, intensity] = r->values();
 
             Buffer::Vertex vertex;
             vertex.x = x;

@@ -55,18 +55,23 @@ namespace {
 
 namespace sgct {
 
-SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent,
-                                                     std::string bottomMesh,
-                                                     std::string leftMesh,
-                                                     std::string rightMesh,
-                                                     std::string topMesh)
+SphericalMirrorProjection::SphericalMirrorProjection(
+                                          const config::SphericalMirrorProjection& config,
+                                                                     const Window& parent,
+                                                                               User& user)
     : NonLinearProjection(parent)
-    , _meshPathBottom(std::move(bottomMesh))
-    , _meshPathLeft(std::move(leftMesh))
-    , _meshPathRight(std::move(rightMesh))
-    , _meshPathTop(std::move(topMesh))
+    , _tilt(config.tilt.value_or(0.f))
+    , _meshPathBottom(config.mesh.bottom)
+    , _meshPathLeft(config.mesh.left)
+    , _meshPathRight(config.mesh.right)
+    , _meshPathTop(config.mesh.top)
 {
+    setUser(user);
     setUseDepthTransformation(false);
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
+    _clearColor = config.background.value_or(_clearColor);
 }
 
 SphericalMirrorProjection::~SphericalMirrorProjection() {
@@ -74,24 +79,18 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void SphericalMirrorProjection::update(vec2) {}
+void SphericalMirrorProjection::update(const vec2&) const {}
 
-void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode)
+void SphericalMirrorProjection::render(const BaseViewport& viewport,
+                                       FrustumMode frustumMode) const
 {
     ZoneScoped;
 
-    Engine::instance().setupViewport(window, viewport, frustumMode);
+    viewport.setupViewport(frustumMode);
 
-    const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
-#ifdef WIN32
-#pragma warning(push)
-#pragma warning(disable: 4127) // warning C4127: conditional expression is constant
-#endif // WIN32
+    const float aspect =
+        viewport.window().aspectRatio() * viewport.size().x / viewport.size().y;
     const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
-#ifdef WIN32
-#pragma warning(pop)
-#endif // WIN32
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -126,10 +125,10 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void SphericalMirrorProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
-    auto renderInternal = [this, &window, frustumMode](BaseViewport& bv, unsigned int t) {
+    auto renderInternal = [this, frustumMode](const BaseViewport& bv, unsigned int t) {
         if (!bv.isEnabled()) {
             return;
         }
@@ -147,8 +146,8 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        const RenderData renderData(
-            window,
+        const RenderData renderData = {
+            bv.window(),
             bv,
             frustumMode,
             ClusterManager::instance().sceneTransform(),
@@ -157,7 +156,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
             bv.projection(frustumMode).viewProjectionMatrix() *
                 ClusterManager::instance().sceneTransform(),
             _cubemapResolution
-        );
+        };
         Engine::instance().drawFunction()(renderData);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -182,12 +181,16 @@ void SphericalMirrorProjection::setTilt(float angle) {
     _tilt = angle;
 }
 
-void SphericalMirrorProjection::initTextures() {
-    auto generate = [this](const BaseViewport& bv, unsigned int& texture) {
+void SphericalMirrorProjection::initTextures(unsigned int internalFormat,
+                                             unsigned int format, unsigned int type)
+{
+    auto generate = [this, internalFormat, format, type]
+                    (const BaseViewport& bv, unsigned int& texture)
+    {
         if (!bv.isEnabled()) {
             return;
         }
-        generateMap(texture, _texInternalFormat, _texFormat, _texType);
+        generateMap(texture, internalFormat, format, type);
         Log::Debug(std::format(
             "{}x{} cube face texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, texture
@@ -297,17 +300,14 @@ void SphericalMirrorProjection::initViewports() {
 }
 
 void SphericalMirrorProjection::initShaders() {
-    if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
+    if (_isStereo || _preferedMonoFrustumMode != FrustumMode::Mono) {
         // if any frustum mode other than Mono (or stereo)
         Log::Warning("Stereo not supported in spherical projection");
     }
 
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
     _shader = ShaderProgram("SphericalMirrorShader");
-    _shader.addShaderSource(SphericalProjectionVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(SphericalProjectionFrag, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(SphericalProjectionVert);
+    _shader.addFragmentShader(SphericalProjectionFrag);
     _shader.createAndLinkProgram();
     _shader.bind();
 

@@ -84,7 +84,7 @@ bool bindSpout() {
     return false;
 }
 
-void draw(RenderData) {
+void draw(const RenderData&) {
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 

@@ -9,8 +9,8 @@
 #ifndef __SGCT__BASEVIEWPORT__H__
 #define __SGCT__BASEVIEWPORT__H__
 
+#include <sgct/definitions.h>
 #include <sgct/sgctexports.h>
-#include <sgct/frustum.h>
 #include <sgct/math.h>
 #include <sgct/projection.h>
 #include <sgct/projection/projectionplane.h>
@@ -26,57 +26,59 @@ class User;
  */
 class SGCT_EXPORT BaseViewport {
 public:
-    BaseViewport(const Window* parent);
+    BaseViewport(const Window& parent, FrustumMode eye = FrustumMode::Mono);
     virtual ~BaseViewport();
 
-    void setPos(vec2 position);
-    void setSize(vec2 size);
-    void setEnabled(bool state);
-    void setUser(User* user);
-    void setUserName(std::string userName);
-    void setEye(Frustum::Mode eye);
+    void setupViewport(FrustumMode frustum) const;
 
-    const vec2& position() const;
-    const vec2& size() const;
-    float horizontalFieldOfViewDegrees() const;
-
-    User& user() const;
-    const Window& window() const;
-    Frustum::Mode eye() const;
-
-    const Projection& projection(Frustum::Mode frustumMode) const;
+    const Projection& projection(FrustumMode frustumMode) const;
     ProjectionPlane& projectionPlane();
 
-    bool isEnabled() const;
-    void linkUserName();
-
-    void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip);
+    virtual void calculateFrustum(FrustumMode mode, float nearClip, float farClip);
 
     /**
      * Make projection symmetric relative to user.
      */
-    void calculateNonLinearFrustum(Frustum::Mode mode, float nearClip, float farClip);
+    void calculateNonLinearFrustum(FrustumMode mode, float nearClip, float farClip);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         quat rot, float dist = 10.f);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
+
+    void setEnabled(bool state);
+    bool isEnabled() const;
+
+    void setPosition(vec2 position);
+    const vec2& position() const;
+
+    void setSize(vec2 size);
+    const vec2& size() const;
+
+    void setUser(User& user);
+    User& user() const;
+
+    FrustumMode eye() const;
+
     void setHorizontalFieldOfView(float hFov);
+    float horizontalFieldOfViewDegrees() const;
+
+    const Window& window() const;
 
 protected:
-    const Window* _parent = nullptr;
+    const Window& _parent;
 
     Projection _monoProj;
     Projection _stereoLeftProj;
     Projection _stereoRightProj;
 
     ProjectionPlane _projPlane;
-    Frustum::Mode _eye = Frustum::Mode::MonoEye;
 
-    User* _user;
-
-    std::string _userName;
     bool _isEnabled = true;
+    const FrustumMode _eye;
+
     vec2 _position = vec2{ 0.f, 0.f };
     vec2 _size = vec2{ 1.f, 1.f };
+
+    User* _user;
 
     struct {
         vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };

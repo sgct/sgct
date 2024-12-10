@@ -101,7 +101,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
     Log::Info(std::format("Reading scalable mesh data from '{}'", path));
 
-    std::ifstream file(path);
+    std::ifstream file = std::ifstream(path);
     if (!file.good()) {
         throw Error(
             Error::Component::Scalable, 2060, std::format("Failed to open '{}'", path)

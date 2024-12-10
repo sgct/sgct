@@ -20,10 +20,10 @@
 #include <vector>
 
 #ifdef WIN32
-    using SGCT_SOCKET = size_t;
-#else // linux & OS X
-    using SGCT_SOCKET = int;
-#endif
+using SGCT_SOCKET = size_t;
+#else // ^^^^ WIN32 // !WIN32 vvvv
+using SGCT_SOCKET = int;
+#endif // WIN32
 
 namespace sgct {
 
@@ -44,16 +44,17 @@ public:
     static constexpr size_t HeaderSize = 13;
 
     /**
+     * \return The last error code
+     */
+    static int lastError();
+
+    /**
      * \param port The network port (TCP)
      * \param address The hostname, IPv4 address or ip6 address
      * \param isServer Indicates if this connection is a server or client
      * \param t The type of connection
      */
     Network(int port, const std::string& address, bool isServer, ConnectionType t);
-    Network(const Network&) = delete;
-    Network(Network&&) = delete;
-    Network& operator=(const Network&) = delete;
-    Network& operator=(Network&&) = delete;
     ~Network();
 
     void initialize();
@@ -62,12 +63,11 @@ public:
 
     void setDecodeFunction(std::function<void(const char*, int)> fn);
     void setPackageDecodeFunction(std::function<void(void*, int, int, int)> fn);
-    void setUpdateFunction(std::function<void(Network*)> fn);
+    void setUpdateFunction(std::function<void(Network&)> fn);
     void setConnectedFunction(std::function<void (void)> fn);
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
 
     void setConnectedStatus(bool state);
-    void setOptions(SGCT_SOCKET* socket) const;
     void closeSocket(SGCT_SOCKET lSocket);
 
     ConnectionType type() const;
@@ -76,7 +76,6 @@ public:
     bool isConnected() const;
 
     int sendFrameCurrent() const;
-    int sendFramePrevious() const;
     int recvFrameCurrent() const;
     int recvFramePrevious() const;
 
@@ -97,12 +96,6 @@ public:
     void sendData(const void* data, int length) const;
 
     /**
-     * \return The last error code
-     */
-    static int lastError();
-    static int receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
-
-    /**
      * Iterates the send frame number and returns the new frame number.
      */
     int iterateFrameCounter();
@@ -120,6 +113,11 @@ public:
     std::condition_variable& startConnectionConditionVar();
 
 private:
+    Network(const Network&) = delete;
+    Network(Network&&) = delete;
+    Network& operator=(const Network&) = delete;
+    Network& operator=(Network&&) = delete;
+
     void setRecvFrame(int i);
     void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
     int readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSize,
@@ -165,7 +163,7 @@ private:
 
     std::function<void(const char*, int)> decoderCallback;
     std::function<void(void*, int, int, int)> _packageDecoderCallback;
-    std::function<void(Network*)> _updateCallback;
+    std::function<void(Network&)> _updateCallback;
     std::function<void(void)> _connectedCallback;
     std::function<void(int, int)> _acknowledgeCallback;
 };

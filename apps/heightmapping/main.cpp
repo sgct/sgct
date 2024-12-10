@@ -363,11 +363,6 @@ void keyboard(Key key, Modifier, Action action, int, Window*) {
             case Key::Space:
                 mPause = !mPause;
                 break;
-            case Key::F:
-                for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {
-                    win->setUseFXAA(!win->useFXAA());
-                }
-                break;
             case Key::P:
             case Key::F10:
                 takeScreenshot = true;

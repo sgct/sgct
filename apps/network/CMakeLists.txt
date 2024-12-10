@@ -6,7 +6,7 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-add_executable(network main.cpp)
+add_executable(network main.cpp box.cpp)
 set_compile_options(network)
 find_package(glm REQUIRED)
 target_link_libraries(network PRIVATE sgct::sgct glm::glm)

@@ -6,7 +6,7 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-add_executable(datatransfer main.cpp)
+add_executable(datatransfer main.cpp box.cpp)
 set_compile_options(datatransfer)
 find_package(glm REQUIRED)
 target_link_libraries(datatransfer PRIVATE sgct::sgct glm::glm)

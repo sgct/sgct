@@ -23,24 +23,24 @@ class SGCT_EXPORT FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
-    FisheyeProjection(const Window* parent);
+    FisheyeProjection(const config::FisheyeProjection& config, const Window& parent,
+        User& user);
     ~FisheyeProjection() final;
 
     /**
      * Update projection when aspect ratio changes for the viewport.
      */
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
     /**
      * Render the non-linear projection to currently bounded FBO.
      */
-    void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) override;
+    void render(const BaseViewport& viewport, FrustumMode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(FrustumMode frustumMode) const override;
 
     /**
      * Set the dome diameter used in the fisheye renderer (used for the viewplane distance
@@ -77,7 +77,7 @@ public:
      * Base of fisheye is the XY-plane. This function is normally used in fisheye stereo
      * rendering.
      */
-    void setOffset(vec3 offset);
+    void setOffset(vec3 offset) const;
 
     /**
      * Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
@@ -99,21 +99,21 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _fov = 180.f;
-    float _tilt = 0.f;
-    float _diameter = 14.8f;
-    float _cropLeft = 0.f;
-    float _cropRight = 0.f;
-    float _cropBottom = 0.f;
-    float _cropTop = 0.f;
+    float _fov;
+    float _tilt;
+    float _diameter;
+    float _cropLeft;
+    float _cropRight;
+    float _cropBottom;
+    float _cropTop;
 
-    bool _isOffAxis = false;
     bool _ignoreAspectRatio = false;
-    bool _keepAspectRatio = true;
+    bool _keepAspectRatio;
 
-    vec3 _offset = vec3{ 0.f, 0.f, 0.f };
+    mutable bool _isOffAxis = false;
+    mutable vec3 _offset = vec3{ 0.f, 0.f, 0.f };
     vec3 _baseOffset = vec3{ 0.f, 0.f, 0.f };
-    vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
+    mutable vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 

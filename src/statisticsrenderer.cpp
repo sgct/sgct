@@ -89,8 +89,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
-    _shader.addShaderSource(StatsVertShader, GL_VERTEX_SHADER);
-    _shader.addShaderSource(StatsFragShader, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(StatsVertShader);
+    _shader.addFragmentShader(StatsFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();
     _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");

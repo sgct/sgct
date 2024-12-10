@@ -21,22 +21,21 @@ namespace sgct {
  */
 class SGCT_EXPORT SphericalMirrorProjection final : public NonLinearProjection {
 public:
-    SphericalMirrorProjection(const Window* parent, std::string bottomMesh,
-        std::string leftMesh, std::string rightMesh, std::string topMesh);
+    SphericalMirrorProjection(const config::SphericalMirrorProjection& config,
+        const Window& parent, User& user);
     virtual ~SphericalMirrorProjection() final;
 
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
     /**
      * Render the non linear projection to currently bounded FBO.
      */
-    void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) override;
+    void render(const BaseViewport& viewport, FrustumMode frustumMode) const override;
 
     /**
      * Render the enabled faces of the cubemap.
      */
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(FrustumMode frustumMode) const override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
@@ -47,12 +46,13 @@ public:
     void setTilt(float angle);
 
 private:
-    void initTextures() override;
+    void initTextures(unsigned int internalFormat, unsigned int format,
+        unsigned int type) override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
 
-    float _tilt = 0.f;
+    float _tilt;
     float _diameter = 2.4f;
 
     // mesh data

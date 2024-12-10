@@ -240,3 +240,7 @@ endif ()
 if (SGCT_DEP_INCLUDE_SCALABLE)
   add_subdirectory(scalable SYSTEM)
 endif ()
+
+if (WIN32 AND SGCT_NDI_SUPPORT)
+  add_subdirectory(ndi SYSTEM)
+endif (WIN32 AND SGCT_NDI_SUPPORT)

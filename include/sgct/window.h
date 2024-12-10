@@ -97,8 +97,8 @@ public:
 
     static void makeSharedContextCurrent();
 
-    Window() = default;
-    ~Window() = default;
+    Window();
+    ~Window();
 
     Window(const Window&) = delete;
     Window(Window&&) = delete;

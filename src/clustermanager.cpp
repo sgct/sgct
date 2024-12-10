@@ -2,18 +2,17 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -49,17 +48,12 @@ ClusterManager::ClusterManager(int clusterID) : _thisNodeId(clusterID) {
     _users.push_back(std::make_unique<User>("default"));
 }
 
-ClusterManager::~ClusterManager() {}
-
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     ZoneScoped;
 
     _masterAddress = cluster.masterAddress;
     if (cluster.debugLog && *cluster.debugLog) {
         Log::instance().setNotifyLevel(Log::Level::Debug);
-    }
-    if (cluster.externalControlPort) {
-        setExternalControlPort(*cluster.externalControlPort);
     }
     if (cluster.firmSync) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
@@ -89,7 +83,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             name = *u.name;
             auto usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            Log::Info(fmt::format("Adding user '{}'", *u.name));
+            Log::Info(std::format("Adding user '{}'", *u.name));
         }
         else {
             name = "default";
@@ -110,18 +104,12 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
 
-    for (size_t i = 0; i < cluster.nodes.size(); ++i) {
+    for (size_t i = 0; i < cluster.nodes.size(); i++) {
         ZoneScopedN("Create Node");
 
         auto n = std::make_unique<Node>();
         n->applyNode(cluster.nodes[i], static_cast<int>(i) == _thisNodeId);
         addNode(std::move(n));
-    }
-    if (cluster.settings) {
-        Settings::instance().applySettings(*cluster.settings);
-    }
-    if (cluster.capture) {
-        Settings::instance().applyCapture(*cluster.capture);
     }
 }
 
@@ -179,14 +167,6 @@ void ClusterManager::setUseIgnoreSync(bool state) {
 
 const std::string& ClusterManager::masterAddress() const {
     return _masterAddress;
-}
-
-int ClusterManager::externalControlPort() const {
-    return _externalControlPort;
-}
-
-void ClusterManager::setExternalControlPort(int port) {
-    _externalControlPort = port;
 }
 
 int ClusterManager::numberOfNodes() const {

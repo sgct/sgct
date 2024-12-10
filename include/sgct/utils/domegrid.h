@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -13,16 +13,22 @@
 
 namespace sgct::utils {
 
-/// Helper class to render a dome grid
+/**
+ * Helper class to render a dome grid.
+ */
 class SGCT_EXPORT DomeGrid {
 public:
-    /// This constructor requires a valid OpenGL contex
+    /**
+     * This constructor requires a valid OpenGL contex.
+     */
     DomeGrid(float radius, float FOV, int segments, int rings, int resolution = 128);
 
-    /// The destructor requires a valid OpenGL context
+    /**
+     * The destructor requires a valid OpenGL context.
+     */
     ~DomeGrid();
 
-    void draw();
+    void draw() const;
 
 private:
     const int _resolution;

@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -19,7 +19,9 @@ typedef SPOUTLIBRARY* SPOUTHANDLE;
 
 namespace sgct {
 
-/// Base class for non linear projections
+/**
+ * Base class for non linear projections.
+ */
 class SGCT_EXPORT SpoutFlatProjection : public NonLinearProjection {
 public:
     SpoutFlatProjection(const Window* parent);
@@ -62,10 +64,10 @@ protected:
         unsigned int depthSwap = 0;
     } _textureIdentifiers;
 
-    std::string _mappingName = "SPOUT_OS_MAPPING";
+    std::string _mappingName = "SPOUT_SGCT_MAPPING";
     SPOUTHANDLE _mappingHandle = nullptr;
-    int _resolutionX = 1024;
-    int _resolutionY = 768;
+    int _resolutionX = 1280;
+    int _resolutionY = 720;
     ShaderProgram _shader;
 
     struct FOV {

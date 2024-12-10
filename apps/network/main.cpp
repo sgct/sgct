@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -69,25 +69,25 @@ void networkConnectionUpdated(Network* conn) {
 
     connected = conn->isConnected();
 
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Network is {}", conn->isConnected() ? "connected" : "disconneced"
     ));
 }
 
 void networkAck(int packageId, int) {
-    Log::Info(fmt::format("Network package {} is received", packageId));
+    Log::Info(std::format("Network package {} is received", packageId));
 
     if (timerData.second == packageId) {
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "Loop time: {} ms", (time() - timerData.first) * 1000.0
         ));
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    Log::Info(fmt::format("Network decoding package {}", packageId));
+    Log::Info(std::format("Network decoding package {}", packageId));
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-    Log::Info(fmt::format("Message: \"{}\"", test));
+    Log::Info(std::format("Message: \"{}\"", test));
 }
 
 void connect() {
@@ -110,7 +110,7 @@ void connect() {
 
     // init
     try {
-        Log::Debug(fmt::format("Initiating network connection at port {}", port));
+        Log::Debug(std::format("Initiating network connection at port {}", port));
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
@@ -118,7 +118,7 @@ void connect() {
         networkPtr->initialize();
     }
     catch (const std::runtime_error& err) {
-        Log::Error(fmt::format("Network error: {}", err.what()));
+        Log::Error(std::format("Network error: {}", err.what()));
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);
@@ -281,11 +281,11 @@ int main(int argc, char** argv) {
         std::string_view v(argv[i]);
         if (v == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            Log::Info(fmt::format("Setting port to: {}", port));
+            Log::Info(std::format("Setting port to: {}", port));
         }
         else if (v == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            Log::Info(fmt::format("Setting address to: {}", address));
+            Log::Info(std::format("Setting address to: {}", address));
         }
         else if (v == "--server") {
             isServer = true;

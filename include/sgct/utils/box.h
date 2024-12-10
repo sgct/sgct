@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -13,18 +13,24 @@
 
 namespace sgct::utils {
 
-/// This class creates and renders a textured box
+/**
+ * This class creates and renders a textured box.
+ */
 class SGCT_EXPORT Box {
 public:
     enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
-    /// This constructor requires a valid OpenGL context
+    /**
+     * This constructor requires a valid OpenGL context.
+     */
     Box(float size, TextureMappingMode mode = TextureMappingMode::Regular);
 
-    /// The destructor requires a valid OpenGL context
+    /**
+     * The destructor requires a valid OpenGL context.
+     */
     ~Box();
 
-     void draw();
+     void draw() const;
 
 private:
     unsigned int _vao = 0;

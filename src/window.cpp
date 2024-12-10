@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -11,21 +11,24 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
-#include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <algorithm>
+
+#ifdef SGCT_HAS_SCALABLE
+#include "EasyBlendSDK.h"
+#endif // SGCT_HAS_SCALABLE
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -92,9 +95,6 @@ bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-Window::Window() {}
-Window::~Window() {}
-
 void Window::applyWindow(const config::Window& window) {
     ZoneScoped;
 
@@ -106,8 +106,93 @@ void Window::applyWindow(const config::Window& window) {
     if (!window.tags.empty()) {
         setTags(window.tags);
     }
+    if (window.hideMouseCursor) {
+        _hideMouseCursor = *window.hideMouseCursor;
+    }
+    if (window.takeScreenshot) {
+        setTakeScreenshot(*window.takeScreenshot);
+    }
+    if (window.draw2D) {
+        setCallDraw2DFunction(*window.draw2D);
+    }
+    if (window.draw3D) {
+        setCallDraw3DFunction(*window.draw3D);
+    }
+
+    // If a scalable mesh is set, we abort straight after this
+#ifdef SGCT_HAS_SCALABLE
+    if (window.scalableMesh.has_value()) {
+        _scalableMesh.sdk = new EasyBlendSDK_Mesh;
+        _scalableMesh.path = window.scalableMesh->string();
+
+        // We have to load the mesh file twice;  SGCT needs to load it here to get the
+        // correct resolution, but we don't have an OpenGL context yet. The "correct"
+        // initialization needs a valid OpenGL context
+        EasyBlendSDK_Mesh mesh;
+        EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            &mesh,
+            EasyBlendSDK_SDKMODE_ClientData,
+            [](EasyBlendSDK_Mesh*, void*) { return static_cast<unsigned long>(0); }
+        );
+        if (err != EasyBlendSDK_ERR_S_OK) {
+            throw Error(
+                sgct::Error::Component::Config,
+                1104,
+                std::format(
+                    "Could not read ScalableMesh '{}' with error: {}",
+                    _scalableMesh.path, err
+                )
+            );
+        }
+
+        // Set expected windows values
+        setWindowDecoration(false);
+        setWindowPosition({ 0, 0 });
+        initWindowResolution({
+            static_cast<int>(mesh.Xres),
+            static_cast<int>(mesh.Yres)
+        });
+
+        // Set projection values
+        config::PlanarProjection proj;
+        proj.fov = {
+            .down = static_cast<float>(mesh.Frustum.BottomAngle),
+            .left = static_cast<float>(mesh.Frustum.LeftAngle),
+            .right = static_cast<float>(mesh.Frustum.RightAngle),
+            .up = static_cast<float>(mesh.Frustum.TopAngle)
+        };
+        double heading = 0.0;
+        double pitch = 0.0;
+        double roll = 0.0;
+        EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
+        // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
+        // right-handed coordinate system
+        pitch *= -1.0;
+        heading *= -1.0;
+        const glm::quat q = glm::quat(glm::vec3(
+            glm::radians(pitch),
+            glm::radians(heading),
+            glm::radians(roll)
+        ));
+        proj.orientation = quat(q.x, q.y, q.z, q.w);
+        proj.offset = vec3 {
+            static_cast<float>(mesh.Frustum.XOffset),
+            static_cast<float>(mesh.Frustum.YOffset),
+            static_cast<float>(mesh.Frustum.ZOffset)
+        };
+
+        auto vp = std::make_unique<Viewport>(this);
+        vp->applyViewport({ .projection = proj });
+        addViewport(std::move(vp));
+
+        EasyBlendSDK_Uninitialize(&mesh);
+        return;
+    }
+#endif // SGCT_HAS_SCALABLE
+
     if (window.bufferBitDepth) {
-        ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
+        const ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
             using CBD = config::Window::ColorBitDepth;
             switch (cbd) {
                 case CBD::Depth8: return ColorBitDepth::Depth8;
@@ -129,9 +214,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.shouldAutoiconify) {
         setAutoiconify(*window.shouldAutoiconify);
     }
-    if (window.hideMouseCursor) {
-        _hideMouseCursor = *window.hideMouseCursor;
-    }
     if (window.isFloating) {
         setFloating(*window.isFloating);
     }
@@ -147,9 +229,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
     }
-    if (window.hasAlpha) {
-        setAlpha(*window.hasAlpha);
-    }
     if (window.useFxaa) {
         setUseFXAA(*window.useFxaa);
     }
@@ -162,37 +241,17 @@ void Window::applyWindow(const config::Window& window) {
     if (window.isMirrored) {
         _isMirrored = *window.isMirrored;
     }
-    if (window.draw2D) {
-        setCallDraw2DFunction(*window.draw2D);
-    }
-    if (window.draw3D) {
-        setCallDraw3DFunction(*window.draw3D);
-    }
     if (window.blitWindowId) {
         setBlitWindowId(*window.blitWindowId);
     }
     if (window.monitor) {
         setFullScreenMonitorIndex(*window.monitor);
     }
-    if (window.mpcdi) {
-        ZoneScopedN("MPCDI");
+    _mirrorX = window.mirrorX.value_or(_mirrorX);
+    _mirrorY = window.mirrorY.value_or(_mirrorY);
 
-        mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
-        setWindowPosition(ivec2{ 0, 0 });
-        initWindowResolution(r.resolution);
-        setFramebufferResolution(r.resolution);
-        setFixResolution(true);
-
-        for (const mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
-            auto v = std::make_unique<Viewport>(this);
-            v->applySettings(vp.proj);
-            v->setMpcdiWarpMesh(vp.meshData);
-            addViewport(std::move(v));
-        }
-        return;
-    }
     if (window.stereo) {
-        StereoMode sm = [](config::Window::StereoMode mode) {
+        const StereoMode sm = [](config::Window::StereoMode mode) {
             using SM = config::Window::StereoMode;
             switch (mode) {
                 case SM::NoStereo: return StereoMode::NoStereo;
@@ -215,6 +274,7 @@ void Window::applyWindow(const config::Window& window) {
         }(*window.stereo);
         setStereoMode(sm);
     }
+
     if (window.pos) {
         setWindowPosition(*window.pos);
     }
@@ -262,24 +322,34 @@ bool Window::isFocused() const {
 void Window::close() {
     ZoneScoped;
 
+#ifdef SGCT_HAS_SCALABLE
+    if (_scalableMesh.sdk) {
+        EasyBlendSDK_Uninitialize(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        delete _scalableMesh.sdk;
+        _scalableMesh.sdk = nullptr;
+    }
+#endif // SGCT_HAS_SCALABLE
+
     makeSharedContextCurrent();
 
-    Log::Info(fmt::format("Deleting screen capture data for window {}", _id));
+    Log::Info(std::format("Deleting screen capture data for window {}", _id));
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        Log::Info(fmt::format("Releasing OpenGL buffers for window {}", _id));
+        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Log::Info(fmt::format("Deleting VBOs for window {}", _id));
+    Log::Info(std::format("Deleting VBOs for window {}", _id));
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Log::Info(fmt::format("Deleting VAOs for window {}", _id));
+    Log::Info(std::format("Deleting VAOs for window {}", _id));
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -357,6 +427,17 @@ void Window::initContextSpecificOGL() {
             return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
         }
     );
+
+#ifdef SGCT_HAS_SCALABLE
+    if (!_scalableMesh.path.empty()) {
+        [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
+            _scalableMesh.path.c_str(),
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        // We already loaded the path in the constructor and verified that it works
+        assert(err == EasyBlendSDK_ERR_S_OK);
+    }
+#endif // SGCT_HAS_SCALABLE
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
@@ -445,7 +526,7 @@ void Window::setFramebufferResolution(ivec2 resolution) {
     }
 }
 
-void Window::swap(bool takeScreenshot) {
+void Window::swapBuffers(bool takeScreenshot) {
     if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
     }
@@ -454,7 +535,7 @@ void Window::swap(bool takeScreenshot) {
 
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
-        if (Settings::instance().captureFromBackBuffer() && _isDoubleBuffered) {
+        if (Engine::instance().captureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -485,6 +566,15 @@ void Window::swap(bool takeScreenshot) {
     // swap
     _windowResOld = _windowRes;
 
+#ifdef SGCT_HAS_SCALABLE
+    if (_scalableMesh.sdk) {
+        EasyBlendSDKError err = EasyBlendSDK_TransformInputToOutput(
+            reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
+        );
+        assert(err == EasyBlendSDK_ERR_S_OK);
+    }
+#endif // SGCT_HAS_SCALABLE
+
     if (_isDoubleBuffered) {
         ZoneScopedN("glfwSwapBuffers");
         glfwSwapBuffers(_windowHandle);
@@ -506,7 +596,7 @@ void Window::updateResolutions() {
         // adjusting only the horizontal (x) values
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
             ));
         }
@@ -517,7 +607,7 @@ void Window::updateResolutions() {
             glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Resolution changed to {}x{} in window {}", _windowRes.x, _windowRes.y, _id
         ));
         _pendingWindowRes = std::nullopt;
@@ -526,7 +616,7 @@ void Window::updateResolutions() {
     if (_pendingFramebufferRes.has_value()) {
         _framebufferRes = *_pendingFramebufferRes;
 
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "Framebuffer resolution changed to {}x{} for window {}",
             _framebufferRes.x, _framebufferRes.y, _id
         ));
@@ -541,7 +631,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Log::Debug(fmt::format("HFOV changed to {} for window {}", hFovDeg, _id));
+    Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
 void Window::initWindowResolution(ivec2 resolution) {
@@ -568,18 +658,17 @@ void Window::update() {
     resizeFBOs();
 
     auto resizePBO = [this](ScreenCapture& sc) {
-        const int nCaptureChannels = _hasAlpha ? 4 : 3;
-        if (Settings::instance().captureFromBackBuffer()) {
+        if (Engine::instance().captureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const ivec2 res = resolution();
-            sc.initOrResize(res, nCaptureChannels, 1);
+            sc.initOrResize(res, 3, 1);
         }
         else {
             // default: capture from texture (supports HDR)
             sc.setTextureTransferProperties(_colorDataType);
             const ivec2 res = framebufferResolution();
-            sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
+            sc.initOrResize(res, 3, _bytesPerColor);
         }
     };
     if (_screenCaptureLeftOrMono) {
@@ -692,6 +781,10 @@ void Window::setDoubleBuffered(bool doubleBuffered) {
     _isDoubleBuffered = doubleBuffered;
 }
 
+void Window::setTakeScreenshot(bool takeScreenshot) {
+    _takeScreenshot = takeScreenshot;
+}
+
 void Window::setWindowDecoration(bool state) {
     _isDecorated = state;
 }
@@ -720,7 +813,7 @@ void Window::setFixResolution(bool state) {
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "FXAA status: {} for window {}", state ? "enabled" : "disabled", _id
     ));
 }
@@ -729,21 +822,21 @@ void Window::setUseQuadbuffer(bool state) {
     _useQuadBuffer = state;
     if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Log::Info(fmt::format("Window {}: Enabling quadbuffered rendering", _id));
+        Log::Info(std::format("Window {}: Enabling quadbuffered rendering", _id));
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        Log::Info(fmt::format("Window {}: Draw 2D function disabled", _id));
+        Log::Info(std::format("Window {}: Draw 2D function disabled", _id));
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        Log::Info(fmt::format("Window {}: Draw 3D function disabled", _id));
+        Log::Info(std::format("Window {}: Draw 3D function disabled", _id));
     }
 }
 
@@ -751,7 +844,7 @@ void Window::setBlitWindowId(int id) {
     _blitWindowId = id;
     if (_blitWindowId >= 0) {
         Log::Info(
-            fmt::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
+            std::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
         );
     }
 }
@@ -785,7 +878,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     GLFWmonitor* mon = nullptr;
     if (_isFullScreen) {
         ZoneScopedN("Fullscreen Settings");
-        int count;
+        int count = 0;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
         if (_monitorIndex > 0 && _monitorIndex < count) {
@@ -794,7 +887,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         else {
             mon = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                Log::Info(fmt::format(
+                Log::Info(std::format(
                     "Window({}): Invalid monitor index ({}). Computer has {} monitors",
                     _id, _monitorIndex, count
                 ));
@@ -809,12 +902,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
         glfwWindowHint(GLFW_BLUE_BITS, currentMode->blueBits);
-
-        const int refreshRateHint = Settings::instance().refreshRateHint();
-        glfwWindowHint(
-            GLFW_REFRESH_RATE,
-            refreshRateHint > 0 ? refreshRateHint : currentMode->refreshRate
-        );
     }
 
     {
@@ -857,7 +944,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     // refreshrate)/(number of windows), which is something that might really slow down a
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
-    glfwSwapInterval(isLastWindow ? Settings::instance().swapInterval() : 0);
+    glfwSwapInterval(isLastWindow ? Engine::instance().swapInterval() : 0);
 
     // if client, disable mouse pointer
     if (_hideMouseCursor || !Engine::instance().isMaster()) {
@@ -881,10 +968,12 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
     }
 
-    std::string title = "SGCT node: " +
-        ClusterManager::instance().thisNode().address() + " (" +
-        (NetworkManager::instance().isComputerServer() ? "server" : "client") +
-        ": " + std::to_string(_id) + ")";
+    const std::string title = std::format(
+        "SGCT node: {} ({}: {})",
+        ClusterManager::instance().thisNode().address(),
+        (NetworkManager::instance().isComputerServer() ? "server" : "client"),
+        _id
+    );
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
 
@@ -909,14 +998,14 @@ void Window::initNvidiaSwapGroups() {
         if (res == GL_FALSE) {
             throw Err(3006, "Error requesting maximum number of swap groups");
         }
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "WGL_NV_swap_group extension is supported. Max number of groups: {}. "
             "Max number of barriers: {}", maxGroup, maxBarrier
         ));
 
         if (maxGroup > 0) {
             _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-            Log::Info(fmt::format(
+            Log::Info(std::format(
                 "Joining swapgroup 1 [{}]", _useSwapGroups ? "ok" : "failed"
             ));
         }
@@ -933,31 +1022,18 @@ void Window::initNvidiaSwapGroups() {
 
 void Window::initScreenCapture() {
     auto initializeCapture = [this](ScreenCapture& sc) {
-        const int nCaptureChannels = _hasAlpha ? 4 : 3;
-        if (Settings::instance().captureFromBackBuffer()) {
+        if (Engine::instance().captureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             const ivec2 res = resolution();
-            sc.initOrResize(res, nCaptureChannels, 1);
+            sc.initOrResize(res, 3, 1);
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
         }
         else {
             // default: capture from texture (supports HDR)
             const ivec2 res = framebufferResolution();
-            sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
+            sc.initOrResize(res, 3, _bytesPerColor);
             sc.setTextureTransferProperties(_colorDataType);
         }
-
-        Settings::CaptureFormat format = Settings::instance().captureFormat();
-        ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
-            using CF = Settings::CaptureFormat;
-            switch (f) {
-                case CF::PNG: return ScreenCapture::CaptureFormat::PNG;
-                case CF::TGA: return ScreenCapture::CaptureFormat::TGA;
-                case CF::JPG: return ScreenCapture::CaptureFormat::JPEG;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(format);
-        sc.setCaptureFormat(scf);
     };
 
     if (_screenCaptureLeftOrMono) {
@@ -980,15 +1056,16 @@ void Window::initScreenCapture() {
 }
 
 unsigned int Window::swapGroupFrameNumber() {
-    unsigned int frameNumber = 0;
-
 #ifdef WIN32
+    unsigned int frameNumber = 0;
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
         HDC hDC = wglGetCurrentDC();
         wglQueryFrameCountNV(hDC, &frameNumber);
     }
-#endif
     return frameNumber;
+#else // ^^^^ WIN32 // !WIN32 vvvv
+    return 0;
+#endif
 }
 
 void Window::resetSwapGroupFrameNumber() {
@@ -1010,10 +1087,10 @@ void Window::createTextures() {
     ZoneScoped;
     TracyGpuZone("Create Textures");
 
-    GLint max;
+    GLint max = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Window {}: Requested framebuffer too big (Max: {})", _id, max
         ));
         return;
@@ -1025,20 +1102,20 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (_useFXAA) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    Log::Debug(fmt::format("Targets initialized successfully for window {}", _id));
+    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1060,7 +1137,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                 return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:
             case TextureType::Position:
-                return { Settings::instance().bufferFloatPrecision(), GL_RGB, GL_FLOAT };
+                return { GL_RGB32F, GL_RGB, GL_FLOAT };
             default: throw std::logic_error("Unhandled case label");
         }
     }(type);
@@ -1077,7 +1154,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         std::get<2>(formats),
         nullptr
     );
-    Log::Debug(fmt::format("{}x{} texture generated for window {}", res.x, res.y, id));
+    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1092,7 +1169,7 @@ void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
 
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Window {}: FBO initiated successfully. Number of samples: {}",
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     ));
@@ -1154,8 +1231,8 @@ void Window::loadShaders() {
     // reload shader program if it exists
     _stereo.shader.deleteProgram();
 
-    std::string_view stereoVertShader = shaders::BaseVert;
-    std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
+    const std::string_view stereoVertShader = shaders::BaseVert;
+    const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
         using SM = StereoMode;
         switch (mode) {
             case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
@@ -1273,14 +1350,6 @@ bool Window::useRightEyeTexture() const {
     return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
 }
 
-void Window::setAlpha(bool state) {
-    _hasAlpha = state;
-}
-
-bool Window::hasAlpha() const {
-    return _hasAlpha;
-}
-
 float Window::horizFieldOfViewDegrees() const {
     return _viewports[0]->horizontalFieldOfViewDegrees();
 }
@@ -1340,6 +1409,22 @@ bool Window::shouldCallDraw3DFunction() const {
 
 int Window::blitWindowId() const {
     return _blitWindowId;
+}
+
+bool Window::shouldTakeScreenshot() const {
+    return _takeScreenshot;
+}
+
+bool Window::flipX() const {
+    return _mirrorX;
+}
+
+bool Window::flipY() const {
+    return _mirrorY;
+}
+
+bool Window::needsCompatibilityProfile() const {
+    return _scalableMesh.sdk != nullptr;
 }
 
 } // namespace sgct

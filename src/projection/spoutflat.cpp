@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -11,13 +11,12 @@
 #include <sgct/callbackdata.h>
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/format.h>
 #include <sgct/internalshaders.h>
-#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -109,19 +108,19 @@ void SpoutFlatProjection::setSpoutDrawMain(bool drawMain) {
 
 void SpoutFlatProjection::initTextures() {
     generateMap(_textureIdentifiers.spoutColor, _texInternalFormat, _texFormat, _texType);
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "{0}x{1} color spout texture (id: {2}) generated",
         _resolutionX, _resolutionY, _textureIdentifiers.spoutColor
     ));
 
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         generateMap(
             _textureIdentifiers.spoutDepth,
             GL_DEPTH_COMPONENT32,
             GL_DEPTH_COMPONENT,
             GL_FLOAT
         );
-        Log::Debug(fmt::format(
+        Log::Debug(std::format(
             "{0}x{1} depth spout texture (id: {2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutDepth
         ));
@@ -134,7 +133,7 @@ void SpoutFlatProjection::initTextures() {
                 GL_DEPTH_COMPONENT,
                 GL_FLOAT
             );
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "{0}x{1} depth swap map texture (id: {2}) generated",
                 _resolutionX, _resolutionY, _textureIdentifiers.depthSwap
             ));
@@ -145,34 +144,24 @@ void SpoutFlatProjection::initTextures() {
                 _texFormat,
                 _texType
             );
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "{0}x{1} color swap map texture (id: {2}) generated",
                 _resolutionX, _resolutionY, _textureIdentifiers.colorSwap
             ));
         }
     }
 
-    if (Settings::instance().useNormalTexture()) {
-        generateMap(
-            _textureIdentifiers.spoutNormals,
-            Settings::instance().bufferFloatPrecision(),
-            GL_RGB,
-            GL_FLOAT
-        );
-        Log::Debug(fmt::format(
+    if (Engine::instance().useNormalTexture()) {
+        generateMap(_textureIdentifiers.spoutNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
+        Log::Debug(std::format(
             "{0}x{1} normal spout texture (id: {2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutNormals
         ));
     }
 
-    if (Settings::instance().usePositionTexture()) {
-        generateMap(
-            _textureIdentifiers.spoutPositions,
-            Settings::instance().bufferFloatPrecision(),
-            GL_RGB,
-            GL_FLOAT
-        );
-        Log::Debug(fmt::format(
+    if (Engine::instance().usePositionTexture()) {
+        generateMap(_textureIdentifiers.spoutPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
+        Log::Debug(std::format(
             "{0}x{1} position spout texture ({2}) generated",
             _resolutionX, _resolutionY, _textureIdentifiers.spoutPositions
         ));
@@ -180,7 +169,7 @@ void SpoutFlatProjection::initTextures() {
 
 
 #ifdef SGCT_HAS_SPOUT
-    Log::Debug(fmt::format("SpoutFlat initTextures"));
+    Log::Debug(std::format("SpoutFlat initTextures"));
     _mappingHandle = GetSpout();
     if (_mappingHandle) {
         bool success = _mappingHandle->CreateSender(
@@ -189,7 +178,7 @@ void SpoutFlatProjection::initTextures() {
             _resolutionY
         );
         if (!success) {
-            Log::Error(fmt::format("Error creating SPOUT handle for {}", _mappingName));
+            Log::Error(std::format("Error creating SPOUT handle for {}", _mappingName));
         }
     }
 #endif // SGCT_HAS_SPOUT
@@ -203,10 +192,10 @@ void SpoutFlatProjection::initFBO() {
 
 void SpoutFlatProjection::setupViewport(BaseViewport& vp) {
     _vpCoords = ivec4{
-        static_cast<int>(floor(vp.position().x * _resolutionX + 0.5f)),
-        static_cast<int>(floor(vp.position().y * _resolutionY + 0.5f)),
-        static_cast<int>(floor(vp.size().x * _resolutionX + 0.5f)),
-        static_cast<int>(floor(vp.size().y * _resolutionY + 0.5f))
+        static_cast<int>(std::floor(vp.position().x * _resolutionX + 0.5f)),
+        static_cast<int>(std::floor(vp.position().y * _resolutionY + 0.5f)),
+        static_cast<int>(std::floor(vp.size().x * _resolutionX + 0.5f)),
+        static_cast<int>(std::floor(vp.size().y * _resolutionY + 0.5f))
     };
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
@@ -218,10 +207,10 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
 {
     glDeleteTextures(1, &texture);
 
-    GLint maxMapRes;
+    GLint maxMapRes = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
     if (_resolutionX > maxMapRes || _resolutionY > maxMapRes) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Requested size is too big ({} > {}) || ({} > {})",
             _resolutionX, maxMapRes, _resolutionY, maxMapRes
         ));
@@ -254,7 +243,7 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
 }
 
 void SpoutFlatProjection::attachTextures(int) {
-    if (Settings::instance().useDepthTexture()) {
+    if (Engine::instance().useDepthTexture()) {
         _spoutFbo->attachDepthTexture(_textureIdentifiers.depthSwap);
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.colorSwap,
@@ -268,14 +257,14 @@ void SpoutFlatProjection::attachTextures(int) {
         );
     }
 
-    if (Settings::instance().useNormalTexture()) {
+    if (Engine::instance().useNormalTexture()) {
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.spoutNormals,
             GL_COLOR_ATTACHMENT1
         );
     }
 
-    if (Settings::instance().usePositionTexture()) {
+    if (Engine::instance().usePositionTexture()) {
         _spoutFbo->attachColorTexture(
             _textureIdentifiers.spoutPositions,
             GL_COLOR_ATTACHMENT2
@@ -324,7 +313,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
         _resolutionY
     );
     if (!s) {
-        Log::Error(fmt::format(
+        Log::Error(std::format(
             "Error sending texture '{}'", _textureIdentifiers.spoutColor
         ));
     }
@@ -362,7 +351,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
             attachTextures(idx);
         }
 
-        RenderData renderData(
+        const RenderData renderData = RenderData(
             win,
             vp,
             mode,
@@ -381,7 +370,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
         glEnable(GL_SCISSOR_TEST);
         setupViewport(vp);
 
-        glClearColor(0.f, 0.f, 0.f, renderData.window.hasAlpha() ? 0.f : 1.f);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_SCISSOR_TEST);

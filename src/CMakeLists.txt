@@ -2,7 +2,7 @@
 # SGCT                                                                                   #
 # Simple Graphics Cluster Toolkit                                                        #
 #                                                                                        #
-# Copyright (c) 2012-2023                                                                #
+# Copyright (c) 2012-2024                                                                #
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
@@ -14,14 +14,14 @@ add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 generate_export_header(sgct
   EXPORT_FILE_NAME include/sgct/sgctexports.h
-)  
+)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h @ONLY
 )
 
-target_include_directories(sgct 
+target_include_directories(sgct
   PUBLIC $<INSTALL_INTERFACE:include>
 )
 
@@ -30,7 +30,7 @@ target_sources(
   PUBLIC
   FILE_SET HEADERS
   TYPE HEADERS
-  BASE_DIRS 
+  BASE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}/include
     ${PROJECT_SOURCE_DIR}/include
   FILES
@@ -45,7 +45,7 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
     ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
     ${PROJECT_SOURCE_DIR}/include/sgct/error.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/fmt.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/format.h
     ${PROJECT_SOURCE_DIR}/include/sgct/font.h
     ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
@@ -58,7 +58,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/math.h
     ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
     ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
     ${PROJECT_SOURCE_DIR}/include/sgct/mutexes.h
     ${PROJECT_SOURCE_DIR}/include/sgct/network.h
     ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
@@ -70,7 +69,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
     ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
     ${PROJECT_SOURCE_DIR}/include/sgct/sgct.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/settings.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
@@ -84,7 +82,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/window.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/domeprojection.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/correction/mpcdimesh.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/obj.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/paulbourke.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/pfm.h
@@ -123,7 +120,6 @@ target_sources(
     image.cpp
     log.cpp
     math.cpp
-    mpcdi.cpp
     network.cpp
     networkmanager.cpp
     node.cpp
@@ -132,7 +128,6 @@ target_sources(
     projection.cpp
     readconfig.cpp
     screencapture.cpp
-    settings.cpp
     shadermanager.cpp
     shaderprogram.cpp
     shareddata.cpp
@@ -144,7 +139,6 @@ target_sources(
     viewport.cpp
     window.cpp
     correction/domeprojection.cpp
-    correction/mpcdimesh.cpp
     correction/obj.cpp
     correction/paulbourke.cpp
     correction/pfm.cpp
@@ -173,11 +167,11 @@ target_sources(
 target_precompile_headers(sgct PRIVATE
   <sgct/config.h>
   <sgct/engine.h>
-  <sgct/fmt.h>
+  <sgct/format.h>
   <sgct/opengl.h>
   <glm/glm.hpp>
 
-  <scn/scn.h>
+  <scn/scan.h>
 
   <algorithm>
   <array>
@@ -195,7 +189,6 @@ target_precompile_headers(sgct PRIVATE
 
 target_include_directories(sgct PUBLIC "../../ext/json-schema-validator/src")
 
-find_package(fmt REQUIRED)
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
@@ -224,7 +217,6 @@ endif ()
 
 target_link_libraries(sgct
   PUBLIC
-    fmt::fmt
     glad::glad
     glfw
     ${OPENGL_gl_LIBRARY}
@@ -241,8 +233,9 @@ target_link_libraries(sgct
     sgct::stb
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
-    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     nlohmann_json_schema_validator::nlohmann_json_schema_validator
+    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:scalable>
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
 )
 
 target_compile_definitions(sgct
@@ -252,6 +245,7 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
     $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE
+    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:SGCT_HAS_SCALABLE>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:SGCT_HAS_VRPN>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
 )

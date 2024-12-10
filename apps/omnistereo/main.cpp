@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -156,7 +156,7 @@ void initOmniStereo(bool mask) {
         win.framebufferResolution().y / tileSize
     };
 
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Allocating: {} MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
     ));
     omniProjections.resize(res.x);
@@ -339,7 +339,7 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Time to init viewports: {} s\n{} %% will be rendered",
         time() - t0, percentage
     ));
@@ -410,7 +410,7 @@ void drawOmniStereo(const RenderData& renderData) {
         }
     }
 
-    Log::Info(fmt::format("Time to draw frame: {}s", time() - t0));
+    Log::Info(std::format("Time to draw frame: {}s", time() - t0));
 }
 
 void draw(const RenderData& data) {
@@ -542,11 +542,11 @@ int main(int argc, char** argv) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            Log::Info(fmt::format("Setting turn map path to {}", turnMapSrc));
+            Log::Info(std::format("Setting turn map path to {}", turnMapSrc));
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            Log::Info(fmt::format("Setting separation map path to '{}'", sepMapSrc));
+            Log::Info(std::format("Setting separation map path to '{}'", sepMapSrc));
         }
     }
 

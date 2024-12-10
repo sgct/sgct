@@ -2,13 +2,13 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <fmt/format.h>
+#include <format>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -59,7 +59,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        Log::Info(fmt::format(
+        Log::Info(std::format(
             "Spout: Initing {}x{} texture from '{}'", width, height, sender
         ));
         initialized = true;
@@ -188,6 +188,8 @@ void keyboard(Key key, Modifier, Action action, int, Window*) {
                 break;
             case Key::Space:
                 shouldTakeScreenshot = true;
+                break;
+            default:
                 break;
         }
     }

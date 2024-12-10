@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -27,7 +27,9 @@
 
 namespace sgct {
 
-/// Network manages peer-to-peer tcp connections.
+/**
+ * Network manages peer-to-peer tcp connections.
+ */
 class SGCT_EXPORT Network {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
@@ -37,17 +39,17 @@ public:
     static constexpr char ConnectedId = 18;
     static constexpr char DisconnectId = 19;
 
-    enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
+    enum class ConnectionType { SyncConnection, DataTransfer };
 
     static constexpr size_t HeaderSize = 13;
 
     /**
-     * \param port is the network port (TCP)
-     * \param address is the hostname, IPv4 address or ip6 address
-     * \param isServer indicates if this connection is a server or client
-     * \param type is the type of connection
+     * \param port The network port (TCP)
+     * \param address The hostname, IPv4 address or ip6 address
+     * \param isServer Indicates if this connection is a server or client
+     * \param t The type of connection
      */
-    Network(int port, std::string address, bool isServer, ConnectionType type);
+    Network(int port, const std::string& address, bool isServer, ConnectionType t);
     Network(const Network&) = delete;
     Network(Network&&) = delete;
     Network& operator=(const Network&) = delete;
@@ -65,7 +67,7 @@ public:
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
 
     void setConnectedStatus(bool state);
-    void setOptions(SGCT_SOCKET* socketPtr);
+    void setOptions(SGCT_SOCKET* socket) const;
     void closeSocket(SGCT_SOCKET lSocket);
 
     ConnectionType type() const;
@@ -78,7 +80,9 @@ public:
     int recvFrameCurrent() const;
     int recvFramePrevious() const;
 
-    /// Get the time in seconds from send to receive of sync data.
+    /**
+     * Get the time in seconds from send to receive of sync data.
+     */
     double loopTime() const;
 
     /**
@@ -87,22 +91,30 @@ public:
      * sync frame number and sends it back after drawing when ready for buffer swap. When
      * the server gets a frame sync number equal to the sent number it swaps buffers.
      *
-     * \return true if updates has been received
+     * \return `true` if updates has been received
      */
     bool isUpdated() const;
-    void sendData(const void* data, int length);
+    void sendData(const void* data, int length) const;
 
-    /// \return last error code
+    /**
+     * \return The last error code
+     */
     static int lastError();
     static int receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
 
-    /// Iterates the send frame number and returns the new frame number
+    /**
+     * Iterates the send frame number and returns the new frame number.
+     */
     int iterateFrameCounter();
 
-    /// The client sends ack message to server + console messages
+    /**
+     * The client sends ack message to server + console messages.
+     */
     void pushClientMessage();
 
-    /// \return the port of this connection
+    /**
+     * \return The port of this connection
+     */
     int port() const;
 
     std::condition_variable& startConnectionConditionVar();

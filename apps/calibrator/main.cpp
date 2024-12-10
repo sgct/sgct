@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -49,8 +49,8 @@ namespace {
 
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
-    bool renderGrid = true;
-    bool renderBox = false;
+    bool renderGrid = false;
+    bool renderBox = true;
     bool showId = false;
     bool showStats = false;
 
@@ -351,7 +351,7 @@ void initializeBox() {
     ImageData front;
     front.filename = "test-pattern-0.png";
     if (!std::filesystem::exists(front.filename)) {
-        Log::Error(fmt::format("Could not find image '{}'", front.filename));
+        Log::Error(std::format("Could not find image '{}'", front.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t1(loadImage, std::ref(front));
@@ -359,7 +359,7 @@ void initializeBox() {
     ImageData right;
     right.filename = "test-pattern-1.png";
     if (!std::filesystem::exists(right.filename)) {
-        Log::Error(fmt::format("Could not find image '{}'", right.filename));
+        Log::Error(std::format("Could not find image '{}'", right.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t2(loadImage, std::ref(right));
@@ -367,7 +367,7 @@ void initializeBox() {
     ImageData back;
     back.filename = "test-pattern-2.png";
     if (!std::filesystem::exists(back.filename)) {
-        Log::Error(fmt::format("Could not find image '{}'", back.filename));
+        Log::Error(std::format("Could not find image '{}'", back.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t3(loadImage, std::ref(back));
@@ -375,7 +375,7 @@ void initializeBox() {
     ImageData left;
     left.filename = "test-pattern-3.png";
     if (!std::filesystem::exists(left.filename)) {
-        Log::Error(fmt::format("Could not find image '{}'", left.filename));
+        Log::Error(std::format("Could not find image '{}'", left.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t4(loadImage, std::ref(left));
@@ -383,7 +383,7 @@ void initializeBox() {
     ImageData top;
     top.filename = "test-pattern-4.png";
     if (!std::filesystem::exists(top.filename)) {
-        Log::Error(fmt::format("Could not find image '{}'", top.filename));
+        Log::Error(std::format("Could not find image '{}'", top.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t5(loadImage, std::ref(top));
@@ -391,7 +391,7 @@ void initializeBox() {
     ImageData bottom;
     bottom.filename = "test-pattern-5.png";
     if (!std::filesystem::exists(bottom.filename)) {
-        Log::Error(fmt::format("Could not find image '{}'", bottom.filename));
+        Log::Error(std::format("Could not find image '{}'", bottom.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t6(loadImage, std::ref(bottom));
@@ -451,7 +451,7 @@ void initGL(GLFWwindow*) {
 }
 
 void postSyncPreDraw() {
-    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer);
+    Engine::instance().setCaptureFromBackBuffer(captureBackbuffer);
     Engine::instance().setStatsGraphVisibility(showStats);
     if (takeScreenshot) {
         Log::Info("Triggering screenshot");
@@ -556,7 +556,7 @@ void draw2D(const RenderData& data) {
 void postDraw() {
     if (runTests) {
         frameNumber++;
-        Log::Info(fmt::format("Frame: {}", frameNumber));
+        Log::Info(std::format("Frame: {}", frameNumber));
     }
 
     if (Engine::instance().isMaster() && runTests) {

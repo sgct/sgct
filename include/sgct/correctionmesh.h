@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -10,7 +10,7 @@
 #define __SGCT__CORRECTION_MESH__H__
 
 #include <sgct/sgctexports.h>
-#include <string>
+#include <filesystem>
 #include <vector>
 
 namespace sgct {
@@ -28,22 +28,29 @@ public:
     /**
      * This function finds a suitable parser for warping meshes and loads them.
      *
-     * \param path the path to the mesh data
-     * \param parent the pointer to parent viewport
-     * \param needsMaskGeometry If true, a separate geometry to applying blend masks is
+     * \param path The path to the mesh data
+     * \param parent The pointer to parent viewport
+     * \param needsMaskGeometry If `true`, a separate geometry to applying blend masks is
      *        loaded
+     *
      * \throw std::runtime_error if mesh was not loaded successfully
      */
-    void loadMesh(std::string path, BaseViewport& parent,
-        bool needsMaskGeometry = false);
+    void loadMesh(const std::filesystem::path& path, BaseViewport& parent,
+        bool needsMaskGeometry = false, bool textureRenderMode = false);
 
-    /// Render the final mesh where for mapping the frame buffer to the screen.
+    /**
+     * Render the final mesh where for mapping the frame buffer to the screen.
+     */
     void renderQuadMesh() const;
 
-    /// Render the final mesh where for mapping the frame buffer to the screen.
+    /**
+     * Render the final mesh where for mapping the frame buffer to the screen.
+     */
     void renderWarpMesh() const;
 
-    /// Render the final mesh where for mapping the frame buffer to the screen.
+    /**
+     * Render the final mesh where for mapping the frame buffer to the screen.
+     */
     void renderMaskMesh() const;
 
 private:

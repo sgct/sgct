@@ -2,7 +2,7 @@
 # SGCT                                                                                   #
 # Simple Graphics Cluster Toolkit                                                        #
 #                                                                                        #
-# Copyright (c) 2012-2023                                                                #
+# Copyright (c) 2012-2024                                                                #
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
@@ -26,7 +26,9 @@ list(APPEND CMAKE_MODULE_PATH
 
 if (APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
-  set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "OSX Architectures" FORCE)
+  if (NOT CMAKE_OSX_ARCHITECTURES)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64")
+  endif ()
   mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
 endif ()
 
@@ -53,10 +55,11 @@ option(SGCT_DEP_INCLUDE_JSON "Include JSON library" ON)
 option(SGCT_DEP_INCLUDE_JSON_VALIDATOR "Include JSON-Validator library" ON)
 option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
 option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
+option(SGCT_DEP_INCLUDE_SCALABLE "Include Scalable SDK" OFF)
 option(SGCT_DEP_INCLUDE_SCN "Include SCN library" ON)
 option(SGCT_DEP_INCLUDE_STB "Include STB library" ON)
 option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
-option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" ON)
+option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" OFF)
 option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" OFF)
 option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 

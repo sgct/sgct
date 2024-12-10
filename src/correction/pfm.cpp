@@ -2,63 +2,68 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
 #include <sgct/correction/pfm.h>
 
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
-#include <scn/scn.h>
+#include <scn/scan.h>
 #include <fstream>
 
 namespace sgct::correction {
 
 Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-                                      const vec2& size)
+                                      const vec2& size, bool textureRenderMode)
 {
     ZoneScoped;
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading 3D/stereo mesh data (in PFM image) from {}", path));
+    Log::Info(std::format("Reading 3D/stereo mesh data (in PFM image) from '{}'", path));
 
     std::ifstream meshFile(path, std::ifstream::binary);
     if (!meshFile.good()) {
-        throw Error(Error::Component::Pfm, 2050, fmt::format("Failed to open {}", path));
-    }
-
-    // Read the first three lines
-    std::string header;
-    std::string dummy;
-    std::getline(meshFile, header);
-    std::getline(meshFile, dummy);
-    std::getline(meshFile, dummy);
-
-    std::string fileFormatHeader;
-    unsigned int nCols = 0;
-    unsigned int nRows = 0;
-    float endiannessIndicator = 0;
-    auto result = scn::scan(
-        header,
-        "{} {} {} {}", fileFormatHeader, nCols, nRows, endiannessIndicator
-    );
-    if (!result || fileFormatHeader.size() == 2) {
         throw Error(
-            Error::Component::Pfm, 2052,
-            fmt::format("Invalid header syntax in file {}", path)
+            Error::Component::Pfm,
+            2050,
+            std::format("Failed to open '{}'", path)
         );
     }
 
+    // Read the first three lines
+    std::string fileFormatHeader;
+    std::string dims;
+    std::string endiannessIndicator;
+    std::getline(meshFile, fileFormatHeader, '\n');
+    std::getline(meshFile, dims, '\n');
+    std::getline(meshFile, endiannessIndicator, '\n');
+
+    auto result = scn::scan<unsigned int, unsigned int>(dims, "{} {}");
+    if (!result) {
+        throw Error(
+            Error::Component::Pfm, 2052,
+            std::format("Invalid header syntax in file '{}'", path)
+        );
+    }
+    auto [nCols, nRows] = result->values();
+    auto result2 = scn::scan<float>(endiannessIndicator, "{}");
+    if (!result2) {
+        throw Error(
+            Error::Component::Pfm, 2052,
+            std::format("Invalid endianness value in file '{}'", path)
+        );
+    }
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         throw Error(
             Error::Component::Pfm, 2053,
-            fmt::format("Incorrect file type in file {}", path)
+            std::format("Incorrect file type in file '{}'", path)
         );
     }
 
@@ -68,26 +73,27 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     std::vector<float> ycorrections;
     ycorrections.resize(numCorrectionValues);
 
-    for (int i = 0; i < numCorrectionValues; ++i) {
+    for (int i = 0; i < numCorrectionValues; i++) {
         meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
         meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
-        float dumpValue;
+        float dumpValue = 0.f;
         meshFile.read(reinterpret_cast<char*>(&dumpValue), sizeof(float));
 
         if (!meshFile.good()) {
             throw Error(
                 Error::Component::Pfm, 2054,
-                fmt::format("Error reading correction values in file {}", path)
+                std::format("Error reading correction values in file '{}'", path)
             );
         }
     }
 
-    nCols /= 2;
+    const unsigned int nEyes = textureRenderMode ? 1 : 2;
+    nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
-    // We assume we loaded side-by-side images, i.e. different warp per eye
-    for (size_t e = 0; e < 2; e++) {
+    // We assume we loaded side-by-side images if uses 2 eyes, i.e. different warp per eye
+    for (unsigned int e = 0; e < nEyes; e++) {
         Buffer::Vertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
@@ -108,22 +114,36 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
                 // @TODO (abock, 2020-01-10) Not sure about this one; it will always be
                 // true for the loop but it looks like a fork for the e==0 and e==1 paths
-                float x = xcorrections[i + (e * nCols)];
-                float y = ycorrections[i + (e * nCols)];
+                const float x = xcorrections[i + (e * nCols)];
+                const float y = ycorrections[i + (e * nCols)];
 
                 // convert to [-1, 1]
-                vertex.x = 2.f * (x * size.x + pos.x) - 1.f;
-                vertex.y = 2.f * (y * size.y + pos.y) - 1.f;
+                if (textureRenderMode) {
+                    vertex.x = static_cast<float>(c) / static_cast<float>(nCols - 1);
+                    vertex.y = 1.f - static_cast<float>(r) / static_cast<float>(nRows -1);
+                }
+                else {
+                    vertex.x = x * size.x + pos.x;
+                    vertex.y = y * size.y + pos.y;
+                }
+                vertex.x = 2.f * vertex.x - 1.f;
+                vertex.y = 2.f * vertex.y - 1.f;
 
                 // scale to viewport coordinates
-                vertex.s = u * size.x + pos.x;
-                vertex.t = v * size.y + pos.y;
+                if (textureRenderMode) {
+                    vertex.s = x + pos.x;
+                    vertex.t = y + pos.y;
+                }
+                else {
+                    vertex.s = u * size.x + pos.x;
+                    vertex.t = v * size.y + pos.y;
+                }
 
                 buf.vertices.push_back(vertex);
 
                 i++;
             }
-            i += nCols;
+            i += nCols * (nEyes - 1);
         }
 
         // Make a triangle strip index list

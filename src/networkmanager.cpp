@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -18,7 +18,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/node.h>
@@ -52,8 +52,6 @@ NetworkManager& NetworkManager::instance() {
 }
 
 void NetworkManager::create(NetworkMode nm,
-                            std::function<void(const char*, int)> externalDecode,
-                            std::function<void(bool)> externalStatus,
                             std::function<void(void*, int, int, int)> dataTransferDecode,
                             std::function<void(bool, int)> dataTransferStatus,
                             std::function<void(int, int)> dataTransferAcknowledge)
@@ -65,8 +63,6 @@ void NetworkManager::create(NetworkMode nm,
     }
     _instance = new NetworkManager(
         nm,
-        std::move(externalDecode),
-        std::move(externalStatus),
         std::move(dataTransferDecode),
         std::move(dataTransferStatus),
         std::move(dataTransferAcknowledge)
@@ -79,14 +75,10 @@ void NetworkManager::destroy() {
 }
 
 NetworkManager::NetworkManager(NetworkMode nm,
-                               std::function<void(const char*, int)> externalDecode,
-                               std::function<void(bool)> externalStatus,
                              std::function<void(void*, int, int, int)> dataTransferDecode,
                                         std::function<void(bool, int)> dataTransferStatus,
                                     std::function<void(int, int)> dataTransferAcknowledge)
-    : _externalDecodeFn(std::move(externalDecode))
-    , _externalStatusFn(std::move(externalStatus))
-    , _dataTransferDecodeFn(std::move(dataTransferDecode))
+    : _dataTransferDecodeFn(std::move(dataTransferDecode))
     , _dataTransferStatusFn(std::move(dataTransferStatus))
     , _dataTransferAcknowledgeFn(std::move(dataTransferAcknowledge))
     , _mode(nm)
@@ -115,7 +107,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     // Get host info
     //
     // get name & local IPs. retrieves the standard host name for the local computer
-    std::array<char, 256> Buffer;
+    std::array<char, 256> Buffer = {};
     {
         ZoneScopedN("gethostname");
 #ifdef WIN32
@@ -148,30 +140,31 @@ NetworkManager::NetworkManager(NetworkMode nm,
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_CANONNAME;
 
-    addrinfo* info;
+    addrinfo* info = nullptr;
     {
         ZoneScopedN("getaddrinfo");
-        //TODO: micah - why does getaddrinfo fail for 'macbookpro.local'
-        #ifdef __APPLE__
-            int result = getaddrinfo("localhost", "http", &hints, &info);
-        #else
-            int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
-        #endif // __APPLE__
+        //TODO(micah) why does getaddrinfo fail for 'macbookpro.local'
+#ifdef __APPLE__
+            const int result = getaddrinfo("localhost", "http", &hints, &info);
+#else
+            const int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
+#endif // __APPLE__
     if (result != 0) {
             std::string err = std::to_string(Network::lastError());
-            throw Error(5028, fmt::format("Failed to get address info: {}", err));
+            throw Error(5028, std::format("Failed to get address info: {}", err));
         }
     }
     std::vector<std::string> dnsNames;
-    char addr_str[INET_ADDRSTRLEN];
+    std::array<char, INET_ADDRSTRLEN> addr = {};
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
         ZoneScopedN("inet_ntop");
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
-        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr.data(), INET_ADDRSTRLEN);
         if (p->ai_canonname) {
             dnsNames.emplace_back(p->ai_canonname);
         }
-        _localAddresses.emplace_back(addr_str);
+        // Using .data() instead of .begin() + .end() as we want to stop at the first \0
+        _localAddresses.emplace_back(addr.data());
     }
 
     freeaddrinfo(info);
@@ -189,6 +182,11 @@ NetworkManager::NetworkManager(NetworkMode nm,
     // add the loop-back
     _localAddresses.emplace_back("127.0.0.1");
     _localAddresses.emplace_back("localhost");
+
+    Log::Debug("Detected local addresses:");
+    for (const std::string& address : _localAddresses) {
+        Log::Debug(std::format("  {}", address));
+    }
 }
 
 NetworkManager::~NetworkManager() {
@@ -269,12 +267,12 @@ void NetworkManager::initialize() {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->port();
-            if (port == cm.thisNode().syncPort() || port == cm.externalControlPort() ||
+            if (port == cm.thisNode().syncPort() ||
                 port == cm.thisNode().dataTransferPort())
             {
                 throw Error(
                     5023,
-                    fmt::format(
+                    std::format(
                         "Port {} is already used by connection {}",
                         cm.thisNode().syncPort(), i
                     )
@@ -327,7 +325,7 @@ void NetworkManager::initialize() {
                     [](const char* data, int length) {
                         std::vector<char> d(data, data + length);
                         d.push_back('\0');
-                        Log::Info(fmt::format("[client]: {} [end]", d.data()));
+                        Log::Info(std::format("[client]: {} [end]", d.data()));
                     }
                 );
 
@@ -355,28 +353,12 @@ void NetworkManager::initialize() {
         }
     }
 
-    // add connection for external communication
-    if (_isServer && cm.externalControlPort() != 0) {
-        ZoneScopedN("Create external control");
-
-        addConnection(
-            cm.externalControlPort(),
-            "127.0.0.1",
-            Network::ConnectionType::ExternalConnection
-        );
-        if (_externalDecodeFn) {
-            _networkConnections.back()->setDecodeFunction(_externalDecodeFn);
-        }
-    }
-
     Log::Debug(
-        fmt::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
+        std::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
     );
 }
 
 void NetworkManager::clearCallbacks() {
-    _externalDecodeFn = nullptr;
-    _externalStatusFn = nullptr;
     _dataTransferDecodeFn = nullptr;
     _dataTransferStatusFn = nullptr;
     _dataTransferAcknowledgeFn = nullptr;
@@ -443,10 +425,6 @@ bool NetworkManager::isSyncComplete() const {
     return (counter == _nActiveSyncConnections);
 }
 
-Network* NetworkManager::externalControlConnection() {
-    return _externalControlConnection;
-}
-
 void NetworkManager::transferData(const void* data, int length, int packageId) {
     std::vector<char> buffer;
     prepareTransferData(data, buffer, length, packageId);
@@ -492,17 +470,17 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 }
 
 unsigned int NetworkManager::activeConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _nActiveConnections;
 }
 
 int NetworkManager::connectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_networkConnections.size());
 }
 
 int NetworkManager::syncConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_syncConnections.size());
 }
 
@@ -515,7 +493,7 @@ const Network& NetworkManager::syncConnection(int index) const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    Log::Debug(fmt::format("Updating status for connection {}", connection->id()));
+    Log::Debug(std::format("Updating status for connection {}", connection->id()));
 
     int nConnections = 0;
     int nConnectedSync = 0;
@@ -540,13 +518,13 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
     }
 
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Number of active connections {} of {}", nConnections, totalNConnections
     ));
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Number of connected sync nodes {} of {}", nConnectedSync, totalNSyncConnections
     ));
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Number of connected data transfer nodes {} of {}",
         nConnectedDataTransfer, totalNTransferConnections
     ));
@@ -565,8 +543,8 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_isServer) {
         mutex::DataSync.lock();
         // local copy (thread safe)
-        bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
-                                (nConnectedDataTransfer == totalNTransferConnections);
+        const bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
+                                    (nConnectedDataTransfer == totalNTransferConnections);
         _allNodesConnected = allNodesConnected;
         mutex::DataSync.unlock();
 
@@ -591,19 +569,6 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
             }
         }
 
-        // Check if any external connection
-        if (connection->type() == Network::ConnectionType::ExternalConnection &&
-            connection->isConnected())
-        {
-            const bool status = connection->isConnected();
-            const std::string msg = "Connected to SGCT!\r\n";
-            connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
-            if (_externalStatusFn) {
-                ZoneScopedN("[SGCT] External Status");
-                _externalStatusFn(status);
-            }
-        }
-
         // wake up the connection handler thread on server
         connection->startConnectionConditionVar().notify_all();
     }
@@ -619,10 +584,11 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 }
 
 void NetworkManager::setAllNodesConnected() {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
 
     if (!_isServer) {
-        unsigned int nConn = static_cast<unsigned int>(_dataTransferConnections.size());
+        const unsigned int nConn =
+            static_cast<unsigned int>(_dataTransferConnections.size());
         _allNodesConnected = (_nActiveSyncConnections == 1) &&
                              (_nActiveDataTransferConnections == nConn);
     }
@@ -634,11 +600,11 @@ void NetworkManager::addConnection(int port, std::string address,
     ZoneScoped;
 
     if (port == 0) {
-        throw Error(5025, fmt::format("No port provided for connection to {}", address));
+        throw Error(5025, std::format("No port provided for connection to {}", address));
     }
 
     if (address.empty()) {
-        throw Error(5026, fmt::format("Empty address for connection to {}", port));
+        throw Error(5026, std::format("Empty address for connection to {}", port));
     }
 
     auto net = std::make_unique<Network>(
@@ -647,7 +613,7 @@ void NetworkManager::addConnection(int port, std::string address,
         _isServer,
         connectionType
     );
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Initiating connection {} at port {}", _networkConnections.size(), port
     ));
     net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
@@ -660,7 +626,6 @@ void NetworkManager::addConnection(int port, std::string address,
     // Update the previously existing shortcuts (maybe remove them altogether?)
     _syncConnections.clear();
     _dataTransferConnections.clear();
-    _externalControlConnection = nullptr;
 
     for (const std::unique_ptr<Network>& connection : _networkConnections) {
         switch (connection->type()) {
@@ -670,10 +635,6 @@ void NetworkManager::addConnection(int port, std::string address,
             case Network::ConnectionType::DataTransfer:
                 _dataTransferConnections.push_back(connection.get());
                 break;
-            case Network::ConnectionType::ExternalConnection:
-                _externalControlConnection = connection.get();
-                break;
-            default: throw std::logic_error("Missing case label");
         }
     }
 }
@@ -690,12 +651,12 @@ bool NetworkManager::isComputerServer() const {
 }
 
 bool NetworkManager::isRunning() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _isRunning;
 }
 
 bool NetworkManager::areAllNodesConnected() const {
-    std::unique_lock lock(mutex::DataSync);
+    const std::unique_lock lock(mutex::DataSync);
     return _allNodesConnected;
 }
 

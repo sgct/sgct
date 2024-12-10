@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -1570,7 +1570,7 @@ TEST_CASE("Parse/SGCT: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1607,7 +1607,7 @@ TEST_CASE("Parse/SGCT: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1698,7 +1698,7 @@ TEST_CASE("Parse/SGCT: Single", "[parse]") {
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -1916,7 +1916,7 @@ TEST_CASE("Parse/SGCT: Spherical Mirror", "[parse]") {
     REQUIRE(v.correctionMeshTexture.has_value());
     REQUIRE(
         *v.correctionMeshTexture ==
-        std::filesystem::absolute("mesh/standard_16x9.data").string()
+        std::filesystem::absolute("mesh/standard_16x9.data")
     );
 
     REQUIRE(std::holds_alternative<FisheyeProjection>(v.projection));
@@ -2009,7 +2009,7 @@ TEST_CASE("Parse/SGCT: Spout Output Cubemap", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    sgct::quat q = fromEuler(0.f, -90.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -2147,7 +2147,7 @@ TEST_CASE("Parse/SGCT: Spout Output Equirectangular", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    sgct::quat q = fromEuler(0.f, -90.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -2285,7 +2285,7 @@ TEST_CASE("Parse/SGCT: Spout Output Fisheye", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -2455,7 +2455,7 @@ TEST_CASE("Parse/SGCT: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -2493,7 +2493,7 @@ TEST_CASE("Parse/SGCT: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -2521,7 +2521,6 @@ TEST_CASE("Parse/OpenSpace: Equirectangular GUI", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -2582,8 +2581,6 @@ TEST_CASE("Parse/OpenSpace: Equirectangular GUI", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -2674,7 +2671,6 @@ TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -2725,9 +2721,6 @@ TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
 
     CHECK(res.masterAddress == "localhost");
 
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
-
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
     REQUIRE(res.settings->display->swapInterval.has_value());
@@ -2772,7 +2765,7 @@ TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -2793,7 +2786,6 @@ TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -2860,8 +2852,6 @@ TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -2910,7 +2900,7 @@ TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -3105,7 +3095,7 @@ TEST_CASE("Parse/OpenSpace: Single Fisheye GUI", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -3222,7 +3212,6 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -3295,8 +3284,6 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -3343,7 +3330,7 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -3383,7 +3370,7 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -3405,7 +3392,6 @@ TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -3454,8 +3440,6 @@ TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -3499,7 +3483,7 @@ TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -3619,7 +3603,7 @@ TEST_CASE("Parse/OpenSpace: Single Two Win", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -3653,7 +3637,7 @@ TEST_CASE("Parse/OpenSpace: Single Two Win", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -3675,7 +3659,6 @@ TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -3724,8 +3707,7 @@ TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
+
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
     REQUIRE(*res.settings->display->swapInterval == 0);
@@ -3767,7 +3749,7 @@ TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -3887,7 +3869,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror GUI", "[parse]") {
         REQUIRE(v.correctionMeshTexture.has_value());
         CHECK(
             *v.correctionMeshTexture ==
-            std::filesystem::absolute("mesh/standard_16x9.data").string()
+            std::filesystem::absolute("mesh/standard_16x9.data")
         );
         REQUIRE(v.position.has_value());
         CHECK(v.position->x == 0.f);
@@ -3947,7 +3929,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror GUI", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -4040,7 +4022,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror", "[parse]") {
     REQUIRE(v.correctionMeshTexture.has_value());
     CHECK(
         *v.correctionMeshTexture ==
-        std::filesystem::absolute("mesh/standard_16x9.data").string()
+        std::filesystem::absolute("mesh/standard_16x9.data")
     );
     REQUIRE(v.position.has_value());
     CHECK(v.position->x == 0.f);
@@ -4271,7 +4253,7 @@ TEST_CASE("Parse/OpenSpace: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -4311,7 +4293,7 @@ TEST_CASE("Parse/OpenSpace: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);

@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -38,7 +38,10 @@ void operator delete(void* ptr) noexcept;
 #define TracyGpuContext
 #define TracyGpuCollect
 #define FrameMark
-
+#define ZoneText(text, length)
+#define TracyLockable(type, var) type var
+#define TracyAlloc(ptr, bytes)
+#define TracyAllocN(ptr, bytes, name)
 
 #endif // TRACY_ENABLE
 

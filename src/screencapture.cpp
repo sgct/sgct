@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -10,12 +10,11 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/settings.h>
 #include <sgct/window.h>
 #include <cstring>
 #include <string>
@@ -62,7 +61,7 @@ namespace {
 namespace sgct {
 
 ScreenCapture::ScreenCapture()
-    : _nThreads(Settings::instance().numberCaptureThreads())
+    : _nThreads(Engine::instance().numberCaptureThreads())
 {
     ZoneScoped;
 }
@@ -75,7 +74,7 @@ ScreenCapture::~ScreenCapture() {
             info.captureThread = nullptr;
         }
 
-        std::unique_lock lock(_mutex);
+        const std::unique_lock lock(_mutex);
         info.frameBufferImage = nullptr;
         info.isRunning = false;
     }
@@ -94,7 +93,7 @@ void ScreenCapture::initOrResize(ivec2 resolution, int channels, int bytesPerCol
 
     _downloadFormat = getDownloadFormat(_nChannels);
 
-    std::unique_lock lock(_mutex);
+    const std::unique_lock lock(_mutex);
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         if (info.frameBufferImage) {
             // kill threads that are still running
@@ -108,7 +107,7 @@ void ScreenCapture::initOrResize(ivec2 resolution, int channels, int bytesPerCol
     }
 
     glGenBuffers(1, &_pbo);
-    Log::Debug(fmt::format(
+    Log::Debug(std::format(
         "Generating {}x{}x{} PBO: {}", _resolution.x, _resolution.y, _nChannels, _pbo
     ));
 
@@ -123,20 +122,16 @@ void ScreenCapture::setTextureTransferProperties(GLenum type) {
     _downloadFormat = getDownloadFormat(_nChannels);
 }
 
-void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
-    _format = cf;
-}
-
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped;
 
     uint64_t number = Engine::instance().screenShotNumber();
-    if (Settings::instance().hasScreenshotLimit()) {
-        uint64_t begin = Settings::instance().screenshotLimitBegin();
-        uint64_t end = Settings::instance().screenshotLimitEnd();
+    if (Engine::instance().screenshotLimit()) {
+        uint64_t begin = Engine::instance().screenshotLimit()->first;
+        uint64_t end = Engine::instance().screenshotLimit()->second;
 
         if (number < begin || number >= end) {
-            Log::Debug(fmt::format(
+            Log::Debug(std::format(
                 "Skipping screenshot {} outside range [{}, {}]", number, begin, end
             ));
             return;
@@ -146,7 +141,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     std::string file = createFilename(number);
     checkImageBuffer(capSrc);
 
-    int threadIndex = availableCaptureThread();
+    const int threadIndex = availableCaptureThread();
     if (threadIndex == -1) {
         Log::Error("Error finding available capture thread");
         return;
@@ -202,7 +197,7 @@ void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     }
     _windowIndex = windowIndex;
 
-    Log::Debug(fmt::format("Number of screencapture threads is set to {}", _nThreads));
+    Log::Debug(std::format("Number of screencapture threads is set to {}", _nThreads));
 }
 
 std::string ScreenCapture::createFilename(uint64_t frameNumber) {
@@ -217,34 +212,29 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
 
     std::array<char, 6> Buffer;
     std::fill(Buffer.begin(), Buffer.end(), '\0');
-    fmt::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
+    std::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
-    const std::string suffix = [](CaptureFormat format) {
-        switch (format) {
-            case CaptureFormat::PNG: return "png";
-            case CaptureFormat::TGA: return "tga";
-            case CaptureFormat::JPEG: return "jpg";
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }(_format);
-
-    std::string file;
-    if (!Settings::instance().capturePath().empty()) {
-        file = Settings::instance().capturePath() + '/';
+    std::filesystem::path file;
+    if (!Engine::instance().capturePath().empty()) {
+        file = Engine::instance().capturePath() / "";
     }
-    if (!Settings::instance().prefixScreenshot().empty()) {
-        file += Settings::instance().prefixScreenshot();
+    if (!Engine::instance().prefixScreenshot().empty()) {
+        file += Engine::instance().prefixScreenshot();
         file += '_';
     }
-    if (Settings::instance().addNodeNameToScreenshot() &&
+    if (Engine::instance().addNodeNameToScreenshot() &&
         ClusterManager::instance().numberOfNodes() > 1)
     {
-        file += "node" + std::to_string(ClusterManager::instance().thisNodeId());
-        file += '_';
+        file += std::format("node{}_", ClusterManager::instance().thisNodeId());
     }
-    if (Settings::instance().addWindowNameToScreenshot()) {
+    if (Engine::instance().addWindowNameToScreenshot()) {
         const Window& w = *Engine::instance().windows()[_windowIndex];
-        file += w.name().empty() ? "win" + std::to_string(_windowIndex) : w.name();
+        if (w.name().empty()) {
+            file += std::format("win{}", _windowIndex);
+        }
+        else {
+            file += w.name();
+        }
         file += '_';
     }
 
@@ -252,7 +242,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return file + std::string(Buffer.begin(), Buffer.end()) + '.' + suffix;
+    return std::format("{}{}.png", file, std::string(Buffer.begin(), Buffer.end()));
 }
 
 int ScreenCapture::availableCaptureThread() {
@@ -297,7 +287,7 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 }
 
 Image* ScreenCapture::prepareImage(int index, std::string file) {
-    Log::Debug(fmt::format("Starting thread for screenshot/capture [{}]", index));
+    Log::Debug(std::format("Starting thread for screenshot/capture [{}]", index));
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
         _captureInfos[index].frameBufferImage = std::make_unique<Image>();

@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -46,13 +46,13 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
         const float azimuth = glm::radians((a * 360.f) / _azimuthSteps);
 
         const float elevation = glm::radians(lift);
-        const float x = cos(elevation) * sin(azimuth);
-        const float y = sin(elevation);
-        const float z = -cos(elevation) * cos(azimuth);
-        const float s = sin(azimuth) * 0.5f + 0.5f;
-        const float t = -cos(azimuth) * 0.5f + 0.5f;
+        const float x = std::cos(elevation) * std::sin(azimuth);
+        const float y = std::sin(elevation);
+        const float z = -std::cos(elevation) * std::cos(azimuth);
+        const float s = std::sin(azimuth) * 0.5f + 0.5f;
+        const float t = -std::cos(azimuth) * 0.5f + 0.5f;
 
-        verts.push_back({ s, t,  x, y, z,  x * r, y * r, z * r });
+        verts.emplace_back(s, t,  x, y, z,  x * r, y * r, z * r);
     }
 
     int numVerts = 0;
@@ -60,22 +60,22 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
         const float de = static_cast<float>(e) / static_cast<float>(_elevationSteps);
         const float elevation = glm::radians(lift + de * (90.f - lift));
 
-        const float y = sin(elevation);
+        const float y = std::sin(elevation);
 
         for (int a = 0; a < _azimuthSteps; a++) {
             const float azimuth = glm::radians((a * 360.f) / _azimuthSteps);
 
-            const float x = cos(elevation) * sin(azimuth);
-            const float z = -cos(elevation) * cos(azimuth);
+            const float x = std::cos(elevation) * std::sin(azimuth);
+            const float z = -std::cos(elevation) * std::cos(azimuth);
 
             float s = (static_cast<float>(_elevationSteps - e) /
-                       static_cast<float>(_elevationSteps))* sin(azimuth);
+                       static_cast<float>(_elevationSteps))* std::sin(azimuth);
             float t = (static_cast<float>(_elevationSteps - e) /
-                       static_cast<float>(_elevationSteps)) * -cos(azimuth);
+                       static_cast<float>(_elevationSteps)) * -std::cos(azimuth);
             s = s * 0.5f + 0.5f;
             t = t * 0.5f + 0.5f;
 
-            verts.push_back({ s, t,  x, y, z,  x * r, y * r, z * r });
+            verts.emplace_back(s, t,  x, y, z,  x * r, y * r, z * r);
 
             indices.push_back(numVerts);
             indices.push_back(_azimuthSteps + numVerts);
@@ -89,7 +89,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     const int e = _elevationSteps;
     const float de = static_cast<float>(e) / static_cast<float>(_elevationSteps);
     const float elevation = glm::radians(lift + de * (90.f - lift));
-    const float y = sin(elevation);
+    const float y = std::sin(elevation);
     verts.push_back({ 0.5f, 0.5f,  0.f, 1.f, 0.f,  0.f, y * r, 0.f });
 
     indices.push_back(numVerts + _azimuthSteps);
@@ -134,7 +134,7 @@ Dome::~Dome() {
     glDeleteVertexArrays(1, &_vao);
 }
 
-void Dome::draw() {
+void Dome::draw() const {
     glBindVertexArray(_vao);
 
     for (int i = 0; i < _elevationSteps - 1; i++) {

@@ -2,14 +2,14 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
 #include <sgct/shadermanager.h>
 
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <algorithm>
@@ -45,7 +45,7 @@ void ShaderManager::addShaderProgram(std::string name, std::string_view vertexSr
     if (shaderProgramExists(name)) {
         throw Error(
             7000,
-            fmt::format("Cannot add shader program [{}]: Already exists", name)
+            std::format("Cannot add shader program '{}': Already exists", name)
         );
     }
 
@@ -66,7 +66,7 @@ bool ShaderManager::removeShaderProgram(std::string_view name) {
 
     if (shaderIt == _shaderPrograms.end()) {
         Log::Warning(
-            fmt::format("Unable to remove shader program [{}]: Not found", name)
+            std::format("Unable to remove shader program '{}': Not found", name)
         );
         return false;
     }
@@ -84,7 +84,7 @@ const ShaderProgram& ShaderManager::shaderProgram(std::string_view name) const {
         [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
     if (shaderIt == _shaderPrograms.end()) {
-        throw Error(7001, fmt::format("Could not find shader with name {}", name));
+        throw Error(7001, std::format("Could not find shader with name '{}'", name));
     }
     return *shaderIt;
 }

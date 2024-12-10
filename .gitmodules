@@ -13,9 +13,6 @@
 [submodule "ext/tracy"]
 	path = ext/tracy
 	url = https://github.com/wolfpld/tracy.git
-[submodule "ext/fmt"]
-	path = ext/fmt
-	url = https://github.com/fmtlib/fmt.git
 [submodule "ext/tinyxml"]
 	path = ext/tinyxml
 	url = https://github.com/leethomason/tinyxml2

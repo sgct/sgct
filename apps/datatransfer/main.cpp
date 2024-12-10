@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -194,7 +194,7 @@ void uploadTexture() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Texture id {} loaded ({}x{}x{})",
         tex, transImg->size().x, transImg->size().y, transImg->channels()
     ));
@@ -361,7 +361,7 @@ void keyboard(Key key, Modifier, Action action, int, Window*) {
 }
 
 void dataTransferDecoder(void* data, int length, int packageId, int clientIndex) {
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Decoding {} bytes in transfer id: {} on node {}", length, packageId, clientIndex
     ));
 
@@ -373,13 +373,13 @@ void dataTransferDecoder(void* data, int length, int packageId, int clientIndex)
 }
 
 void dataTransferStatus(bool connected, int clientIndex) {
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Transfer node {} is {}", clientIndex, connected ? "connected" : "disconnected"
     ));
 }
 
 void dataTransferAcknowledge(int packageId, int clientIndex) {
-    Log::Info(fmt::format(
+    Log::Info(std::format(
         "Transfer id: {} is completed on node {}", packageId, clientIndex
     ));
 
@@ -390,7 +390,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
             clientsUploadDone = true;
             counter = 0;
 
-            Log::Info(fmt::format(
+            Log::Info(std::format(
                 "Time to distribute and upload textures on cluster: {} ms",
                 (time() - sendTimer) * 1000.0
             ));
@@ -398,13 +398,13 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     }
 }
 
-void drop(int, const char** paths) {
+void drop(const std::vector<std::string_view>& path) {
     if (!Engine::instance().isMaster()) {
         return;
     }
 
     // simply pick the first path to transmit
-    std::string tmpStr(paths[0]);
+    std::string tmpStr = std::string(path[0]);
 
     // transform to lowercase
     std::transform(
@@ -418,7 +418,7 @@ void drop(int, const char** paths) {
     const bool foundJpeg = tmpStr.find(".jpeg") != std::string::npos;
     const bool foundPng = tmpStr.find(".png") != std::string::npos;
     if (foundJpg || foundJpeg || foundPng) {
-        imagePaths.push_back(paths[0]);
+        imagePaths.push_back(std::string(path[0]));
         transfer = true;
     }
 }

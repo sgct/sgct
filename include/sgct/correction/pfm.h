@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -16,8 +16,8 @@
 
 namespace sgct::correction {
 
-SGCT_EXPORT Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-    const vec2& size);
+SGCT_EXPORT Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
+    const vec2& pos, const vec2& size, bool textureRenderMode = false);
 
 } // namespace sgct::correction
 

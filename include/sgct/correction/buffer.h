@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -15,7 +15,9 @@
 namespace sgct::correction {
 
 struct SGCT_EXPORT Buffer {
-    /// This struct represents an individual vertex that is part of a \sa Buffer 
+    /**
+     * This struct represents an individual vertex that is part of a \see Buffer.
+     */
     struct Vertex {
         float x = 0.f;
         float y = 0.f;

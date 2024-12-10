@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -135,7 +135,7 @@ Sphere::~Sphere() {
     glDeleteBuffers(1, &_ibo);
 }
 
-void Sphere::draw() {
+void Sphere::draw() const {
     glBindVertexArray(_vao);
     glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);

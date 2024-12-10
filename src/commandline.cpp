@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -65,21 +65,9 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.ignoreSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--capture-tga") {
-            config.captureFormat = Settings::CaptureFormat::TGA;
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--capture-jpg") {
-            config.captureFormat = Settings::CaptureFormat::JPG;
-            arg.erase(arg.begin() + i);
-        }
         else if (arg[i] == "--number-capture-threads" && arg.size() > (i + 1)) {
             config.nCaptureThreads = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
-        }
-        else if (arg[i] == "--export-correction-meshes") {
-            config.exportCorrectionMeshes = true;
-            arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--screenshot-path") {
             config.screenshotPath = arg[i + 1];
@@ -122,8 +110,8 @@ Configuration parseArguments(std::vector<std::string>& arg) {
 std::string helpMessage() {
     return R"(
 Parameters:
---config <filename.xml> or -c <filename.xml>
-    Set XML configuration file
+--config <filename.json> or -c <filename.json>
+    Set configuration file
 --help or -h
     Display help message and exit
 --local <integer> or -l <integer>

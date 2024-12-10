@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -10,8 +10,8 @@
 
 #include <sgct/fontmanager.h>
 
-#include <sgct/fmt.h>
 #include <sgct/font.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <glm/glm.hpp>
@@ -91,7 +91,7 @@ void FontManager::destroy() {
 }
 
 FontManager::FontManager() {
-    FT_Error error = FT_Init_FreeType(&_library);
+    const FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
         Log::Error("Could not initiate Freetype library");
@@ -141,55 +141,55 @@ bool FontManager::addFont(std::string name, std::string file) {
 
     const bool inserted = _fontPaths.insert({ name, std::move(file) }).second;
     if (!inserted) {
-        Log::Warning(fmt::format("Font with name '{}' already exists", name));
+        Log::Warning(std::format("Font with name '{}' already exists", name));
     }
     return inserted;
 }
 
-Font* FontManager::font(const std::string& fontName, unsigned int height) {
-    if (_fontMap.count({ fontName, height }) == 0) {
-        std::unique_ptr<Font> f = createFont(fontName, height);
-        if (f == nullptr) {
+Font* FontManager::font(const std::string& name, unsigned int height) {
+    if (!_fontMap.contains({ name, height })) {
+        std::unique_ptr<Font> f = createFont(name, height);
+        if (!f) {
             return nullptr;
         }
-        _fontMap[{ fontName, height }] = std::move(f);
+        _fontMap[{ name, height }] = std::move(f);
     }
 
-    return _fontMap[{ fontName, height }].get();
+    return _fontMap[{ name, height }].get();
 }
 
 std::unique_ptr<Font> FontManager::createFont(const std::string& name, int height) {
-    std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
+    const auto it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
-        Log::Error(fmt::format("No font file specified for font [{}]", name));
+        Log::Error(std::format("No font file specified for font '{}'", name));
         return nullptr;
     }
 
     if (_library == nullptr) {
-        Log::Error(fmt::format(
-            "Freetype library is not initialized, can't create font [{}]", name
+        Log::Error(std::format(
+            "Freetype library is not initialized, cannot create font '{}'", name
         ));
         return nullptr;
     }
 
-    FT_Face face;
-    FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
+    FT_Face face = nullptr;
+    const FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
-        Log::Error(fmt::format(
-            "Unsupperted file format [{}] for font [{}]", it->second, name
+        Log::Error(std::format(
+            "Unsupported file format '{}' for font '{}'", it->second, name
         ));
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
-        Log::Error(fmt::format("Font '{}' not found", it->second));
+        Log::Error(std::format("Font '{}' not found", it->second));
         return nullptr;
     }
 
-    FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
+    const FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
-        Log::Error(fmt::format("Could not set pixel size for font [{}]", name));
+        Log::Error(std::format("Could not set pixel size for font '{}'", name));
         return nullptr;
     }
 

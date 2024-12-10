@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -11,6 +11,7 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/math.h>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <variant>
@@ -41,7 +42,7 @@ struct SGCT_EXPORT Capture {
         int last = -1;  // exclusive
     };
 
-    std::optional<std::string> path;
+    std::optional<std::filesystem::path> path;
     std::optional<Format> format;
     std::optional<ScreenShotRange> range;
 };
@@ -129,6 +130,11 @@ struct SGCT_EXPORT PlanarProjection {
     std::optional<vec3> offset;
 };
 SGCT_EXPORT void validatePlanarProjection(const PlanarProjection& proj);
+
+
+
+struct SGCT_EXPORT TextureMappedProjection : PlanarProjection { };
+SGCT_EXPORT void validateTextureProjection(const TextureMappedProjection& proj);
 
 
 
@@ -231,29 +237,10 @@ SGCT_EXPORT void validateProjectionPlane(const ProjectionPlane& proj);
 
 
 
-struct SGCT_EXPORT MpcdiProjection {
-    struct Frustum {
-        float down;
-        float up;
-        float left;
-        float right;
-    };
-    std::optional<std::string> id;
-    std::optional<vec2> position;
-    std::optional<vec2> size;
-    std::optional<vec2> resolution;
-    std::optional<Frustum> frustum;
-    std::optional<float> distance;
-    std::optional<quat> orientation;
-    std::optional<vec3> offset;
-};
-SGCT_EXPORT void validateMpcdiProjection(const MpcdiProjection& proj);
-
-
-
 using Projections = std::variant<NoProjection, CylindricalProjection,
     EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
-    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection>;
+    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection,
+    TextureMappedProjection>;
 
 
 
@@ -261,10 +248,10 @@ struct SGCT_EXPORT Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
     std::optional<std::string> user;
-    std::optional<std::string> overlayTexture;
-    std::optional<std::string> blendMaskTexture;
-    std::optional<std::string> blackLevelMaskTexture;
-    std::optional<std::string> correctionMeshTexture;
+    std::optional<std::filesystem::path> overlayTexture;
+    std::optional<std::filesystem::path> blendMaskTexture;
+    std::optional<std::filesystem::path> blackLevelMaskTexture;
+    std::optional<std::filesystem::path> correctionMeshTexture;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
     std::optional<vec2> position;
@@ -316,8 +303,8 @@ struct SGCT_EXPORT Window {
     std::optional<bool> alwaysRender;
     std::optional<bool> isHidden;
     std::optional<bool> doubleBuffered;
+    std::optional<bool> takeScreenshot;
     std::optional<int> msaa;
-    std::optional<bool> hasAlpha;
     std::optional<bool> useFxaa;
     std::optional<bool> isDecorated;
     std::optional<bool> isResizable;
@@ -325,14 +312,17 @@ struct SGCT_EXPORT Window {
     std::optional<bool> draw3D;
     std::optional<bool> isMirrored;
     std::optional<int> blitWindowId;
+    std::optional<bool> mirrorX;
+    std::optional<bool> mirrorY;
     std::optional<int> monitor;
-    std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;
 
     std::vector<Viewport> viewports;
+
+    std::optional<std::filesystem::path> scalableMesh;
 };
 SGCT_EXPORT void validateWindow(const Window& window);
 
@@ -355,7 +345,6 @@ struct SGCT_EXPORT Cluster {
     std::string masterAddress;
     std::optional<bool> debugLog;
     std::optional<int> setThreadAffinity;
-    std::optional<int> externalControlPort;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;
     std::vector<Node> nodes;
@@ -392,6 +381,14 @@ struct SGCT_EXPORT GeneratorVersion {
     }
 };
 SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
+
+struct SGCT_EXPORT Meta {
+    std::string author;
+    std::string description;
+    std::string license;
+    std::string name;
+    std::string version;
+};
 
 } // namespace sgct::config
 

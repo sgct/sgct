@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
@@ -19,7 +19,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <scn/scn.h>
+#include <scn/scan.h>
 #include <fstream>
 #include <optional>
 
@@ -32,11 +32,11 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading SkySkan mesh data from {}", path));
+    Log::Info(std::format("Reading SkySkan mesh data from '{}'", path));
 
     std::ifstream meshFile(path);
     if (!meshFile.good()) {
-        throw Error(2090, fmt::format("Failed to open file {}", path));
+        throw Error(2090, std::format("Failed to open file '{}'", path));
     }
 
     std::optional<float> azimuth;
@@ -53,39 +53,50 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
 
     std::string line;
     while (std::getline(meshFile, line)) {
-        float x = 0.f;
-        float y = 0.f;
-        float u = 0.f;
-        float v = 0.f;
-        if (scn::scan(line, "Dome Azimuth={}", v)) {
-            azimuth = v;
+        if (auto r = scn::scan<float>(line, "Dome Azimuth={}");  r) {
+            azimuth = r->value();
+            break;
         }
-        else if (scn::scan(line, "Dome Elevation={}", v)) {
-            elevation = v;
+        if (auto r = scn::scan<float>(line, "Dome Elevation={}");  r) {
+            elevation = r->value();
+            break;
         }
-        else if (scn::scan(line, "Horizontal FOV={}", v)) {
-            hFov = v;
+        if (auto r = scn::scan<float>(line, "Horizontal FOV={}");  r) {
+            hFov = r->value();
+            break;
         }
-        else if (scn::scan(line, "Vertical FOV={}", v)) {
-            vFov = v;
+        if (auto r = scn::scan<float>(line, "Vertical FOV={}");  r) {
+            vFov = r->value();
+            break;
         }
-        else if (scn::scan(line, "Horizontal Tweak={}", v)) {
-            fovTweaks.x = v;
+        if (auto r = scn::scan<float>(line, "Horizontal Tweak={}");  r) {
+            fovTweaks.x = r->value();
+            break;
         }
-        else if (scn::scan(line, "Vertical Tweak={}", v)) {
-            fovTweaks.y = v;
+        if (auto r = scn::scan<float>(line, "Vertical Tweak={}");  r) {
+            fovTweaks.y = r->value();
+            break;
         }
-        else if (scn::scan(line, "U Tweak={}", v)) {
-            uvTweaks.x = v;
+        if (auto r = scn::scan<float>(line, "U Tweak={}");  r) {
+            uvTweaks.x = r->value();
+            break;
         }
-        else if (scn::scan(line, "V Tweak={}", v)) {
-            uvTweaks.y = v;
+        if (auto r = scn::scan<float>(line, "V Tweak={}");  r) {
+            uvTweaks.y = r->value();
+            break;
         }
-        else if (!areDimsSet && scn::scan_default(line, sizeX, sizeY)) {
+        if (auto r = scn::scan<unsigned int, unsigned int>(line, "{} {}");
+            r && !areDimsSet)
+        {
             areDimsSet = true;
+            std::tie(sizeX, sizeY) = r->values();
             buf.vertices.resize(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
+            break;
         }
-        else if (areDimsSet && scn::scan_default(line, x, y, u , v)) {
+        if (auto r = scn::scan<float, float, float, float>(line, "{} {} {} {}");
+            r && areDimsSet)
+        {
+            auto [x, y, u, v] = r->values();
             if (uvTweaks.x > -1.f) {
                 u *= uvTweaks.x;
             }
@@ -104,24 +115,25 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
             buf.vertices[counter].b = 1.f;
             buf.vertices[counter].a = 1.f;
             counter++;
+            break;
         }
     }
 
     if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
         !hFov.has_value() || *hFov <= 0.f)
     {
-        throw Error(2091, fmt::format("Data reading error in file {}", path));
+        throw Error(2091, std::format("Data reading error in file '{}'", path));
     }
 
     // create frustums and projection matrices
     if (!vFov.has_value() || *vFov <= 0.f) {
         // half the width (radius is one unit, cancels it self out)
-        const float hw = tan(glm::radians<float>(*hFov) / 2.f);
+        const float hw = std::tan(glm::radians<float>(*hFov) / 2.f);
         // half height
         const float hh = (1200.f / 2048.f) * hw;
-        vFov = 2.f * glm::degrees<float>(atan(hh));
+        vFov = 2.f * glm::degrees<float>(std::atan(hh));
 
-        Log::Info(fmt::format("HFOV: {} VFOV: {}", *hFov, *vFov));
+        Log::Info(std::format("HFOV: {} VFOV: {}", *hFov, *vFov));
     }
 
     if (fovTweaks.x > 0.f) {

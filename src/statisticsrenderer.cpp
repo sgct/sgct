@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -65,27 +65,27 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     };
     std::vector<sVertex> vs;
     vs.emplace_back(0.f, 0.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);
     vs.emplace_back(0.f, 1.f / 30.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 30.f);
 
     // Static 1 ms lines
     _lines.staticDraw.nLines = 0;
     for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
         vs.emplace_back(0.f, f);
-        vs.emplace_back(static_cast<float>(_statistics.HistoryLength), f);
+        vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), f);
         _lines.staticDraw.nLines++;
     }
 
     // Static 0, 30 & 60 FPS lines
     vs.emplace_back(0.f, 0.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);
 
     vs.emplace_back(0.f, 1.f / 30.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 30.f);
 
     vs.emplace_back(0.f, 1.f / 60.f);
-    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 60.f);
+    vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 1.f / 60.f);
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
@@ -95,7 +95,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     _shader.bind();
     _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
     _colorLoc = glGetUniformLocation(_shader.id(), "col");
-    _shader.unbind();
+    ShaderProgram::unbind();
 
     // OpenGL objects for lines
     glGenVertexArrays(1, &_lines.staticDraw.vao);
@@ -168,23 +168,23 @@ void StatisticsRenderer::update() {
 
     // Lines rendering
     // The statistics are stored as 1D double arrays, but we need 2D float arrays
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.frametimes[i].x = static_cast<float>(i);
         _lines.buffer.frametimes[i].y = static_cast<float>(_statistics.frametimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.drawTimes[i].x = static_cast<float>(i);
         _lines.buffer.drawTimes[i].y = static_cast<float>(_statistics.drawTimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.syncTimes[i].x = static_cast<float>(i);
         _lines.buffer.syncTimes[i].y = static_cast<float>(_statistics.syncTimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.loopTimeMin[i].x = static_cast<float>(i);
         _lines.buffer.loopTimeMin[i].y = static_cast<float>(_statistics.loopTimeMin[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.loopTimeMax[i].x = static_cast<float>(i);
         _lines.buffer.loopTimeMax[i].y = static_cast<float>(_statistics.loopTimeMax[i]);
     }
@@ -205,7 +205,7 @@ void StatisticsRenderer::update() {
     {
         std::fill(hValues.begin(), hValues.end(), 0);
 
-        for (double d : sValues) {
+        for (const double d : sValues) {
             // convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
             const double dp = d / scale;
             const int dpScaled = static_cast<int>(dp * Histogram::Bins);
@@ -231,7 +231,7 @@ void StatisticsRenderer::update() {
     auto convertValues = [&](std::array<Vertex, 6 * Histogram::Bins>& buffer,
                             const std::array<int, Histogram::Bins>& values, int maxBinVal)
     {
-        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); i++) {
             const int val = values[i];
 
             const float x0 = static_cast<float>(i) / Histogram::Bins;
@@ -267,16 +267,38 @@ void StatisticsRenderer::update() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
+void StatisticsRenderer::render(const Window& window, const Viewport& viewport) const {
     ZoneScoped;
 
-    ivec2 res = window.framebufferResolution();
-    const glm::mat4 orthoMat = glm::ortho(
+    const ivec2 res = window.framebufferResolution();
+    const glm::vec2 scaleOffset = glm::vec2(res.x / 2.f, res.y / 2.f);
+
+    glm::mat4 orthoMat = glm::ortho(
         0.f,
         static_cast<float>(res.x),
         0.f,
         static_cast<float>(res.y)
     );
+    orthoMat = glm::scale(orthoMat, glm::vec3(_scale, _scale, 1.f));
+    orthoMat = glm::translate(
+        orthoMat,
+        // The extra `/ _scale` in this calculation is due to the glm::scale just above
+        // which means that every translation is scaled as well. Moving the division into
+        // the parantheses would make it harder to understand as we don't really care too
+        // much about the performance here
+        glm::vec3(
+            scaleOffset.x * (1.f - _scale) / _scale,
+            scaleOffset.y * (1.f - _scale) / _scale,
+            0.f
+        )
+    );
+
+    const glm::vec2 penPosition = glm::vec2(
+        15.f * _scale + scaleOffset.x * (1.f - _scale),
+        10.f * _scale + scaleOffset.y * (1.f - _scale)
+    );
+    const float penOffset = 20.f * _scale;
+
 
     glLineWidth(1.f);
 
@@ -289,12 +311,12 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         _shader.bind();
 
         const glm::vec2 size = glm::vec2(
-            res.x / static_cast<float>(_statistics.HistoryLength),
+            res.x / static_cast<float>(Engine::Statistics::HistoryLength),
             res.y * 15.f
         );
 
 
-        glm::mat4 m = glm::translate(orthoMat, glm::vec3(0.f, 250.f, 0.f));
+        glm::mat4 m = glm::translate(orthoMat, glm::vec3(0.f, 250.f * _scale, 0.f));
         m = glm::scale(m, glm::vec3(size.x, size.y, 1.f));
         glUniformMatrix4fv(_mvpLoc, 1, GL_FALSE, glm::value_ptr(m));
 
@@ -336,69 +358,69 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 
         glBindVertexArray(0);
-        _shader.unbind();
+        ShaderProgram::unbind();
 
 #ifdef SGCT_HAS_TEXT
-        constexpr glm::vec2 Pos = glm::vec2(15.f, 50.f);
-        constexpr float Offset = 20.f;
         constexpr text::Alignment mode = text::Alignment::TopLeft;
 
-        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", 20);
-        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", 12);
+        const int f1Size = static_cast<int>(20 * _scale);
+        const int f2Size = static_cast<int>(12 * _scale);
+        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", f1Size);
+        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", f2Size);
 
         text::print(
             window,
             viewport,
             f1,
             mode,
-            Pos.x, Pos.y + 7 * Offset,
+            penPosition.x, penPosition.y + 9 * penOffset,
             vec4{ 1.f, 0.8f, 0.8f, 1.f },
-            fmt::format("Frame number: {}", Engine::instance().currentFrameNumber())
+            std::format("Frame number: {}", Engine::instance().currentFrameNumber())
         );
         text::print(
             window,
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + 4 * Offset,
+            penPosition.x, penPosition.y + 6 * penOffset,
             ColorFrameTime,
-            fmt::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
+            std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
         );
         text::print(
             window,
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + 3 * Offset,
+            penPosition.x, penPosition.y + 5 * penOffset,
             ColorDrawTime,
-            fmt::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
+            std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
         );
         text::print(
             window,
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + 2 * Offset,
+            penPosition.x, penPosition.y + 4 * penOffset,
             ColorSyncTime,
-            fmt::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
+            std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
         );
         text::print(
             window,
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y + Offset,
+            penPosition.x, penPosition.y + 3 * penOffset,
             ColorLoopTimeMin,
-            fmt::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
+            std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
         );
         text::print(
             window,
             viewport,
             f2,
             mode,
-            Pos.x, Pos.y,
+            penPosition.x, penPosition.y + 2 * penOffset,
             ColorLoopTimeMax,
-            fmt::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
+            std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
         );
 #endif // SGCT_HAS_TEXT
     }
@@ -411,26 +433,25 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         ZoneScopedN("Histogram");
 
         auto renderHistogram = [&](int i, const vec4& color) {
-            const auto [pos, size] = [](int j) -> std::tuple<glm::vec2, glm::vec2> {
-                constexpr glm::vec2 Pos(400.f, 10.f);
-                constexpr glm::vec2 Size(425.f, 200.f);
+            const auto [pos, size] = [this](int j) -> std::tuple<glm::vec2, glm::vec2> {
+                const glm::vec2 p = glm::vec2(400.f * _scale, 10.f * _scale);
+                const glm::vec2 s = glm::vec2(425.f *_scale, 200.f * _scale);
 
                 if (j == 0) {
                     // Full size
-                    return { Pos, Size };
+                    return { p, s };
                 }
                 else {
                     // Half size in a grid
                     const int idx = j - 1;
-                    const glm::vec2 tSize = Size / 2.f;
+                    const glm::vec2 tSize = s / 2.f;
                     const float iMod = static_cast<float>(idx % 2);
                     const float iDiv = static_cast<float>(idx / 2);
                     const glm::vec2 offset = glm::vec2(
                         (tSize.x + 10.f) * iMod,
                         (tSize.y + 10.f) * iDiv
                     );
-                    const glm::vec2 p = Pos + offset;
-                    return { p + glm::vec2(Size.x + 10.f, 0.f), tSize };
+                    return { p + offset + glm::vec2(s.x + 10.f, 0.f), tSize };
                 }
             }(i);
 
@@ -455,36 +476,44 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         renderHistogram(4, ColorLoopTimeMax);
 
 #ifdef SGCT_HAS_TEXT
-        constexpr glm::vec2 Pos = glm::vec2(15.f, 10.f);
         constexpr text::Alignment mode = text::Alignment::TopLeft;
 
-        text::Font& f = *text::FontManager::instance().font("SGCTFont", 8);
+        const int fontSize = static_cast<int>(8 * _scale);
+        text::Font& f = *text::FontManager::instance().font("SGCTFont", fontSize);
         text::print(
             window,
             viewport,
             f,
             mode,
-            Pos.x, Pos.y,
+            penPosition.x, penPosition.y + penOffset,
             vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            fmt::format(
-                "Histogram Scale (frametime, drawtime): {:.0f} ms",
-                HistogramScaleFrame * 1000.0
-            )
-        );
-        text::print(
-            window,
-            viewport,
-            f,
-            mode,
-            Pos.x, Pos.y + 12.f,
-            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            fmt::format(
+            std::format(
                 "Histogram Scale (sync time): {:.0f} ms",
                 HistogramScaleSync * 1000.0
             )
         );
+        text::print(
+            window,
+            viewport,
+            f,
+            mode,
+            penPosition.x, penPosition.y,
+            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
+            std::format(
+                "Histogram Scale (frametime, drawtime): {:.0f} ms",
+                HistogramScaleFrame * 1000.0
+            )
+        );
 #endif // SGCT_HAS_TEXT
     }
+}
+
+float StatisticsRenderer::scale() const {
+    return _scale;
+}
+
+void StatisticsRenderer::setScale(float scale) {
+    _scale = scale;
 }
 
 } // namespace sgct

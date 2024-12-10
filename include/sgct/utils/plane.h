@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -11,20 +11,20 @@
 
 #include <sgct/sgctexports.h>
 
-/**
- * \namespace sgct::utils
- * \brief SGCT utils namespace contains basic utilities for geometry rendering
-*/
 namespace sgct::utils {
 
-/// This class creates and renders a textured box.
+/**
+ * This class creates and renders a textured box.
+ */
 class SGCT_EXPORT Plane {
 public:
-    /// This constructor requires a valid OpenGL contex
+    /**
+     * This constructor requires a valid OpenGL contex.
+     */
     Plane(float width, float height);
     ~Plane();
 
-    void draw();
+    void draw() const;
 
 private:
     unsigned int _vao = 0;

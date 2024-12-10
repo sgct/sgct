@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -929,7 +929,7 @@ TEST_CASE("Load: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -966,7 +966,7 @@ TEST_CASE("Load: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1019,7 +1019,7 @@ TEST_CASE("Load: Single", "[parse]") {
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -1152,7 +1152,7 @@ TEST_CASE("Load: Spherical Mirror", "[parse]") {
         *v.correctionMeshTexture ==
         std::filesystem::absolute(
             std::string(BASE_PATH) + "/config/mesh/standard_16x9.data"
-        ).string()
+        )
     );
 
     REQUIRE(std::holds_alternative<FisheyeProjection>(v.projection));
@@ -1194,7 +1194,7 @@ TEST_CASE("Load: Spout Output Cubemap", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    sgct::quat q = fromEuler(0.f, -90.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -1276,7 +1276,7 @@ TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    sgct::quat q = fromEuler(0.f, -90.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -1363,7 +1363,7 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -1471,7 +1471,7 @@ TEST_CASE("Load: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1509,7 +1509,7 @@ TEST_CASE("Load: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1525,4 +1525,61 @@ TEST_CASE("Load: Two Nodes", "[parse]") {
     CHECK(u.position->x == 0.f);
     CHECK(u.position->y == 0.f);
     CHECK(u.position->z == 4.f);
+}
+
+TEST_CASE("Load: TextureMappedProjection", "[parse]") {
+    using namespace sgct::config;
+
+    Cluster res = sgct::readConfig(std::string(BASE_PATH) +
+        "/config/single_texturemapped.json");
+
+    CHECK(res.masterAddress == "localhost");
+
+    REQUIRE(res.nodes.size() == 1);
+    const Node& n = res.nodes[0];
+    CHECK(n.address == "localhost");
+    CHECK(n.port == 20401);
+
+    REQUIRE(n.windows.size() == 1);
+    const Window& w = n.windows[0];
+    REQUIRE(w.isFullScreen.has_value());
+    CHECK(*w.isFullScreen == false);
+    REQUIRE(w.isDecorated.has_value());
+    CHECK(*w.isDecorated == false);
+    CHECK(w.size.x == 768);
+    CHECK(w.size.y == 810);
+
+    REQUIRE(w.viewports.size() == 1);
+    const Viewport& v = w.viewports[0];
+    REQUIRE(v.position.has_value());
+    CHECK(v.position->x == 0.f);
+    CHECK(v.position->y == 0.f);
+    REQUIRE(v.size.has_value());
+    CHECK(v.size->x == 1.f);
+    CHECK(v.size->y == 1.f);
+    REQUIRE(v.correctionMeshTexture.has_value());
+    std::string expectedPath = "mesh/surface1.pfm";
+#ifdef WIN32
+    expectedPath = "mesh\\surface1.pfm";
+#endif
+    std::string relativePath = v.correctionMeshTexture->string();
+    relativePath = relativePath.substr(relativePath.length() - expectedPath.length());
+    CHECK(relativePath == expectedPath);
+
+    REQUIRE(std::holds_alternative<TextureMappedProjection>(v.projection));
+    const TextureMappedProjection& p = std::get<TextureMappedProjection>(v.projection);
+    CHECK(p.fov.left == -77.82199f);
+    CHECK(p.fov.right == 77.82199f);
+    CHECK(p.fov.up == 78.43599f);
+    CHECK(p.fov.down == -78.43599f);
+    REQUIRE(p.orientation.has_value());
+
+    REQUIRE(res.users.size() == 1);
+    const User& u = res.users[0];
+    REQUIRE(u.eyeSeparation.has_value());
+    CHECK(*u.eyeSeparation == 0.06f);
+    REQUIRE(u.position.has_value());
+    CHECK(u.position->x == 0.f);
+    CHECK(u.position->y == 0.f);
+    CHECK(u.position->z == 0.f);
 }

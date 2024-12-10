@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -13,16 +13,22 @@
 
 namespace sgct::utils {
 
-/// This class creates and renders a textured sphere.
+/**
+ * This class creates and renders a textured sphere.
+ */
 class SGCT_EXPORT Sphere {
 public:
-    /// This constructor requires a valid OpenGL context
+    /**
+     * This constructor requires a valid OpenGL context.
+     */
     Sphere(float radius, unsigned int segments);
 
-    /// The destructor requires a valid OpenGL context
+    /**
+     * The destructor requires a valid OpenGL context.
+     */
     ~Sphere();
 
-    void draw();
+    void draw() const;
 
 private:
     unsigned int _nFaces = 0;

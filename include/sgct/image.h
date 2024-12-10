@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -11,23 +11,23 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/math.h>
-#include <string>
+#include <filesystem>
 
 namespace sgct {
 
 class SGCT_EXPORT Image {
 public:
-    enum class FormatType { PNG = 0, JPEG, TGA, Unknown };
-
     Image() = default;
     ~Image();
 
     void allocateOrResizeData();
-    void load(const std::string& filename);
+    void load(const std::filesystem::path& filename);
     void load(unsigned char* data, int length);
 
-    /// Save the buffer to file. Type is automatically set by filename suffix.
-    void save(const std::string& filename);
+    /**
+     * Save the buffer to file. Type is automatically set by filename suffix.
+     */
+    void save(const std::filesystem::path& filename);
 
     unsigned char* data();
     const unsigned char* data() const;
@@ -40,15 +40,6 @@ public:
     void setBytesPerChannel(int bpc);
 
 private:
-    /**
-     * Compression levels 1-9.
-     *   -1 = Default compression
-     *    0 = No compression
-     *    1 = Best speed
-     *    9 = Best compression
-     */
-    void savePNG(std::string filename, int compressionLevel = -1);
-
     int _nChannels = 0;
     ivec2 _size = ivec2{ 0, 0 };
     unsigned int _dataSize = 0;

@@ -34,7 +34,6 @@ endif ()
 
 if (APPLE)
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
-	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 	if (CMAKE_GENERATOR STREQUAL Xcode)
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 	endif ()

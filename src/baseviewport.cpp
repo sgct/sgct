@@ -2,22 +2,22 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
-#include <stdexcept>
-#include <type_traits>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <stdexcept>
+#include <type_traits>
 
 namespace sgct {
 
@@ -100,7 +100,7 @@ void BaseViewport::linkUserName() {
             _user = user;
         }
         else {
-            Log::Warning(fmt::format("Could not find user with name '{}'", _userName));
+            Log::Warning(std::format("Could not find user with name '{}'", _userName));
         }
     }
 }
@@ -133,7 +133,6 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
                 farClip
             );
             break;
-        default: throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -178,7 +177,6 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
             );
             break;
         }
-        default: throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -219,24 +217,36 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
 }
 
 float BaseViewport::horizontalFieldOfViewDegrees() const {
-    const float xDist = (_projPlane.coordinateUpperRight().x -
-        _projPlane.coordinateUpperLeft().x) / 2.f;
-    const float zDist = _projPlane.coordinateUpperRight().z;
-    return (glm::degrees(std::atan(std::fabs(xDist / zDist)))) * 2.f;
+    // Using the unrotated original viewplane to calculate the field-of-view here
+    const float xDist = (_viewPlane.upperRight.x - _viewPlane.upperLeft.x) / 2.f;
+    const float zDist = _viewPlane.upperRight.z;
+    return (glm::degrees(std::atan(std::abs(xDist / zDist)))) * 2.f;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
+    if (hFov == horizontalFieldOfViewDegrees()) {
+        // The old field of view is the same as the new one, so there is nothing to do
+        return;
+    }
+
     const vec3 upperLeft = _projPlane.coordinateUpperLeft();
     const vec3 lowerLeft = _projPlane.coordinateLowerLeft();
     const vec3 upperRight = _projPlane.coordinateUpperRight();
 
-    const float ratio = hFov / horizontalFieldOfViewDegrees();
-    const float up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
-    const float down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
-    const float left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
-    const float right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
+    const double ratio = static_cast<double>(hFov) / horizontalFieldOfViewDegrees();
+    const double up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
+    const double down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
+    const double left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
+    const double right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
 
-    setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, std::fabs(upperLeft.z));
+    setViewPlaneCoordsUsingFOVs(
+        static_cast<float>(up),
+        static_cast<float>(down),
+        static_cast<float>(left),
+        static_cast<float>(right),
+        _rotation,
+        std::abs(upperLeft.z)
+    );
 }
 
 } // namespace sgct

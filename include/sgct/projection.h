@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -17,11 +17,13 @@ namespace sgct {
 
 class ProjectionPlane;
 
-/// This class holds and manages 3D projections
+/**
+ * This class holds and manages 3D projections.
+ */
 class SGCT_EXPORT Projection {
 public:
     void calculateProjection(vec3 base, const ProjectionPlane& proj, float nearClip,
-        float farClip, vec3 viewOffset = vec3{ 0.f, 0.f, 0.f });
+        float farClip, vec3 offset = vec3{ 0.f, 0.f, 0.f });
 
     const mat4& viewProjectionMatrix() const;
     const mat4& viewMatrix() const;

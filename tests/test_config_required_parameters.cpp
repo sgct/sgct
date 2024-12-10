@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -806,5 +806,45 @@ TEST_CASE("Parse Required: Tracker/Name", "[parse]") {
         sgct::readJsonConfig(Sources),
         std::runtime_error,
         Catch::Matchers::Message("[ReadConfig] (6070): Tracker is missing 'name'")
+    );
+}
+
+TEST_CASE("Parse Required: TextureMappedProjection mesh", "[parse]") {
+    constexpr std::string_view Sources = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 1, "y": 2 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "up": 1.0,
+                  "down": 1.0,
+                  "left": 1.0,
+                  "right": 1.0
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+    CHECK_THROWS_MATCHES(
+        sgct::readJsonConfig(Sources),
+        std::runtime_error,
+        Catch::Matchers::Message(
+            "[ReadConfig] (6110): Missing correction mesh for TextureMappedProjection"
+        )
     );
 }

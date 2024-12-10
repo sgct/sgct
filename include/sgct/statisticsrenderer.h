@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -24,7 +24,10 @@ public:
     ~StatisticsRenderer();
 
     void update();
-    void render(const Window& window, const Viewport& viewport);
+    void render(const Window& window, const Viewport& viewport) const;
+
+    float scale() const;
+    void setScale(float scale);
 
 private:
     const Engine::Statistics& _statistics;
@@ -104,6 +107,8 @@ private:
         } dynamicDraw;
     };
     Histogram _histogram;
+
+    float _scale = 0.5f;
 };
 
 } // namespace sgct

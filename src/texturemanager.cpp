@@ -2,13 +2,13 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
 #include <sgct/texturemanager.h>
 
-#include <sgct/fmt.h>
+#include <sgct/format.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
@@ -18,7 +18,7 @@ namespace {
     unsigned int uploadImage(const sgct::Image& img, bool interpolate, int mipmap,
                              float anisotropicFilterSize)
     {
-        unsigned int tex;
+        unsigned int tex = 0;
         glGenTextures(1, &tex);
         glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -32,7 +32,7 @@ namespace {
             }
         }(img.channels());
 
-        sgct::Log::Debug(fmt::format(
+        sgct::Log::Debug(std::format(
             "Creating texture. Size: {}x{}, {}-channels, Type: {:#04x}, Format: {:#04x}",
             img.size().x, img.size().y, img.channels(), type, internalFormat
         ));
@@ -40,7 +40,7 @@ namespace {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        GLenum format = GL_UNSIGNED_BYTE;
+        constexpr GLenum Format = GL_UNSIGNED_BYTE;
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -49,7 +49,7 @@ namespace {
             img.size().y,
             0,
             type,
-            format,
+            Format,
             img.data()
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
@@ -114,8 +114,9 @@ TextureManager::~TextureManager() {
     glDeleteTextures(static_cast<GLsizei>(_textures.size()), _textures.data());
 }
 
-unsigned int TextureManager::loadTexture(const std::string& filename, bool interpolate,
-                                         float anisotropicFilterSize, int mipmapLevels)
+unsigned int TextureManager::loadTexture(const std::filesystem::path& filename,
+                                         bool interpolate, float anisotropicFilterSize,
+                                         int mipmapLevels)
 {
     // load image
     Image img;
@@ -132,14 +133,14 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
         anisotropicFilterSize,
         mipmapLevels
     );
-    Log::Debug(fmt::format("Texture created from '{}' [id={}]", filename, t));
+    Log::Debug(std::format("Texture created from '{}' [id={}]", filename, t));
     return t;
 }
 
 unsigned int TextureManager::loadTexture(const Image& img, bool interpolate,
                                          float anisotropicFilterSize, int mipmapLevels)
 {
-    GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
+    const GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
     _textures.push_back(t);
 
     return t;

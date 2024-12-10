@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -13,9 +13,13 @@
 
 namespace sgct {
 
-/// The frustum class stores the view frustum for each viewport
+/**
+ * The frustum class stores the view frustum for each viewport.
+ */
 struct SGCT_EXPORT Frustum {
-    /// SGCT stores all view frustums as triplets for switching between mono and stereo
+    /**
+     * SGCT stores all view frustums as triplets for switching between mono and stereo.
+     */
     enum class Mode { MonoEye = 0, StereoLeftEye, StereoRightEye };
 
     float left = -1.f;

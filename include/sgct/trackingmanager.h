@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -27,7 +27,9 @@ namespace config {
 class TrackingDevice;
 class User;
 
-/// Class that manages tracking systems
+/**
+ * Class that manages tracking systems.
+ */
 class SGCT_EXPORT TrackingManager {
 public:
     static TrackingManager& instance();
@@ -38,7 +40,9 @@ public:
 
     void startSampling();
 
-    /// Update the user position if headtracking is used. The engine calls this function
+    /**
+     * Update the user position if headtracking is used. The engine calls this function.
+     */
     void updateTrackingDevices();
     void addTracker(std::string name);
 

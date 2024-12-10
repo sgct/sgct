@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -20,7 +20,9 @@ namespace sgct {
 class OffScreenBuffer;
 class Window;
 
-/// Base class for non linear projections
+/**
+ * Base class for non-linear projections.
+ */
 class SGCT_EXPORT NonLinearProjection {
 public:
     enum class InterpolationMode { Linear, Cubic };
@@ -30,8 +32,8 @@ public:
     virtual ~NonLinearProjection();
 
     /**
-     * Init the non linear projection. The arguments should match the texture settings for
-     * the parent window's FBO target.
+     * Initialize the non-linear projection. The arguments should match the texture
+     * settings for the parent window's FBO target.
      */
     void initialize(unsigned int internalFormat, unsigned int format, unsigned int type,
         int samples);
@@ -46,40 +48,39 @@ public:
     /**
      * Set the resolution of the cubemap faces.
      *
-     * \param resolution the pixel resolution of each quad
+     * \param resolution The pixel resolution of each quad
      */
     void setCubemapResolution(int resolution);
 
     /**
      * Set the interpolation mode.
      *
-     * \param im the selected mode
+     * \param im The selected mode
      */
     void setInterpolationMode(InterpolationMode im);
 
-    /// Set if depth should be re-calculated to match the non linear projection.
+    /**
+     * Set if depth should be re-calculated to match the non-linear projection.
+     */
     void setUseDepthTransformation(bool state);
 
-    /// Set if stereoscopic rendering will be enabled.
+    /**
+     * Set if stereoscopic rendering will be enabled.
+     */
     void setStereo(bool state);
 
     /**
      * Set the clear color (background color) for the non linear projection renderer.
      *
-     * \param color is the RGBA color vector
+     * \param color The RGBA color vector
      */
     void setClearColor(vec4 color);
 
-    /**
-     * Set the alpha clear color value for the non-linear projection renderer.
-     *
-     * \param alpha is the alpha value
-     */
-    void setAlpha(float alpha);
-
     virtual void setUser(User* user);
 
-    /// \return the resolution of the cubemap
+    /**
+     * \return the resolution of the cubemap
+     */
     ivec2 cubemapResolution() const;
 
     ivec4 viewportCoords();

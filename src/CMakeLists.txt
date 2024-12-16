@@ -214,6 +214,7 @@ target_link_libraries(sgct
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:spout>
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
+    $<$<BOOL:${SGCT_GSTREAMER_SUPPORT}>:gstreamer>
   PRIVATE
     ZLIB::ZLIB
     minizip::minizip
@@ -234,6 +235,7 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
+    $<$<BOOL:${SGCT_GSTREAMER_SUPPORT}>:SGCT_HAS_GSTREAMER>
     $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE
     $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:SGCT_HAS_SCALABLE>

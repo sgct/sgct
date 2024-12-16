@@ -247,3 +247,7 @@ endif ()
 if (WIN32 AND SGCT_NDI_SUPPORT)
   add_subdirectory(ndi SYSTEM)
 endif (WIN32 AND SGCT_NDI_SUPPORT)
+
+if (SGCT_GSTREAMER_SUPPORT)
+  #add_subdirectory(gstreamer)
+endif ()

@@ -18,52 +18,39 @@
 
 namespace sgct {
 
-void Node::applyNode(const config::Node& node, bool initializeWindows) {
+Node::Node(const config::Node& node, bool initializeWindows)
+    : _address(node.address)
+    , _syncPort(node.port)
+    , _dataTransferPort(node.dataTransferPort.value_or(0))
+    , _useSwapGroups(node.swapLock.value_or(false))
+{
     ZoneScoped;
-
-    // Set network address
-    std::string address = node.address;
-    std::transform(
-        address.cbegin(),
-        address.cend(),
-        address.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-    _address = address;
-
-    _syncPort = node.port;
-
-    if (node.dataTransferPort) {
-        _dataTransferPort = *node.dataTransferPort;
-    }
-    if (node.swapLock) {
-        _useSwapGroups = *node.swapLock;
-    }
 
     if (initializeWindows) {
         for (const config::Window& window : node.windows) {
-            auto win = std::make_unique<Window>();
-            win->applyWindow(window);
-            addWindow(std::move(win));
+            if (window.scalableMesh.has_value()) {
+#ifdef SGCT_HAS_SCALABLE
+                auto win = std::make_unique<Window>(
+                    createScalableConfiguration(*window.scalableMesh)
+                );
+                addWindow(std::move(win));
+#else // ^^^^ SGCT_HAS_SCALABLE // !SGCT_HAS_SCALABLE vvvv
+                Log::Error(
+                    "Trying to load a ScalableMesh configuration but the program was "
+                    "compiled without support for it"
+                );
+#endif // SGCT_HAS_SCALABLE
+            }
+            else {
+                auto win = std::make_unique<Window>(window);
+                addWindow(std::move(win));
+            }
         }
     }
 }
 
 void Node::addWindow(std::unique_ptr<Window> window) {
     _windows.emplace_back(std::move(window));
-}
-
-bool Node::isKeyPressed(Key key) {
-    if (key == Key::Unknown) {
-        return false;
-    }
-
-    for (const std::unique_ptr<Window>& window : _windows) {
-        if (glfwGetKey(window->windowHandle(), static_cast<int>(key))) {
-            return true;
-        }
-    }
-    return false;
 }
 
 const std::vector<std::unique_ptr<Window>>& Node::windows() const {

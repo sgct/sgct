@@ -95,18 +95,79 @@ correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
 
 } // namespace
 
+CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
+                                                         const correction::Buffer& buffer)
+{
+    ZoneScoped;
+    TracyGpuZone("createMesh");
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    constexpr int s = sizeof(correction::Buffer::Vertex);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        buffer.vertices.size() * s,
+        buffer.vertices.data(),
+        GL_STATIC_DRAW
+    );
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, s, nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(8));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(16));
+
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        buffer.indices.size() * sizeof(unsigned int),
+        buffer.indices.data(),
+        GL_STATIC_DRAW
+    );
+    glBindVertexArray(0);
+
+    nVertices = static_cast<int>(buffer.vertices.size());
+    nIndices = static_cast<int>(buffer.indices.size());
+    type = buffer.geometryType;
+}
+
+CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
+                                                    CorrectionMeshGeometry&& rhs) noexcept
+    : vao(rhs.vao)
+    , vbo(rhs.vbo)
+    , ibo(rhs.ibo)
+    , nVertices(rhs.nVertices)
+    , nIndices(rhs.nIndices)
+    , type(rhs.type)
+{
+    // We need to prevent a double-free of the OpenGL resource in the destructor
+    rhs.vao = 0;
+    rhs.vbo = 0;
+    rhs.ibo = 0;
+}
+
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     // Yes, glDeleteVertexArrays and glDeleteBuffers work when passing 0, but this check
     // is a standin for whether they were created in the first place. This would only fail
     // if there is no OpenGL context, which would cause these functions to fail, too.
     if (vao) {
         glDeleteVertexArrays(1, &vao);
+        vao = 0;
     }
     if (vbo) {
         glDeleteBuffers(1, &vbo);
+        vbo = 0;
     }
     if (ibo) {
         glDeleteBuffers(1, &ibo);
+        ibo = 0;
     }
 }
 
@@ -123,7 +184,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
     {
         ZoneScopedN("Create simple mask");
         const Buffer buf = setupSimpleMesh(parentPos, parentSize);
-        createMesh(_quadGeometry, buf);
+        _quadGeometry = CorrectionMeshGeometry(buf);
     }
 
     // generate unwarped mesh for mask
@@ -132,13 +193,13 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
         Log::Debug("CorrectionMesh: Creating mask mesh");
 
         const Buffer buf = setupMaskMesh(parentPos, parentSize);
-        createMesh(_maskGeometry, buf);
+        _maskGeometry = CorrectionMeshGeometry(buf);
     }
 
     // fallback if no mesh is provided
     if (path.empty()) {
         const Buffer buf = setupSimpleMesh(parentPos, parentSize);
-        createMesh(_warpGeometry, buf);
+        _warpGeometry = CorrectionMeshGeometry(buf);
         return;
     }
 
@@ -191,7 +252,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
         throw Error(2002, "Could not determine format for warping mesh");
     }
 
-    createMesh(_warpGeometry, buf);
+    _warpGeometry = CorrectionMeshGeometry(buf);
 
     Log::Debug(std::format(
         "CorrectionMesh read successfully. Vertices={}, Indices={}",
@@ -199,71 +260,30 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
     ));
 }
 
+void CorrectionMesh::CorrectionMeshGeometry::render() const {
+    glBindVertexArray(vao);
+    glDrawElements(type, nIndices, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+}
+
 void CorrectionMesh::renderQuadMesh() const {
     TracyGpuZone("Render Quad mesh")
-
-    glBindVertexArray(_quadGeometry.vao);
-    glDrawElements(_quadGeometry.type, _quadGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
+    assert(_quadGeometry);
+    _quadGeometry->render();
 }
 
 void CorrectionMesh::renderWarpMesh() const {
-    TracyGpuZone("Render Warp mesh")
-
-    glBindVertexArray(_warpGeometry.vao);
-    glDrawElements(_warpGeometry.type, _warpGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
+    if (_warpGeometry) {
+        TracyGpuZone("Render Warp mesh")
+        _warpGeometry->render();
+    }
 }
 
 void CorrectionMesh::renderMaskMesh() const {
-    TracyGpuZone("Render Mask mesh")
-
-    glBindVertexArray(_maskGeometry.vao);
-    glDrawElements(_maskGeometry.type, _maskGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
-}
-
-void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
-                                const correction::Buffer& buffer)
-{
-    ZoneScoped;
-    TracyGpuZone("createMesh");
-
-    glGenVertexArrays(1, &geom.vao);
-    glBindVertexArray(geom.vao);
-
-    glGenBuffers(1, &geom.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, geom.vbo);
-    constexpr int s = sizeof(correction::Buffer::Vertex);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        buffer.vertices.size() * s,
-        buffer.vertices.data(),
-        GL_STATIC_DRAW
-    );
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, s, nullptr);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(8));
-
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(16));
-
-    glGenBuffers(1, &geom.ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geom.ibo);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        buffer.indices.size() * sizeof(unsigned int),
-        buffer.indices.data(),
-        GL_STATIC_DRAW
-    );
-    glBindVertexArray(0);
-
-    geom.nVertices = static_cast<int>(buffer.vertices.size());
-    geom.nIndices = static_cast<int>(buffer.indices.size());
-    geom.type = buffer.geometryType;
+    if (_maskGeometry) {
+        TracyGpuZone("Render Mask mesh")
+        _maskGeometry->render();
+    }
 }
 
 } // namespace sgct

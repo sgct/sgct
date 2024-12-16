@@ -51,7 +51,7 @@ public:
      *         the clients. If it was the acknowledge data call or no connections are
      *         available, a `nullopt` is returned
      */
-    std::optional<std::pair<double, double>> sync(SyncMode sm);
+    std::optional<std::pair<double, double>> sync(SyncMode sm) const;
 
     /**
      * Compare if the last frame and current frames are different -> data update and if
@@ -67,8 +67,9 @@ public:
     bool isComputerServer() const;
     bool isRunning() const;
     bool areAllNodesConnected() const;
-    void transferData(const void* data, int length, int packageId);
-    void transferData(const void* data, int length, int packageId, Network& connection);
+    void transferData(const void* data, int length, int packageId) const;
+    void transferData(const void* data, int length, int packageId,
+        const Network& connection) const;
 
     unsigned int activeConnectionsCount() const;
     int connectionsCount() const;
@@ -77,6 +78,8 @@ public:
     const Network& syncConnection(int index) const;
 
 private:
+    static NetworkManager* _instance;
+
     NetworkManager(NetworkMode nm,
         std::function<void(void*, int, int, int)> dataTransferDecode,
         std::function<void(bool, int)> dataTransferStatus,
@@ -89,12 +92,8 @@ private:
 
     void addConnection(int port, std::string address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
-    void updateConnectionStatus(Network* connection);
+    void updateConnectionStatus(Network& connection);
     void setAllNodesConnected();
-    void prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
-        int packageId);
-
-    static NetworkManager* _instance;
 
     std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
     std::function<void(bool, int)> _dataTransferStatusFn;
@@ -106,7 +105,7 @@ private:
     std::vector<Network*> _syncConnections;
     std::vector<Network*> _dataTransferConnections;
 
-    std::vector<std::string> _localAddresses; // stores this computers ip addresses
+    std::vector<std::string> _localAddresses;
 
     bool _isServer = true;
     bool _isRunning = true;

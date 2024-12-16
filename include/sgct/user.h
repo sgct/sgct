@@ -23,7 +23,7 @@ public:
     /**
      * Default contructor.
      */
-    User(std::string name);
+    User(const config::User& user);
 
     /**
      * Sets user's head position.
@@ -95,14 +95,15 @@ private:
      */
     void updateEyeTransform();
 
+    const std::string _name;
+    float _eyeSeparation;
+
     vec3 _posMono = vec3{ 0.f, 0.f, 0.f };
     vec3 _posLeftEye = vec3{ 0.f, 0.f, 0.f };
     vec3 _posRightEye = vec3{ 0.f, 0.f, 0.f };
 
     mat4 _transform = mat4(1.0);
-    float _eyeSeparation = 0.06f;
 
-    const std::string _name;
     std::string _headTrackerDeviceName;
     std::string _headTrackerName;
 };

@@ -26,11 +26,11 @@
 namespace {
     std::string_view levelToString(sgct::Log::Level level) {
         switch (level) {
-            case sgct::Log::Level::Debug: return "Debug";
-            case sgct::Log::Level::Info: return "Info";
+            case sgct::Log::Level::Debug:   return "Debug";
+            case sgct::Log::Level::Info:    return "Info";
             case sgct::Log::Level::Warning: return "Warning";
-            case sgct::Log::Level::Error: return "Error";
-            default: throw std::logic_error("Missing case label");
+            case sgct::Log::Level::Error:   return "Error";
+            default:                        throw std::logic_error("Missing case label");
         }
     }
 } // namespace
@@ -86,6 +86,26 @@ void Log::printv(Level level, std::string message) {
     }
 }
 
+void Log::setNotifyLevel(Level nl) {
+    _level = nl;
+}
+
+void Log::setShowTime(bool state) {
+    _showTime = state;
+}
+
+void Log::setShowLogLevel(bool state) {
+    _showLevel = state;
+}
+
+void Log::setLogToConsole(bool state) {
+    _logToConsole = state;
+}
+
+void Log::setLogCallback(std::function<void(Level, std::string_view)> fn) {
+    _messageCallback = std::move(fn);
+}
+
 void Log::Debug(std::string_view message) {
     if (instance()._level <= Level::Debug) {
         instance().printv(Level::Debug, std::string(message));
@@ -108,26 +128,6 @@ void Log::Error(std::string_view message) {
     if (instance()._level <= Level::Error) {
         instance().printv(Level::Error, std::string(message));
     }
-}
-
-void Log::setNotifyLevel(Level nl) {
-    _level = nl;
-}
-
-void Log::setShowTime(bool state) {
-    _showTime = state;
-}
-
-void Log::setShowLogLevel(bool state) {
-    _showLevel = state;
-}
-
-void Log::setLogToConsole(bool state) {
-    _logToConsole = state;
-}
-
-void Log::setLogCallback(std::function<void(Level, std::string_view)> fn) {
-    _messageCallback = std::move(fn);
 }
 
 } // namespace sgct

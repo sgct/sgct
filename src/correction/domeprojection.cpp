@@ -27,7 +27,7 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
 
     Log::Info(std::format("Reading DomeProjection mesh data from '{}'", path));
 
-    std::ifstream meshFile(path);
+    std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::DomeProjection, 2010,

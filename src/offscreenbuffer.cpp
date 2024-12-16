@@ -20,35 +20,38 @@
 
 namespace {
     void setDrawBuffers() {
-        enum class DrawBufferType {
-            Diffuse,
-            DiffuseNormal,
-            DiffusePosition,
-            DiffuseNormalPosition
-        };
-
-        GLenum a[] = { GL_COLOR_ATTACHMENT0 };
-        GLenum b[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-        GLenum c[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
-        GLenum d[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-        switch (sgct::Engine::instance().drawBufferType()) {
-            case sgct::Engine::DrawBufferType::Diffuse:
-                glDrawBuffers(1, a);
-                break;
-            case sgct::Engine::DrawBufferType::DiffuseNormal:
-                glDrawBuffers(2, b);
-                break;
-            case sgct::Engine::DrawBufferType::DiffusePosition:
-                glDrawBuffers(2, c);
-                break;
-            case sgct::Engine::DrawBufferType::DiffuseNormalPosition:
+        if (sgct::Engine::instance().settings().usePositionTexture) {
+            if (sgct::Engine::instance().settings().useNormalTexture) {
+                GLenum d[] = {
+                    GL_COLOR_ATTACHMENT0,
+                    GL_COLOR_ATTACHMENT1,
+                    GL_COLOR_ATTACHMENT2
+                };
                 glDrawBuffers(3, d);
-                break;
+            }
+            else {
+                GLenum c[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
+                glDrawBuffers(2, c);
+            }
+        }
+        else {
+            if (sgct::Engine::instance().settings().useNormalTexture) {
+                GLenum b[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+                glDrawBuffers(2, b);
+            }
+            else {
+                GLenum a[] = { GL_COLOR_ATTACHMENT0 };
+                glDrawBuffers(1, a);
+            }
         }
     }
 } // namespace
 
 namespace sgct {
+
+OffScreenBuffer::OffScreenBuffer(unsigned int internalFormat)
+    : _internalColorFormat(internalFormat)
+{}
 
 OffScreenBuffer::~OffScreenBuffer() {
     glDeleteFramebuffers(1, &_frameBuffer);
@@ -92,12 +95,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
         glGenRenderbuffers(1, &_colorBuffer);
 
         // generate render buffer for intermediate normal storage
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().useNormalTexture) {
             glGenRenderbuffers(1, &_normalBuffer);
         }
 
         // generate render buffer for intermediate position storage
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().usePositionTexture) {
             glGenRenderbuffers(1, &_positionBuffer);
         }
 
@@ -114,7 +117,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             height
         );
 
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().useNormalTexture) {
             glBindRenderbuffer(GL_RENDERBUFFER, _normalBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
@@ -125,7 +128,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             );
         }
 
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().usePositionTexture) {
             glBindRenderbuffer(GL_RENDERBUFFER, _positionBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
@@ -163,7 +166,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             GL_RENDERBUFFER,
             _colorBuffer
         );
-        if (Engine::instance().useNormalTexture()) {
+        if (Engine::instance().settings().useNormalTexture) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT1,
@@ -171,7 +174,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
                 _normalBuffer
             );
         }
-        if (Engine::instance().usePositionTexture()) {
+        if (Engine::instance().settings().usePositionTexture) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT2,
@@ -216,10 +219,6 @@ void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     glDeleteRenderbuffers(1, &_normalBuffer);
     glDeleteRenderbuffers(1, &_positionBuffer);
     createFBO(width, height, samples);
-}
-
-void OffScreenBuffer::setInternalColorFormat(unsigned int internalFormat) {
-    _internalColorFormat = internalFormat;
 }
 
 void OffScreenBuffer::bind() const {
@@ -274,7 +273,7 @@ void OffScreenBuffer::blit() const {
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    if (Engine::instance().useDepthTexture()) {
+    if (Engine::instance().settings().useDepthTexture) {
         glBlitFramebuffer(
             src0.x, src0.y, src1.x, src1.y,
             dst0.x, dst0.y, dst1.x, dst1.y,
@@ -289,7 +288,7 @@ void OffScreenBuffer::blit() const {
         );
     }
 
-    if (Engine::instance().useNormalTexture()) {
+    if (Engine::instance().settings().useNormalTexture) {
         glReadBuffer(GL_COLOR_ATTACHMENT1);
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
@@ -300,7 +299,7 @@ void OffScreenBuffer::blit() const {
         );
     }
 
-    if (Engine::instance().usePositionTexture()) {
+    if (Engine::instance().settings().usePositionTexture) {
         glReadBuffer(GL_COLOR_ATTACHMENT2);
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 
@@ -316,16 +315,16 @@ bool OffScreenBuffer::isMultiSampled() const {
     return _isMultiSampled;
 }
 
-void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) {
+void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) const {
     glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texId, 0);
 }
 
-void OffScreenBuffer::attachDepthTexture(unsigned int texId) {
+void OffScreenBuffer::attachDepthTexture(unsigned int texId) const {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0);
 }
 
 void OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face,
-                                           GLenum attachment)
+                                           GLenum attachment) const
 {
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
@@ -336,7 +335,9 @@ void OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face
     );
 }
 
-void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int face) {
+void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId,
+                                                                  unsigned int face) const
+{
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,

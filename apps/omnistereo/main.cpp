@@ -6,10 +6,10 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include "box.h"
+#include "domegrid.h"
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <sgct/utils/box.h>
-#include <sgct/utils/domegrid.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,8 +19,8 @@ namespace {
     constexpr float Diameter = 14.8f;
     constexpr float Tilt = glm::radians(30.f);
 
-    std::unique_ptr<sgct::utils::Box> box;
-    std::unique_ptr<sgct::utils::DomeGrid> grid;
+    std::unique_ptr<Box> box;
+    std::unique_ptr<DomeGrid> grid;
     GLint matrixLoc = -1;
     GLint gridMatrixLoc = -1;
 
@@ -31,7 +31,7 @@ namespace {
     bool takeScreenshot = true;
 
     struct OmniData {
-        std::map<sgct::Frustum::Mode, glm::mat4> viewProjectionMatrix;
+        std::map<sgct::FrustumMode, glm::mat4> viewProjectionMatrix;
         bool enabled = false;
     };
     std::vector<std::vector<OmniData>> omniProjections;
@@ -169,20 +169,20 @@ void initOmniStereo(bool mask) {
     for (int eye = 0; eye <= 2; eye++) {
         float eyeSep = Engine::instance().defaultUser().eyeSeparation();
 
-        Frustum::Mode fm;
+        FrustumMode fm;
         glm::vec3 eyePos;
         switch (eye) {
             case 0:
             default:
-                fm = Frustum::Mode::MonoEye;
+                fm = FrustumMode::Mono;
                 eyePos = glm::vec3{ 0.f, 0.f, 0.f };
                 break;
             case 1:
-                fm = Frustum::Mode::StereoLeftEye;
+                fm = FrustumMode::StereoLeft;
                 eyePos = glm::vec3{ -eyeSep / 2.f, 0.f, 0.f };
                 break;
             case 2:
-                fm = Frustum::Mode::StereoRightEye;
+                fm = FrustumMode::StereoRight;
                 eyePos = glm::vec3{ eyeSep / 2.f, 0.f, 0.f };
                 break;
         }
@@ -388,7 +388,7 @@ void drawOmniStereo(const RenderData& renderData) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    Frustum::Mode fm = renderData.frustumMode;
+    FrustumMode fm = renderData.frustumMode;
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -459,8 +459,8 @@ void postDraw() {
 void initOGL(GLFWwindow*) {
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
 
-    box = std::make_unique<utils::Box>(0.5f, utils::Box::TextureMappingMode::Regular);
-    grid = std::make_unique<utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
+    box = std::make_unique<Box>(0.5f, Box::TextureMappingMode::Regular);
+    grid = std::make_unique<DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
 
     // Set up backface culling
     glCullFace(GL_BACK);

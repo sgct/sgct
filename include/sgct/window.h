@@ -12,30 +12,33 @@
 #include <sgct/sgctexports.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
+#include <functional>
 #include <optional>
 #include <string_view>
 #include <vector>
 
-struct GLFWmonitor;
 struct GLFWwindow;
 
-namespace sgct::config { struct Window; }
+#ifdef SGCT_HAS_SPOUT
+struct SPOUTLIBRARY;
+typedef SPOUTLIBRARY* SPOUTHANDLE;
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+#include <Processing.NDI.Lib.h>
+#endif // SGCT_HAS_NDI
 
 namespace sgct {
 
-class BaseViewport;
+namespace config { struct Window; }
+
 class OffScreenBuffer;
 class ScreenCapture;
 
-/**
- * Helper class for window data.
- */
 class SGCT_EXPORT Window {
 public:
-    /**
-     * Different stereo modes used for rendering.
-     */
-    enum class StereoMode {
+    /// Different stereo modes used for rendering.
+    enum class StereoMode : uint8_t {
         NoStereo = 0,
         Active,
         AnaglyphRedCyan,
@@ -52,32 +55,7 @@ public:
         TopBottomInverted
     };
 
-    enum class ColorBitDepth {
-        Depth8,
-        Depth16,
-        Depth16Float,
-        Depth32Float,
-        Depth16Int,
-        Depth32Int,
-        Depth16UInt,
-        Depth32UInt
-    };
-
-    enum class Eye { MonoOrLeft, Right };
-
-    /**
-     * The different texture indexes in window buffers.
-     */
-    enum class TextureIndex {
-        LeftEye = 0,
-        RightEye,
-        Intermediate,
-        Depth,
-        Normals,
-        Positions
-    };
-
-    void applyWindow(const config::Window& window);
+    static void makeSharedContextCurrent();
 
     /**
      * Init Nvidia swap groups if supported by hardware. Supported hardware is NVidia
@@ -92,91 +70,76 @@ public:
     static void setBarrier(bool state);
     static bool isBarrierActive();
     static bool isUsingSwapGroups();
-    static bool isSwapGroupMaster();
     static unsigned int swapGroupFrameNumber();
 
-    static void makeSharedContextCurrent();
-
-    Window() = default;
+    Window(const config::Window& window);
     ~Window() = default;
 
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    Window& operator=(const Window&) = delete;
-    Window& operator=(Window&&) = delete;
-
-    void close();
-
     /**
-     * Initialize window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
-     */
-    void initOGL();
-
-    /**
-     * Initialize context specific data such as viewport corrections/warping meshes.
-     */
-    void initContextSpecificOGL();
-
-    /**
-     * Swap previous data and current data. This is done at the end of the render loop.
-     */
-    void swapBuffers(bool takeScreenshot);
-    void updateResolutions();
-
-    void update();
-
-    /**
-     * This function is used internally within sgct to open the window.
+     * This function is used to open the window.
      *
-     * \param share The context that is shared between windows. Might be nullptr
+     * \param share The context that is shared between windows. May be `nullptr`
      * \param isLastWindow Whether this is the last window. This is required to know as we
      *        only want to set the vsync setting once per node
      */
     void openWindow(GLFWwindow* share, bool isLastWindow);
 
+    void closeWindow();
+
+    /**
+     * Initialize window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
+     */
+    void initialize();
+
+    void initializeContextSpecific();
+
+    void updateResolutions();
+
+    void update();
+
+    void draw();
+
+    void renderFBOTexture();
+
+    /**
+     * Swap previous data and current data. This is done at the end of the render loop.
+     */
+    void swapBuffers(bool takeScreenshot);
+
     void makeOpenGLContextCurrent();
 
-    /**
-     * Name this window.
-     */
-    void setName(std::string name);
+    // Returns true if this window has any settings that require a fallback on an OpenGL
+    // compatibility profile
+    bool needsCompatibilityProfile() const;
+
+    bool shouldTakeScreenshot() const;
 
     /**
-     * Tag this window. Tags are seperated by comma.
+     * \return Get the scale value (relation between pixel and point size). Normally this
+     *         value is 1.f but 2.f on some retina computers.
      */
-    void setTags(std::vector<std::string> tags);
+    vec2 scale() const;
 
     /**
-     * Set the visibility state of this window. If a window is hidden the rendering for
-     * that window will be paused unless it's forced to render while hidden by using
-     * #setRenderWhileHidden.
+     * \return The aspect ratio of the window
      */
-    void setVisible(bool state);
+    float aspectRatio() const;
 
     /**
-     * Set if window should render while hidden. Normally a window pauses the rendering if
-     * it's hidden.
+     * \return Get the window resolution
      */
-    void setRenderWhileHidden(bool state);
+    ivec2 windowResolution() const;
 
     /**
-     * Set the focued flag for this window (should not be done by user).
+     * \return The pointer to GLFW window
      */
-    void setFocused(bool state);
+    GLFWwindow* windowHandle() const;
 
-    /**
-     * Set the window title.
-     *
-     * \param title The title of the window
-     */
-    void setWindowTitle(const char* title);
+    void addViewport(std::unique_ptr<Viewport> vpPtr);
+    const std::vector<std::unique_ptr<Viewport>>& viewports() const;
 
-    /**
-     * Sets the window resolution.
-     *
-     * \param resolution The width and height of the window in pixels
-     */
-    void setWindowResolution(ivec2 resolution);
+    void updateFrustums(float nearClip, float farClip);
+    void renderScreenQuad() const;
 
     /**
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
@@ -187,11 +150,69 @@ public:
     void setFramebufferResolution(ivec2 resolution);
 
     /**
-     * Set this window's position in screen coordinates.
-     *
-     * \param positions The horizontal and vertical position in pixels
-    */
-    void setWindowPosition(ivec2 positions);
+     * Get the dimensions of the final FBO. Regular viewport rendering renders directly to
+     * this FBO but a fisheye renders first a cubemap and then to the final FBO. Post
+     * effects are rendered using these dimensions.
+     */
+    ivec2 framebufferResolution() const;
+
+    /**
+     * \return `true` if this window is resized
+     */
+    bool isWindowResized() const;
+
+    /**
+     * \return `this` window's focused flag
+     */
+    bool isFocused() const;
+
+    /**
+     * \return This window's id
+     */
+    int id() const;
+
+    /**
+     * Name this window.
+     */
+    void setName(std::string name);
+
+    /**
+     * \return The name of this window
+     */
+    const std::string& name() const;
+
+    /**
+     * Tag this window. Tags are seperated by comma.
+     */
+    void setTags(std::vector<std::string> tags);
+
+    /**
+     * \return `true` if a specific tag exists
+     */
+    bool hasTag(std::string_view tag) const;
+
+    /**
+     * Set the visibility state of this window. If a window is hidden the rendering for
+     * that window will be paused unless it's forced to render while hidden by using
+     * #setRenderWhileHidden.
+     */
+    void setVisible(bool state);
+
+    /**
+     * \return `true` if the window is visible or not
+     */
+    bool isVisible() const;
+
+    /**
+     * Set if window should render while hidden. Normally a window pauses the rendering if
+     * it's hidden.
+     */
+    void setRenderWhileHidden(bool state);
+
+    /**
+     * \return `true` if the window is set to render while hidden
+     */
+    bool isRenderingWhileHidden() const;
 
     /**
      * Set if fullscreen mode should be used.
@@ -209,11 +230,6 @@ public:
     void setFloating(bool floating);
 
     /**
-     * Set if the window is double buffered (can only be set before window creation).
-     */
-    void setDoubleBuffered(bool doubleBuffered);
-
-    /**
      * Set if the window should participate in screenshot taking.
      */
     void setTakeScreenshot(bool takeScreenshot);
@@ -229,27 +245,21 @@ public:
     void setWindowResizable(bool state);
 
     /**
-     * Set which monitor that should be used for fullscreen mode.
-     */
-    void setFullScreenMonitorIndex(int index);
-
-    /**
      * Force the framebuffer to a fixed size which may be different from the window size.
      */
     void setFixResolution(bool state);
+
+    /**
+     * \return If the frame buffer has a fix resolution this function returns `true`
+     */
+    bool isFixResolution() const;
+
     void setHorizFieldOfView(float hFovDeg);
 
     /**
-     * Set if FXAA should be used.
+     * Get FOV of viewport[0]
      */
-    void setUseFXAA(bool state);
-
-    /**
-     * Use quad buffer (hardware stereoscopic rendering). This function can only be used
-     * before the window is created. The quad buffer feature is only supported on
-     * professional CAD graphics cards such as Nvidia Quadro or AMD/ATI FireGL.
-     */
-    void setUseQuadbuffer(bool state);
+    float horizFieldOfViewDegrees() const;
 
     /**
      * Set if the specifed Draw2D function pointer should be called for this window.
@@ -262,107 +272,10 @@ public:
     void setCallDraw3DFunction(bool state);
 
     /**
-     * Set the id of the window that should be blitted to this window.
-     */
-    void setBlitWindowId(int id);
-
-    /**
-     * Set the number of samples used in multisampled anti-aliasing.
-     */
-    void setNumberOfAASamples(int samples);
-
-    /**
      * Set the stereo mode. Set this mode in your init callback or during runtime in the
      * post-sync-pre-draw callback. GLSL shaders will be recompliled if needed.
      */
     void setStereoMode(StereoMode sm);
-
-    /**
-     * \return `true` if full screen rendering is enabled
-     */
-    bool isFullScreen() const;
-
-    /**
-     * \return `true` if full screen windows should automatically iconify when losing
-     *         focus
-     */
-    bool shouldAutoiconify() const;
-
-    /**
-     * \return `true` if window is floating/allways on top/topmost
-     */
-    bool isFloating() const;
-
-    /**
-     * \return `true` if window is double-buffered
-     */
-    bool isDoubleBuffered() const;
-
-    /**
-     * \return `this` window's focused flag
-     */
-    bool isFocused() const;
-
-    /**
-     * \return `true` if the window is visible or not
-     */
-    bool isVisible() const;
-
-    /**
-     * \return `true` if the window is set to render while hidden
-     */
-    bool isRenderingWhileHidden() const;
-
-    /**
-     * \return If the frame buffer has a fix resolution this function returns `true`
-     */
-    bool isFixResolution() const;
-
-    /**
-     * \return `true` if any kind of stereo is enabled
-     */
-    bool isStereo() const;
-
-    /**
-     * \return `true` if this window is resized
-     */
-    bool isWindowResized() const;
-
-    /**
-     * \return The name of this window
-     */
-    const std::string& name() const;
-
-    /**
-     * \return `true` if a specific tag exists
-     */
-    bool hasTag(std::string_view tag) const;
-
-    /**
-     * \return This window's id
-     */
-    int id() const;
-
-    /**
-     * Get a frame buffer texture. If the texture doesn't exists then it will be created.
-     *
-     * \param index Index or Engine::TextureIndex enum
-     * \return The texture index of selected frame buffer texture
-     */
-    unsigned int frameBufferTexture(TextureIndex index);
-
-    /**
-     * This function returns the screen capture pointer if it's set otherwise nullptr.
-     *
-     * \param eye Can either be 0 (left) or 1 (right)
-     * \return Pointer to screen capture pointer
-     */
-    ScreenCapture* screenCapturePointer(Eye eye) const;
-
-    /**
-     * \return The number of samples used in multisampled anti-aliasing
-     */
-    int numberOfAASamples() const;
 
     /**
      * \return The stereo mode
@@ -370,106 +283,25 @@ public:
     StereoMode stereoMode() const;
 
     /**
-     * Get the dimensions of the final FBO. Regular viewport rendering renders directly to
-     * this FBO but a fisheye renders first a cubemap and then to the final FBO. Post
-     * effects are rendered using these dimensions.
+     * \return `true` if any kind of stereo is enabled
      */
-    ivec2 finalFBODimensions() const;
+    bool isStereo() const;
 
-    /**
-     * Returns pointer to FBO container.
-     */
-    OffScreenBuffer* fbo() const;
 
-    /**
-     * \return The pointer to GLFW window
-     */
-    GLFWwindow* windowHandle() const;
-
-    const std::vector<std::unique_ptr<Viewport>>& viewports() const;
-
-    /**
-     * Get FOV of viewport[0]
-     */
-    float horizFieldOfViewDegrees() const;
-
-    /**
-     * \return Get the window resolution
-     */
-    ivec2 resolution() const;
-
-    /**
-     * \return Get the frame buffer resolution
-     */
-    ivec2 framebufferResolution() const;
-
-    /**
-     * \return Get the initial window resolution
-     */
-    ivec2 initialResolution() const;
-
-    /**
-     * \return Get the scale value (relation between pixel and point size). Normally this
-     *         value is 1.f but 2.f on some retina computers.
-     */
-    vec2 scale() const;
-
-    /**
-     * \return The aspect ratio of the window
-     */
-    float aspectRatio() const;
-
-    /**
-     * \return Get the frame buffer bytes per color component (BPCC) count
-     */
-    int framebufferBPCC() const;
-
-    void renderScreenQuad() const;
-
-    void addViewport(std::unique_ptr<Viewport> vpPtr);
-
-    /**
-     * \return `true` if any masks are used
-     */
-    bool hasAnyMasks() const;
-
-    /**
-     * \return `true` if FXAA should be used
-     */
-    bool useFXAA() const;
-
-    void bindStereoShaderProgram(unsigned int leftTex, unsigned int rightTex) const;
-
-    bool shouldCallDraw2DFunction() const;
-    bool shouldCallDraw3DFunction() const;
-    int blitWindowId() const;
-
-    bool shouldTakeScreenshot() const;
-
-    bool flipX() const;
-    bool flipY() const;
-
-    // Returns true if this window has any settings that require a fallback on an OpenGL
-    // compatibility profile
-    bool needsCompatibilityProfile() const;
+    // @TODO: Remove this
+    unsigned int frameBufferTextureEye(Eye eye) const;
 
 private:
     enum class TextureType { Color, Depth, Normal, Position };
 
-    void initWindowResolution(ivec2 resolution);
-
-    void initScreenCapture();
+    Window(const Window&) = delete;
+    Window& operator=(const Window&) = delete;
 
     /**
      * This function creates textures that will act as FBO targets.
      */
     void createTextures();
     void generateTexture(unsigned int& id, TextureType type);
-
-    /**
-     * This function creates FBOs. This is done in the initOGL function.
-     */
-    void createFBOs();
 
     /**
      * This function resizes the FBOs when the window is resized to achive 1:1 mapping.
@@ -485,48 +317,98 @@ private:
     void loadShaders();
     bool useRightEyeTexture() const;
 
+    /**
+     * Causes all of the viewports of the provided \p window be rendered with the
+     * \p frustum into the texture behind the provided \p ti texture index.
+     *
+     * \param window The window whose viewports should be rendered
+     * \param frustum The frustum that should be used to render the viewports
+     * \param eye The eye that should be rendered
+     */
+    void renderViewports(FrustumMode frustum, Eye eye) const;
+
+    /**
+     * Draw viewport overlays if there are any. This function renders stats, OSD and
+     * overlays of the provided \p window and using the provided \p frustum.
+     *
+     * \param window The Window object for which the overlays should be drawn
+     * \param frustum The frustum for which the overlay should be drawn
+     */
+    void render2D(FrustumMode frustum) const;
+
+    /**
+     * This function copies/render the result from the previous window same viewport (if
+     * it exists) into this window.
+     *
+     * \param prevWindow The source window whose content should be copied into the
+     *        \p window
+     * \param window The destination into which the contents of the \p prevWindow is
+     *        copied
+     * \param viewport The viewport of the window that should be compied
+     * \param mode The frustum that should be used to copy the window contents
+     *
+     * \pre The \p prevWindow and \p window must be different Window objects
+     */
+    void blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
+        FrustumMode mode) const;
+
     std::string _name;
     std::vector<std::string> _tags;
+    int8_t _id = -1;
 
-    bool _isVisible = true;
-    bool _shouldRenderWhileHidden = false;
+    bool _hideMouseCursor;
+    bool _takeScreenshot;
+    bool _hasCallDraw2DFunction;
+    bool _hasCallDraw3DFunction;
+    bool _isFullScreen;
+    bool _shouldAutoiconify;
+    bool _isFloating;
+    bool _shouldRenderWhileHidden;
+    uint8_t _nAASamples;
+    bool _useFXAA;
+    bool _isDecorated;
+    bool _isResizable;
+    bool _isMirrored;
+    int8_t _blitWindowId;
+    uint8_t _monitorIndex;
+    bool _mirrorX;
+    bool _mirrorY;
+    bool _noError;
+    bool _isVisible;
+    StereoMode _stereoMode;
+    std::optional<ivec2> _windowPos;
+    std::optional<ivec2> _windowRes;
+    ivec2 _framebufferRes;
+
+    std::optional<ivec2> _pendingWindowRes;
+    bool _windowResChanged = false;
     bool _hasFocus = false;
     bool _useFixResolution = false;
-    bool _isWindowResolutionSet = false;
-    bool _hasCallDraw2DFunction = true;
-    bool _hasCallDraw3DFunction = true;
-    int _blitWindowId = -1;
-    bool _mirrorX = false;
-    bool _mirrorY = false;
-    bool _useQuadBuffer = false;
-    bool _isFullScreen = false;
-    bool _shouldAutoiconify = false;
-    bool _hideMouseCursor = false;
-    bool _isFloating = false;
-    bool _isDoubleBuffered = true;
-    bool _takeScreenshot = true;
-    bool _setWindowPos = false;
-    bool _isDecorated = true;
-    bool _isResizable = true;
-    bool _isMirrored = false;
-    ivec2 _framebufferRes = ivec2{ 512, 256 };
-    ivec2 _windowInitialRes = ivec2{ 640, 480 };
-    std::optional<ivec2> _pendingWindowRes;
+    bool _hasAnyMasks = false;
     std::optional<ivec2> _pendingFramebufferRes;
-    ivec2 _windowRes = ivec2{ 640, 480 };
-    ivec2 _windowPos = ivec2{ 0, 0 };
-    ivec2 _windowResOld = ivec2{ 640, 480 };
-    int _monitorIndex = 0;
     GLFWwindow* _windowHandle = nullptr;
     float _aspectRatio = 1.f;
     vec2 _scale = vec2{ 0.f, 0.f };
 
-    bool _useFXAA = false;
+#ifdef SGCT_HAS_SPOUT
+    bool _spoutEnabled;
+    std::string _spoutName;
+    SPOUTHANDLE _spoutHandle = nullptr;
+#endif // SGCT_HAS_SPOUT
 
-    ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
-    unsigned int _internalColorFormat = 0x8814; // = GL_RGBA32F
-    unsigned int _colorDataType = 0x1406; // = GL_FLOAT
-    int _bytesPerColor = 4;
+#ifdef SGCT_HAS_NDI
+    NDIlib_send_instance_t _ndiHandle = nullptr;
+    NDIlib_video_frame_v2_t _videoFrame;
+    std::string _ndiName;
+    std::string _ndiGroups;
+    std::vector<std::byte> _videoBufferPing;
+    std::vector<std::byte> _videoBufferPong;
+    std::vector<std::byte>* _currentVideoBuffer = &_videoBufferPing;
+#endif // SGCT_HAS_NDI
+
+    const unsigned int _internalColorFormat;
+    const unsigned int _colorDataType;
+    const int _bytesPerColor = 4;
 
     struct {
         unsigned int leftEye = 0;
@@ -540,20 +422,20 @@ private:
     std::unique_ptr<ScreenCapture> _screenCaptureLeftOrMono;
     std::unique_ptr<ScreenCapture> _screenCaptureRight;
 
-    StereoMode _stereoMode = StereoMode::NoStereo;
-    int _nAASamples = 1;
-    int _id = -1;
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 
-    struct {
-        ShaderProgram shader;
-        int leftTexLoc = -1;
-        int rightTexLoc = -1;
-    } _stereo;
+    ShaderProgram _fboQuad;
+    ShaderProgram _overlay;
+    ShaderProgram _stereo;
 
-    bool _hasAnyMasks = false;
+    struct FXAAShader {
+        ShaderProgram shader;
+        int sizeX = -1;
+        int sizeY = -1;
+    };
+    std::optional<FXAAShader> _fxaa;
 
     std::vector<std::unique_ptr<Viewport>> _viewports;
     std::unique_ptr<OffScreenBuffer> _finalFBO;
@@ -561,8 +443,6 @@ private:
     static GLFWwindow* _sharedHandle;
     static bool _useSwapGroups;
     static bool _isBarrierActive;
-    static bool _isSwapGroupMaster;
-
 
     // ScalableMesh
     struct {
@@ -570,6 +450,8 @@ private:
         std::string path;
     } _scalableMesh;
 };
+
+config::Window createScalableConfiguration(std::filesystem::path path);
 
 } // namespace sgct
 

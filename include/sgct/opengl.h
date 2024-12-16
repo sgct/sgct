@@ -12,7 +12,7 @@
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
-#endif
+#endif // __APPLE__
 
 // Workaround for APIENTRY macro redefinition
 // Problem: glad.h will define APIENTRY if it is not defined. But if windows.h is included
@@ -24,15 +24,14 @@
 #if !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
 #define APIENTRY __stdcall
 #define SCGT_GLAD_APIENTRY_DEFINED
-#endif
-#endif
+#endif // !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
+#endif // WIN32
 
 #include <glad/glad.h>
 
 #ifdef SCGT_GLAD_APIENTRY_DEFINED
 #undef APIENTRY
 #undef SCGT_GLAD_APIENTRY_DEFINED
-#endif
-
+#endif // SCGT_GLAD_APIENTRY_DEFINED
 
 #endif // __SGCT__OPENGL_H__

@@ -17,18 +17,6 @@
 #include <string>
 #include <vector>
 
-namespace sgct::config {
-    struct CylindricalProjection;
-    struct EquirectangularProjection;
-    struct FisheyeProjection;
-    struct PlanarProjection;
-    struct SphericalMirrorProjection;
-    struct SpoutOutputProjection;
-    struct SpoutFlatProjection;
-    struct TextureMappedProjection;
-    struct Viewport;
-} // namespace sgct::config
-
 namespace sgct {
 
 class NonLinearProjection;
@@ -38,28 +26,18 @@ class NonLinearProjection;
  */
 class SGCT_EXPORT Viewport final : public BaseViewport {
 public:
-    Viewport(const Window* parent);
+    Viewport(const config::Viewport& viewport, const Window& parent);
     ~Viewport() override;
 
     void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-        unsigned int format, unsigned int type, int samples);
+        unsigned int format, unsigned int type, uint8_t samples);
 
-    void applyViewport(const sgct::config::Viewport& viewport);
     void loadData();
 
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to.
-     */
+    void calculateFrustum(FrustumMode mode, float nearClip, float farClip) override;
+
     void renderQuadMesh() const;
-
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to.
-     */
     void renderWarpMesh() const;
-
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to.
-     */
     void renderMaskMesh() const;
 
     bool hasOverlayTexture() const;
@@ -73,28 +51,17 @@ public:
     NonLinearProjection* nonLinearProjection() const;
 
 private:
-    void applyPlanarProjection(const config::PlanarProjection& proj);
-    void applyFisheyeProjection(const config::FisheyeProjection& proj);
-    void applySpoutOutputProjection(const config::SpoutOutputProjection& proj);
-    void applySpoutFlatProjection(const config::SpoutFlatProjection& proj);
-    void applyCylindricalProjection(const config::CylindricalProjection& proj);
-    void applyEquirectangularProjection(const config::EquirectangularProjection& proj);
-    void applySphericalMirrorProjection(const config::SphericalMirrorProjection& proj);
-    void applyTextureProjection(const config::TextureMappedProjection& proj);
-
     CorrectionMesh _mesh;
     std::filesystem::path _overlayFilename;
     std::filesystem::path _blendMaskFilename;
     std::filesystem::path _blackLevelMaskFilename;
     std::filesystem::path _meshFilename;
-    bool _isTracked = false;
+    bool _isTracked;
+    bool _useTextureMappedProjection = false;
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;
     unsigned int _blackLevelMaskTextureIndex = 0;
-    bool _useTextureMappedProjection = false;
 
-    // @TODO (abock, 2020-01-06) This can be replace with a std::variant as we have a
-    // fixed list of overloads and this would remove the virtual function calls
     std::unique_ptr<NonLinearProjection> _nonLinearProjection;
 };
 

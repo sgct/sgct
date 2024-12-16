@@ -8,7 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-#include <sgct/utils/dome.h>
+#include "dome.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <fstream>
@@ -36,7 +36,7 @@ namespace {
 
     bool isRunning = true;
 
-    std::unique_ptr<sgct::utils::Dome> dome;
+    std::unique_ptr<Dome> dome;
     GLint matrixLoc = -1;
 
     double currentTime(0.0);
@@ -233,7 +233,7 @@ void draw(const RenderData& data) {
     glActiveTexture(GL_TEXTURE0);
 
     if ((static_cast<int>(texIds.size()) > (texIndex + 1)) &&
-        data.frustumMode == Frustum::Mode::StereoRightEye)
+        data.frustumMode == FrustumMode::StereoRight)
     {
         glBindTexture(GL_TEXTURE_2D, texIds[texIndex + 1]);
     }
@@ -288,7 +288,7 @@ void initOGL(GLFWwindow* win) {
         loadThread = std::make_unique<std::thread>(threadWorker);
     }
 
-    dome = std::make_unique<utils::Dome>(7.4f, 180.f, 256, 128);
+    dome = std::make_unique<Dome>(7.4f, 180.f, 256, 128);
 
     // Set up backface culling
     glCullFace(GL_BACK);

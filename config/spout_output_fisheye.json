@@ -1,11 +1,6 @@
 {
   "version": 1,
   "masteraddress": "localhost",
-  "scene": {
-    "offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
-    "orientation": { "yaw": 0.0, "pitch": 0.0, "roll": 0.0 },
-    "scale": 1.0
-  },
   "nodes": [
     {
       "address": "localhost",
@@ -14,27 +9,22 @@
         {
           "fullscreen": false,
           "stereo": "none",
-          "msaa": 4,
-          "size": { "x": 1024, "y": 1024 },
+          "size": { "x": 512, "y": 512 },
+          "spout": {
+            "enabled": true,
+            "name": "OS_FISHEYE"
+          },
           "viewports": [
             {
+              "type": "FisheyeProjection",
               "pos": { "x": 0.0, "y": 0.0 },
               "size": { "x": 1.0, "y": 1.0 },
               "projection": {
-                "type": "SpoutOutputProjection",
-                "quality": "1k",
-                "mapping": "fisheye",
-                "mappingspoutname": "OS_FISHEYE",
-                "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 },
-                "channels": {
-                  "right": true,
-                  "zleft": true,
-                  "bottom": false,
-                  "top": true,
-                  "left": true,
-                  "zright": false
-                },
-                "orientation": { "yaw": 45.0, "pitch": 0.0, "roll": 0.0 }
+                "type": "FisheyeProjection",
+                "fov": 180.0,
+                "quality": "medium",
+                "tilt": 0.0,
+                "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 }
               }
             }
           ]

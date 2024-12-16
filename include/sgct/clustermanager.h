@@ -33,18 +33,6 @@ public:
     static void create(const config::Cluster& cluster, int clusterID);
     static void destroy();
 
-    void applyCluster(const config::Cluster& cluster);
-
-    /**
-     * Add a cluster node to the manager's vector.
-     */
-    void addNode(std::unique_ptr<Node> node);
-
-    /**
-     * Add a new user.
-     */
-    void addUser(std::unique_ptr<User> user);
-
     /**
      * Get a pointer to a specific node. Please observe that the address of this object
      * might change between frames and should not be kept around for long.
@@ -116,14 +104,14 @@ public:
     const std::string& masterAddress() const;
 
     /**
-     * \return state of the firm frame lock lock sync
-     */
-    bool firmFrameLockSyncStatus() const;
-
-    /**
      * \param state the state of the firm frame lock sync
      */
     void setFirmFrameLockSyncStatus(bool state);
+
+    /**
+     * \return state of the firm frame lock lock sync
+     */
+    bool firmFrameLockSyncStatus() const;
 
     /**
      * Set if software sync between nodes should be ignored.
@@ -136,7 +124,7 @@ public:
     bool ignoreSync() const;
 
 private:
-    ClusterManager(int clusterID);
+    ClusterManager(const config::Cluster& cluster, int clusterID);
     ClusterManager(const ClusterManager&) = delete;
     ClusterManager(ClusterManager&&) = delete;
     ClusterManager& operator=(const ClusterManager&) = delete;
@@ -147,7 +135,7 @@ private:
     static ClusterManager* _instance;
 
     const int _thisNodeId;
-    bool _firmFrameLockSync = false;
+    bool _firmFrameLockSync;
     bool _ignoreSync = false;
     std::string _masterAddress;
 

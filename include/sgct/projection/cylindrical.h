@@ -13,21 +13,21 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
-#include <sgct/frustum.h>
+#include <sgct/definitions.h>
 
 namespace sgct {
 
 class SGCT_EXPORT CylindricalProjection final : public NonLinearProjection {
 public:
-    CylindricalProjection(const Window* parent);
+    CylindricalProjection(const config::CylindricalProjection& config,
+        const Window& parent, User& user);
     ~CylindricalProjection() final;
 
-    void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode) override;
+    void render(const BaseViewport& viewport, FrustumMode mode) const override;
 
-    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    void renderCubemap(FrustumMode frustumMode) const override;
 
-    void update(vec2 size) override;
+    void update(const vec2& size) const override;
 
     void setRotation(float rotation);
     void setHeightOffset(float heightOffset);
@@ -38,18 +38,19 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _rotation = 0.f;
-    float _heightOffset = 0.f;
-    float _radius = 5.f;
+    float _rotation;
+    float _heightOffset;
+    float _radius;
 
     struct {
+        ShaderProgram program;
         int cubemap = -1;
         int rotation = -1;
         int heightOffset = -1;
-    } _shaderLoc;
+    } _shader;
+
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
-    ShaderProgram _shader;
 };
 
 } // namespace sgct

@@ -54,34 +54,43 @@ namespace {
 
 namespace sgct {
 
-CylindricalProjection::CylindricalProjection(const Window* parent)
+CylindricalProjection::CylindricalProjection(const config::CylindricalProjection& config,
+                                             const Window& parent, User& user)
     : NonLinearProjection(parent)
+    , _rotation(config.rotation.value_or(0.f))
+    , _heightOffset(config.heightOffset.value_or(0.f))
+    , _radius(config.radius.value_or(5.f))
 {
+    setUser(user);
     setUseDepthTransformation(true);
+
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
 }
 
 CylindricalProjection::~CylindricalProjection() {
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
-    _shader.deleteProgram();
+    _shader.program.deleteProgram();
 }
 
-void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
-                                   Frustum::Mode frustumMode)
+void CylindricalProjection::render(const BaseViewport& viewport,
+                                   FrustumMode frustumMode) const
 {
     ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().setupViewport(window, viewport, frustumMode);
+    viewport.setupViewport(frustumMode);
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _shader.bind();
+    _shader.program.bind();
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // if for some reson the active texture has been reset
+    // if for some reason the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
@@ -90,9 +99,9 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shaderLoc.cubemap, 0);
-    glUniform1f(_shaderLoc.rotation, glm::radians(_rotation));
-    glUniform1f(_shaderLoc.heightOffset, _heightOffset);
+    glUniform1i(_shader.cubemap, 0);
+    glUniform1f(_shader.rotation, glm::radians(_rotation));
+    glUniform1f(_shader.heightOffset, _heightOffset);
 
 
     glBindVertexArray(_vao);
@@ -106,14 +115,24 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glDepthFunc(GL_LESS);
 }
 
-void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void CylindricalProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
-    renderCubeFaces(window, frustumMode);
+    renderCubeFace(_subViewports.right, 0, frustumMode);
+    renderCubeFace(_subViewports.left, 1, frustumMode);
+    renderCubeFace(_subViewports.bottom, 2, frustumMode);
+    renderCubeFace(_subViewports.top, 3, frustumMode);
+    renderCubeFace(_subViewports.front, 4, frustumMode);
+    renderCubeFace(_subViewports.back, 5, frustumMode);
 }
 
-void CylindricalProjection::update(vec2) {
+void CylindricalProjection::update(const vec2&) const {}
+
+void CylindricalProjection::initVBO() {
+    glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     constexpr std::array<float, 20> v = {
@@ -123,15 +142,6 @@ void CylindricalProjection::update(vec2) {
          1.f,  1.f, -1.f, 1.f, 1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
-    glBindVertexArray(0);
-}
-
-void CylindricalProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
@@ -150,15 +160,11 @@ void CylindricalProjection::initVBO() {
 }
 
 void CylindricalProjection::initViewports() {
-    // radius is needed to calculate the distance to all view planes
-    // const float radius = _diameter / 2.f;
-    const float radius = _radius;
-
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
-    const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
-    const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
-    const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
+    const glm::vec4 lowerLeftBase(-_radius, -_radius, _radius, 1.f);
+    const glm::vec4 upperLeftBase(-_radius, _radius, _radius, 1.f);
+    const glm::vec4 upperRightBase(_radius, _radius, _radius, 1.f);
 
     const glm::mat4 tiltMat = glm::rotate(
         glm::mat4(1.f),
@@ -174,8 +180,6 @@ void CylindricalProjection::initViewports() {
 
     // +X face
     {
-        _subViewports.right.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(-90.f),
@@ -183,7 +187,7 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 upperRight = upperRightBase;
-        upperRight.x = radius;
+        upperRight.x = _radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
@@ -197,9 +201,6 @@ void CylindricalProjection::initViewports() {
 
     // -X face
     {
-        _subViewports.left.setPos(vec2{ 0.f, 0.f });
-        _subViewports.left.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(90.f),
@@ -207,9 +208,9 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 lowerLeft = lowerLeftBase;
-        lowerLeft.x = -radius;
+        lowerLeft.x = -_radius;
         glm::vec4 upperLeft = upperLeftBase;
-        upperLeft.x = -radius;
+        upperLeft.x = -_radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
@@ -223,9 +224,6 @@ void CylindricalProjection::initViewports() {
 
     // +Y face
     {
-        _subViewports.bottom.setPos(vec2{ 0.f, 0.f });
-        _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(-90.f),
@@ -233,7 +231,7 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 lowerLeft = lowerLeftBase;
-        lowerLeft.y = -radius;
+        lowerLeft.y = -_radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
@@ -247,8 +245,6 @@ void CylindricalProjection::initViewports() {
 
     // -Y face
     {
-        _subViewports.top.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(90.f),
@@ -256,9 +252,9 @@ void CylindricalProjection::initViewports() {
         );
 
         glm::vec4 upperLeft = upperLeftBase;
-        upperLeft.y = radius;
+        upperLeft.y = _radius;
         glm::vec4 upperRight = upperRightBase;
-        upperRight.y = radius;
+        upperRight.y = _radius;
 
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
@@ -286,19 +282,16 @@ void CylindricalProjection::initViewports() {
 }
 
 void CylindricalProjection::initShaders() {
-    // reload shader program if it exists
-    _shader.deleteProgram();
+    _shader.program = ShaderProgram("CylindricalProjectionShader");
+    _shader.program.addVertexShader(shaders_fisheye::BaseVert);
+    _shader.program.addFragmentShader(FragmentShader);
+    _shader.program.createAndLinkProgram();
+    _shader.program.bind();
 
-    _shader = ShaderProgram("CylindricalProjectionShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
-    _shader.createAndLinkProgram();
-    _shader.bind();
-
-    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemap, 0);
-    _shaderLoc.rotation = glGetUniformLocation(_shader.id(), "rotation");
-    _shaderLoc.heightOffset = glGetUniformLocation(_shader.id(), "heightOffset");
+    _shader.cubemap = glGetUniformLocation(_shader.program.id(), "cubemap");
+    glUniform1i(_shader.cubemap, 0);
+    _shader.rotation = glGetUniformLocation(_shader.program.id(), "rotation");
+    _shader.heightOffset = glGetUniformLocation(_shader.program.id(), "heightOffset");
 
     ShaderProgram::unbind();
 }

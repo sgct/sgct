@@ -8,7 +8,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <sgct/readconfig.h>
+#include <sgct/config.h>
 #include <filesystem>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -93,7 +93,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[0];
         CHECK(d.name == "Head");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 0);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -102,7 +102,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[1];
         CHECK(d.name == "Neck");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 1);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -111,7 +111,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[2];
         CHECK(d.name == "Torso");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 2);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -119,7 +119,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[3];
         CHECK(d.name == "Waist");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 3);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -127,7 +127,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[4];
         CHECK(d.name == "Left Collar");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 4);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -135,7 +135,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[5];
         CHECK(d.name == "Left Shoulder");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 5);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -143,7 +143,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[6];
         CHECK(d.name == "Left Elbow");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 6);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -151,7 +151,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[7];
         CHECK(d.name == "Left Wrist");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 7);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -159,7 +159,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[8];
         CHECK(d.name == "Left Hand");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 8);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -167,7 +167,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[9];
         CHECK(d.name == "Left Fingertip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 9);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -175,7 +175,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[10];
         CHECK(d.name == "Right Collar");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 10);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -183,7 +183,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[11];
         CHECK(d.name == "Right Shoulder");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 11);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -191,7 +191,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[12];
         CHECK(d.name == "Right Elbow");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 12);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -199,7 +199,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[13];
         CHECK(d.name == "Right Wrist");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 13);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -207,7 +207,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[14];
         CHECK(d.name == "Right Hand");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 14);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -215,7 +215,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[15];
         CHECK(d.name == "Right Fingertip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 15);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -223,7 +223,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[16];
         CHECK(d.name == "Left Hip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 16);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -231,7 +231,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[17];
         CHECK(d.name == "Left Knee");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 17);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -239,7 +239,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[18];
         CHECK(d.name == "Left Ankle");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 18);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -247,7 +247,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[19];
         CHECK(d.name == "Left Foot");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 19);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -255,7 +255,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[20];
         CHECK(d.name == "Right Hip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 20);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -263,7 +263,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[21];
         CHECK(d.name == "Right Knee");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 21);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -271,7 +271,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[22];
         CHECK(d.name == "Right Ankle");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 22);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -279,7 +279,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
         const Device& d = t.devices[23];
         CHECK(d.name == "Right Foot");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensors& s = d.sensors[0];
+        const Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 23);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
@@ -1227,18 +1227,13 @@ TEST_CASE("Load: Spout Output Cubemap", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<CubemapProjection>(v.projection));
+    const CubemapProjection& p = std::get<CubemapProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    REQUIRE(p.mapping.has_value());
-    CHECK(*p.mapping == SpoutOutputProjection::Mapping::Cubemap);
-    CHECK(p.mappingSpoutName == "OS_CUBEMAP");
-    REQUIRE(p.background.has_value());
-    CHECK(p.background->x == 0.1f);
-    CHECK(p.background->y == 0.1f);
-    CHECK(p.background->z == 0.1f);
-    CHECK(p.background->w == 1.f);
+    REQUIRE(p.spout);
+    CHECK(p.spout->enabled);
+    CHECK(p.spout->name == "OS_CUBEMAP");
     REQUIRE(p.channels.has_value());
     CHECK(p.channels->right == true);
     CHECK(p.channels->zLeft == true);
@@ -1270,25 +1265,6 @@ TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
 
     CHECK(res.masterAddress == "localhost");
     
-    REQUIRE(res.scene.has_value());
-    REQUIRE(res.scene->offset.has_value());
-    CHECK(res.scene->offset->x == 0.f);
-    CHECK(res.scene->offset->y == 0.f);
-    CHECK(res.scene->offset->z == 0.f);
-    REQUIRE(res.scene->orientation.has_value());
-    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
-    CHECK(res.scene->orientation->x == q.x);
-    CHECK(res.scene->orientation->y == q.y);
-    CHECK(res.scene->orientation->z == q.z);
-    CHECK(res.scene->orientation->w == q.w);
-    REQUIRE(res.scene->scale.has_value());
-    CHECK(*res.scene->scale == 1.f);
-
-    REQUIRE(res.settings.has_value());
-    REQUIRE(res.settings->display.has_value());
-    REQUIRE(res.settings->display->swapInterval.has_value());
-    CHECK(*res.settings->display->swapInterval == 0);
-
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
     CHECK(n.address == "localhost");
@@ -1298,12 +1274,12 @@ TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    REQUIRE(w.stereo.has_value());
-    CHECK(*w.stereo == Window::StereoMode::NoStereo);
-    REQUIRE(w.msaa.has_value());
-    CHECK(*w.msaa == 4);
-    CHECK(w.size.x == 1024);
-    CHECK(w.size.y == 1024);
+    CHECK(w.size.x == 1280);
+    CHECK(w.size.y == 720);
+    REQUIRE(w.spout.has_value());
+    CHECK(w.spout->enabled);
+    REQUIRE(w.spout->name.has_value());
+    CHECK(w.spout->name == "OS_EQUIRECTANGULAR");
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -1314,29 +1290,10 @@ TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<EquirectangularProjection>(v.projection));
+    const auto& p = std::get<EquirectangularProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 1024);
-    REQUIRE(p.mapping.has_value());
-    CHECK(*p.mapping == SpoutOutputProjection::Mapping::Equirectangular);
-    CHECK(p.mappingSpoutName == "OS_EQUIRECTANGULAR");
-    REQUIRE(p.background.has_value());
-    CHECK(p.background->x == 0.1f);
-    CHECK(p.background->y == 0.1f);
-    CHECK(p.background->z == 0.1f);
-    CHECK(p.background->w == 1.f);
-    REQUIRE(p.channels.has_value());
-    CHECK(p.channels->right == true);
-    CHECK(p.channels->zLeft == true);
-    CHECK(p.channels->bottom == true);
-    CHECK(p.channels->top == true);
-    CHECK(p.channels->left == true);
-    CHECK(p.channels->zRight == true);
-    REQUIRE(p.orientation.has_value());
-    CHECK(p.orientation->x == 0.f);
-    CHECK(p.orientation->y == 0.f);
-    CHECK(p.orientation->z == 0.f);
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];
@@ -1357,20 +1314,6 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
 
     CHECK(res.masterAddress == "localhost");
 
-    REQUIRE(res.scene.has_value());
-    REQUIRE(res.scene->offset.has_value());
-    CHECK(res.scene->offset->x == 0.f);
-    CHECK(res.scene->offset->y == 0.f);
-    CHECK(res.scene->offset->z == 0.f);
-    REQUIRE(res.scene->orientation.has_value());
-    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
-    CHECK(res.scene->orientation->x == q.x);
-    CHECK(res.scene->orientation->y == q.y);
-    CHECK(res.scene->orientation->z == q.z);
-    CHECK(res.scene->orientation->w == q.w);
-    REQUIRE(res.scene->scale.has_value());
-    CHECK(*res.scene->scale == 1.f);
-
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
     CHECK(n.address == "localhost");
@@ -1380,12 +1323,12 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    REQUIRE(w.stereo.has_value());
-    CHECK(*w.stereo == Window::StereoMode::NoStereo);
-    REQUIRE(w.msaa.has_value());
-    CHECK(*w.msaa == 4);
-    CHECK(w.size.x == 1024);
-    CHECK(w.size.y == 1024);
+    CHECK(w.size.x == 512);
+    CHECK(w.size.y == 512);
+    REQUIRE(w.spout);
+    CHECK(w.spout->enabled);
+    REQUIRE(w.spout->name.has_value());
+    CHECK(w.spout->name == "OS_FISHEYE");
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -1396,29 +1339,19 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
 
-    REQUIRE(std::holds_alternative<SpoutOutputProjection>(v.projection));
-    const SpoutOutputProjection& p = std::get<SpoutOutputProjection>(v.projection);
+    REQUIRE(std::holds_alternative<FisheyeProjection>(v.projection));
+    const FisheyeProjection& p = std::get<FisheyeProjection>(v.projection);
     REQUIRE(p.quality.has_value());
-    CHECK(*p.quality == 1024);
-    REQUIRE(p.mapping.has_value());
-    CHECK(*p.mapping == SpoutOutputProjection::Mapping::Fisheye);
-    CHECK(p.mappingSpoutName == "OS_FISHEYE");
+    CHECK(p.quality == 512);
+    REQUIRE(p.fov.has_value());
+    CHECK(p.fov == 180.f);
+    REQUIRE(p.tilt.has_value());
+    CHECK(p.tilt == 0.f);
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
     CHECK(p.background->z == 0.1f);
     CHECK(p.background->w == 1.f);
-    REQUIRE(p.channels.has_value());
-    CHECK(p.channels->right == true);
-    CHECK(p.channels->zLeft == true);
-    CHECK(p.channels->bottom == false);
-    CHECK(p.channels->top == true);
-    CHECK(p.channels->left == true);
-    CHECK(p.channels->zRight == false);
-    REQUIRE(p.orientation.has_value());
-    CHECK(p.orientation->x == 0.f);
-    CHECK(p.orientation->y == 45.f);
-    CHECK(p.orientation->z == 0.f);
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];

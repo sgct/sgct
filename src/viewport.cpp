@@ -12,16 +12,14 @@
 #include <sgct/config.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
-#include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/texturemanager.h>
+#include <sgct/projection/cubemap.h>
 #include <sgct/projection/cylindrical.h>
 #include <sgct/projection/equirectangular.h>
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirror.h>
-#include <sgct/projection/spout.h>
-#include <sgct/projection/spoutflat.h>
 #include <algorithm>
 #include <array>
 #include <optional>
@@ -31,81 +29,97 @@ namespace {
     // Helper structs for the visitor pattern of the std::variant on projections
     template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
     template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+    sgct::FrustumMode convert(sgct::config::Viewport::Eye e) {
+        using namespace sgct;
+        switch (e) {
+            case config::Viewport::Eye::Mono:        return FrustumMode::Mono;
+            case config::Viewport::Eye::StereoLeft:  return FrustumMode::StereoLeft;
+            case config::Viewport::Eye::StereoRight: return FrustumMode::StereoRight;
+            default:                       throw std::logic_error("Unhandled case label");
+        }
+    }
 } // namespace
 
 namespace sgct {
 
-Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
-
-Viewport::~Viewport() = default;
-
-void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-                          unsigned int format, unsigned int type, int samples)
+Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
+    : BaseViewport(parent, convert(viewport.eye.value_or(config::Viewport::Eye::Mono)))
+    , _overlayFilename(viewport.overlayTexture.value_or(std::filesystem::path()))
+    , _blendMaskFilename(viewport.blendMaskTexture.value_or(std::filesystem::path()))
+    , _blackLevelMaskFilename(
+        viewport.blackLevelMaskTexture.value_or(std::filesystem::path())
+    )
+    , _meshFilename(viewport.correctionMeshTexture.value_or(std::filesystem::path()))
+    , _isTracked(viewport.isTracked.value_or(false))
 {
-    if (_nonLinearProjection) {
-        _nonLinearProjection->setStereo(hasStereo);
-        _nonLinearProjection->initialize(internalFormat, format, type, samples);
-        _nonLinearProjection->update(std::move(size));
-    }
-}
-
-void Viewport::applyViewport(const config::Viewport& viewport) {
-    ZoneScoped;
-
     if (viewport.user) {
-        setUserName(*viewport.user);
-    }
-    if (viewport.overlayTexture) {
-        _overlayFilename = *viewport.overlayTexture;
-    }
-    if (viewport.blendMaskTexture) {
-        _blendMaskFilename = *viewport.blendMaskTexture;
-    }
-    if (viewport.blackLevelMaskTexture) {
-        _blackLevelMaskFilename = *viewport.blackLevelMaskTexture;
-    }
-    if (viewport.correctionMeshTexture) {
-        _meshFilename = *viewport.correctionMeshTexture;
-    }
-    if (viewport.isTracked) {
-        _isTracked = *viewport.isTracked;
-    }
-    if (viewport.eye) {
-        const Frustum::Mode eye = [](config::Viewport::Eye e) {
-            using Mode = Frustum::Mode;
-            switch (e) {
-                case config::Viewport::Eye::Mono: return Mode::MonoEye;
-                case config::Viewport::Eye::StereoLeft: return Mode::StereoLeftEye;
-                case config::Viewport::Eye::StereoRight: return Mode::StereoRightEye;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(*viewport.eye);
-        setEye(eye);
-    }
+        User* user = ClusterManager::instance().user(*viewport.user);
+        if (!user) {
+            Log::Warning(
+                std::format("Could not find user with name '{}'", *viewport.user)
+            );
+        }
 
-    if (viewport.position) {
-        setPos(*viewport.position);
+        // If the user name is not empty, the User better exists
+        _user = user;
     }
-    if (viewport.size) {
-        setSize(*viewport.size);
-    }
+    assert(_user);
+
+    _position = viewport.position.value_or(_position);
+    _size = viewport.size.value_or(_size);
 
     std::visit(overloaded {
         [](const config::NoProjection&) {},
-        [this](const config::PlanarProjection& p) { applyPlanarProjection(p); },
+        [this](const config::PlanarProjection& p) {
+            setViewPlaneCoordsUsingFOVs(
+                p.fov.up,
+                p.fov.down,
+                p.fov.left,
+                p.fov.right,
+                p.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
+                p.fov.distance.value_or(10.f)
+            );
+            if (p.offset) {
+                _projPlane.offset(*p.offset);
+            }
+        },
         [this](const config::TextureMappedProjection& p) {
             _useTextureMappedProjection = true;
-            applyPlanarProjection(p);
+            setViewPlaneCoordsUsingFOVs(
+                p.fov.up,
+                p.fov.down,
+                p.fov.left,
+                p.fov.right,
+                p.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
+                p.fov.distance.value_or(10.f)
+            );
+            if (p.offset) {
+                _projPlane.offset(*p.offset);
+            }
         },
-        [this](const config::FisheyeProjection& p) { applyFisheyeProjection(p); },
+        [this](const config::FisheyeProjection& p) {
+            _nonLinearProjection = std::make_unique<FisheyeProjection>(
+                p,
+                _parent,
+                *_user
+            );
+        },
         [this](const config::SphericalMirrorProjection& p) {
-            applySphericalMirrorProjection(p);
+            _nonLinearProjection =
+                std::make_unique<SphericalMirrorProjection>(p, _parent, *_user);
         },
-        [this](const config::SpoutOutputProjection& p) { applySpoutOutputProjection(p); },
-        [this](const config::SpoutFlatProjection& p) { applySpoutFlatProjection(p); },
-        [this](const config::CylindricalProjection& p) { applyCylindricalProjection(p); },
+        [this]([[maybe_unused]] const config::CubemapProjection& p) {
+            _nonLinearProjection =
+                std::make_unique<CubemapProjection>(p, _parent, *_user);
+        },
+        [this](const config::CylindricalProjection& p) {
+            _nonLinearProjection =
+                std::make_unique<CylindricalProjection>(p, _parent, *_user);
+        },
         [this](const config::EquirectangularProjection& p) {
-            applyEquirectangularProjection(p);
+            _nonLinearProjection =
+                std::make_unique<EquirectangularProjection>(p, _parent, *_user);
         },
         [this](const config::ProjectionPlane& p) {
             _projPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
@@ -116,210 +130,16 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     }, viewport.projection);
 }
 
-void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
-    ZoneScoped;
+Viewport::~Viewport() = default;
 
-    setViewPlaneCoordsUsingFOVs(
-        proj.fov.up,
-        proj.fov.down,
-        proj.fov.left,
-        proj.fov.right,
-        proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
-        proj.fov.distance.value_or(10.f)
-    );
-    if (proj.offset) {
-        _projPlane.offset(*proj.offset);
-    }
-}
-
-void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
-    ZoneScoped;
-
-    auto fishProj = std::make_unique<FisheyeProjection>(_parent);
-    fishProj->setUser(_user);
-
-    if (proj.fov) {
-        fishProj->setFOV(*proj.fov);
-    }
-    if (proj.quality) {
-        fishProj->setCubemapResolution(*proj.quality);
-    }
-    if (proj.interpolation) {
-        const NonLinearProjection::InterpolationMode interp =
-            [](config::FisheyeProjection::Interpolation i) {
-                switch (i) {
-                    case config::FisheyeProjection::Interpolation::Linear:
-                        return NonLinearProjection::InterpolationMode::Linear;
-                    case config::FisheyeProjection::Interpolation::Cubic:
-                        return NonLinearProjection::InterpolationMode::Cubic;
-                    default: throw std::logic_error("Unhandled case label");
-                }
-            }(*proj.interpolation);
-        fishProj->setInterpolationMode(interp);
-    }
-    if (proj.tilt) {
-        fishProj->setTilt(*proj.tilt);
-    }
-    if (proj.diameter) {
-        fishProj->setDomeDiameter(*proj.diameter);
-    }
-    if (proj.crop) {
-        const config::FisheyeProjection::Crop crop = *proj.crop;
-        fishProj->setCropFactors(crop.left, crop.right, crop.bottom, crop.top);
-    }
-    if (proj.offset) {
-        fishProj->setBaseOffset(*proj.offset);
-    }
-    if (proj.background) {
-        fishProj->setClearColor(*proj.background);
-    }
-    if (proj.keepAspectRatio) {
-        fishProj->setKeepAspectRatio(*proj.keepAspectRatio);
-    }
-    fishProj->setUseDepthTransformation(true);
-    _nonLinearProjection = std::move(fishProj);
-}
-
-void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p) {
-#ifdef SGCT_HAS_SPOUT
-    ZoneScoped;
-
-    auto proj = std::make_unique<SpoutOutputProjection>(_parent);
-    proj->setUser(_user);
-    if (p.quality) {
-        proj->setCubemapResolution(*p.quality);
-    }
-    if (p.mapping) {
-        SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
-            switch (m) {
-                case config::SpoutOutputProjection::Mapping::Fisheye:
-                    return SpoutOutputProjection::Mapping::Fisheye;
-                case config::SpoutOutputProjection::Mapping::Equirectangular:
-                    return SpoutOutputProjection::Mapping::Equirectangular;
-                case config::SpoutOutputProjection::Mapping::Cubemap:
-                    return SpoutOutputProjection::Mapping::Cubemap;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(*p.mapping);
-        proj->setSpoutMapping(m);
-    }
-    proj->setSpoutMappingName(p.mappingSpoutName);
-    if (p.background) {
-        proj->setClearColor(*p.background);
-    }
-    if (p.channels) {
-        config::SpoutOutputProjection::Channels c = *p.channels;
-        proj->setSpoutChannels(c.right, c.zLeft, c.bottom, c.top, c.left, c.zRight);
-    }
-    if (p.orientation) {
-        proj->setSpoutRigOrientation(*p.orientation);
-    }
-    if (p.drawMain) {
-        proj->setSpoutDrawMain(*p.drawMain);
-    }
-
-    _nonLinearProjection = std::move(proj);
-#else
-    (void)p;
-    Log::Warning("Spout library not added to SGCT");
-#endif
-}
-
-void Viewport::applySpoutFlatProjection(const config::SpoutFlatProjection& p) {
-#ifdef SGCT_HAS_SPOUT
-    ZoneScoped;
-
-    auto proj = std::make_unique<SpoutFlatProjection>(_parent);
-    proj->setUser(_user);
-    if (p.width) {
-        proj->setResolutionWidth(*p.width);
-    }
-    if (p.height) {
-        proj->setResolutionHeight(*p.height);
-    }
-    proj->setSpoutMappingName(p.mappingSpoutName);
-    if (p.background) {
-        proj->setClearColor(*p.background);
-    }
-    if (p.drawMain) {
-        proj->setSpoutDrawMain(*p.drawMain);
-    }
-
-    if (p.proj.offset) {
-        proj->setSpoutOffset(*p.proj.offset);
-    }
-    proj->setSpoutFov(p.proj.fov.up,
-        p.proj.fov.down,
-        p.proj.fov.left,
-        p.proj.fov.right,
-        p.proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
-        p.proj.fov.distance.value_or(10.f));
-
-    _nonLinearProjection = std::move(proj);
-#else
-    (void)p;
-    Log::Warning("Spout library not added to SGCT");
-#endif
-}
-
-void Viewport::applyCylindricalProjection(const config::CylindricalProjection& p) {
-    ZoneScoped;
-
-    auto proj = std::make_unique<CylindricalProjection>(_parent);
-    proj->setUser(_user);
-    if (p.quality) {
-        proj->setCubemapResolution(*p.quality);
-    }
-    if (p.rotation) {
-        proj->setRotation(*p.rotation);
-    }
-    if (p.heightOffset) {
-        proj->setHeightOffset(*p.heightOffset);
-    }
-    if (p.radius) {
-        proj->setRadius(*p.radius);
-    }
-
-    _nonLinearProjection = std::move(proj);
-}
-
-void Viewport::applyEquirectangularProjection(const config::EquirectangularProjection& p)
+void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
+                          unsigned int format, unsigned int type, uint8_t samples)
 {
-    ZoneScoped;
-
-    auto proj = std::make_unique<EquirectangularProjection>(_parent);
-    proj->setUser(_user);
-    if (p.quality) {
-        proj->setCubemapResolution(*p.quality);
+    if (_nonLinearProjection) {
+        _nonLinearProjection->setStereo(hasStereo);
+        _nonLinearProjection->initialize(internalFormat, format, type, samples);
+        _nonLinearProjection->update(std::move(size));
     }
-
-    _nonLinearProjection = std::move(proj);
-}
-
-void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
-{
-    ZoneScoped;
-
-    auto proj = std::make_unique<SphericalMirrorProjection>(
-        _parent,
-        p.mesh.bottom,
-        p.mesh.left,
-        p.mesh.right,
-        p.mesh.top
-    );
-
-    proj->setUser(_user);
-    if (p.quality) {
-        proj->setCubemapResolution(*p.quality);
-    }
-    if (p.tilt) {
-        proj->setTilt(*p.tilt);
-    }
-    if (p.background) {
-        proj->setClearColor(*p.background);
-    }
-
-    _nonLinearProjection = std::move(proj);
 }
 
 void Viewport::loadData() {
@@ -341,9 +161,18 @@ void Viewport::loadData() {
     _mesh.loadMesh(
         _meshFilename,
         *this,
-        (hasBlendMaskTexture() || hasBlackLevelMaskTexture()),
+        hasBlendMaskTexture() || hasBlackLevelMaskTexture(),
         _useTextureMappedProjection
     );
+}
+
+void Viewport::calculateFrustum(FrustumMode mode, float nearClip, float farClip) {
+    if (_nonLinearProjection) {
+        _nonLinearProjection->updateFrustums(mode, nearClip, farClip);
+    }
+    else {
+        BaseViewport::calculateFrustum(mode, nearClip, farClip);
+    }
 }
 
 void Viewport::renderQuadMesh() const {

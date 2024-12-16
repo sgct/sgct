@@ -23,14 +23,7 @@ namespace sgct {
 
 class SGCT_EXPORT Node {
 public:
-    Node() = default;
-    Node(const Node&) = delete;
-    Node(Node&&) = default;
-    Node& operator=(const Node&) = delete;
-    Node& operator=(Node&&) = default;
-
-
-    void applyNode(const config::Node& node, bool initializeWindows);
+    Node(const config::Node& node, bool initializeWindows);
 
     /**
      * Add a window to this node.
@@ -46,11 +39,6 @@ public:
      * Is this node using nvidia swap groups for its windows?
      */
     bool isUsingSwapGroups() const;
-
-    /**
-     * Check if a key is pressed for all windows.
-     */
-    bool isKeyPressed(Key key);
 
     const std::vector<std::unique_ptr<Window>>& windows() const;
 
@@ -70,12 +58,12 @@ public:
     int dataTransferPort() const;
 
 private:
-    std::string _address;
-    int _syncPort = 0;
-    int _dataTransferPort = 0;
+    const std::string _address;
+    const uint16_t _syncPort;
+    const uint16_t _dataTransferPort;
+    const bool _useSwapGroups;
 
     std::vector<std::unique_ptr<Window>> _windows;
-    bool _useSwapGroups = false;
 };
 
 } // namespace sgct

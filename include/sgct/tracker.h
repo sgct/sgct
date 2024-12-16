@@ -55,7 +55,7 @@ public:
      */
     void setTransform(mat4 mat);
 
-    mat4 getTransform() const;
+    mat4 transform() const;
     double scale() const;
 
     const std::string& name() const;

@@ -41,22 +41,21 @@ namespace {
     out_diffuse = texture(cubemap, vec3(x, y, z));
   }
 )";
-
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
 } // namespace
 
 namespace sgct {
 
-EquirectangularProjection::EquirectangularProjection(const Window* parent)
+EquirectangularProjection::EquirectangularProjection(
+                                          const config::EquirectangularProjection& config,
+                                                                     const Window& parent,
+                                                                               User& user)
     : NonLinearProjection(parent)
 {
+    setUser(user);
     setUseDepthTransformation(true);
+    if (config.quality) {
+        setCubemapResolution(*config.quality);
+    }
 }
 
 EquirectangularProjection::~EquirectangularProjection() {
@@ -65,13 +64,13 @@ EquirectangularProjection::~EquirectangularProjection() {
     _shader.deleteProgram();
 }
 
-void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode)
+void EquirectangularProjection::render(const BaseViewport& viewport,
+                                       FrustumMode frustumMode) const
 {
     ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().setupViewport(window, viewport, frustumMode);
+    viewport.setupViewport(frustumMode);
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -89,9 +88,6 @@ void EquirectangularProjection::render(const Window& window, const BaseViewport&
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shaderLoc.cubemap, 0);
-
-
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
@@ -103,14 +99,32 @@ void EquirectangularProjection::render(const Window& window, const BaseViewport&
     glDepthFunc(GL_LESS);
 }
 
-void EquirectangularProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void EquirectangularProjection::renderCubemap(FrustumMode frustumMode) const {
     ZoneScoped;
 
-    renderCubeFaces(window, frustumMode);
+    renderCubeFace(_subViewports.right, 0, frustumMode);
+    renderCubeFace(_subViewports.left, 1, frustumMode);
+    renderCubeFace(_subViewports.bottom, 2, frustumMode);
+    renderCubeFace(_subViewports.top, 3, frustumMode);
+    renderCubeFace(_subViewports.front, 4, frustumMode);
+    renderCubeFace(_subViewports.back, 5, frustumMode);
 }
 
-void EquirectangularProjection::update(vec2) {
+void EquirectangularProjection::update(const vec2&) const {}
+
+void EquirectangularProjection::initVBO() {
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
+    };
+
+    glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     constexpr std::array<float, 20> v = {
@@ -120,15 +134,6 @@ void EquirectangularProjection::update(vec2) {
          1.f,  1.f, -1.f, 1.f, 1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
-    glBindVertexArray(0);
-}
-
-void EquirectangularProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
@@ -171,8 +176,6 @@ void EquirectangularProjection::initViewports() {
 
     // +X face
     {
-        _subViewports.right.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(-90.f),
@@ -194,9 +197,6 @@ void EquirectangularProjection::initViewports() {
 
     // -X face
     {
-        _subViewports.left.setPos(vec2{ 0.f, 0.f });
-        _subViewports.left.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(90.f),
@@ -220,9 +220,6 @@ void EquirectangularProjection::initViewports() {
 
     // +Y face
     {
-        _subViewports.bottom.setPos(vec2{ 0.f, 0.f });
-        _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(-90.f),
@@ -244,8 +241,6 @@ void EquirectangularProjection::initViewports() {
 
     // -Y face
     {
-        _subViewports.top.setSize(vec2{ 1.f, 1.f });
-
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
             glm::radians(90.f),
@@ -297,17 +292,13 @@ void EquirectangularProjection::initViewports() {
 }
 
 void EquirectangularProjection::initShaders() {
-    // reload shader program if it exists
-    _shader.deleteProgram();
-
     _shader = ShaderProgram("CylindricalProjectinoShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
+    _shader.addVertexShader(shaders_fisheye::BaseVert);
+    _shader.addFragmentShader(FragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemap, 0);
+    glUniform1i(glGetUniformLocation(_shader.id(), "cubemap"), 0);
 
     ShaderProgram::unbind();
 }

@@ -9,7 +9,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
-#include <sgct/readconfig.h>
+#include <sgct/config.h>
 
 
 TEST_CASE("Parse Required: Version", "[parse]") {
@@ -714,38 +714,6 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
         sgct::readJsonConfig(Sources),
         std::runtime_error,
         Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
-    );
-}
-
-TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
-    constexpr std::string_view Sources = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "size": { "x": 1, "y": 2 },
-          "viewports": [
-            {
-              "projection": {
-                "type": "SpoutOutputProjection"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-)";
-    CHECK_THROWS_MATCHES(
-        sgct::readJsonConfig(Sources),
-        std::runtime_error,
-        Catch::Matchers::Message("Could not find required key 'mappingspoutname'")
     );
 }
 

@@ -62,8 +62,8 @@ namespace sgct {
                   window was specified
  * 1109: Window / Window %i tried to blit from itself, which cannot work
  * 1110: Node / Node address must not be empty
- * 1111: Node / Node port must be non-negative
- * 1112: Node / Node data transfer port must be non-negative
+ * 1111: Node / Node port must be a positive number
+ * 1112: Node / Node data transfer port must be a positive number
  * 1113: Node / Every node must contain at least one window
  * 1120: Cluster / Cluster master address must not be empty
  * 1122: Cluster / There must be at least one user in the cluster
@@ -71,7 +71,6 @@ namespace sgct {
  * 1124: Cluster / No two users can have the same name
  * 1125: Cluster / All trackers specified in the 'User's have to be valid tracker names
  * 1127: Cluster / Configuration must contain at least one node
- * 1128: Cluster / Two or more nodes are using the same port
 
  * 2000s: Correction Meshes
  * 2000: CorrectionMesh / Failed to export. Geometry type is not supported"

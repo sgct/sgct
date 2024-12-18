@@ -10,6 +10,7 @@
 #define __SGCT__MATH_H__
 
 #include <sgct/sgctexports.h>
+#include <array>
 #include <compare>
 
 namespace sgct {
@@ -108,7 +109,7 @@ struct SGCT_EXPORT mat4 {
     }
     auto operator<=>(const mat4&) const noexcept = default;
 
-    float values[16] = {};
+    std::array<float, 16> values;
 };
 
 SGCT_EXPORT mat4 operator*(const mat4& m1, const mat4& m2);

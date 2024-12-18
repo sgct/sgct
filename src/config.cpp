@@ -1061,6 +1061,14 @@ static void to_json(nlohmann::json& j, const PlanarProjection& p) {
     }
 }
 
+static void from_json(const nlohmann::json& j, TextureMappedProjection& p) {
+    from_json(j, reinterpret_cast<PlanarProjection&>(p));
+}
+
+static void to_json(nlohmann::json& j, const TextureMappedProjection& p) {
+    to_json(j, reinterpret_cast<const PlanarProjection&>(p));
+}
+
 static void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     parseValue(j, "fov", p.fov);
 
@@ -1824,38 +1832,28 @@ static void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 }
 
 static void from_json(const nlohmann::json& j, Meta& m) {
-    if (j.find("description") != j.end()) {
-        parseValue(j, "description", m.description);
-    }
-    if (j.find("name") != j.end()) {
-        parseValue(j, "name", m.name);
-    }
-    if (j.find("author") != j.end()) {
-        parseValue(j, "author", m.author);
-    }
-    if (j.find("license") != j.end()) {
-        parseValue(j, "license", m.license);
-    }
-    if (j.find("version") != j.end()) {
-        parseValue(j, "version", m.version);
-    }
+    parseValue(j, "description", m.description);
+    parseValue(j, "name", m.name);
+    parseValue(j, "author", m.author);
+    parseValue(j, "license", m.license);
+    parseValue(j, "version", m.version);
 }
 
 static void to_json(nlohmann::json& j, const Meta& m) {
-    if (!m.description.empty()) {
-        j["description"] = m.description;
+    if (m.description.has_value()) {
+        j["description"] = *m.description;
     }
-    if (!m.name.empty()) {
-        j["name"] = m.name;
+    if (m.name.has_value()) {
+        j["name"] = *m.name;
     }
-    if (!m.author.empty()) {
-        j["author"] = m.author;
+    if (m.author.has_value()) {
+        j["author"] = *m.author;
     }
-    if (!m.license.empty()) {
-        j["license"] = m.license;
+    if (m.license.has_value()) {
+        j["license"] = *m.license;
     }
-    if (!m.version.empty()) {
-        j["version"] = m.version;
+    if (m.version.has_value()) {
+        j["version"] = *m.version;
     }
 }
 
@@ -1867,7 +1865,7 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
         throw Err(6084, "Cannot find master address");
     }
 
-    parseValue(j, "threadaffinity", c.setThreadAffinity);
+    parseValue(j, "threadaffinity", c.threadAffinity);
     parseValue(j, "debuglog", c.debugLog);
     parseValue(j, "firmsync", c.firmSync);
 
@@ -1886,8 +1884,8 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
 static void to_json(nlohmann::json& j, const Cluster& c) {
     j["masteraddress"] = c.masterAddress;
 
-    if (c.setThreadAffinity.has_value()) {
-        j["threadaffinity"] = *c.setThreadAffinity;
+    if (c.threadAffinity.has_value()) {
+        j["threadaffinity"] = *c.threadAffinity;
     }
 
     if (c.debugLog.has_value()) {

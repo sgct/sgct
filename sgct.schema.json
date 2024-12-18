@@ -336,6 +336,7 @@
           "description": "A linear offset in meters that is added to the virtual image plane. Must define three float attributes x, y, and z. The default values are x=0, y=0, z=0, meaning that no offset is applied to the image plane"
         }
       },
+      "required": [ "fov" ],
       "description": "Describes a projection for the Viewport that is a flat projection described by simple frustum, which may be asymmetric"
     },
 
@@ -513,33 +514,54 @@
       "description": "Used to create a projection used for Paul Bourke's spherical mirror setup (see here), which makes it possible to use an off-the-shelf projector to create a planetarium-like environment by bouncing the image of a shiny metal mirror. Please note that this is not the only way to produce these kind of images. Depending on your setup and availability of warping meshes, it might suffice to use the FisheyeProjection node type instead and add a single mesh to the parent Viewport instead. The config folder in SGCT contains an example of this using a default 16x9 warping mesh. This projection type specifically deals with the case where you have four different meshes, one for the bottom, top, left, and right parts of the distorted image"
     },
 
-    "spoutoutputprojection": {
+    "cubemapprojection": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
-          "const": "SpoutOutputProjection",
-          "default": "SpoutOutputProjection",
+          "const": "CubemapProjection",
+          "default": "CubemapProjection",
           "readOnly": true
         },
         "quality": {
           "$ref": "#/$defs/projectionquality"
         },
-        "mapping": {
-          "type": "string",
-          "enum": [ "fisheye", "equirectangular", "cubemap" ],
-          "title": "Mapping",
-          "description": "Determines the type of sharing that occurs with this projection and thus how many and which texture is shared via Spout. For the “fisheye” and “equirectangular”, only the single, final reprojected image is shared, for the “cubemap” method, all selected cubemaps will be provided through the Spout interface. The default value is “cubemap”"
+        "spout": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Enabled"
+            },
+            "name": {
+              "type": "string",
+              "title": "SPOUT sharing name",
+              "description": "If this value is specified, the cube faces will be shared under this name. Every SPOUT name must only be used once. If no name is specified, the window's title is used instead. Depending in on the 'channels' setting, up to six shares will be created with the 'name' as prefix and 'Right', 'zLeft', 'Bottom', 'Top', 'Left', and 'zRight' as suffixes."
+            }
+          },
+          "required": [ "enabled" ],
+          "description": "Determines whether and under which prefix the cubemap faces are shared using SPOUT"
         },
-        "mappingspoutname": {
-          "type": "string",
-          "title": "Mapping Spout Name",
-          "description": "Sets the name of the texture if the mapping type is 'fisheye' or 'equirectangular'. If the mapping is 'cubemap', this value is ignored"
-        },
-        "background": {
-          "$ref": "#/$defs/color",
-          "title": "Background",
-          "description": "This value determines the color that is used for the parts of the image that are not covered. The alpha component of this color has to be provided even if the final render target does not contain an alpha channel. All attributes r, g, b, and a must be defined and be between 0 and 1. The default color is a dark gray (0.3, 0.3, 0.3, 1.0)"
+        "ndi": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Enabled"
+            },
+            "name": {
+              "type": "string",
+              "title": "NDI sharing name",
+              "description": "If this value is specified, the window will be shared under this name. Every NDI name must only be used once per group. If no name is specified, the window's title is used instead. Depending in on the 'channels' setting, up to six shares will be created with the 'name' as prefix and 'Right', 'zLeft', 'Bottom', 'Top', 'Left', and 'zRight' as suffixes."
+            },
+            "groups": {
+              "type": "string",
+              "title": "NDI groups",
+              "description": "This comma-separated list are the groups under which the window is shared. Every 'name' can only appear once per group. If no groups are specified the window is shared using the default group"
+            }
+          },
+          "required": [ "enabled" ],
+          "description": "Determines whether and under which prefix the cubemap faces are shared using the NDI protocol"
         },
         "channels": {
           "type": "object",
@@ -592,46 +614,6 @@
       "required": [ "type", "mappingspoutname" ],
       "additionalProperties": false,
       "description": "Provides the ability to share individual cube map faces or a fully reprojected image using the Spout library. This library only supports the Windows operating system, so this projection will only work on Windows machines. Spout's functionality is the abilty to shared textures between different applications on the same machine, making it possible to render images using SGCT and making them available to other real-time applications on the same machine for further processing. Spout uses a textual name for accessing which texture should be used for sharing. The SpoutOutputProjection has three different output types, outputting each cube map face, sharing a fisheye image, or sharing an equirectangular projection, as determined by the mapping attribute"
-    },
-
-    "spoutflatprojection": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "SpoutFlatProjection",
-          "default": "SpoutFlatProjection",
-          "readOnly": true
-        },
-        "width": {
-          "type": "integer",
-          "title": "Width",
-          "description": "The width of the individual spout faces being shared in pixels"
-        },
-        "height": {
-          "type": "integer",
-          "title": "Height",
-          "description": "The height of the individual spout faces being shared in pixels"
-        },
-        "mappingSpoutName": {
-          "type": "string",
-          "title": "Mapping Spout Name",
-          "description": "Sets the base name of the texture"
-        },
-        "background": {
-          "$ref": "#/$defs/color",
-          "title": "Background",
-          "description": "This value determines the color that is used for the parts of the image that are not covered. The alpha component of this color has to be provided even if the final render target does not contain an alpha channel. All attributes r, g, b, and a must be defined and be between 0 and 1. The default color is a dark gray (0.3, 0.3, 0.3, 1.0)"
-        },
-        "planarprojection": {
-          "$ref": "#/$defs/planarprojection",
-          "title": "Planarprojection",
-          "description": "The planar projection that is used for the forward facing standard rendering"
-        }
-      },
-      "required": [ "type" ],
-      "additionalProperties": false,
-      "description": "Provides the ability to share individual cube map faces or a fully reprojected image using the Spout library and also share a planar projection using a seventh spout name simultaneously. This library only supports the Windows operating system, so this projection will only work on Windows machines. Spout's functionality is the abilty to shared textures between different applications on the same machine, making it possible to render images using SGCT and making them available to other real-time applications on the same machine for further processing. Spout uses a textual name for accessing which texture should be used for sharing. The SpoutOutputProjection has three different output types, outputting each cube map face, sharing a fisheye image, or sharing an equirectangular projection, as determined by the mapping attribute"
     },
 
     "cylindricalprojection": {
@@ -718,20 +700,8 @@
     "projection": {
       "oneOf": [
         {
-          "$ref": "#/$defs/planarprojection",
-          "title": "Planar Projection"
-        },
-        {
-          "$ref": "#/$defs/fisheyeprojection",
-          "title": "Fisheye Projection"
-        },
-        {
-          "$ref": "#/$defs/sphericalmirrorprojection",
-          "title": "Spherical Mirror Projection"
-        },
-        {
-          "$ref": "#/$defs/spoutoutputprojection",
-          "title": "Spout Output Projection"
+          "$ref": "#/$defs/cubemapprojection",
+          "title": "Cubemap Projection"
         },
         {
           "$ref": "#/$defs/cylindricalprojection",
@@ -742,8 +712,20 @@
           "title": "Equirectangular Projection"
         },
         {
+          "$ref": "#/$defs/fisheyeprojection",
+          "title": "Fisheye Projection"
+        },
+        {
+          "$ref": "#/$defs/planarprojection",
+          "title": "Planar Projection"
+        },
+        {
           "$ref": "#/$defs/projectionplane",
           "title": "Projection Plane"
+        },
+        {
+          "$ref": "#/$defs/sphericalmirrorprojection",
+          "title": "Spherical Mirror Projection"
         },
         {
           "$ref": "#/$defs/texturemappedprojection",
@@ -849,10 +831,10 @@
           "title": "Hidden",
           "description": "Determines whether this window should be visible on screen or used as an offscreen rendering target. If a window is hidden, you should also set alwaysRender to true, or otherwise the rendering might not occur as expected. The default for this attribute is false"
         },
-        "doublebuffered": {
+        "takescreenshot": {
           "type": "boolean",
-          "title": "Double Buffered",
-          "description": "Sets the buffering to single buffering (if false) or double buffering or quad buffering for stereo (if true). The default is true"
+          "title": "Take Screenshot",
+          "description": "If this value is set to 'true' (the default), everytime all windows are commanded to take screenshots, this window will take a screenshot. If the value is 'false', this window will not take a screenshot."
         },
         "msaa": {
           "type": "integer",
@@ -878,9 +860,14 @@
           "title": "Border",
           "description": "Enables or disables the ability of the user to change the size of the window. The default is true"
         },
-        "mirror": {
+        "mirrorx": {
           "type": "boolean",
-          "title": "Mirror",
+          "title": "Mirror X",
+          "description": "Flips the resulting image horizontally"
+        },
+        "mirrory": {
+          "type": "boolean",
+          "title": "Mirror Y",
           "description": "Flips the resulting image vertically"
         },
         "draw2d": {
@@ -919,6 +906,43 @@
           "title": "Stereo",
           "description": "Determines whether the contents of this window should be rendered stereoscopically and which stereoscopic rendering method should be used. The only allowed attribute for this node is the type, which determines the type of stereo rendering. It has to be one of: 1. none: No stereo rendering is performed. This is the same as if this entire node was not specified. 2. active: Using active stereo using quad buffering. This is only a valid option for systems that support quad buffering. 3. checkerboard: Using a checkerboard pattern for stereoscopy in which left and right eyes are rendered on interleaved checkerboard patterns. 4. checkerboard_inverted: Using the same pattern as checkerboard, but with the left and right eyes inverted. 5. anaglyph_red_cyan: Applying color filters to the rendering for the left and right eyes such that red-cyan anaglyph glasses can be used to view the stereo content. 6. anaglyph_amber_blue: Applying color filters to the rendering for the left and right eyes such that amber-blue anaglyph glasses can be used to view the stereo content. 7. anaglyph_wimmer: ¯|(ツ)/¯. 8. vertical_interlaced: A stereo format in which the left and right eye images are interlaced vertically, meaning that each row of the final image is either left or right, switching each row. 9. vertical_interlaced_inverted: The same as vertical_interlaced, but with the left and right eye flipped. 10. dummy: A dummy stereo mode to test streoscopic rendering without needing extra equipment. In this stereo mode, the left and the right eye images are rendered on top of each other without any other processing. This option is available to verify that stereo rendering is working for a specific application. 11. side_by_side: The resolution of the window is split into a left half and a right half, with each eye being rendered into its half. This is a common stereo format for 3D TVs. 12. side_by_side_inverted: The same as side_by_side, but the left and right images are flipped. 13. top_bottom: The same as side_by_side, but instead of separating the window horizontally, the window is split vertically, with the left eye being rendered in the top half of the window and the right image being rendered in the bottom half. 14. top_bottom_inverted: The same as top_bottom_inverted, but with the left and right eyes flipped. The default value is none"
         },
+        "spout": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Enabled"
+            },
+            "name": {
+              "type": "string",
+              "title": "SPOUT sharing name",
+              "description": "If this value is specified, the window will be shared under this name. Every SPOUT name must only be used once. If no name is specified, the window's title is used instead"
+            }
+          },
+          "required": [ "enabled" ],
+          "description": "Determines whether and under which name this window is shared using SPOUT"
+        },
+        "ndi": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Enabled"
+            },
+            "name": {
+              "type": "string",
+              "title": "NDI sharing name",
+              "description": "If this value is specified, the window will be shared under this name. Every NDI name must only be used once per group. If no name is specified, the window's title is used instead"
+            },
+            "groups": {
+              "type": "string",
+              "title": "NDI groups",
+              "description": "This comma-separated list are the groups under which the window is shared. Every 'name' can only appear once per group. If no groups are specified the window is shared using the default group"
+            }
+          },
+          "required": [ "enabled" ],
+          "description": "Determines whether and under which name and groups this window is shared using the NDI protocol"
+        },
         "pos": {
           "$ref": "#/$defs/windowpos"
         },
@@ -929,6 +953,11 @@
           "$ref": "#/$defs/ivec2",
           "title": "Resolution",
           "description": "Sets the size of the internal framebuffer that is used to render the contents of the window. In a lot of cases, this resolution is the same resolution as the size of the window, but it is a useful tool when creating images that are larger than a window would be support on an operating system. Some operating systems restrict windows to be no larger than what can fit on a specific monitor. This node must have x and y floating point attributes that determine that size of the window. By default the resolution of the framebuffer is equal to the size of the window"
+        },
+        "scalableMesh": {
+          "type": "string",
+          "title": "ScalableMesh path",
+          "description": "Specifies the path to a ScalableMesh configuration file. If this path is specified this window must not contain any specification about resolutions, sizes, viewports and many more settings as these will be overwritten by the configuration file."
         },
         "viewports": {
           "type": "array",
@@ -969,7 +998,7 @@
       "required": [ "address", "port" ],
       "description": "Defines a single computing node that is contained in the described cluster. In general this corresponds to a single computer, but it is also possible to create multiple nodes on a local machine by using the 127.0.0.x IP address with x from 0 to 255. It is not possible to create multiple nodes on the same remote computer, however"
     },
-    
+
     "user": {
       "type": "object",
       "properties": {
@@ -1000,23 +1029,20 @@
           "description": "Describes a fixed orientation for the viewing direction of this user. This can be provided either as Euler angles or as a quaternion"
         },
         "tracking": {
-          "type": "array",
-          "items": { 
-            "type": "object",
-            "properties": {
-              "tracker": {
-                "type": "string",
-                "title": "Tracker",
-                "description": "The name of the tracker group that this user should be linked with. This name must be a name of a Tracker that is specified in this configuration"
-              },
-              "device": {
-                "type": "string",
-                "title": "Device",
-                "description": "The name of the device in the tracker group that should be used to control the tracking for this user. The specified device has to be a Device that was specified in the tracker"
-              }
+          "type": "object",
+          "properties": {
+            "tracker": {
+              "type": "string",
+              "title": "Tracker",
+              "description": "The name of the tracker group that this user should be linked with. This name must be a name of a Tracker that is specified in this configuration"
             },
-            "required": [ "tracker", "device" ]
+            "device": {
+              "type": "string",
+              "title": "Device",
+              "description": "The name of the device in the tracker group that should be used to control the tracking for this user. The specified device has to be a Device that was specified in the tracker"
+            }
           },
+          "required": [ "tracker", "device" ],
           "title": "Tracking",
           "description": "Provides information about whether this user should be tracked using a VRPN-based tracker. This child node contains two attributes with information about the tracker that this user should be associated with"
         }

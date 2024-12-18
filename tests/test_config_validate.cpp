@@ -15,47 +15,109 @@
 #include <fstream>
 #include <sstream>
 
+using namespace sgct;
+
 namespace {
+    struct ParsingError : std::runtime_error {
+        explicit ParsingError(std::string msg) : std::runtime_error(std::move(msg)) {}
+    };
+
     void validate(std::string_view cfgString) {
         const std::string schema = std::string(BASE_PATH) + "/sgct.schema.json";
-        std::string err = sgct::validateConfigAgainstSchema(cfgString, schema);
+        std::string err = validateConfigAgainstSchema(cfgString, schema);
         if (!err.empty()) {
-            throw std::runtime_error(err);
+            throw ParsingError(err);
         }
     }
 } // namespace
 
-TEST_CASE("Parse Required Schema: Version", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: Cluster/Empty", "[validate]") {
+    constexpr std::string_view Config = R"(
 {}
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+    CHECK_THROWS_AS(readJsonConfig(Config), ParsingError);
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At  of {} - required property 'version' not found in object\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing 'version' information")
     );
 }
 
-TEST_CASE("Parse Required Schema: Cluster/Master Address", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: Cluster/Version/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "masteraddress": "localhost"
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing 'version' information")
+    );
+}
+
+TEST_CASE("Validate: Cluster/Version/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": "abc",
+  "masteraddress": "localhost"
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+    //CHECK_THROWS_MATCHES(
+    //    readJsonConfig(Config),
+    //    std::runtime_error,
+    //    Catch::Matchers::Message("")
+    //);
+}
+
+TEST_CASE("Validate: Cluster/Master Address/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At  of {\"version\":1} - required property 'masteraddress' not found in "
-            "object\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6084): Cannot find master address")
     );
 }
 
-TEST_CASE("Parse Required Schema: Node/Address", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: Cluster/Master Address/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": 1
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Node/Empty", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {}
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Node/Address", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -66,18 +128,18 @@ TEST_CASE("Parse Required Schema: Node/Address", "[parse schema]") {
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0 of {\"port\":1} - required property 'address' not found "
-            "in object\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6040): Missing field address in node")
     );
 }
 
-TEST_CASE("Parse Required Schema: Node/Port", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: Node/Port", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -88,18 +150,18 @@ TEST_CASE("Parse Required Schema: Node/Port", "[parse schema]") {
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0 of {\"address\":\"localhost\"} - required property 'port' "
-            "not found in object\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6041): Missing field port in node")
     );
 }
 
-TEST_CASE("Parse Required Schema: Window/Size", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: Window/Size", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -108,24 +170,24 @@ TEST_CASE("Parse Required Schema: Window/Size", "[parse schema]") {
       "address": "localhost",
       "port": 123,
       "windows": [
-        {
-        }
+        {}
       ]
     }
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-          "At /nodes/0/windows/0 of {} - required property 'size' not found in object\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Could not find required key 'size'")
     );
 }
 
-TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Left", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: FisheyeProjection/Crop/Left", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -135,7 +197,7 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Left", "[parse schema]"
       "port": 123,
       "windows": [
         {
-          "size": { "x": 1, "y": 2 },
+          "size": { "x": 1, "y": 1 },
           "viewports": [
             {
               "projection": {
@@ -154,19 +216,18 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Left", "[parse schema]"
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"bottom\":1.0,"
-            "\"right\":1.0,\"top\":1.0},\"type\":\"FisheyeProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'left' in FisheyeProjection/Crop")
     );
 }
 
-TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Right", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: FisheyeProjection/Crop/Right", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -195,19 +256,18 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Right", "[parse schema]
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"bottom\":1.0,"
-            "\"left\":1.0,\"top\":1.0},\"type\":\"FisheyeProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'right' in FisheyeProjection/Crop")
     );
 }
 
-TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Bottom", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: FisheyeProjection/Crop/Bottom", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -236,19 +296,18 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Bottom", "[parse schema
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"left\":1.0,"
-            "\"right\":1.0,\"top\":1.0},\"type\":\"FisheyeProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'bottom' in FisheyeProjection/Crop")
     );
 }
 
-TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Top", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: FisheyeProjection/Crop/Top", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -277,19 +336,53 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Top", "[parse schema]")
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"bottom\":1.0,"
-            "\"left\":1.0,\"right\":1.0},\"type\":\"FisheyeProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'top' in FisheyeProjection/Crop")
     );
 }
 
-TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Down", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: PlanarProjection/FOV", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 1, "y": 2 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "PlanarProjection"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6000): Missing specification of field-of-view values")
+    );
+}
+
+TEST_CASE("Validate: PlanarProjection/FOV/Down", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -318,19 +411,18 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Down", "[parse schema]") 
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of "
-            "{\"fov\":{\"left\":1.0,\"right\":1.0,\"up\":1.0},\"type\":\"PlanarProjection\"} "
-            "- no subschema has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6000): Missing specification of field-of-view values")
     );
 }
 
-TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Left", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: PlanarProjection/FOV/Left", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -359,20 +451,19 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Left", "[parse schema]") 
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"fov\":{\"down\":1.0,"
-            "\"right\":1.0,\"up\":1.0},\"type\":\"PlanarProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6000): Missing specification of field-of-view values")
     );
 }
 
 
-TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Right", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: PlanarProjection/FOV/Right", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -401,19 +492,18 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Right", "[parse schema]")
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"fov\":{\"down\":1.0,"
-            "\"left\":1.0,\"up\":1.0},\"type\":\"PlanarProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6000): Missing specification of field-of-view values")
     );
 }
 
-TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Up", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: PlanarProjection/FOV/Up", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -442,19 +532,20 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Up", "[parse schema]") {
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
+        readJsonConfig(Config),
+        std::runtime_error,
         Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"fov\":{\"down\":1.0,"
-            "\"left\":1.0,\"right\":1.0},\"type\":\"PlanarProjection\"} - no subschema "
-            "has succeeded, but one of them is required to validate\n"
+            "[ReadConfig] (6000): Missing specification of field-of-view values"
         )
     );
 }
 
-TEST_CASE("Parse Required Schema: ProjectionPlane/LowerLeft", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: ProjectionPlane/LowerLeft", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -480,20 +571,20 @@ TEST_CASE("Parse Required Schema: ProjectionPlane/LowerLeft", "[parse schema]") 
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
+        readJsonConfig(Config),
+        std::runtime_error,
         Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
-            "\"ProjectionPlane\",\"upperleft\":{\"x\":1.0,\"y\":1.0,\"z\":1.0},"
-            "\"upperright\":{\"x\":1.0,\"y\":1.0,\"z\":1.0}} "
-            "- no subschema has succeeded, but one of them is required to validate\n"
+            "[ReadConfig] (6010): Failed parsing coordinates. Missing elements"
         )
     );
 }
 
-TEST_CASE("Parse Required Schema: ProjectionPlane/UpperLeft", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: ProjectionPlane/UpperLeft", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -519,20 +610,20 @@ TEST_CASE("Parse Required Schema: ProjectionPlane/UpperLeft", "[parse schema]") 
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
+        readJsonConfig(Config),
+        std::runtime_error,
         Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"lowerleft\":"
-            "{\"x\":1.0,\"y\":1.0,\"z\":1.0},\"type\":\"ProjectionPlane\",\"upperright\":"
-            "{\"x\":1.0,\"y\":1.0,\"z\":1.0}} - no subschema has succeeded, "
-            "but one of them is required to validate\n"
+            "[ReadConfig] (6010): Failed parsing coordinates. Missing elements"
         )
     );
 }
 
-TEST_CASE("Parse Required Schema: ProjectionPlane/UpperRight", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: ProjectionPlane/UpperRight", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -558,20 +649,20 @@ TEST_CASE("Parse Required Schema: ProjectionPlane/UpperRight", "[parse schema]")
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
+        readJsonConfig(Config),
+        std::runtime_error,
         Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"lowerleft\":"
-            "{\"x\":1.0,\"y\":1.0,\"z\":1.0},\"type\":\"ProjectionPlane\",\"upperleft\":"
-            "{\"x\":1.0,\"y\":1.0,\"z\":1.0}} - no subschema has succeeded, "
-            "but one of them is required to validate\n"
+            "[ReadConfig] (6010): Failed parsing coordinates. Missing elements"
         )
     );
 }
 
-TEST_CASE("Parse Required Schema: SphericalMirror/Mesh", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: SphericalMirror/Mesh", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -595,19 +686,18 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh", "[parse schema]") {
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
-            "\"SphericalMirrorProjection\"} - no subschema has succeeded, but one of "
-            "them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
-TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Bottom", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: SphericalMirror/Mesh/Bottom", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -636,19 +726,18 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Bottom", "[parse schema]"
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"left\":\"abc\","
-            "\"right\":\"abc\",\"top\":\"abc\"},\"type\":\"SphericalMirrorProjection\"} "
-            "- no subschema has succeeded, but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
-TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Left", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: SphericalMirror/Mesh/Left", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -677,20 +766,18 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Left", "[parse schema]") 
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"bottom\":"
-            "\"abc\",\"right\":\"abc\",\"top\":\"abc\"},\"type\":"
-            "\"SphericalMirrorProjection\"} - no subschema has succeeded, but one of "
-            "them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
-TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Right", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: SphericalMirror/Mesh/Right", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -719,20 +806,18 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Right", "[parse schema]")
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"bottom\":"
-            "\"abc\",\"left\":\"abc\",\"top\":\"abc\"},\"type\":"
-            "\"SphericalMirrorProjection\"} - no subschema has succeeded, but one of "
-            "them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
-TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Top", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: SphericalMirror/Mesh/Top", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -761,20 +846,18 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Top", "[parse schema]") {
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"bottom\":"
-            "\"abc\",\"left\":\"abc\",\"right\":\"abc\"},\"type\":"
-            "\"SphericalMirrorProjection\"} - no subschema has succeeded, "
-            "but one of them is required to validate\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
-TEST_CASE("Parse Required Schema: SpoutOutputProjection/MappingSpoutName", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: TextureMappedProjection mesh", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -788,7 +871,13 @@ TEST_CASE("Parse Required Schema: SpoutOutputProjection/MappingSpoutName", "[par
           "viewports": [
             {
               "projection": {
-                "type": "SpoutOutputProjection"
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "up": 1.0,
+                  "down": 1.0,
+                  "left": 1.0,
+                  "right": 1.0
+                }
               }
             }
           ]
@@ -798,71 +887,21 @@ TEST_CASE("Parse Required Schema: SpoutOutputProjection/MappingSpoutName", "[par
   ]
 }
 )";
+
+    // There is no check for the schema since we can't express that the *viewport* needs
+    // a correction mesh iff the projection type is 'TextureMappedProjection'
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
+        readJsonConfig(Config),
+        std::runtime_error,
         Catch::Matchers::Message(
-            "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
-            "\"SpoutOutputProjection\"} - no subschema has succeeded, but one of them "
-            "is required to validate\n"
+            "[ReadConfig] (6110): Missing correction mesh for TextureMappedProjection"
         )
     );
 }
 
-TEST_CASE("Parse Required Schema: User/Tracking/Tracker", "[parse schema]") {
-    constexpr std::string_view Source = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "users": [
-    {
-      "tracking": [
-        {
-          "device": "abc"
-        }
-      ]
-    }
-  ]
-}
-)";
-    CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /users/0/tracking/0 of {\"device\":\"abc\"} - required property "
-            "'tracker' not found in object\n"
-        )
-    );
-}
-
-TEST_CASE("Parse Required Schema: User/Tracking/Device", "[parse schema]") {
-    constexpr std::string_view Source = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "users": [
-    {
-      "tracking": [
-        {
-          "tracker": "abc"
-        }
-      ]
-    }
-  ]
-}
-)";
-    CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /users/0/tracking/0 of {\"tracker\":\"abc\"} - required property "
-            "'device' not found in object\n"
-        )
-    );
-}
-
-TEST_CASE("Parse Required Schema: Tracker/Name", "[parse schema]") {
-    constexpr std::string_view Source = R"(
+TEST_CASE("Validate: Tracker/Name", "[validate]") {
+    constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -871,11 +910,60 @@ TEST_CASE("Parse Required Schema: Tracker/Name", "[parse schema]") {
   ]
 }
 )";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
     CHECK_THROWS_MATCHES(
-        validate(Source),
-        std::exception,
-        Catch::Matchers::Message(
-            "At /trackers/0 of {} - required property 'name' not found in object\n"
-        )
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6070): Tracker is missing 'name'")
+    );
+}
+
+TEST_CASE("Validate: User/Tracking/Tracker", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "users": [
+    {
+      "tracking": {
+        "device": "abc"
+      }
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'tracker' in User")
+    );
+}
+
+TEST_CASE("Validate: User/Tracking/Device", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "users": [
+    {
+      "tracking": {
+        "tracker": "abc"
+      }
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'device' in User")
     );
 }

@@ -66,7 +66,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
         return;
     }
 
-    const glm::mat4 parentTrans = glm::make_mat4(parent->transform().values);
+    const glm::mat4 parentTrans = glm::make_mat4(parent->transform().values.data());
 
     // create matrixes
     const glm::mat4 sensorTransMat = glm::translate(
@@ -87,7 +87,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
 
         _worldTransformPrevious = std::move(_worldTransform);
         const glm::mat4 m = parentTrans * sensorTransMat * sensorRotMat *
-                            glm::make_mat4(_deviceTransform.values);
+                            glm::make_mat4(_deviceTransform.values.data());
         std::memcpy(&_worldTransform, glm::value_ptr(m), 16 * sizeof(float));
     }
     setTrackerTimeStamp();
@@ -194,14 +194,14 @@ double TrackingDevice::analogPrevious(int index) const {
 
 vec3 TrackingDevice::position() const {
     const std::unique_lock lock(mutex::Tracking);
-    const glm::mat4 m = glm::make_mat4(_worldTransform.values);
+    const glm::mat4 m = glm::make_mat4(_worldTransform.values.data());
     const glm::vec3 p = glm::vec3(m[3]);
     return sgct::vec3(p.x, p.y, p.z);
 }
 
 vec3 TrackingDevice::previousPosition() const {
     const std::unique_lock lock(mutex::Tracking);
-    const glm::mat4 m = glm::make_mat4(_worldTransformPrevious.values);
+    const glm::mat4 m = glm::make_mat4(_worldTransformPrevious.values.data());
     const glm::vec3 p = glm::vec3(m[3]);
     return sgct::vec3(p.x, p.y, p.z);
 }
@@ -209,26 +209,29 @@ vec3 TrackingDevice::previousPosition() const {
 vec3 TrackingDevice::eulerAngles() const {
     const std::unique_lock lock(mutex::Tracking);
     const glm::vec3 v =
-        glm::eulerAngles(glm::quat_cast(glm::make_mat4(_worldTransform.values)));
+        glm::eulerAngles(glm::quat_cast(glm::make_mat4(_worldTransform.values.data())));
     return sgct::vec3(v.x, v.y, v.z);
 }
 
 vec3 TrackingDevice::eulerAnglesPrevious() const {
     const std::unique_lock lock(mutex::Tracking);
     const glm::vec3 v =
-        glm::eulerAngles(glm::quat_cast(glm::make_mat4(_worldTransformPrevious.values)));
+        glm::eulerAngles(
+            glm::quat_cast(glm::make_mat4(_worldTransformPrevious.values.data()))
+        );
     return sgct::vec3(v.x, v.y, v.z);
 }
 
 quat TrackingDevice::rotation() const {
     const std::unique_lock lock(mutex::Tracking);
-    const glm::quat q = glm::quat_cast(glm::make_mat4(_worldTransform.values));
+    const glm::quat q = glm::quat_cast(glm::make_mat4(_worldTransform.values.data()));
     return quat(q.x, q.y, q.z, q.w);
 }
 
 quat TrackingDevice::rotationPrevious() const {
     const std::unique_lock lock(mutex::Tracking);
-    const glm::quat q = glm::quat_cast(glm::make_mat4(_worldTransformPrevious.values));
+    const glm::quat q =
+        glm::quat_cast(glm::make_mat4(_worldTransformPrevious.values.data()));
     return quat(q.x, q.y, q.z, q.w);
 }
 

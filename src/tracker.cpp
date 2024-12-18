@@ -78,7 +78,7 @@ void Tracker::setOffset(vec3 offset) {
     _offset = std::move(offset);
     glm::mat4 trans =
         glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x)) *
-        glm::make_mat4(_orientation.values);
+        glm::make_mat4(_orientation.values.data());
     std::memcpy(&_transform, glm::value_ptr(trans), 16 * sizeof(float));
 }
 

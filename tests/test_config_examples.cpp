@@ -13,12 +13,14 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+using namespace sgct::config;
+
 namespace {
     sgct::quat fromEuler(float yaw, float pitch, float roll) {
         glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
         quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
         quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(roll), glm::vec3(0.0, 0.0, 1.0));
+        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
 
         sgct::quat res;
         std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
@@ -26,9 +28,7 @@ namespace {
     }
 } // namespace
 
-TEST_CASE("Load: 3DTV", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: 3DTV", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/3DTV.json");
 
     CHECK(res.masterAddress == "localhost");
@@ -78,9 +78,7 @@ TEST_CASE("Load: 3DTV", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: Kinect", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Kinect", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/Kinect.json");
 
     CHECK(res.masterAddress == "localhost");
@@ -329,9 +327,7 @@ TEST_CASE("Load: Kinect", "[parse]") {
     CHECK(u.position->z == 1.5f);
 }
 
-TEST_CASE("Load: Multi Window", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Multi Window", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/multi_window.json");
 
     CHECK(res.masterAddress == "localhost");
@@ -523,9 +519,7 @@ TEST_CASE("Load: Multi Window", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: Single Cylindrical", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single Cylindrical", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_cylindrical.json"
     );
@@ -568,9 +562,7 @@ TEST_CASE("Load: Single Cylindrical", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Single Equirectangular", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single Equirectangular", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_equirectangular.json"
     );
@@ -614,9 +606,7 @@ TEST_CASE("Load: Single Equirectangular", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Single Fisheye FXAA", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single Fisheye FXAA", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_fisheye_fxaa.json"
     );
@@ -670,9 +660,7 @@ TEST_CASE("Load: Single Fisheye FXAA", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Single Fisheye", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single Fisheye", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_fisheye.json"
     );
@@ -724,9 +712,7 @@ TEST_CASE("Load: Single Fisheye", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Single SBS Stereo", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single SBS Stereo", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_sbs_stereo.json"
     );
@@ -780,9 +766,71 @@ TEST_CASE("Load: Single SBS Stereo", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: Single Two Win 3D", "[parse]") {
-    using namespace sgct::config;
+TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
+    Cluster res = sgct::readConfig(
+        std::string(BASE_PATH) + "/config/single_texturemapped.json"
+    );
 
+    CHECK(res.masterAddress == "localhost");
+
+    REQUIRE(res.nodes.size() == 1);
+    const Node& n = res.nodes[0];
+    CHECK(n.address == "localhost");
+    CHECK(n.port == 20401);
+    REQUIRE(n.swapLock.has_value());
+    CHECK(*n.swapLock == false);
+
+    REQUIRE(n.windows.size() == 1);
+    const Window& w = n.windows[0];
+    REQUIRE(w.isFullScreen.has_value());
+    CHECK(*w.isFullScreen == false);
+    REQUIRE(w.isDecorated.has_value());
+    CHECK(*w.isDecorated == false);
+    REQUIRE(w.pos.has_value());
+    CHECK(w.pos->x == 0);
+    CHECK(w.pos->y == 0);
+    CHECK(w.size.x == 768);
+    CHECK(w.size.y == 810);
+
+    REQUIRE(w.viewports.size() == 1);
+    const Viewport& v = w.viewports[0];
+    REQUIRE(v.position.has_value());
+    CHECK(v.position->x == 0.f);
+    CHECK(v.position->y == 0.f);
+    REQUIRE(v.size.has_value());
+    CHECK(v.size->x == 1.f);
+    CHECK(v.size->y == 1.f);
+    REQUIRE(v.isTracked.has_value());
+    CHECK(*v.isTracked == true);
+    REQUIRE(v.correctionMeshTexture.has_value());
+    CHECK(
+        *v.correctionMeshTexture == std::string(BASE_PATH) + "/config/mesh/surface1.pfm"
+    );
+
+    REQUIRE(std::holds_alternative<TextureMappedProjection>(v.projection));
+    const PlanarProjection& p = std::get<TextureMappedProjection>(v.projection);
+    CHECK(p.fov.left == -77.82199f);
+    CHECK(p.fov.right == 77.82199f);
+    CHECK(p.fov.up == 78.43599f);
+    CHECK(p.fov.down == -78.43599f);
+    REQUIRE(p.orientation.has_value());
+    sgct::quat q = fromEuler(301.504967, 40.615664, -47.675061);
+    CHECK(p.orientation->w == q.w);
+    CHECK(p.orientation->x == q.x);
+    CHECK(p.orientation->y == q.y);
+    CHECK(p.orientation->z == q.z);
+
+    REQUIRE(res.users.size() == 1);
+    const User& u = res.users[0];
+    REQUIRE(u.eyeSeparation.has_value());
+    CHECK(*u.eyeSeparation == 0.06f);
+    REQUIRE(u.position.has_value());
+    CHECK(u.position->x == 0.f);
+    CHECK(u.position->y == 0.f);
+    CHECK(u.position->z == 0.f);
+}
+
+TEST_CASE("Load Example: Single Two Win 3D", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_two_win_3D.json"
     );
@@ -884,9 +932,7 @@ TEST_CASE("Load: Single Two Win 3D", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: Single Two Win", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single Two Win", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_two_win.json"
     );
@@ -984,9 +1030,7 @@ TEST_CASE("Load: Single Two Win", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: Single", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Single", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/single.json");
 
     CHECK(res.masterAddress == "localhost");
@@ -1036,9 +1080,7 @@ TEST_CASE("Load: Single", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: Spherical Mirror 4 Meshes", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/spherical_mirror_4meshes.json"
     );
@@ -1104,9 +1146,7 @@ TEST_CASE("Load: Spherical Mirror 4 Meshes", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Spherical Mirror", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Spherical Mirror", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/spherical_mirror.json"
     );
@@ -1179,9 +1219,7 @@ TEST_CASE("Load: Spherical Mirror", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Spout Output Cubemap", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Spout Output Cubemap", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/spout_output_cubemap.json"
     );
@@ -1256,9 +1294,7 @@ TEST_CASE("Load: Spout Output Cubemap", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Spout Output Equirectangular", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/spout_output_equirectangular.json"
     );
@@ -1305,9 +1341,7 @@ TEST_CASE("Load: Spout Output Equirectangular", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Spout Output Fisheye", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/spout_output_fisheye.json"
     );
@@ -1363,9 +1397,7 @@ TEST_CASE("Load: Spout Output Fisheye", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
-TEST_CASE("Load: Two Nodes", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: Two Nodes", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/two_nodes.json"
     );
@@ -1460,9 +1492,7 @@ TEST_CASE("Load: Two Nodes", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: TextureMappedProjection", "[parse]") {
-    using namespace sgct::config;
-
+TEST_CASE("Load Example: TextureMappedProjection", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) +
         "/config/single_texturemapped.json");
 

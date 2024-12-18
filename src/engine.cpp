@@ -299,9 +299,9 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         cluster.firmSync = config.firmSync;
     }
 
-    if (cluster.setThreadAffinity) {
+    if (cluster.threadAffinity) {
 #ifdef WIN32
-        SetThreadAffinityMask(GetCurrentThread(), *cluster.setThreadAffinity);
+        SetThreadAffinityMask(GetCurrentThread(), *cluster.threadAffinity);
 #else
         Log::Error("Using thread affinity on an operating system that is not supported");
 #endif // WIN32

@@ -423,11 +423,11 @@ SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
 
 
 struct SGCT_EXPORT Meta {
-    std::string author;
-    std::string description;
-    std::string license;
-    std::string name;
-    std::string version;
+    std::optional<std::string> author;
+    std::optional<std::string> description;
+    std::optional<std::string> license;
+    std::optional<std::string> name;
+    std::optional<std::string> version;
 
     auto operator<=>(const Meta&) const noexcept = default;
 };
@@ -439,7 +439,7 @@ struct SGCT_EXPORT Cluster {
 
     std::string masterAddress;
     std::optional<bool> debugLog;
-    std::optional<int> setThreadAffinity;
+    std::optional<int> threadAffinity;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;
     std::vector<Node> nodes;

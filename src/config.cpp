@@ -1583,8 +1583,8 @@ static void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "mirror", w.isMirrored);
     parseValue(j, "noerror", w.noError);
     parseValue(j, "blitwindowid", w.blitWindowId);
-    parseValue(j, "monitor", w.monitor);
     parseValue(j, "mirrorx", w.mirrorX);
+    parseValue(j, "monitor", w.monitor);
     parseValue(j, "mirrory", w.mirrorY);
 
     if (auto it = j.find("stereo");  it != j.end()) {
@@ -1865,8 +1865,8 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
         throw Err(6084, "Cannot find master address");
     }
 
-    parseValue(j, "threadaffinity", c.threadAffinity);
     parseValue(j, "debuglog", c.debugLog);
+    parseValue(j, "threadaffinity", c.threadAffinity);
     parseValue(j, "firmsync", c.firmSync);
 
     parseValue(j, "scene", c.scene);

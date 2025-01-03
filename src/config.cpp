@@ -71,29 +71,29 @@ void validateSettings(const Settings& s) {
     }
 }
 
-void validateDevice(const Device& d) {
-    auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty(); };
-
-    if (d.name.empty()) {
-        throw Error(1030, "Device name must not be empty");
-    }
-    if (!std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress)) {
-        throw Error(1031, "VRPN address for sensors must not be empty");
-
-    }
-    if (!std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress)) {
-        throw Error(1032, "VRPN address for buttons must not be empty");
-
-    }
-    if (!std::all_of(d.axes.begin(), d.axes.end(), validateAddress)) {
-        throw Error(1033, "VRPN address for axes must not be empty");
-    }
-}
-
 void validateTracker(const Tracker& t) {
     if (t.name.empty()) {
         throw Error(1040, "Tracker name must not be empty");
     }
+
+    auto validateDevice = [](const Tracker::Device& d) {
+        auto validateAddress = [](const auto& v) { return !v.vrpnAddress.empty(); };
+
+        if (d.name.empty()) {
+            throw Error(1030, "Device name must not be empty");
+        }
+        if (!std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress)) {
+            throw Error(1031, "VRPN address for sensors must not be empty");
+
+        }
+        if (!std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress)) {
+            throw Error(1032, "VRPN address for buttons must not be empty");
+
+        }
+        if (!std::all_of(d.axes.begin(), d.axes.end(), validateAddress)) {
+            throw Error(1033, "VRPN address for axes must not be empty");
+        }
+    };
     std::for_each(t.devices.begin(), t.devices.end(), validateDevice);
 }
 
@@ -366,7 +366,9 @@ void validateCluster(const Cluster& c) {
             return std::find_if(
                 tr.devices.cbegin(),
                 tr.devices.cend(),
-                [t = *user.tracking](const Device& dev) { return dev.name == t.device; }
+                [&user](const Tracker::Device& dev) {
+                    return dev.name == user.tracking->device;
+                }
             ) != tr.devices.cend();
         }
     );
@@ -838,6 +840,10 @@ static void from_json(const nlohmann::json& j, Capture& c) {
     if (rangeEnd) {
         c.range->last = *rangeEnd;
     }
+
+    if (rangeBeg && rangeEnd && *rangeBeg > *rangeEnd) {
+        throw Err(6051, "End of range must be greater than beginning of range");
+    }
 }
 
 static void to_json(nlohmann::json& j, const Capture& c) {
@@ -853,43 +859,43 @@ static void to_json(nlohmann::json& j, const Capture& c) {
     }
 }
 
-static void from_json(const nlohmann::json& j, Device::Sensor& s) {
+static void from_json(const nlohmann::json& j, Tracker::Device::Sensor& s) {
     j.at("vrpnaddress").get_to(s.vrpnAddress);
     j.at("id").get_to(s.identifier);
 }
 
-static void to_json(nlohmann::json& j, const Device::Sensor& s) {
+static void to_json(nlohmann::json& j, const Tracker::Device::Sensor& s) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = s.vrpnAddress;
     j["id"] = s.identifier;
 }
 
-static void from_json(const nlohmann::json& j, Device::Button& b) {
+static void from_json(const nlohmann::json& j, Tracker::Device::Button& b) {
     j.at("vrpnaddress").get_to(b.vrpnAddress);
     j.at("count").get_to(b.count);
 }
 
-static void to_json(nlohmann::json& j, const Device::Button& b) {
+static void to_json(nlohmann::json& j, const Tracker::Device::Button& b) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = b.vrpnAddress;
     j["count"] = b.count;
 }
 
-static void from_json(const nlohmann::json& j, Device::Axis& a) {
+static void from_json(const nlohmann::json& j, Tracker::Device::Axis& a) {
     j.at("vrpnaddress").get_to(a.vrpnAddress);
     j.at("count").get_to(a.count);
 }
 
-static void to_json(nlohmann::json& j, const Device::Axis& a) {
+static void to_json(nlohmann::json& j, const Tracker::Device::Axis& a) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = a.vrpnAddress;
     j["count"] = a.count;
 }
 
-static void from_json(const nlohmann::json& j, Device& d) {
+static void from_json(const nlohmann::json& j, Tracker::Device& d) {
     parseValue(j, "name", d.name);
     parseValue(j, "sensors", d.sensors);
     parseValue(j, "buttons", d.buttons);
@@ -898,7 +904,7 @@ static void from_json(const nlohmann::json& j, Device& d) {
     parseValue(j, "matrix", d.transformation);
 }
 
-static void to_json(nlohmann::json& j, const Device& d) {
+static void to_json(nlohmann::json& j, const Tracker::Device& d) {
     j = nlohmann::json::object();
 
     j["name"] = d.name;
@@ -1867,6 +1873,9 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
 
     parseValue(j, "debuglog", c.debugLog);
     parseValue(j, "threadaffinity", c.threadAffinity);
+    if (c.threadAffinity && *c.threadAffinity < 0) {
+        throw Err(6088, "Thread Affinity must be 0 or positive");
+    }
     parseValue(j, "firmsync", c.firmSync);
 
     parseValue(j, "scene", c.scene);

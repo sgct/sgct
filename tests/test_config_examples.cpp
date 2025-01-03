@@ -88,196 +88,196 @@ TEST_CASE("Load Example: Kinect", "[parse]") {
     CHECK(t.name == "Kinect0");
     REQUIRE(t.devices.size() == 24);
     {
-        const Device& d = t.devices[0];
+        const Tracker::Device& d = t.devices[0];
         CHECK(d.name == "Head");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 0);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
 
     {
-        const Device& d = t.devices[1];
+        const Tracker::Device& d = t.devices[1];
         CHECK(d.name == "Neck");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 1);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
 
     {
-        const Device& d = t.devices[2];
+        const Tracker::Device& d = t.devices[2];
         CHECK(d.name == "Torso");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 2);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[3];
+        const Tracker::Device& d = t.devices[3];
         CHECK(d.name == "Waist");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 3);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[4];
+        const Tracker::Device& d = t.devices[4];
         CHECK(d.name == "Left Collar");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 4);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[5];
+        const Tracker::Device& d = t.devices[5];
         CHECK(d.name == "Left Shoulder");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 5);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[6];
+        const Tracker::Device& d = t.devices[6];
         CHECK(d.name == "Left Elbow");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 6);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[7];
+        const Tracker::Device& d = t.devices[7];
         CHECK(d.name == "Left Wrist");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 7);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[8];
+        const Tracker::Device& d = t.devices[8];
         CHECK(d.name == "Left Hand");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 8);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[9];
+        const Tracker::Device& d = t.devices[9];
         CHECK(d.name == "Left Fingertip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 9);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[10];
+        const Tracker::Device& d = t.devices[10];
         CHECK(d.name == "Right Collar");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 10);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[11];
+        const Tracker::Device& d = t.devices[11];
         CHECK(d.name == "Right Shoulder");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 11);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[12];
+        const Tracker::Device& d = t.devices[12];
         CHECK(d.name == "Right Elbow");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 12);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[13];
+        const Tracker::Device& d = t.devices[13];
         CHECK(d.name == "Right Wrist");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 13);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[14];
+        const Tracker::Device& d = t.devices[14];
         CHECK(d.name == "Right Hand");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 14);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[15];
+        const Tracker::Device& d = t.devices[15];
         CHECK(d.name == "Right Fingertip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 15);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[16];
+        const Tracker::Device& d = t.devices[16];
         CHECK(d.name == "Left Hip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 16);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[17];
+        const Tracker::Device& d = t.devices[17];
         CHECK(d.name == "Left Knee");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 17);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[18];
+        const Tracker::Device& d = t.devices[18];
         CHECK(d.name == "Left Ankle");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 18);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[19];
+        const Tracker::Device& d = t.devices[19];
         CHECK(d.name == "Left Foot");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 19);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[20];
+        const Tracker::Device& d = t.devices[20];
         CHECK(d.name == "Right Hip");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 20);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[21];
+        const Tracker::Device& d = t.devices[21];
         CHECK(d.name == "Right Knee");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 21);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[22];
+        const Tracker::Device& d = t.devices[22];
         CHECK(d.name == "Right Ankle");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 22);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }
     {
-        const Device& d = t.devices[23];
+        const Tracker::Device& d = t.devices[23];
         CHECK(d.name == "Right Foot");
         REQUIRE(d.sensors.size() == 1);
-        const Device::Sensor& s = d.sensors[0];
+        const Tracker::Device::Sensor& s = d.sensors[0];
         CHECK(s.identifier == 23);
         CHECK(s.vrpnAddress == "Tracker0@localhost");
     }

@@ -378,10 +378,10 @@ void draw(const RenderData& data) {
 
     glDisable(GL_DEPTH_TEST);
 
-    drawXZGrid(glm::make_mat4(data.modelViewProjectionMatrix.values));
+    drawXZGrid(glm::make_mat4(data.modelViewProjectionMatrix.values.data()));
 
     for (int i = 0; i < NumberOfPyramids; i++) {
-        drawPyramid(glm::make_mat4(data.modelViewProjectionMatrix.values), i);
+        drawPyramid(glm::make_mat4(data.modelViewProjectionMatrix.values.data()), i);
     }
 
     glEnable(GL_DEPTH_TEST);

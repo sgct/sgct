@@ -86,7 +86,8 @@ void draw(const RenderData& data) {
         static_cast<float>(currentTime * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
-    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
+    const glm::mat4 mvp =
+        glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
 
     glActiveTexture(GL_TEXTURE0);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");

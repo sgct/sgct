@@ -89,40 +89,37 @@ SGCT_EXPORT void validateSettings(const Settings& settings);
 
 
 
-struct SGCT_EXPORT Device {
-    struct Sensor {
-        std::string vrpnAddress;
-        int identifier = -1;
-
-        auto operator<=>(const Sensor&) const noexcept = default;
-    };
-    struct Button {
-        std::string vrpnAddress;
-        int count = 0;
-
-        auto operator<=>(const Button&) const noexcept = default;
-    };
-    struct Axis {
-        std::string vrpnAddress;
-        int count = 0;
-
-        auto operator<=>(const Axis&) const noexcept = default;
-    };
-
-    std::string name;
-    std::vector<Sensor> sensors;
-    std::vector<Button> buttons;
-    std::vector<Axis> axes;
-    std::optional<vec3> offset;
-    std::optional<mat4> transformation;
-
-    auto operator<=>(const Device&) const noexcept = default;
-};
-SGCT_EXPORT void validateDevice(const Device& device);
-
-
-
 struct SGCT_EXPORT Tracker {
+    struct Device {
+        struct Sensor {
+            std::string vrpnAddress;
+            int identifier = -1;
+
+            auto operator<=>(const Sensor&) const noexcept = default;
+        };
+        struct Button {
+            std::string vrpnAddress;
+            int count = 0;
+
+            auto operator<=>(const Button&) const noexcept = default;
+        };
+        struct Axis {
+            std::string vrpnAddress;
+            int count = 0;
+
+            auto operator<=>(const Axis&) const noexcept = default;
+        };
+
+        std::string name;
+        std::vector<Sensor> sensors;
+        std::vector<Button> buttons;
+        std::vector<Axis> axes;
+        std::optional<vec3> offset;
+        std::optional<mat4> transformation;
+
+        auto operator<=>(const Device&) const noexcept = default;
+    };
+
     std::string name;
     std::vector<Device> devices;
     std::optional<vec3> offset;

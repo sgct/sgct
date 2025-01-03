@@ -138,7 +138,9 @@ TEST_CASE("Validate: Cluster/ThreadAffinity/Illegal Value", "[validate]") {
     CHECK_THROWS_MATCHES(
         readJsonConfig(Config),
         std::runtime_error,
-        Catch::Matchers::Message("Thread Affinity must be 0 or positive")
+        Catch::Matchers::Message(
+            "[ReadConfig] (6088): Thread Affinity must be 0 or positive"
+        )
     );
 }
 
@@ -264,6 +266,20 @@ TEST_CASE("Validate: Scene/Offset/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Scene/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {}
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Scene/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -369,6 +385,20 @@ TEST_CASE("Validate: Scene/Offset/Z/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Scene/Orientation/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {}
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Scene/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -406,7 +436,7 @@ TEST_CASE("Validate: Scene/Orientation/Pitch/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "pitch": "abc",
       "yaw": 2,
       "roll": 3
@@ -441,7 +471,7 @@ TEST_CASE("Validate: Scene/Orientation/Yaw/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "pitch": 1,
       "yaw": "abc",
       "roll": 3
@@ -476,7 +506,7 @@ TEST_CASE("Validate: Scene/Orientation/Roll/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "pitch": 1,
       "yaw": 2,
       "roll": "abc"
@@ -512,7 +542,7 @@ TEST_CASE("Validate: Scene/Orientation/X/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "x": "abc",
       "y": 2,
       "z": 3,
@@ -549,7 +579,7 @@ TEST_CASE("Validate: Scene/Orientation/Y/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "x": 1,
       "y": "abc",
       "z": 3,
@@ -586,7 +616,7 @@ TEST_CASE("Validate: Scene/Orientation/Z/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "x": 1,
       "y": 2,
       "z": "abc",
@@ -623,7 +653,7 @@ TEST_CASE("Validate: Scene/Orientation/W/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "offset": {
+    "orientation": {
       "x": 1,
       "y": 2,
       "z": 3,
@@ -642,7 +672,7 @@ TEST_CASE("Validate: Scene/Scale/Wrong Type", "[validate]") {
   "version": 1,
   "masteraddress": "localhost",
   "scene": {
-    "scale": 1
+    "scale": "abc"
   }
 }
 )";
@@ -704,7 +734,7 @@ TEST_CASE("Validate: Node/Port/Missing", "[validate]") {
   "masteraddress": "localhost",
   "nodes": [
     {
-      "address": "localhost",
+      "address": "localhost"
     }
   ]
 }
@@ -776,6 +806,26 @@ TEST_CASE("Validate: Node/Windows/Wrong Type", "[validate]") {
       "address": "localhost",
       "port": 123,
       "windows": "abc"
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Empty", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {}
+      ]
     }
   ]
 }
@@ -894,6 +944,28 @@ TEST_CASE("Validate: Window/Tags/Wrong Type", "[validate]") {
 
         CHECK_THROWS_AS(validate(Config), ParsingError);
     }
+}
+
+TEST_CASE("Validate: Window/Tags/Duplicate", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "tags": [ "abc", "def", "abc" ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
 TEST_CASE("Validate: Window/BufferBitDepth/Wrong Type", "[validate]") {
@@ -1780,6 +1852,28 @@ TEST_CASE("Validate: Window/Pos/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Scene/Pos/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": {}
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Scene/Pos/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -1900,6 +1994,28 @@ TEST_CASE("Validate: Window/Size/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Scene/Size/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": {}
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Scene/Size/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -2010,6 +2126,28 @@ TEST_CASE("Validate: Window/Resolution/Wrong Type", "[validate]") {
       "windows": [
         {
           "res": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Resolution/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": {}
         }
       ]
     }
@@ -2378,6 +2516,30 @@ TEST_CASE("Validate: Viewport/Position/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Viewport/Position/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "pos": {}
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Viewport/Position/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -2497,6 +2659,30 @@ TEST_CASE("Validate: Viewport/Size/Wrong Type", "[validate]") {
         {
           "viewport": {
             "size": 123
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Viewport/Size/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "size": {}
           }
         }
       ]
@@ -2983,7 +3169,7 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/NDI/Groups/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3001,6 +3187,33 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
                 "enabled": true,
                 "groups": ""
               }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: CubemapProjection/Channels/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CubemapProjection",
+              "channels": {}
             }
           }
         }
@@ -3442,7 +3655,34 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Scene/Orientation/X/Missing", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/Orientation/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CubemapProjection",
+              "orientation": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: CubemapProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3472,7 +3712,7 @@ TEST_CASE("Validate: Scene/Orientation/X/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Scene/Orientation/X/Wrong Type", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3503,7 +3743,7 @@ TEST_CASE("Validate: Scene/Orientation/X/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Scene/Orientation/Y/Missing", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3533,7 +3773,7 @@ TEST_CASE("Validate: Scene/Orientation/Y/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Scene/Orientation/Y/Wrong Type", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3564,7 +3804,7 @@ TEST_CASE("Validate: Scene/Orientation/Y/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Scene/Orientation/Z/Missing", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3594,7 +3834,7 @@ TEST_CASE("Validate: Scene/Orientation/Z/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Scene/Orientation/Z/Wrong Type", "[validate]") {
+TEST_CASE("Validate: CubemapProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -3735,7 +3975,7 @@ TEST_CASE("Validate: CylindricalProjection/Rotation/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: CylindricalProjection/HightOffset/Wrong Type", "[validate]") {
+TEST_CASE("Validate: CylindricalProjection/HeightOffset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -4117,6 +4357,33 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "FisheyeProjection",
+              "diameter": -50.0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: FisheyeProjection/Crop/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -4132,6 +4399,33 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Wrong Type", "[validate]") {
             "projection": {
               "type": "FisheyeProjection",
               "crop": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Crop/All/Missing Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "FisheyeProjection",
+              "crop": {}
             }
           }
         }
@@ -4450,6 +4744,33 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: FisheyeProjection/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "FisheyeProjection",
+              "offset": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: FisheyeProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -4621,6 +4942,60 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Z/Wrong Type", "[validate]") {
                 "y": 2,
                 "z": "abc"
               }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Background/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "FisheyeProjection",
+              "background": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Background/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "FisheyeProjection",
+              "background": {}
             }
           }
         }
@@ -5164,6 +5539,33 @@ TEST_CASE("Validate: PlanarProjection/FOV/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: PlanarProjection/FOV/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "PlanarProjection",
+              "fov": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: PlanarProjection/FOV/Down/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -5431,6 +5833,33 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Wrong Type", "[validate]") {
             "projection": {
               "type": "PlanarProjection",
               "orientation": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: PlanarProjection/Orientation/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "PlanarProjection",
+              "orientation": {}
             }
           }
         }
@@ -5878,6 +6307,33 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: PlanarProjection/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "PlanarProjection",
+              "offset": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -5892,7 +6348,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
           "viewport": {
             "projection": {
               "type": "PlanarProjection",
-              "orientation": {
+              "offset": {
                 "y": 2,
                 "z": 3
               }
@@ -5922,7 +6378,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Wrong Type", "[validate]") {
           "viewport": {
             "projection": {
               "type": "PlanarProjection",
-              "orientation": {
+              "offset": {
                 "x": "abc",
                 "y": 2,
                 "z": 3
@@ -5953,7 +6409,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Missing", "[validate]") {
           "viewport": {
             "projection": {
               "type": "PlanarProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "z": 3
               }
@@ -5983,7 +6439,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Wrong Type", "[validate]") {
           "viewport": {
             "projection": {
               "type": "PlanarProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "y": "abc",
                 "z": 3
@@ -6014,7 +6470,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Z/Missing", "[validate]") {
           "viewport": {
             "projection": {
               "type": "PlanarProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "y": 2
               }
@@ -6044,7 +6500,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Z/Wrong Type", "[validate]") {
           "viewport": {
             "projection": {
               "type": "PlanarProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "y": 2,
                 "z": "abc"
@@ -6076,6 +6532,35 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/Wrong Type", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": "abc",
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: PlanarProjection/LowerLeft/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {},
               "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": { "x": 1, "y": 2, "z": 3 }
             }
@@ -6314,6 +6799,35 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: PlanarProjection/UpperLeft/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {},
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: PlanarProjection/UpperLeft/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -6524,8 +7038,37 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/Wrong Type", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
-              "upperRight": "abc",
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: PlanarProjection/UpperRight/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {}
             }
           }
         }
@@ -6553,11 +7096,11 @@ TEST_CASE("Validate: PlanarProjection/UpperRight/X/Missing", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": {
                 "y": 2,
                 "z": 3
-              },
+              }
             }
           }
         }
@@ -6585,12 +7128,12 @@ TEST_CASE("Validate: PlanarProjection/UpperRight/X/Wrong Type", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": {
                 "x": "abc",
                 "y": 2,
                 "z": 3
-              },
+              }
             }
           }
         }
@@ -6618,11 +7161,11 @@ TEST_CASE("Validate: PlanarProjection/UpperRight/Y/Missing", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": {
                 "x": 1,
                 "z": 3
-              },
+              }
             }
           }
         }
@@ -6650,12 +7193,12 @@ TEST_CASE("Validate: PlanarProjection/UpperRight/Y/Wrong Type", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": {
                 "x": 1,
                 "y": "abc",
                 "z": 3
-              },
+              }
             }
           }
         }
@@ -6683,11 +7226,11 @@ TEST_CASE("Validate: PlanarProjection/UpperRight/Z/Missing", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": {
                 "x": 1,
                 "y": 2
-              },
+              }
             }
           }
         }
@@ -6715,12 +7258,12 @@ TEST_CASE("Validate: PlanarProjection/UpperRight/Z/Wrong Type", "[validate]") {
             "projection": {
               "type": "ProjectionPlane",
               "lowerleft": { "x": 1, "y": 2, "z": 3 },
-              "upperLeft": { "x": 1, "y": 2, "z": 3 }
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
               "upperRight": {
                 "x": 1,
                 "y": 2,
                 "z": "abc"
-              },
+              }
             }
           }
         }
@@ -6888,6 +7431,39 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/Wrong Type", "[validat
                 "top": "abc"
               },
               "background": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Background/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "SphericalMirrorProjection",
+              "mesh": {
+                "bottom": "abc",
+                "left": "abc",
+                "right": "abc",
+                "top": "abc"
+              },
+              "background": {}
             }
           }
         }
@@ -7527,6 +8103,33 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: SphericalMirrorProjection/Mesh/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "SphericalMirrorProjection",
+              "mesh": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -7934,6 +8537,33 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: TextureMappedProjection/FOV/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "TextureMappedProjection",
+              "fov": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -8213,6 +8843,33 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Wrong Type", "[validate
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: TextureMappedProjection/Orientation/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "TextureMappedProjection",
+              "orientation": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -8243,7 +8900,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[valid
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[validate]")
+{
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -8648,6 +9306,33 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Wrong Type", "[valida
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: TextureMappedProjection/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "TextureMappedProjection",
+              "offset": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -8662,7 +9347,7 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
           "viewport": {
             "projection": {
               "type": "TextureMappedProjection",
-              "orientation": {
+              "offset": {
                 "y": 2,
                 "z": 3
               }
@@ -8692,7 +9377,7 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/X/Wrong Type", "[validate]")
           "viewport": {
             "projection": {
               "type": "TextureMappedProjection",
-              "orientation": {
+              "offset": {
                 "x": "abc",
                 "y": 2,
                 "z": 3
@@ -8723,7 +9408,7 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Missing", "[validate]") {
           "viewport": {
             "projection": {
               "type": "TextureMappedProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "z": 3
               }
@@ -8753,7 +9438,7 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Wrong Type", "[validate]")
           "viewport": {
             "projection": {
               "type": "TextureMappedProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "y": "abc",
                 "z": 3
@@ -8784,7 +9469,7 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Missing", "[validate]") {
           "viewport": {
             "projection": {
               "type": "TextureMappedProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "y": 2
               }
@@ -8814,7 +9499,7 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Wrong Type", "[validate]")
           "viewport": {
             "projection": {
               "type": "TextureMappedProjection",
-              "orientation": {
+              "offset": {
                 "x": 1,
                 "y": 2,
                 "z": "abc"
@@ -8895,6 +9580,22 @@ TEST_CASE("Validate: User/Position/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: User/Position/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "users": [
+    {
+      "pos": {}
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: User/Position/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -8903,7 +9604,6 @@ TEST_CASE("Validate: User/Position/X/Missing", "[validate]") {
   "users": [
     {
       "pos": {
-        "x": 1,X
         "y": 2,
         "z": 3
       }
@@ -9053,7 +9753,7 @@ TEST_CASE("Validate: User/Transformation/Missing", "[validate]") {
   "masteraddress": "localhost",
   "users": [
     {
-      "matrix": [ 1.0, 2.0, 3.0, 4.0]
+      "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
     }
   ]
 }
@@ -9071,6 +9771,22 @@ TEST_CASE("Validate: User/Tracking/Wrong Type", "[validate]") {
   "users": [
     {
       "tracking": "abc"
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: User/Tracking/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "users": [
+    {
+      "tracking": {}
     }
   ]
 }
@@ -9116,7 +9832,7 @@ TEST_CASE("Validate: User/Tracking/Tracker/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: User/Tracking/Tracker/Missing", "[validate]") {
+TEST_CASE("Validate: User/Tracking/Device/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -9134,7 +9850,7 @@ TEST_CASE("Validate: User/Tracking/Tracker/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: User/Tracking/Tracker/Wrong Type", "[validate]") {
+TEST_CASE("Validate: User/Tracking/Device/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -9235,6 +9951,27 @@ TEST_CASE("Validate: Capture/Range-End/Illegal Value", "[validate]") {
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Range/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "rangebegin": 10,
+    "rangeend": 5
+  }
+}
+)";
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message(
+            "[ReadConfig] (6051): End of range must be greater than beginning of range"
+        )
+    );
 }
 
 TEST_CASE("Validate: Tracker/Name/Wrong Type", "[validate]") {
@@ -9477,6 +10214,27 @@ TEST_CASE("Validate: Tracker/Device/Buttons/Count/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Tracker/Device/Buttons/Count/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "buttons": {
+          "vrpnaddress": "abc",
+          "count": -1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Tracker/Device/Axes/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -9558,6 +10316,27 @@ TEST_CASE("Validate: Tracker/Device/Axes/Count/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
+TEST_CASE("Validate: Tracker/Device/Axes/Count/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "axes": {
+          "vrpnaddress": "abc",
+          "count": -1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
 TEST_CASE("Validate: Tracker/Device/Offset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -9567,6 +10346,24 @@ TEST_CASE("Validate: Tracker/Device/Offset/Wrong Type", "[validate]") {
     "devices": [
       {
         "offset": "abc"
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {}
       }
     ]
   }
@@ -9750,7 +10547,7 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]")
   "trackers": {
     "devices": [
       {
-        "matrix": [ 1.0, 2.0, 3.0, 4.0]
+        "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
       }
     ]
   }
@@ -9768,6 +10565,20 @@ TEST_CASE("Validate: Tracker/Offset/Wrong Type", "[validate]") {
   "masteraddress": "localhost",
   "trackers": {
     "offset": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {}
   }
 }
 )";

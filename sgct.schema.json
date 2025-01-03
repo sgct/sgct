@@ -107,6 +107,7 @@
         "swapinterval": {
           "type": "integer",
           "minimum": 0,
+          "maximum": 127,
           "title": "Swap Interval",
           "description": "Determines the swap interval for the application. This determines the amount of V-Sync that should occur for the application. The two most common values for this are 0 for disabling V-Sync and 1 for regular V-Sync. The number provided determines the number of screen updates to wait before swapping the backbuffers and returning. For example on a 60Hz monitor, swapinterval=\"1\" would lead to a maximum of 60Hz frame rate, swapinterval=\"2\" would lead to a maximum of 30Hz frame rate. Using the same values for a 144Hz monitor would be a refresh rate of 144 and 72 respectively. The default value is 0, meaning that V-Sync is disabled"
         },
@@ -1004,6 +1005,7 @@
       "properties": {
         "name": {
           "type": "string",
+          "minLength": 1,
           "title": "Name",
           "description": "Specifies the name of this user. Each user needs to have a unique name, but there also has to be exactly one user present that has an empty name (or without a name attribute) which is used as the default user"
         },
@@ -1108,6 +1110,7 @@
       "properties": {
         "path": {
           "type": "string",
+          "minLength": 1,
           "title": "Path",
           "description": "Sets the path used when creating screenshots. The default value is to use the current working directory"
         },
@@ -1117,13 +1120,15 @@
           "title": "Format",
           "description": "Sets the screenshot format that should be used for the screenshots taken of the application. The default value is PNG"
         },
-        "range-begin": {
+        "rangebegin": {
           "type": "integer",
+          "minimum": 0,
           "title": "Range (begin)",
           "description": "The index of the first screenshot that will actually be rendered. If this value is set, all previous screenshots will be ignored, but the counter will be increased either way. If this value is set, the range-end value also needs to be set. A value of -1 will mean the same thing as 0, saying the everything from the first frame will be captured, which is also the default"
         },
-        "range-end": {
+        "rangeend": {
           "type": "integer",
+          "minimum": 0,
           "title": "Range (end)",
           "description": "The index of the last screenshot that will not be rendered anymore. If this value is set, all screenshots starting with this index will be ignored. If this value is set, the range-begin value also needs to be set. A value of -1 will mean that all remaining screenshots will be captured, which is the default"
         }
@@ -1281,6 +1286,28 @@
       },
       "required": ["description", "name"],
       "description": "Information and description of configuration file"
+    },
+
+    "generator": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A human-friendly name for the generator that created this configuration file"
+        },
+        "major": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The major version of the generator that created this configuration file"
+        },
+        "minor": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The minor version of the generator that created this configuration file"
+        }
+      },
+      "required": [ "name", "major", "minor" ]
     }
   },
 
@@ -1343,6 +1370,9 @@
     },
     "meta": {
       "$ref": "#/$defs/meta"
+    },
+    "generator": {
+      "$ref": "#/$defs/generator"
     }
   },
   "required": [

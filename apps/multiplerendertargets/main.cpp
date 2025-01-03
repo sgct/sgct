@@ -94,9 +94,10 @@ void draw(const RenderData& data) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
-    const glm::mat4 mv = glm::make_mat4(data.viewMatrix.values) *
-        glm::make_mat4(data.modelMatrix.values) * scene;
+    const glm::mat4 mvp =
+        glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
+    const glm::mat4 mv = glm::make_mat4(data.viewMatrix.values.data()) *
+        glm::make_mat4(data.modelMatrix.values.data()) * scene;
     const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(mv));
 
     glActiveTexture(GL_TEXTURE0);

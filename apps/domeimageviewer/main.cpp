@@ -242,7 +242,7 @@ void draw(const RenderData& data) {
     }
 
     ShaderManager::instance().shaderProgram("xform").bind();
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, mvp.values);
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, mvp.values.data());
     dome->draw();
     ShaderManager::instance().shaderProgram("xform").unbind();
 

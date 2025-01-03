@@ -160,7 +160,7 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "abc"
                         }
                     }
@@ -201,7 +201,7 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def"
                         }
                     }
@@ -248,13 +248,13 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "abc"
                         },
-                        Device {
+                        Tracker::Device {
                             .name = "def"
                         },
-                        Device {
+                        Tracker::Device {
                             .name = "ghi"
                         }
                     }
@@ -298,7 +298,7 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .sensors = {}
                         }
@@ -346,10 +346,10 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .sensors = {
-                                Device::Sensor {
+                                Tracker::Device::Sensor {
                                     .vrpnAddress = "abc",
                                     .identifier = 1
                                 }
@@ -399,10 +399,10 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .sensors = {
-                                Device::Sensor {
+                                Tracker::Device::Sensor {
                                     .vrpnAddress = "def",
                                     .identifier = 2
                                 }
@@ -449,7 +449,7 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .buttons = {}
                         }
@@ -497,10 +497,10 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .buttons = {
-                                Device::Button {
+                                Tracker::Device::Button {
                                     .vrpnAddress = "abc",
                                     .count = 1
                                 }
@@ -550,10 +550,10 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .buttons = {
-                                Device::Button {
+                                Tracker::Device::Button {
                                     .vrpnAddress = "def",
                                     .count = 2
                                 }
@@ -600,7 +600,7 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .axes = {}
                         }
@@ -648,10 +648,10 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .axes = {
-                                Device::Axis {
+                                Tracker::Device::Axis {
                                     .vrpnAddress = "abc",
                                     .count = 1
                                 }
@@ -701,10 +701,10 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .axes = {
-                                Device::Axis {
+                                Tracker::Device::Axis {
                                     .vrpnAddress = "def",
                                     .count = 2
                                 }
@@ -751,7 +751,7 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .offset = vec3 { 1.f, 2.f, 3.f }
                         }
@@ -794,7 +794,7 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .offset = vec3 { 4.f, 5.f, 6.f }
                         }
@@ -859,7 +859,7 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .transformation = m
                         }
@@ -922,7 +922,7 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
                 Tracker {
                     .name = "abc",
                     .devices = {
-                        Device {
+                        Tracker::Device {
                             .name = "def",
                             .transformation = m
                         }
@@ -1272,22 +1272,22 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
             Tracker {
                 .name = "abc",
                 .devices = {
-                    Device {
+                    Tracker::Device {
                         .name = "def",
                         .sensors = {
-                            Device::Sensor {
+                            Tracker::Device::Sensor {
                                 .vrpnAddress = "ghi",
                                 .identifier = 2
                             }
                         },
                         .buttons = {
-                            Device::Button {
+                            Tracker::Device::Button {
                                 .vrpnAddress = "jkl",
                                 .count = 3
                             }
                         },
                         .axes = {
-                            Device::Axis {
+                            Tracker::Device::Axis {
                                 .vrpnAddress = "mno",
                                 .count = 4
                             }
@@ -1311,4 +1311,4 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
     const std::string str = serializeConfig(Object);
     const config::Cluster output = readJsonConfig(str);
     CHECK(output == Object);
-    }
+}

@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -138,4 +140,767 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
     }
+}
+
+
+
+
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": "abc",
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {},
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {
+                "y": 2,
+                "z": 3
+              },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {
+                "x": "abc",
+                "y": 2,
+                "z": 3
+              },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {
+                "x": 1,
+                "z": 3
+              },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {
+                "x": 1,
+                "y": "abc",
+                "z": 3
+              },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {
+                "x": 1,
+                "y": 2
+              },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/LowerLeft/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": {
+                "x": 1,
+                "y": 2,
+                "z": "abc"
+              },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": "abc",
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {},
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {
+                "y": 2,
+                "z": 3
+              },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {
+                "x": "abc",
+                "y": 2,
+                "z": 3
+              },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {
+                "x": 1,
+                "z": 3
+              },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {
+                "x": 1,
+                "y": "abc",
+                "z": 3
+              },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {
+                "x": 1,
+                "y": 2
+              },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperLeft/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": {
+                "x": 1,
+                "y": 2,
+                "z": "abc"
+              },
+              "upperRight": { "x": 1, "y": 2, "z": 3 }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {
+                "y": 2,
+                "z": 3
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {
+                "x": "abc",
+                "y": 2,
+                "z": 3
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {
+                "x": 1,
+                "z": 3
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {
+                "x": 1,
+                "y": "abc",
+                "z": 3
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {
+                "x": 1,
+                "y": 2
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: ProjectionPlane/UpperRight/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "ProjectionPlane",
+              "lowerleft": { "x": 1, "y": 2, "z": 3 },
+              "upperLeft": { "x": 1, "y": 2, "z": 3 },
+              "upperRight": {
+                "x": 1,
+                "y": 2,
+                "z": "abc"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }

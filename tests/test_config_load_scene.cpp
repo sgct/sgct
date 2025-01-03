@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -234,4 +236,436 @@ TEST_CASE("Load: Scene/Full", "[parse]") {
     const std::string str = serializeConfig(Object);
     const config::Cluster output = readJsonConfig(str);
     CHECK(output == Object);
+}
+
+
+
+
+
+TEST_CASE("Validate: Scene/Offset/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": 1
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {}
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {
+      "y": 2,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {
+      "x": "abc",
+      "y": 2,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {
+      "x": 1,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {
+      "x": 1,
+      "y": "abc",
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {
+      "x": 1,
+      "y": 2
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Offset/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": {
+      "x": 1,
+      "y": 2,
+      "z": "abc"
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {}
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": 1
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Pitch/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "yaw": 2,
+      "roll": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Pitch/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "pitch": "abc",
+      "yaw": 2,
+      "roll": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Yaw/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "pitch": 1,
+      "roll": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Yaw/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "pitch": 1,
+      "yaw": "abc",
+      "roll": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Roll/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "pitch": 1,
+      "yaw": 2
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Roll/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "pitch": 1,
+      "yaw": 2,
+      "roll": "abc"
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "y": 2,
+      "z": 3,
+      "w": 4
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": "abc",
+      "y": 2,
+      "z": 3,
+      "w": 4
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": 1,
+      "z": 3,
+      "w": 4
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": 1,
+      "y": "abc",
+      "z": 3,
+      "w": 4
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": 1,
+      "y": 2,
+      "w": 4
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": 1,
+      "y": 2,
+      "z": "abc",
+      "w": 4
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/W/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": 1,
+      "y": 2,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Orientation/W/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "orientation": {
+      "x": 1,
+      "y": 2,
+      "z": 3,
+      "w": "abc"
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Scene/Scale/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "scale": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }

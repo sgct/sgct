@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -1286,5 +1288,92 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+    }
+}
+
+
+
+
+
+TEST_CASE("Validate: EquirectangularProjection/Quality/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "EquirectangularProjection",
+              "quality": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: EquirectangularProjection/Quality/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "EquirectangularProjection",
+              "quality": -1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "EquirectangularProjection",
+              "quality": 1111
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
     }
 }

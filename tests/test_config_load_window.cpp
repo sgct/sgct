@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -4280,4 +4282,1494 @@ TEST_CASE("Load: Window/Full", "[parse]") {
     const std::string str = serializeConfig(Object);
     const config::Cluster output = readJsonConfig(str);
     CHECK(output == Object);
+}
+
+
+
+
+
+TEST_CASE("Validate: Window/Empty", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {}
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ID/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "id": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Name/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "name": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Tags/Wrong Type", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "tags": [ 123 ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "tags": [ 123, "abc" ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "tags": [ "abc", 123 ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Window/Tags/Duplicate", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "tags": [ "abc", "def", "abc" ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/BufferBitDepth/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "bufferbitdepth": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/BufferBitDepth/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "bufferbitdepth": "1"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/IsFullScreen/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "fullscreen": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ShouldAutoIconify/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "autoiconify": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/HideMouseCursor/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "hidemousecursor": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/IsFloating/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "floating": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/AlwaysRender/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "alwaysrender": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/IsHidden/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "hidden": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/TakeScreenshot/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "takescreenshot": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/MSAA/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "msaa": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/MSAA/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "msaa": -10
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/UseFxaa/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "fxaa": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/IsDecorated/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "border": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/IsResizable/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "resizable": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Draw2D/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "draw2d": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Draw3D/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "draw3d": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/IsMirrored/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "mirror": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NoError/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "noerror": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/BlitWindowId/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "blitwindowid": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/BlitWindowId/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "blitwindowid": -5000
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "blitwindowid": 5000
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Window/MirrorX/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "mirrorx": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/MirrorY/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "mirrory": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Monitor/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "monitor": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Monitor/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "monitor": -1
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "monitor": 500
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Window/Stereo/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "stereo": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Stereo/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "stereo": "does-not-exist"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Spout/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "spout": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Spout/Enabled/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "spout": {
+            "enabled": 123
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Spout/Name/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "spout": {
+            "enabled": true,
+            "name": 123
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Spout/Name/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "spout": {
+            "enabled": true,
+            "name": ""
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NDI/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "ndi": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NDI/Enabled/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "ndi": {
+            "enabled": 123
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NDI/Name/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "ndi": {
+            "enabled": true,
+            "name": 123
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NDI/Name/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "ndi": {
+            "enabled": true,
+            "name": ""
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NDI/Groups/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "ndi": {
+            "enabled": true,
+            "groups": 123
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/NDI/Groups/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "ndi": {
+            "enabled": true,
+            "groups": ""
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Pos/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Pos/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": {}
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Pos/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": {
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Pos/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": {
+            "x": "abc",
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Pos/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": {
+            "x": 1
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Pos/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "pos": {
+            "x": 1,
+            "y": "abc"
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Size/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Size/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": {}
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Size/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": {
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Size/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": {
+            "x": "abc",
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Size/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": {
+            "x": 1
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Size/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": {
+            "x": 1,
+            "y": "abc"
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Resolution/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Resolution/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": {}
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Resolution/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": {
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Resolution/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": {
+            "x": "abc",
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Resolution/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": {
+            "x": 1
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Resolution/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "res": {
+            "x": 1,
+            "y": "abc"
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ScalableMesh/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "scalableMesh": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Viewports/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewports": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }

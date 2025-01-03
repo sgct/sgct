@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -155,4 +157,113 @@ TEST_CASE("Load: Capture/ScreenShotRange", "[parse]") {
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
     }
+}
+
+
+
+
+
+TEST_CASE("Validate: Capture/Path/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "path": 123
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Path/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "path": ""
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Range-Begin/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "rangebegin": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Range-Begin/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "rangebegin": -1000
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Range-End/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "rangeend": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Range-End/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "rangeend": -1000
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/Range/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "rangebegin": 10,
+    "rangeend": 5
+  }
+}
+)";
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message(
+            "[ReadConfig] (6051): End of range must be greater than beginning of range"
+        )
+    );
 }

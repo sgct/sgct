@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -1705,4 +1707,172 @@ TEST_CASE("Load: CylindricalProjection/Full", "[parse]") {
     const std::string str = serializeConfig(Object);
     const config::Cluster output = readJsonConfig(str);
     CHECK(output == Object);
+}
+
+
+
+
+
+TEST_CASE("Validate: CylindricalProjection/Quality/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CylindricalProjection",
+              "quality": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: CylindricalProjection/Quality/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CylindricalProjection",
+              "quality": -1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CylindricalProjection",
+              "quality": 1111
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: CylindricalProjection/Rotation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CylindricalProjection",
+              "rotation": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: CylindricalProjection/HeightOffset/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CylindricalProjection",
+              "heightoffset": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: CylindricalProjection/Radius/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "projection": {
+              "type": "CylindricalProjection",
+              "radius": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }

@@ -16,7 +16,7 @@
 using namespace sgct;
 using namespace sgct::config;
 
-TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
+TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
   "version": 1,
@@ -30,8 +30,9 @@ TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 1.0,
                   "left": 2.0,
@@ -48,6 +49,16 @@ TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
 }
 )";
 
+    // Can't use initializer list for this since TextureMappedProjection is actually a
+    // PlanarProjection
+    TextureMappedProjection proj;
+    proj.fov = TextureMappedProjection::FOV {
+        .down = -1.f,
+        .left = -2.f,
+        .right = 3.f,
+        .up = 4.f
+    };
+
     const Cluster Object = {
         .success = true,
         .masterAddress = "localhost",
@@ -60,14 +71,8 @@ TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
                         .size = ivec2{ 640, 480 },
                         .viewports = {
                             Viewport {
-                                .projection = PlanarProjection {
-                                    .fov = PlanarProjection::FOV {
-                                        .down = -1.f,
-                                        .left = -2.f,
-                                        .right = 3.f,
-                                        .up = 4.f
-                                    }
-                                }
+                                .correctionMeshTexture = std::filesystem::absolute("abc"),
+                                .projection = proj
                             }
                         }
                     }
@@ -84,7 +89,7 @@ TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
     CHECK(output == Object);
 }
 
-TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
+TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
@@ -99,8 +104,9 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 1.0,
                   "left": 2.0,
@@ -117,6 +123,16 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
   ]
 }
 )";
+        // Can't use initializer list for this since TextureMappedProjection is actually a
+        // PlanarProjection
+        TextureMappedProjection proj;
+        proj.fov = TextureMappedProjection::FOV {
+            .down = -1.f,
+            .left = -2.f,
+            .right = 3.f,
+            .up = 4.f,
+            .distance = 5.f
+        };
 
         const Cluster Object = {
             .success = true,
@@ -130,15 +146,9 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
-                                    .projection = PlanarProjection {
-                                        .fov = PlanarProjection::FOV {
-                                            .down = -1.f,
-                                            .left = -2.f,
-                                            .right = 3.f,
-                                            .up = 4.f,
-                                            .distance = 5.f
-                                        }
-                                    }
+                                    .correctionMeshTexture =
+                                        std::filesystem::absolute("abc"),
+                                    .projection = proj
                                 }
                             }
                         }
@@ -169,8 +179,9 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 6.0,
                   "left": 7.0,
@@ -188,6 +199,17 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
 }
 )";
 
+        // Can't use initializer list for this since TextureMappedProjection is actually a
+        // PlanarProjection
+        TextureMappedProjection proj;
+        proj.fov = TextureMappedProjection::FOV {
+            .down = -6.f,
+            .left = -7.f,
+            .right = 8.f,
+            .up = 9.f,
+            .distance = 10.f
+        };
+
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -200,15 +222,9 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
-                                    .projection = PlanarProjection {
-                                        .fov = PlanarProjection::FOV {
-                                            .down = -6.f,
-                                            .left = -7.f,
-                                            .right = 8.f,
-                                            .up = 9.f,
-                                            .distance = 10.f
-                                        }
-                                    }
+                                    .correctionMeshTexture =
+                                        std::filesystem::absolute("abc"),
+                                    .projection = proj
                                 }
                             }
                         }
@@ -226,7 +242,7 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
     }
 }
 
-TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
+TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
@@ -241,8 +257,9 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 1.0,
                   "left": 2.0,
@@ -260,6 +277,17 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
 }
 )";
 
+        // Can't use initializer list for this since TextureMappedProjection is actually a
+        // PlanarProjection
+        TextureMappedProjection proj;
+        proj.fov = TextureMappedProjection::FOV {
+            .down = -1.f,
+            .left = -2.f,
+            .right = 3.f,
+            .up = 4.f
+        };
+        proj.orientation = quat { 1.f, 2.f, 3.f, 4.f };
+
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -272,15 +300,9 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
-                                    .projection = PlanarProjection {
-                                        .fov = PlanarProjection::FOV {
-                                            .down = -1.f,
-                                            .left = -2.f,
-                                            .right = 3.f,
-                                            .up = 4.f
-                                        },
-                                        .orientation = quat{ 1.f, 2.f, 3.f, 4.f }
-                                    }
+                                    .correctionMeshTexture =
+                                        std::filesystem::absolute("abc"),
+                                    .projection = proj
                                 }
                             }
                         }
@@ -311,8 +333,9 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 6.0,
                   "left": 7.0,
@@ -330,6 +353,17 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
 }
 )";
 
+        // Can't use initializer list for this since TextureMappedProjection is actually a
+        // PlanarProjection
+        TextureMappedProjection proj;
+        proj.fov = TextureMappedProjection::FOV {
+            .down = -6.f,
+            .left = -7.f,
+            .right = 8.f,
+            .up = 9.f
+        };
+        proj.orientation = quat { 5.f, 6.f, 7.f, 8.f };
+
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -342,15 +376,9 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
-                                    .projection = PlanarProjection {
-                                        .fov = PlanarProjection::FOV {
-                                            .down = -6.f,
-                                            .left = -7.f,
-                                            .right = 8.f,
-                                            .up = 9.f
-                                        },
-                                        .orientation = quat{5.f, 6.f, 7.f, 8.f }
-                                    }
+                                    .correctionMeshTexture =
+                                        std::filesystem::absolute("abc"),
+                                    .projection = proj
                                 }
                             }
                         }
@@ -368,7 +396,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
     }
 }
 
-TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
+TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
@@ -383,8 +411,9 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 1.0,
                   "left": 2.0,
@@ -402,6 +431,17 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
 }
 )";
 
+        // Can't use initializer list for this since TextureMappedProjection is actually a
+        // PlanarProjection
+        TextureMappedProjection proj;
+        proj.fov = TextureMappedProjection::FOV {
+            .down = -1.f,
+            .left = -2.f,
+            .right = 3.f,
+            .up = 4.f
+        };
+        proj.offset = vec3 { 1.f, 2.f, 3.f };
+
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -414,15 +454,9 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
-                                    .projection = PlanarProjection {
-                                        .fov = PlanarProjection::FOV {
-                                            .down = -1.f,
-                                            .left = -2.f,
-                                            .right = 3.f,
-                                            .up = 4.f
-                                        },
-                                        .offset = vec3{ 1.f, 2.f, 3.f }
-                                    }
+                                    .correctionMeshTexture =
+                                        std::filesystem::absolute("abc"),
+                                    .projection = proj
                                 }
                             }
                         }
@@ -453,8 +487,9 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 6.0,
                   "left": 7.0,
@@ -472,6 +507,17 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
 }
 )";
 
+        // Can't use initializer list for this since TextureMappedProjection is actually a
+        // PlanarProjection
+        TextureMappedProjection proj;
+        proj.fov = TextureMappedProjection::FOV {
+            .down = -6.f,
+            .left = -7.f,
+            .right = 8.f,
+            .up = 9.f
+        };
+        proj.offset = vec3 { 5.f, 6.f, 7.f };
+
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -484,15 +530,9 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
-                                    .projection = PlanarProjection {
-                                        .fov = PlanarProjection::FOV {
-                                            .down = -6.f,
-                                            .left = -7.f,
-                                            .right = 8.f,
-                                            .up = 9.f
-                                        },
-                                        .offset = vec3{5.f, 6.f, 7.f }
-                                    }
+                                    .correctionMeshTexture =
+                                        std::filesystem::absolute("abc"),
+                                    .projection = proj
                                 }
                             }
                         }
@@ -510,7 +550,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
     }
 }
 
-TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
+TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
   "version": 1,
@@ -524,8 +564,9 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
+              "mesh": "abc",
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 1.0,
                   "left": 2.0,
@@ -545,6 +586,19 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
 }
 )";
 
+    // Can't use initializer list for this since TextureMappedProjection is actually a
+    // PlanarProjection
+    TextureMappedProjection proj;
+    proj.fov = TextureMappedProjection::FOV {
+        .down = -1.f,
+        .left = -2.f,
+        .right = 3.f,
+        .up = 4.f,
+        .distance = 5.f
+    };
+    proj.orientation = quat { 7.f, 8.f, 9.f, 6.f };
+    proj.offset = vec3 { 10.f, 11.f, 12.f };
+
     const Cluster Object = {
         .success = true,
         .masterAddress = "localhost",
@@ -557,17 +611,8 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
                         .size = ivec2{ 640, 480 },
                         .viewports = {
                             Viewport {
-                                .projection = PlanarProjection {
-                                    .fov = PlanarProjection::FOV {
-                                        .down = -1.f,
-                                        .left = -2.f,
-                                        .right = 3.f,
-                                        .up = 4.f,
-                                        .distance = 5.f
-                                    },
-                                    .orientation = quat{ 7.f, 8.f, 9.f, 6.f },
-                                    .offset = vec3{ 10.f, 11.f, 12.f }
-                                }
+                                .correctionMeshTexture = std::filesystem::absolute("abc"),
+                                .projection = proj
                             }
                         }
                     }
@@ -588,7 +633,7 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
 
 
 
-TEST_CASE("Validate: PlanarProjection/FOV/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Mesh/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -601,7 +646,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Wrong Type", "[validate]") {
         {
           "viewport": {
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": "abc"
             }
           }
@@ -615,7 +660,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/All/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -627,8 +672,37 @@ TEST_CASE("Validate: PlanarProjection/FOV/All/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
+              "fov": "abc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: TextureMappedProjection/FOV/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "viewport": {
+            "mesh": "abc",
+            "projection": {
+              "type": "TextureMappedProjection",
               "fov": {}
             }
           }
@@ -642,7 +716,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/All/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Down/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -654,8 +728,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Down/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "left": 2,
                 "right": 3,
@@ -673,7 +748,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Down/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Down/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -685,8 +760,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Down/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": "abc",
                 "left": 2,
@@ -705,7 +781,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Down/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Left/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -717,8 +793,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Left/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": 1,
                 "right": 3,
@@ -736,7 +813,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Left/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Left/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -748,8 +825,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Left/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": 1,
                 "left": "abc",
@@ -768,7 +846,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Left/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Right/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -780,8 +858,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Right/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": 1,
                 "left": 2,
@@ -799,7 +878,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Right/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Right/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -811,8 +890,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Right/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": 1,
                 "left": 2,
@@ -831,7 +911,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Right/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Up/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -843,8 +923,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Up/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": 1,
                 "left": 2,
@@ -862,7 +943,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Up/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/FOV/Up/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -874,8 +955,9 @@ TEST_CASE("Validate: PlanarProjection/FOV/Up/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "fov": {
                 "down": 1,
                 "left": 2,
@@ -894,7 +976,7 @@ TEST_CASE("Validate: PlanarProjection/FOV/Up/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -906,8 +988,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": "abc"
             }
           }
@@ -921,7 +1004,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/All/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -933,8 +1016,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/All/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {}
             }
           }
@@ -948,7 +1032,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/All/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -960,8 +1044,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Missing", "[validate]") 
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "yaw": 2,
                 "roll": 3
@@ -978,7 +1063,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Missing", "[validate]") 
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -990,8 +1075,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Wrong Type", "[validate]
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "pitch": "abc",
                 "yaw": 2,
@@ -1009,7 +1095,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Wrong Type", "[validate]
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1021,8 +1107,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "pitch": 1,
                 "roll": 3
@@ -1039,7 +1126,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1051,8 +1138,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Wrong Type", "[validate]")
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "pitch": 1,
                 "yaw": "abc",
@@ -1070,7 +1158,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Wrong Type", "[validate]")
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1082,8 +1170,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "pitch": 1,
                 "yaw": 2
@@ -1100,7 +1189,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1112,8 +1201,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Wrong Type", "[validate]"
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "pitch": 1,
                 "yaw": 2,
@@ -1131,7 +1221,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Wrong Type", "[validate]"
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/X/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1143,8 +1233,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/X/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "y": 2,
                 "z": 3,
@@ -1162,7 +1253,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/X/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/X/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1174,8 +1265,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/X/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": "abc",
                 "y": 2,
@@ -1194,7 +1286,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/X/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Y/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1206,8 +1298,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Y/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": 1,
                 "z": 3,
@@ -1225,7 +1318,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Y/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Y/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1237,8 +1330,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Y/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": 1,
                 "y": "abc",
@@ -1257,7 +1351,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Y/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Z/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1269,8 +1363,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Z/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": 1,
                 "y": 2,
@@ -1288,7 +1383,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Z/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/Z/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1300,8 +1395,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Z/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": 1,
                 "y": 2,
@@ -1320,7 +1416,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Z/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/W/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1332,8 +1428,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": 1,
                 "y": 2,
@@ -1351,7 +1448,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Orientation/W/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1363,8 +1460,9 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "orientation": {
                 "x": 1,
                 "y": 2,
@@ -1383,7 +1481,7 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/All/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1395,8 +1493,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/All/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {}
             }
           }
@@ -1410,7 +1509,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/All/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1422,8 +1521,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {
                 "y": 2,
                 "z": 3
@@ -1440,7 +1540,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/X/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1452,8 +1552,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {
                 "x": "abc",
                 "y": 2,
@@ -1471,7 +1572,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/Y/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1483,8 +1584,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {
                 "x": 1,
                 "z": 3
@@ -1501,7 +1603,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/Y/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1513,8 +1615,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {
                 "x": 1,
                 "y": "abc",
@@ -1532,7 +1635,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/Z/Missing", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1544,8 +1647,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/Z/Missing", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {
                 "x": 1,
                 "y": 2
@@ -1562,7 +1666,7 @@ TEST_CASE("Validate: PlanarProjection/Offset/Z/Missing", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: PlanarProjection/Offset/Z/Wrong Type", "[validate]") {
+TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 1,
@@ -1574,8 +1678,9 @@ TEST_CASE("Validate: PlanarProjection/Offset/Z/Wrong Type", "[validate]") {
       "windows": [
         {
           "viewport": {
+            "mesh": "abc",
             "projection": {
-              "type": "PlanarProjection",
+              "type": "TextureMappedProjection",
               "offset": {
                 "x": 1,
                 "y": 2,

@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -1311,4 +1313,783 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
     const std::string str = serializeConfig(Object);
     const config::Cluster output = readJsonConfig(str);
     CHECK(output == Object);
+}
+
+
+
+
+
+TEST_CASE("Validate: Tracker/Name/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "name": 123
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Name/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "name": ""
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": 123
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Name/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "name": 123
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Name/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "name": ""
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Sensors/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "sensors": 123
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Sensors/Address/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "sensors": {
+          "vrpnaddress": 123,
+          "id": 1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Sensors/Address/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "sensors": {
+          "vrpnaddress": "",
+          "id": 1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Sensors/Identifier/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "sensors": {
+          "vrpnaddress": "abc",
+          "id": "abc"
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Buttons/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "buttons": 123
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Buttons/Address/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "buttons": {
+          "vrpnaddress": 123,
+          "count": 1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Buttons/Address/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "buttons": {
+          "vrpnaddress": "",
+          "count": 1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Buttons/Count/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "buttons": {
+          "vrpnaddress": "abc",
+          "count": "abc"
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Buttons/Count/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "buttons": {
+          "vrpnaddress": "abc",
+          "count": -1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Axes/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "axes": 123
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Axes/Address/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "axes": {
+          "vrpnaddress": 123,
+          "count": 1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Axes/Address/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "axes": {
+          "vrpnaddress": "",
+          "count": 1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Axes/Count/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "axes": {
+          "vrpnaddress": "abc",
+          "count": "abc"
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Axes/Count/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "axes": {
+          "vrpnaddress": "abc",
+          "count": -1
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": "abc"
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {}
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {
+          "y": 2,
+          "z": 3
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {
+          "x": "abc",
+          "y": 2,
+          "z": 3
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {
+          "x": 1,
+          "z": 3
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {
+          "x": 1,
+          "y": "abc",
+          "z": 3
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {
+          "x": 1,
+          "y": 2
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Offset/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "offset": {
+          "x": 1,
+          "y": 2,
+          "z": "abc"
+        }
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Transformation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "matrix": "abc"
+      }
+    ]
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "matrix": []
+      }
+    ]
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "devices": [
+      {
+        "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
+      }
+    ]
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Tracker/Offset/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/All/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {}
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/X/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {
+      "y": 2,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/X/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {
+      "x": "abc",
+      "y": 2,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/Y/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {
+      "x": 1,
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/Y/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {
+      "x": 1,
+      "y": "abc",
+      "z": 3
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/Z/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {
+      "x": 1,
+      "y": 2
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Offset/Z/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "offset": {
+      "x": 1,
+      "y": 2,
+      "z": "abc"
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Scale/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "scale": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Transformation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "matrix": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Tracker/Transformation/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "matrix": []
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": {
+    "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
 }

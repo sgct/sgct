@@ -7,9 +7,11 @@
  ****************************************************************************************/
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
@@ -455,4 +457,190 @@ TEST_CASE("Load: Settings/Full", "[parse]") {
     const std::string str = serializeConfig(Object);
     const config::Cluster output = readJsonConfig(str);
     CHECK(output == Object);
+}
+
+
+
+
+
+TEST_CASE("Validate: Settings/UseDepthTexture/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "depthbuffertexture": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/UseNormalTexture/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "normaltexture": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/UsePositionTexture/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "positiontexture": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/BufferFloatPrecision/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "precision": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "precision": -20
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "precision": 256
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Settings/Display/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "display": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/Display/SwapInterval/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "display": {
+      "swapinterval": "abc"
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/Display/SwapInterval/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "display": {
+      "swapinterval": -1
+    }
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "display": {
+      "swapinterval": 1000
+    }
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Settings/Display/RefreshRate/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "display": {
+      "refreshrate": "abc"
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Settings/Display/RefreshRate/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "settings": {
+    "display": {
+      "refreshrate": -1
+    }
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }

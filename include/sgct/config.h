@@ -277,7 +277,8 @@ SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
 
 
-struct SGCT_EXPORT TextureMappedProjection : PlanarProjection {};
+struct SGCT_EXPORT TextureMappedProjection : PlanarProjection {
+};
 SGCT_EXPORT void validateProjection(const TextureMappedProjection& proj);
 
 

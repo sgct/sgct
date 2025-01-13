@@ -2020,7 +2020,7 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
     const std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
     const json_validator validator = json_validator(
         schemaInput,
-        [&schemaDir] (const json_uri& id, json& value) {
+        [&schemaDir](const json_uri& id, json& value) {
             std::string loadPath = std::format("{}/{}", schemaDir, id.to_string());
             const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
@@ -2044,7 +2044,8 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
             }
         }
     );
-    const json config = json::parse(configuration);
+    const std::string configStr = stringifyJsonFile(configuration);
+    const json config = json::parse(configStr);
     try {
         validator.validate(config);
         return "";

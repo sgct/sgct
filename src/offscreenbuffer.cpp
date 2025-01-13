@@ -62,7 +62,7 @@ OffScreenBuffer::~OffScreenBuffer() {
     glDeleteRenderbuffers(1, &_positionBuffer);
 }
 
-void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrored) {
+void OffScreenBuffer::createFBO(int width, int height, int samples) {
     // @TODO (abock, 2019-11-15)  When calling this function initially with checking
     // FBO mode enabled, the bind functions further down will trigger missing attachment
     // warnings due to the fact that SGCT handles the creation of the FBO and attachments
@@ -75,7 +75,6 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
 
     _size = ivec2{ width, height };
     _isMultiSampled = samples > 1;
-    _mirror = mirrored;
 
     // create a multisampled buffer
     if (_isMultiSampled) {
@@ -264,11 +263,6 @@ void OffScreenBuffer::blit() const {
     const ivec2 src1 = ivec2{ _size.x, _size.y };
     ivec2 dst0 = ivec2{ 0, 0 };
     ivec2 dst1 = ivec2{ _size.x, _size.y };
-
-    if (_mirror) {
-        dst0.x = _size.x;
-        dst1.x = 0;
-    }
 
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);

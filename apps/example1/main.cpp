@@ -87,7 +87,8 @@ void draw(const RenderData& data) {
         static_cast<float>(currentTime) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
-    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
+    const glm::mat4 mvp =
+        glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
 
     ShaderManager::instance().shaderProgram("xform").bind();
 

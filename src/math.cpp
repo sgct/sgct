@@ -14,14 +14,15 @@
 namespace sgct {
 
 mat4 operator*(const mat4& m1, const mat4& m2) {
-    const glm::mat4 r = glm::make_mat4(m1.values) * glm::make_mat4(m2.values);
+    const glm::mat4 r =
+        glm::make_mat4(m1.values.data()) * glm::make_mat4(m2.values.data());
     mat4 res;
     std::memcpy(&res, glm::value_ptr(r), sizeof(float[16]));
     return res;
 }
 
 vec4 operator*(const mat4& m, const vec4& v) {
-    const glm::vec4 r = glm::make_mat4(m.values) * glm::make_vec4(&v.x);
+    const glm::vec4 r = glm::make_mat4(m.values.data()) * glm::make_vec4(&v.x);
     return vec4(r.x, r.y, r.z, r.w);
 }
 

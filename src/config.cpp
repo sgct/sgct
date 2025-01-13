@@ -71,29 +71,29 @@ void validateSettings(const Settings& s) {
     }
 }
 
-void validateDevice(const Device& d) {
-    auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty(); };
-
-    if (d.name.empty()) {
-        throw Error(1030, "Device name must not be empty");
-    }
-    if (!std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress)) {
-        throw Error(1031, "VRPN address for sensors must not be empty");
-
-    }
-    if (!std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress)) {
-        throw Error(1032, "VRPN address for buttons must not be empty");
-
-    }
-    if (!std::all_of(d.axes.begin(), d.axes.end(), validateAddress)) {
-        throw Error(1033, "VRPN address for axes must not be empty");
-    }
-}
-
 void validateTracker(const Tracker& t) {
     if (t.name.empty()) {
         throw Error(1040, "Tracker name must not be empty");
     }
+
+    auto validateDevice = [](const Tracker::Device& d) {
+        auto validateAddress = [](const auto& v) { return !v.vrpnAddress.empty(); };
+
+        if (d.name.empty()) {
+            throw Error(1030, "Device name must not be empty");
+        }
+        if (!std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress)) {
+            throw Error(1031, "VRPN address for sensors must not be empty");
+
+        }
+        if (!std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress)) {
+            throw Error(1032, "VRPN address for buttons must not be empty");
+
+        }
+        if (!std::all_of(d.axes.begin(), d.axes.end(), validateAddress)) {
+            throw Error(1033, "VRPN address for axes must not be empty");
+        }
+    };
     std::for_each(t.devices.begin(), t.devices.end(), validateDevice);
 }
 
@@ -366,7 +366,9 @@ void validateCluster(const Cluster& c) {
             return std::find_if(
                 tr.devices.cbegin(),
                 tr.devices.cend(),
-                [t = *user.tracking](const Device& dev) { return dev.name == t.device; }
+                [&user](const Tracker::Device& dev) {
+                    return dev.name == user.tracking->device;
+                }
             ) != tr.devices.cend();
         }
     );
@@ -599,18 +601,23 @@ static void from_json(const nlohmann::json& j, sgct::vec4& v) {
         itY->get_to(v.y);
         itZ->get_to(v.z);
         itW->get_to(v.w);
+        return;
     }
 
     auto itR = j.find("r");
     auto itG = j.find("g");
     auto itB = j.find("b");
     auto itA = j.find("a");
+
     if (itR != j.end() && itG != j.end() && itB != j.end() && itA != j.end()) {
         itR->get_to(v.x);
         itG->get_to(v.y);
         itB->get_to(v.z);
         itA->get_to(v.w);
+        return;
     }
+
+    throw std::runtime_error("Incomplete vec4");
 }
 
 static void to_json(nlohmann::json& j, const sgct::vec4& v) {
@@ -838,6 +845,10 @@ static void from_json(const nlohmann::json& j, Capture& c) {
     if (rangeEnd) {
         c.range->last = *rangeEnd;
     }
+
+    if (rangeBeg && rangeEnd && *rangeBeg > *rangeEnd) {
+        throw Err(6051, "End of range must be greater than beginning of range");
+    }
 }
 
 static void to_json(nlohmann::json& j, const Capture& c) {
@@ -853,43 +864,43 @@ static void to_json(nlohmann::json& j, const Capture& c) {
     }
 }
 
-static void from_json(const nlohmann::json& j, Device::Sensor& s) {
+static void from_json(const nlohmann::json& j, Tracker::Device::Sensor& s) {
     j.at("vrpnaddress").get_to(s.vrpnAddress);
     j.at("id").get_to(s.identifier);
 }
 
-static void to_json(nlohmann::json& j, const Device::Sensor& s) {
+static void to_json(nlohmann::json& j, const Tracker::Device::Sensor& s) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = s.vrpnAddress;
     j["id"] = s.identifier;
 }
 
-static void from_json(const nlohmann::json& j, Device::Button& b) {
+static void from_json(const nlohmann::json& j, Tracker::Device::Button& b) {
     j.at("vrpnaddress").get_to(b.vrpnAddress);
     j.at("count").get_to(b.count);
 }
 
-static void to_json(nlohmann::json& j, const Device::Button& b) {
+static void to_json(nlohmann::json& j, const Tracker::Device::Button& b) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = b.vrpnAddress;
     j["count"] = b.count;
 }
 
-static void from_json(const nlohmann::json& j, Device::Axis& a) {
+static void from_json(const nlohmann::json& j, Tracker::Device::Axis& a) {
     j.at("vrpnaddress").get_to(a.vrpnAddress);
     j.at("count").get_to(a.count);
 }
 
-static void to_json(nlohmann::json& j, const Device::Axis& a) {
+static void to_json(nlohmann::json& j, const Tracker::Device::Axis& a) {
     j = nlohmann::json::object();
 
     j["vrpnaddress"] = a.vrpnAddress;
     j["count"] = a.count;
 }
 
-static void from_json(const nlohmann::json& j, Device& d) {
+static void from_json(const nlohmann::json& j, Tracker::Device& d) {
     parseValue(j, "name", d.name);
     parseValue(j, "sensors", d.sensors);
     parseValue(j, "buttons", d.buttons);
@@ -898,7 +909,7 @@ static void from_json(const nlohmann::json& j, Device& d) {
     parseValue(j, "matrix", d.transformation);
 }
 
-static void to_json(nlohmann::json& j, const Device& d) {
+static void to_json(nlohmann::json& j, const Tracker::Device& d) {
     j = nlohmann::json::object();
 
     j["name"] = d.name;
@@ -925,6 +936,9 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "devices", t.devices);
     parseValue(j, "offset", t.offset);
 
+    parseValue(j, "scale", t.scale);
+    parseValue(j, "matrix", t.transformation);
+
     if (auto it = j.find("orientation");  it != j.end()) {
         const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
@@ -932,8 +946,6 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
         std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
         t.transformation = o;
     }
-    parseValue(j, "scale", t.scale);
-    parseValue(j, "matrix", t.transformation);
 }
 
 static void to_json(nlohmann::json& j, const Tracker& t) {
@@ -1059,6 +1071,14 @@ static void to_json(nlohmann::json& j, const PlanarProjection& p) {
     if (p.offset.has_value()) {
         j["offset"] = *p.offset;
     }
+}
+
+static void from_json(const nlohmann::json& j, TextureMappedProjection& p) {
+    from_json(j, reinterpret_cast<PlanarProjection&>(p));
+}
+
+static void to_json(nlohmann::json& j, const TextureMappedProjection& p) {
+    to_json(j, reinterpret_cast<const PlanarProjection&>(p));
 }
 
 static void from_json(const nlohmann::json& j, FisheyeProjection& p) {
@@ -1572,12 +1592,11 @@ static void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "border", w.isDecorated);
     parseValue(j, "resizable", w.isResizable);
-    parseValue(j, "mirror", w.isMirrored);
     parseValue(j, "noerror", w.noError);
     parseValue(j, "blitwindowid", w.blitWindowId);
-    parseValue(j, "monitor", w.monitor);
     parseValue(j, "mirrorx", w.mirrorX);
     parseValue(j, "mirrory", w.mirrorY);
+    parseValue(j, "monitor", w.monitor);
 
     if (auto it = j.find("stereo");  it != j.end()) {
         w.stereo = parseStereoType(it->get<std::string>());
@@ -1702,10 +1721,6 @@ static void to_json(nlohmann::json& j, const Window& w) {
         j["resizable"] = *w.isResizable;
     }
 
-    if (w.isMirrored.has_value()) {
-        j["mirror"] = *w.isMirrored;
-    }
-
     if (w.noError.has_value()) {
         j["noerror"] = *w.noError;
     }
@@ -1824,38 +1839,28 @@ static void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 }
 
 static void from_json(const nlohmann::json& j, Meta& m) {
-    if (j.find("description") != j.end()) {
-        parseValue(j, "description", m.description);
-    }
-    if (j.find("name") != j.end()) {
-        parseValue(j, "name", m.name);
-    }
-    if (j.find("author") != j.end()) {
-        parseValue(j, "author", m.author);
-    }
-    if (j.find("license") != j.end()) {
-        parseValue(j, "license", m.license);
-    }
-    if (j.find("version") != j.end()) {
-        parseValue(j, "version", m.version);
-    }
+    parseValue(j, "description", m.description);
+    parseValue(j, "name", m.name);
+    parseValue(j, "author", m.author);
+    parseValue(j, "license", m.license);
+    parseValue(j, "version", m.version);
 }
 
 static void to_json(nlohmann::json& j, const Meta& m) {
-    if (!m.description.empty()) {
-        j["description"] = m.description;
+    if (m.description.has_value()) {
+        j["description"] = *m.description;
     }
-    if (!m.name.empty()) {
-        j["name"] = m.name;
+    if (m.name.has_value()) {
+        j["name"] = *m.name;
     }
-    if (!m.author.empty()) {
-        j["author"] = m.author;
+    if (m.author.has_value()) {
+        j["author"] = *m.author;
     }
-    if (!m.license.empty()) {
-        j["license"] = m.license;
+    if (m.license.has_value()) {
+        j["license"] = *m.license;
     }
-    if (!m.version.empty()) {
-        j["version"] = m.version;
+    if (m.version.has_value()) {
+        j["version"] = *m.version;
     }
 }
 
@@ -1867,8 +1872,11 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
         throw Err(6084, "Cannot find master address");
     }
 
-    parseValue(j, "threadaffinity", c.setThreadAffinity);
     parseValue(j, "debuglog", c.debugLog);
+    parseValue(j, "threadaffinity", c.threadAffinity);
+    if (c.threadAffinity && *c.threadAffinity < 0) {
+        throw Err(6088, "Thread Affinity must be 0 or positive");
+    }
     parseValue(j, "firmsync", c.firmSync);
 
     parseValue(j, "scene", c.scene);
@@ -1886,8 +1894,8 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
 static void to_json(nlohmann::json& j, const Cluster& c) {
     j["masteraddress"] = c.masterAddress;
 
-    if (c.setThreadAffinity.has_value()) {
-        j["threadaffinity"] = *c.setThreadAffinity;
+    if (c.threadAffinity.has_value()) {
+        j["threadaffinity"] = *c.threadAffinity;
     }
 
     if (c.debugLog.has_value()) {

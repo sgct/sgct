@@ -132,7 +132,7 @@ void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) co
 
     glUniform4fv(_colorLocation, 1, &color.x);
     glUniform1i(_textureLocation, texture);
-    glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, mvp.values);
+    glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, mvp.values.data());
 }
 
 bool FontManager::addFont(std::string name, std::string file) {

@@ -217,13 +217,15 @@ void draw(const RenderData& data) {
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
-    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
+    const glm::mat4 mvp =
+        glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    const glm::mat4 mv = glm::make_mat4(data.viewMatrix.values) *
-        glm::make_mat4(data.modelMatrix.values) * scene;
+    const glm::mat4 mv = glm::make_mat4(data.viewMatrix.values.data()) *
+        glm::make_mat4(data.modelMatrix.values.data()) * scene;
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
     const glm::mat4 mvLight =
-        glm::make_mat4(data.viewMatrix.values) * glm::make_mat4(data.modelMatrix.values);
+        glm::make_mat4(data.viewMatrix.values.data()) *
+        glm::make_mat4(data.modelMatrix.values.data());
     glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
     glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));

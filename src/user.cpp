@@ -75,11 +75,11 @@ void User::updateEyeSeparation() {
 
 void User::updateEyeTransform() {
     const glm::vec4 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f, 0.f);
-    const glm::vec4 posMono = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    const glm::vec4 posMono = glm::vec4(_posMono.x, _posMono.y, _posMono.z, 1.f);
     const glm::vec4 posLeft = posMono - eyeOffsetVec;
     const glm::vec4 posRight = posMono + eyeOffsetVec;
 
-    const glm::mat4 trans = glm::make_mat4(_transform.values);
+    const glm::mat4 trans = glm::make_mat4(_transform.values.data());
 
     const glm::vec4 mono = trans * posMono;
     const glm::vec4 left = trans * posLeft;

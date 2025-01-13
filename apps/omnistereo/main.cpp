@@ -330,7 +330,7 @@ void initOmniStereo(bool mask) {
 
                     omniProjections[x][y].enabled = true;
                     omniProjections[x][y].viewProjectionMatrix[fm] = glm::make_mat4(
-                        proj.viewProjectionMatrix().values
+                        proj.viewProjectionMatrix().values.data()
                     );
                     VPCounter++;
                 }
@@ -394,7 +394,7 @@ void drawOmniStereo(const RenderData& renderData) {
             if (omniProjections[x][y].enabled) {
                 glViewport(x * tileSize, y * tileSize, tileSize, tileSize);
                 const glm::mat4 vp = omniProjections[x][y].viewProjectionMatrix[fm];
-                renderBoxes(vp * glm::make_mat4(renderData.modelMatrix.values));
+                renderBoxes(vp * glm::make_mat4(renderData.modelMatrix.values.data()));
             }
         }
     }
@@ -421,8 +421,8 @@ void draw(const RenderData& data) {
         drawOmniStereo(data);
     }
     else {
-        const glm::mat4 vp = glm::make_mat4(data.projectionMatrix.values) *
-            glm::make_mat4(data.viewMatrix.values);
+        const glm::mat4 vp = glm::make_mat4(data.projectionMatrix.values.data()) *
+            glm::make_mat4(data.viewMatrix.values.data());
 
         ShaderManager::instance().shaderProgram("grid").bind();
         renderGrid(vp);
@@ -431,7 +431,7 @@ void draw(const RenderData& data) {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
-        renderBoxes(vp * glm::make_mat4(data.modelMatrix.values));
+        renderBoxes(vp * glm::make_mat4(data.modelMatrix.values.data()));
     }
 
     glDisable(GL_CULL_FACE);

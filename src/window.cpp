@@ -352,7 +352,6 @@ Window::Window(const config::Window& window)
     , _useFXAA(window.useFxaa.value_or(false))
     , _isDecorated(window.isDecorated.value_or(true))
     , _isResizable(window.isResizable.value_or(true))
-    , _isMirrored(window.isMirrored.value_or(false))
     , _blitWindowId(window.blitWindowId.value_or(-1))
     , _monitorIndex(window.monitor.value_or(0))
     , _mirrorX(window.mirrorX.value_or(false))
@@ -709,7 +708,7 @@ void Window::initialize() {
     createTextures();
     createVBOs();
 
-    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
+    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
 
     Log::Debug(std::format(
         "Window {}: FBO initiated successfully. Number of samples: {}",

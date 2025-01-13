@@ -89,40 +89,37 @@ SGCT_EXPORT void validateSettings(const Settings& settings);
 
 
 
-struct SGCT_EXPORT Device {
-    struct Sensor {
-        std::string vrpnAddress;
-        int identifier = -1;
-
-        auto operator<=>(const Sensor&) const noexcept = default;
-    };
-    struct Button {
-        std::string vrpnAddress;
-        int count = 0;
-
-        auto operator<=>(const Button&) const noexcept = default;
-    };
-    struct Axis {
-        std::string vrpnAddress;
-        int count = 0;
-
-        auto operator<=>(const Axis&) const noexcept = default;
-    };
-
-    std::string name;
-    std::vector<Sensor> sensors;
-    std::vector<Button> buttons;
-    std::vector<Axis> axes;
-    std::optional<vec3> offset;
-    std::optional<mat4> transformation;
-
-    auto operator<=>(const Device&) const noexcept = default;
-};
-SGCT_EXPORT void validateDevice(const Device& device);
-
-
-
 struct SGCT_EXPORT Tracker {
+    struct Device {
+        struct Sensor {
+            std::string vrpnAddress;
+            int identifier = -1;
+
+            auto operator<=>(const Sensor&) const noexcept = default;
+        };
+        struct Button {
+            std::string vrpnAddress;
+            int count = 0;
+
+            auto operator<=>(const Button&) const noexcept = default;
+        };
+        struct Axis {
+            std::string vrpnAddress;
+            int count = 0;
+
+            auto operator<=>(const Axis&) const noexcept = default;
+        };
+
+        std::string name;
+        std::vector<Sensor> sensors;
+        std::vector<Button> buttons;
+        std::vector<Axis> axes;
+        std::optional<vec3> offset;
+        std::optional<mat4> transformation;
+
+        auto operator<=>(const Device&) const noexcept = default;
+    };
+
     std::string name;
     std::vector<Device> devices;
     std::optional<vec3> offset;
@@ -280,7 +277,8 @@ SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
 
 
-struct SGCT_EXPORT TextureMappedProjection : PlanarProjection {};
+struct SGCT_EXPORT TextureMappedProjection : PlanarProjection {
+};
 SGCT_EXPORT void validateProjection(const TextureMappedProjection& proj);
 
 
@@ -294,17 +292,17 @@ using Projections = std::variant<NoProjection, CubemapProjection, CylindricalPro
 struct SGCT_EXPORT Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
-    std::optional<std::string> user;
+    std::optional<vec2> position;
+    std::optional<vec2> size;
+    Projections projection = NoProjection();
     std::optional<std::filesystem::path> overlayTexture;
     std::optional<std::filesystem::path> blendMaskTexture;
     std::optional<std::filesystem::path> blackLevelMaskTexture;
     std::optional<std::filesystem::path> correctionMeshTexture;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
-    std::optional<vec2> position;
-    std::optional<vec2> size;
+    std::optional<std::string> user;
 
-    Projections projection = NoProjection();
 
     auto operator<=>(const Viewport&) const noexcept = default;
 };
@@ -356,6 +354,10 @@ struct SGCT_EXPORT Window {
         auto operator<=>(const NDI&) const noexcept = default;
     };
 
+    std::optional<ivec2> pos;
+    ivec2 size = ivec2{ 1, 1 };
+    std::optional<ivec2> resolution;
+    std::vector<Viewport> viewports;
     int8_t id = 0;
     std::optional<std::string> name;
     std::vector<std::string> tags;
@@ -367,13 +369,13 @@ struct SGCT_EXPORT Window {
     std::optional<bool> alwaysRender;
     std::optional<bool> isHidden;
     std::optional<bool> takeScreenshot;
+    std::optional<bool> alpha; // @TODO Reimplement
     std::optional<uint8_t> msaa;
     std::optional<bool> useFxaa;
     std::optional<bool> isDecorated;
     std::optional<bool> isResizable;
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
-    std::optional<bool> isMirrored;
     std::optional<bool> noError;
     std::optional<int8_t> blitWindowId;
     std::optional<bool> mirrorX;
@@ -382,11 +384,7 @@ struct SGCT_EXPORT Window {
     std::optional<StereoMode> stereo;
     std::optional<Spout> spout;
     std::optional<NDI> ndi;
-    std::optional<ivec2> pos;
-    ivec2 size = ivec2{ 1, 1 };
-    std::optional<ivec2> resolution;
     std::optional<std::filesystem::path> scalableMesh;
-    std::vector<Viewport> viewports;
 
     auto operator<=>(const Window&) const noexcept = default;
 };
@@ -423,11 +421,11 @@ SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
 
 
 struct SGCT_EXPORT Meta {
-    std::string author;
-    std::string description;
-    std::string license;
-    std::string name;
-    std::string version;
+    std::optional<std::string> author;
+    std::optional<std::string> description;
+    std::optional<std::string> license;
+    std::optional<std::string> name;
+    std::optional<std::string> version;
 
     auto operator<=>(const Meta&) const noexcept = default;
 };
@@ -439,7 +437,7 @@ struct SGCT_EXPORT Cluster {
 
     std::string masterAddress;
     std::optional<bool> debugLog;
-    std::optional<int> setThreadAffinity;
+    std::optional<int> threadAffinity;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;
     std::vector<Node> nodes;

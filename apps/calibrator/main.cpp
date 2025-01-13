@@ -478,7 +478,7 @@ void draw(const RenderData& data) {
 
     if (renderGrid) {
         ShaderManager::instance().shaderProgram("grid").bind();
-        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, mvp.values);
+        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
         glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(grid.vao);
         glDrawElements(GL_LINE_STRIP, grid.nVertLine, GL_UNSIGNED_SHORT, nullptr);
@@ -488,7 +488,7 @@ void draw(const RenderData& data) {
 
     if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
-        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values);
+        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
         glUniformMatrix4fv(box.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(box.vao);
 

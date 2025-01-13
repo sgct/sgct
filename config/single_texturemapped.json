@@ -1,12 +1,6 @@
 {
   "version": 1,
   "masteraddress": "localhost",
-  "users": [
-    {
-      "eyeseparation": 0.06,
-      "pos": { "x": 0, "y": 0, "z": 0.0 }
-    }
-  ],
   "settings": {
     "display": { "swapinterval": 0 }
   },
@@ -14,14 +8,11 @@
     {
       "address": "localhost",
       "port": 20401,
-      "name": "DSGP1",
       "swaplock": false,
       "windows": [
         {
           "fullscreen": false,
           "border": false,
-          "fxaa": false,
-          "msaa": 1,
           "pos": { "x": 0, "y": 0 },
           "size": { "x": 768, "y": 810 },
           "viewports": [
@@ -36,7 +27,7 @@
                   "down": 78.435992,
                   "left": 77.821993,
                   "right": 77.821993,
-                  "up": 78.435992 
+                  "up": 78.435992
                 },
                 "orientation": { "yaw": 301.504967, "pitch": 40.615664, "roll": -47.675061 }
               }
@@ -44,6 +35,12 @@
           ]
         }
       ]
+    }
+  ],
+  "users": [
+    {
+      "eyeseparation": 0.06,
+      "pos": { "x": 0, "y": 0, "z": 0.0 }
     }
   ]
 }

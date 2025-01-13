@@ -292,17 +292,17 @@ using Projections = std::variant<NoProjection, CubemapProjection, CylindricalPro
 struct SGCT_EXPORT Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
-    std::optional<std::string> user;
+    std::optional<vec2> position;
+    std::optional<vec2> size;
+    Projections projection = NoProjection();
     std::optional<std::filesystem::path> overlayTexture;
     std::optional<std::filesystem::path> blendMaskTexture;
     std::optional<std::filesystem::path> blackLevelMaskTexture;
     std::optional<std::filesystem::path> correctionMeshTexture;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
-    std::optional<vec2> position;
-    std::optional<vec2> size;
+    std::optional<std::string> user;
 
-    Projections projection = NoProjection();
 
     auto operator<=>(const Viewport&) const noexcept = default;
 };
@@ -354,6 +354,10 @@ struct SGCT_EXPORT Window {
         auto operator<=>(const NDI&) const noexcept = default;
     };
 
+    std::optional<ivec2> pos;
+    ivec2 size = ivec2{ 1, 1 };
+    std::optional<ivec2> resolution;
+    std::vector<Viewport> viewports;
     int8_t id = 0;
     std::optional<std::string> name;
     std::vector<std::string> tags;
@@ -365,13 +369,13 @@ struct SGCT_EXPORT Window {
     std::optional<bool> alwaysRender;
     std::optional<bool> isHidden;
     std::optional<bool> takeScreenshot;
+    std::optional<bool> alpha; // @TODO Reimplement
     std::optional<uint8_t> msaa;
     std::optional<bool> useFxaa;
     std::optional<bool> isDecorated;
     std::optional<bool> isResizable;
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
-    std::optional<bool> isMirrored;
     std::optional<bool> noError;
     std::optional<int8_t> blitWindowId;
     std::optional<bool> mirrorX;
@@ -380,11 +384,7 @@ struct SGCT_EXPORT Window {
     std::optional<StereoMode> stereo;
     std::optional<Spout> spout;
     std::optional<NDI> ndi;
-    std::optional<ivec2> pos;
-    ivec2 size = ivec2{ 1, 1 };
-    std::optional<ivec2> resolution;
     std::optional<std::filesystem::path> scalableMesh;
-    std::vector<Viewport> viewports;
 
     auto operator<=>(const Window&) const noexcept = default;
 };

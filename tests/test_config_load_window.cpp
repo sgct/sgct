@@ -108,8 +108,8 @@ TEST_CASE("Load: Window/ID", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "id": 0,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "id": 0
         }
       ]
     }
@@ -126,8 +126,8 @@ TEST_CASE("Load: Window/ID", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .id = 0,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .id = 0
                         }
                     }
                 }
@@ -153,8 +153,8 @@ TEST_CASE("Load: Window/ID", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "id": 1,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "id": 1
         }
       ]
     }
@@ -171,8 +171,8 @@ TEST_CASE("Load: Window/ID", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .id = 1,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .id = 1
                         }
                     }
                 }
@@ -200,8 +200,8 @@ TEST_CASE("Load: Window/Name", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "name": "abc",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "name": "abc"
         }
       ]
     }
@@ -218,8 +218,8 @@ TEST_CASE("Load: Window/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .name = "abc",
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .name = "abc"
                         }
                     }
                 }
@@ -245,8 +245,8 @@ TEST_CASE("Load: Window/Name", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "name": "123",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "name": "123"
         }
       ]
     }
@@ -263,8 +263,8 @@ TEST_CASE("Load: Window/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .name = "123",
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .name = "123"
                         }
                     }
                 }
@@ -292,8 +292,8 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "tags": [],
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "tags": []
         }
       ]
     }
@@ -310,8 +310,8 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .tags = {},
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .tags = {}
                         }
                     }
                 }
@@ -337,8 +337,8 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "tags": [ "abc", "def" ],
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "tags": [ "abc", "def" ]
         }
       ]
     }
@@ -355,8 +355,8 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .tags = { "abc", "def" },
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .tags = { "abc", "def" }
                         }
                     }
                 }
@@ -382,8 +382,8 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "tags": [ "123", "456" ],
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "tags": [ "123", "456" ]
         }
       ]
     }
@@ -400,8 +400,8 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .tags = { "123", "456" },
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .tags = { "123", "456" }
                         }
                     }
                 }
@@ -429,8 +429,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "8",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "8"
         }
       ]
     }
@@ -447,8 +447,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth8,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth8
                         }
                     }
                 }
@@ -474,8 +474,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "16",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "16"
         }
       ]
     }
@@ -492,8 +492,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth16,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth16
                         }
                     }
                 }
@@ -519,8 +519,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "16f",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "16f"
         }
       ]
     }
@@ -537,8 +537,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth16Float,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth16Float
                         }
                     }
                 }
@@ -564,8 +564,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "32f",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "32f"
         }
       ]
     }
@@ -582,8 +582,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth32Float,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth32Float
                         }
                     }
                 }
@@ -609,8 +609,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "16i",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "16i"
         }
       ]
     }
@@ -627,8 +627,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth16Int,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth16Int
                         }
                     }
                 }
@@ -654,8 +654,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "32i",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "32i"
         }
       ]
     }
@@ -672,8 +672,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth32Int,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth32Int
                         }
                     }
                 }
@@ -699,8 +699,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "16ui",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "16ui"
         }
       ]
     }
@@ -717,8 +717,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth16UInt,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth16UInt
                         }
                     }
                 }
@@ -744,8 +744,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "bufferbitdepth": "32ui",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "bufferbitdepth": "32ui"
         }
       ]
     }
@@ -762,8 +762,8 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .bufferBitDepth = Window::ColorBitDepth::Depth32UInt,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .bufferBitDepth = Window::ColorBitDepth::Depth32UInt
                         }
                     }
                 }
@@ -791,8 +791,8 @@ TEST_CASE("Load: Window/IsFullScreen", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "fullscreen": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "fullscreen": false
         }
       ]
     }
@@ -809,8 +809,8 @@ TEST_CASE("Load: Window/IsFullScreen", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isFullScreen = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isFullScreen = false
                         }
                     }
                 }
@@ -836,8 +836,8 @@ TEST_CASE("Load: Window/IsFullScreen", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "fullscreen": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "fullscreen": true
         }
       ]
     }
@@ -854,8 +854,8 @@ TEST_CASE("Load: Window/IsFullScreen", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isFullScreen = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isFullScreen = true
                         }
                     }
                 }
@@ -883,8 +883,8 @@ TEST_CASE("Load: Window/ShouldAutoIconify", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "autoiconify": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "autoiconify": false
         }
       ]
     }
@@ -901,8 +901,8 @@ TEST_CASE("Load: Window/ShouldAutoIconify", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .shouldAutoiconify = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .shouldAutoiconify = false
                         }
                     }
                 }
@@ -928,8 +928,8 @@ TEST_CASE("Load: Window/ShouldAutoIconify", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "autoiconify": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "autoiconify": true
         }
       ]
     }
@@ -946,8 +946,8 @@ TEST_CASE("Load: Window/ShouldAutoIconify", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .shouldAutoiconify = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .shouldAutoiconify = true
                         }
                     }
                 }
@@ -975,8 +975,8 @@ TEST_CASE("Load: Window/HideMouseCursor", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "hidemousecursor": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "hidemousecursor": false
         }
       ]
     }
@@ -993,8 +993,8 @@ TEST_CASE("Load: Window/HideMouseCursor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .hideMouseCursor = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .hideMouseCursor = false
                         }
                     }
                 }
@@ -1020,8 +1020,8 @@ TEST_CASE("Load: Window/HideMouseCursor", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "hidemousecursor": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "hidemousecursor": true
         }
       ]
     }
@@ -1038,8 +1038,8 @@ TEST_CASE("Load: Window/HideMouseCursor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .hideMouseCursor = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .hideMouseCursor = true
                         }
                     }
                 }
@@ -1067,8 +1067,8 @@ TEST_CASE("Load: Window/IsFloating", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "floating": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "floating": false
         }
       ]
     }
@@ -1085,8 +1085,8 @@ TEST_CASE("Load: Window/IsFloating", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isFloating = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isFloating = false
                         }
                     }
                 }
@@ -1112,8 +1112,8 @@ TEST_CASE("Load: Window/IsFloating", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "floating": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "floating": true
         }
       ]
     }
@@ -1130,8 +1130,8 @@ TEST_CASE("Load: Window/IsFloating", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isFloating = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isFloating = true
                         }
                     }
                 }
@@ -1159,8 +1159,8 @@ TEST_CASE("Load: Window/AlwaysRender", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "alwaysrender": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "alwaysrender": false
         }
       ]
     }
@@ -1177,8 +1177,8 @@ TEST_CASE("Load: Window/AlwaysRender", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .alwaysRender = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .alwaysRender = false
                         }
                     }
                 }
@@ -1204,8 +1204,8 @@ TEST_CASE("Load: Window/AlwaysRender", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "alwaysrender": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "alwaysrender": true
         }
       ]
     }
@@ -1222,8 +1222,8 @@ TEST_CASE("Load: Window/AlwaysRender", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .alwaysRender = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .alwaysRender = true
                         }
                     }
                 }
@@ -1251,8 +1251,8 @@ TEST_CASE("Load: Window/IsHidden", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "hidden": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "hidden": false
         }
       ]
     }
@@ -1269,8 +1269,8 @@ TEST_CASE("Load: Window/IsHidden", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isHidden = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isHidden = false
                         }
                     }
                 }
@@ -1296,8 +1296,8 @@ TEST_CASE("Load: Window/IsHidden", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "hidden": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "hidden": true
         }
       ]
     }
@@ -1314,8 +1314,8 @@ TEST_CASE("Load: Window/IsHidden", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isHidden = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isHidden = true
                         }
                     }
                 }
@@ -1343,8 +1343,8 @@ TEST_CASE("Load: Window/TakeScreenshot", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "takescreenshot": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "takescreenshot": false
         }
       ]
     }
@@ -1361,8 +1361,8 @@ TEST_CASE("Load: Window/TakeScreenshot", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .takeScreenshot = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .takeScreenshot = false
                         }
                     }
                 }
@@ -1388,8 +1388,8 @@ TEST_CASE("Load: Window/TakeScreenshot", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "takescreenshot": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "takescreenshot": true
         }
       ]
     }
@@ -1406,8 +1406,8 @@ TEST_CASE("Load: Window/TakeScreenshot", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .takeScreenshot = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .takeScreenshot = true
                         }
                     }
                 }
@@ -1435,8 +1435,8 @@ TEST_CASE("Load: Window/MSAA", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "msaa": 1,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "msaa": 1
         }
       ]
     }
@@ -1453,8 +1453,8 @@ TEST_CASE("Load: Window/MSAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .msaa = 1,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .msaa = 1
                         }
                     }
                 }
@@ -1480,8 +1480,8 @@ TEST_CASE("Load: Window/MSAA", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "msaa": 2,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "msaa": 2
         }
       ]
     }
@@ -1498,8 +1498,8 @@ TEST_CASE("Load: Window/MSAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .msaa = 2,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .msaa = 2
                         }
                     }
                 }
@@ -1527,8 +1527,8 @@ TEST_CASE("Load: Window/UseFXAA", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "fxaa": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "fxaa": false
         }
       ]
     }
@@ -1545,8 +1545,8 @@ TEST_CASE("Load: Window/UseFXAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .useFxaa = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .useFxaa = false
                         }
                     }
                 }
@@ -1572,8 +1572,8 @@ TEST_CASE("Load: Window/UseFXAA", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "fxaa": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "fxaa": true
         }
       ]
     }
@@ -1590,8 +1590,8 @@ TEST_CASE("Load: Window/UseFXAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .useFxaa = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .useFxaa = true
                         }
                     }
                 }
@@ -1619,8 +1619,8 @@ TEST_CASE("Load: Window/IsDecorated", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "border": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "border": false
         }
       ]
     }
@@ -1637,8 +1637,8 @@ TEST_CASE("Load: Window/IsDecorated", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isDecorated = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isDecorated = false
                         }
                     }
                 }
@@ -1664,8 +1664,8 @@ TEST_CASE("Load: Window/IsDecorated", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "border": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "border": true
         }
       ]
     }
@@ -1682,8 +1682,8 @@ TEST_CASE("Load: Window/IsDecorated", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isDecorated = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isDecorated = true
                         }
                     }
                 }
@@ -1711,8 +1711,8 @@ TEST_CASE("Load: Window/IsResizable", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "resizable": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "resizable": false
         }
       ]
     }
@@ -1729,8 +1729,8 @@ TEST_CASE("Load: Window/IsResizable", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isResizable = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isResizable = false
                         }
                     }
                 }
@@ -1756,8 +1756,8 @@ TEST_CASE("Load: Window/IsResizable", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "resizable": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "resizable": true
         }
       ]
     }
@@ -1774,8 +1774,8 @@ TEST_CASE("Load: Window/IsResizable", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .isResizable = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .isResizable = true
                         }
                     }
                 }
@@ -1803,8 +1803,8 @@ TEST_CASE("Load: Window/Draw2D", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "draw2d": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "draw2d": false
         }
       ]
     }
@@ -1821,8 +1821,8 @@ TEST_CASE("Load: Window/Draw2D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .draw2D = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .draw2D = false
                         }
                     }
                 }
@@ -1848,8 +1848,8 @@ TEST_CASE("Load: Window/Draw2D", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "draw2d": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "draw2d": true
         }
       ]
     }
@@ -1866,8 +1866,8 @@ TEST_CASE("Load: Window/Draw2D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .draw2D = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .draw2D = true
                         }
                     }
                 }
@@ -1895,8 +1895,8 @@ TEST_CASE("Load: Window/Draw3D", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "draw3d": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "draw3d": false
         }
       ]
     }
@@ -1913,8 +1913,8 @@ TEST_CASE("Load: Window/Draw3D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .draw3D = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .draw3D = false
                         }
                     }
                 }
@@ -1940,8 +1940,8 @@ TEST_CASE("Load: Window/Draw3D", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "draw3d": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "draw3d": true
         }
       ]
     }
@@ -1958,100 +1958,8 @@ TEST_CASE("Load: Window/Draw3D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .draw3D = true,
-                            .size = ivec2{ 640, 480 }
-                        }
-                    }
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-}
-
-TEST_CASE("Load: Window/IsMirrored", "[parse]") {
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "abc",
-      "port": 1,
-      "windows": [
-        {
-          "mirror": false,
-          "size": { "x": 640, "y": 480 }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .isMirrored = false,
-                            .size = ivec2{ 640, 480 }
-                        }
-                    }
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "abc",
-      "port": 1,
-      "windows": [
-        {
-          "mirror": true,
-          "size": { "x": 640, "y": 480 }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .isMirrored = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .draw3D = true
                         }
                     }
                 }
@@ -2079,8 +1987,8 @@ TEST_CASE("Load: Window/NoError", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "noerror": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "noerror": false
         }
       ]
     }
@@ -2097,8 +2005,8 @@ TEST_CASE("Load: Window/NoError", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .noError = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .noError = false
                         }
                     }
                 }
@@ -2124,8 +2032,8 @@ TEST_CASE("Load: Window/NoError", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "noerror": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "noerror": true
         }
       ]
     }
@@ -2142,8 +2050,8 @@ TEST_CASE("Load: Window/NoError", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .noError = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .noError = true
                         }
                     }
                 }
@@ -2171,8 +2079,8 @@ TEST_CASE("Load: Window/BlitWindowId", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "blitwindowid": 1,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "blitwindowid": 1
         }
       ]
     }
@@ -2189,8 +2097,8 @@ TEST_CASE("Load: Window/BlitWindowId", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .blitWindowId = 1,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .blitWindowId = 1
                         }
                     }
                 }
@@ -2216,8 +2124,8 @@ TEST_CASE("Load: Window/BlitWindowId", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "blitwindowid": 2,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "blitwindowid": 2
         }
       ]
     }
@@ -2234,8 +2142,8 @@ TEST_CASE("Load: Window/BlitWindowId", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .blitWindowId = 2,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .blitWindowId = 2
                         }
                     }
                 }
@@ -2263,8 +2171,8 @@ TEST_CASE("Load: Window/MirrorX", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "mirrorx": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "mirrorx": false
         }
       ]
     }
@@ -2281,8 +2189,8 @@ TEST_CASE("Load: Window/MirrorX", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .mirrorX = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .mirrorX = false
                         }
                     }
                 }
@@ -2308,8 +2216,8 @@ TEST_CASE("Load: Window/MirrorX", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "mirrorx": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "mirrorx": true
         }
       ]
     }
@@ -2326,8 +2234,8 @@ TEST_CASE("Load: Window/MirrorX", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .mirrorX = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .mirrorX = true
                         }
                     }
                 }
@@ -2355,8 +2263,8 @@ TEST_CASE("Load: Window/MirrorY", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "mirrory": false,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "mirrory": false
         }
       ]
     }
@@ -2373,8 +2281,8 @@ TEST_CASE("Load: Window/MirrorY", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .mirrorY = false,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .mirrorY = false
                         }
                     }
                 }
@@ -2400,8 +2308,8 @@ TEST_CASE("Load: Window/MirrorY", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "mirrory": true,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "mirrory": true
         }
       ]
     }
@@ -2418,8 +2326,8 @@ TEST_CASE("Load: Window/MirrorY", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .mirrorY = true,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .mirrorY = true
                         }
                     }
                 }
@@ -2447,8 +2355,8 @@ TEST_CASE("Load: Window/Monitor", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "monitor": 1,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "monitor": 1
         }
       ]
     }
@@ -2465,8 +2373,8 @@ TEST_CASE("Load: Window/Monitor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .monitor = 1,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .monitor = 1
                         }
                     }
                 }
@@ -2492,8 +2400,8 @@ TEST_CASE("Load: Window/Monitor", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "monitor": 2,
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "monitor": 2
         }
       ]
     }
@@ -2510,8 +2418,8 @@ TEST_CASE("Load: Window/Monitor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .monitor = 2,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .monitor = 2
                         }
                     }
                 }
@@ -2539,8 +2447,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "none",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "none"
         }
       ]
     }
@@ -2557,8 +2465,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::NoStereo,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::NoStereo
                         }
                     }
                 }
@@ -2584,8 +2492,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "no_stereo",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "no_stereo"
         }
       ]
     }
@@ -2602,8 +2510,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::NoStereo,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::NoStereo
                         }
                     }
                 }
@@ -2629,8 +2537,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "active",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "active"
         }
       ]
     }
@@ -2647,8 +2555,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::Active,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::Active
                         }
                     }
                 }
@@ -2674,8 +2582,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "quadbuffer",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "quadbuffer"
         }
       ]
     }
@@ -2692,8 +2600,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::Active,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::Active
                         }
                     }
                 }
@@ -2719,8 +2627,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "checkerboard",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "checkerboard"
         }
       ]
     }
@@ -2737,8 +2645,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::Checkerboard,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::Checkerboard
                         }
                     }
                 }
@@ -2764,8 +2672,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "checkerboard_inverted",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "checkerboard_inverted"
         }
       ]
     }
@@ -2782,8 +2690,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::CheckerboardInverted,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::CheckerboardInverted
                         }
                     }
                 }
@@ -2809,8 +2717,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "anaglyph_red_cyan",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "anaglyph_red_cyan"
         }
       ]
     }
@@ -2827,8 +2735,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::AnaglyphRedCyan,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::AnaglyphRedCyan
                         }
                     }
                 }
@@ -2854,8 +2762,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "anaglyph_amber_blue",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "anaglyph_amber_blue"
         }
       ]
     }
@@ -2872,8 +2780,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::AnaglyphAmberBlue,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::AnaglyphAmberBlue
                         }
                     }
                 }
@@ -2899,8 +2807,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "anaglyph_wimmer",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "anaglyph_wimmer"
         }
       ]
     }
@@ -2917,8 +2825,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::AnaglyphRedCyanWimmer,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::AnaglyphRedCyanWimmer
                         }
                     }
                 }
@@ -2944,8 +2852,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "vertical_interlaced",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "vertical_interlaced"
         }
       ]
     }
@@ -2962,8 +2870,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::VerticalInterlaced,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::VerticalInterlaced
                         }
                     }
                 }
@@ -2989,8 +2897,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "vertical_interlaced_inverted",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "vertical_interlaced_inverted"
         }
       ]
     }
@@ -3007,8 +2915,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::VerticalInterlacedInverted,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::VerticalInterlacedInverted
                         }
                     }
                 }
@@ -3034,8 +2942,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "test",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "test"
         }
       ]
     }
@@ -3052,8 +2960,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::Dummy,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::Dummy
                         }
                     }
                 }
@@ -3079,8 +2987,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "dummy",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "dummy"
         }
       ]
     }
@@ -3097,8 +3005,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::Dummy,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::Dummy
                         }
                     }
                 }
@@ -3124,8 +3032,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "side_by_side",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "side_by_side"
         }
       ]
     }
@@ -3142,8 +3050,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::SideBySide,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::SideBySide
                         }
                     }
                 }
@@ -3169,8 +3077,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "side_by_side_inverted",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "side_by_side_inverted"
         }
       ]
     }
@@ -3187,8 +3095,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::SideBySideInverted,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::SideBySideInverted
                         }
                     }
                 }
@@ -3214,8 +3122,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "top_bottom",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "top_bottom"
         }
       ]
     }
@@ -3232,8 +3140,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::TopBottom,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::TopBottom
                         }
                     }
                 }
@@ -3259,8 +3167,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "stereo": "top_bottom_inverted",
-          "size": { "x": 640, "y": 480 }
+          "size": { "x": 640, "y": 480 },
+          "stereo": "top_bottom_inverted"
         }
       ]
     }
@@ -3277,8 +3185,8 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .stereo = Window::StereoMode::TopBottomInverted,
-                            .size = ivec2{ 640, 480 }
+                            .size = ivec2{ 640, 480 },
+                            .stereo = Window::StereoMode::TopBottomInverted
                         }
                     }
                 }
@@ -3306,10 +3214,10 @@ TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": false
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3326,10 +3234,10 @@ TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .spout = Window::Spout {
                                 .enabled = false
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3355,10 +3263,10 @@ TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": true
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3375,10 +3283,10 @@ TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .spout = Window::Spout {
                                 .enabled = true
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3406,11 +3314,11 @@ TEST_CASE("Load: Window/Spout/Name", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": true,
             "name": "abc"
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3427,11 +3335,11 @@ TEST_CASE("Load: Window/Spout/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .spout = Window::Spout {
                                 .enabled = true,
                                 .name = "abc"
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3457,11 +3365,11 @@ TEST_CASE("Load: Window/Spout/Name", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": true,
             "name": "123"
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3478,11 +3386,11 @@ TEST_CASE("Load: Window/Spout/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .spout = Window::Spout {
                                 .enabled = true,
                                 .name = "123"
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3510,10 +3418,10 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": false
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3530,10 +3438,10 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .ndi = Window::NDI {
                                 .enabled = false
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3559,10 +3467,10 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3579,10 +3487,10 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .ndi = Window::NDI {
                                 .enabled = true
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3610,11 +3518,11 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
             "name": "abc"
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3631,11 +3539,11 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .name = "abc"
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3661,11 +3569,11 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
             "name": "123"
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3682,11 +3590,11 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .name = "123"
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3714,11 +3622,11 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
             "groups": "abc,def"
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3735,11 +3643,11 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .groups = "abc,def"
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -3765,11 +3673,11 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
       "port": 1,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
             "groups": "123,456"
-          },
-          "size": { "x": 640, "y": 480 }
+          }
         }
       ]
     }
@@ -3786,11 +3694,11 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
+                            .size = ivec2{ 640, 480 },
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .groups = "123,456"
-                            },
-                            .size = ivec2{ 640, 480 }
+                            }
                         }
                     }
                 }
@@ -4199,7 +4107,6 @@ TEST_CASE("Load: Window/Full", "[parse]") {
           "resizable": true,
           "draw2d": true,
           "draw3d": true,
-          "mirror": true,
           "noerror": true,
           "blitwindowid": 1,
           "mirrorx": true,
@@ -4234,6 +4141,9 @@ TEST_CASE("Load: Window/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
+                        .pos = ivec2{ 1, 2 },
+                        .size = ivec2{ 640, 480 },
+                        .resolution = ivec2{ 1, 2 },
                         .id = 0,
                         .name = "def",
                         .tags = { "ghi", "jkl" },
@@ -4251,7 +4161,6 @@ TEST_CASE("Load: Window/Full", "[parse]") {
                         .isResizable = true,
                         .draw2D = true,
                         .draw3D = true,
-                        .isMirrored = true,
                         .noError = true,
                         .blitWindowId = 1,
                         .mirrorX = true,
@@ -4266,10 +4175,7 @@ TEST_CASE("Load: Window/Full", "[parse]") {
                             .enabled = true,
                             .name = "pqr",
                             .groups = "stu,vwx"
-                        },
-                        .pos = ivec2{ 1, 2 },
-                        .size = ivec2{ 640, 480 },
-                        .resolution = ivec2{ 1, 2 }
+                        }
                     }
                 }
             }
@@ -4663,7 +4569,8 @@ TEST_CASE("Validate: Window/MSAA/Wrong Type", "[validate]") {
 }
 
 TEST_CASE("Validate: Window/MSAA/Illegal Value", "[validate]") {
-    constexpr std::string_view Config = R"(
+    {
+        constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -4681,7 +4588,30 @@ TEST_CASE("Validate: Window/MSAA/Illegal Value", "[validate]") {
 }
 )";
 
-    CHECK_THROWS_AS(validate(Config), ParsingError);
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "msaa": 500
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
 }
 
 TEST_CASE("Validate: Window/UseFxaa/Wrong Type", "[validate]") {

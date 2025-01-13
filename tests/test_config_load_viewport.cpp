@@ -1241,16 +1241,15 @@ TEST_CASE("Load: Viewport/Full", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "user": "def",
+              "pos": { "x": 1.0, "y": 2.0 },
+              "size": { "x": 3.0, "y": 4.0 },
               "overlay": "ghi",
               "blendmask": "jkl",
               "blacklevelmask": "mno",
               "mesh": "pqr",
               "tracked": true,
               "eye": "center",
-              "pos": { "x": 1.0, "y": 2.0 },
-              "size": { "x": 3.0, "y": 4.0 }
-              
+              "user": "def"
             }
           ]
         }
@@ -1272,16 +1271,15 @@ TEST_CASE("Load: Viewport/Full", "[parse]") {
                         .size = ivec2{ 640, 480 },
                         .viewports = {
                             Viewport {
-                                .user = "def",
+                                .position = vec2{ 1.f, 2.f },
+                                .size = vec2{ 3.f, 4.f },
                                 .overlayTexture = std::filesystem::absolute("ghi"),
                                 .blendMaskTexture = std::filesystem::absolute("jkl"),
                                 .blackLevelMaskTexture = std::filesystem::absolute("mno"),
                                 .correctionMeshTexture = std::filesystem::absolute("pqr"),
                                 .isTracked = true,
                                 .eye = Viewport::Eye::Mono,
-                                .position = vec2{ 1.f, 2.f },
-                                .size = vec2{ 3.f, 4.f }
-
+                                .user = "def"
                             }
                         }
                     }

@@ -30,7 +30,6 @@ TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -39,7 +38,8 @@ TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
                   "right": 3.0,
                   "up": 4.0
                 }
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -71,8 +71,8 @@ TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
                         .size = ivec2{ 640, 480 },
                         .viewports = {
                             Viewport {
-                                .correctionMeshTexture = std::filesystem::absolute("abc"),
-                                .projection = proj
+                                .projection = proj,
+                                .correctionMeshTexture = std::filesystem::absolute("abc")
                             }
                         }
                     }
@@ -104,7 +104,6 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -114,7 +113,8 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
                   "up": 4.0
                 },
                 "distance": 5.0
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -146,9 +146,9 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
+                                    .projection = proj,
                                     .correctionMeshTexture =
-                                        std::filesystem::absolute("abc"),
-                                    .projection = proj
+                                        std::filesystem::absolute("abc")
                                 }
                             }
                         }
@@ -179,7 +179,6 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -189,7 +188,8 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
                   "up": 9.0
                 },
                 "distance": 10.0
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -222,9 +222,9 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
+                                    .projection = proj,
                                     .correctionMeshTexture =
-                                        std::filesystem::absolute("abc"),
-                                    .projection = proj
+                                        std::filesystem::absolute("abc")
                                 }
                             }
                         }
@@ -257,7 +257,6 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -267,7 +266,8 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
                   "up": 4.0
                 },
                 "orientation": { "w": 4.0, "x": 1.0, "y": 2.0, "z": 3.0 }
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -300,9 +300,9 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
+                                    .projection = proj,
                                     .correctionMeshTexture =
-                                        std::filesystem::absolute("abc"),
-                                    .projection = proj
+                                        std::filesystem::absolute("abc")
                                 }
                             }
                         }
@@ -333,7 +333,6 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -343,7 +342,8 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
                   "up": 9.0
                 },
                 "orientation": { "w": 8.0, "x": 5.0, "y": 6.0, "z": 7.0 }
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -376,9 +376,9 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
+                                    .projection = proj,
                                     .correctionMeshTexture =
-                                        std::filesystem::absolute("abc"),
-                                    .projection = proj
+                                        std::filesystem::absolute("abc")
                                 }
                             }
                         }
@@ -411,7 +411,6 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -421,7 +420,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
                   "up": 4.0
                 },
                 "offset": { "x": 1.0, "y": 2.0, "z": 3.0 }
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -454,9 +454,9 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
+                                    .projection = proj,
                                     .correctionMeshTexture =
-                                        std::filesystem::absolute("abc"),
-                                    .projection = proj
+                                        std::filesystem::absolute("abc")
                                 }
                             }
                         }
@@ -487,7 +487,6 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -497,7 +496,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
                   "up": 9.0
                 },
                 "offset": { "x": 5.0, "y": 6.0, "z": 7.0 }
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -530,9 +530,9 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
                             .size = ivec2{ 640, 480 },
                             .viewports = {
                                 Viewport {
+                                    .projection = proj,
                                     .correctionMeshTexture =
-                                        std::filesystem::absolute("abc"),
-                                    .projection = proj
+                                        std::filesystem::absolute("abc")
                                 }
                             }
                         }
@@ -564,7 +564,6 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "viewports": [
             {
-              "mesh": "abc",
               "projection": {
                 "type": "TextureMappedProjection",
                 "fov": {
@@ -576,7 +575,8 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
                 "distance": 5.0,
                 "orientation": { "w": 6.0, "x": 7.0, "y": 8.0, "z": 9.0 },
                 "offset": { "x": 10.0, "y": 11.0, "z": 12.0 }
-              }
+              },
+              "mesh": "abc"
             }
           ]
         }
@@ -611,8 +611,8 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
                         .size = ivec2{ 640, 480 },
                         .viewports = {
                             Viewport {
-                                .correctionMeshTexture = std::filesystem::absolute("abc"),
-                                .projection = proj
+                                .projection = proj,
+                                .correctionMeshTexture = std::filesystem::absolute("abc")
                             }
                         }
                     }

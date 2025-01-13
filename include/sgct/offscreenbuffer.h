@@ -24,7 +24,7 @@ public:
     explicit OffScreenBuffer(unsigned int internalFormat);
     ~OffScreenBuffer();
 
-    void createFBO(int width, int height, int samples = 1, bool mirrored = false);
+    void createFBO(int width, int height, int samples = 1);
     void resizeFBO(int width, int height, int samples = 1);
 
     /**
@@ -71,7 +71,6 @@ private:
 
     ivec2 _size = ivec2{ -1, -1 };
     bool _isMultiSampled = false;
-    bool _mirror = false;
 };
 
 } // namespace sgct

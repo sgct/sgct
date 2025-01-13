@@ -601,18 +601,23 @@ static void from_json(const nlohmann::json& j, sgct::vec4& v) {
         itY->get_to(v.y);
         itZ->get_to(v.z);
         itW->get_to(v.w);
+        return;
     }
 
     auto itR = j.find("r");
     auto itG = j.find("g");
     auto itB = j.find("b");
     auto itA = j.find("a");
+
     if (itR != j.end() && itG != j.end() && itB != j.end() && itA != j.end()) {
         itR->get_to(v.x);
         itG->get_to(v.y);
         itB->get_to(v.z);
         itA->get_to(v.w);
+        return;
     }
+
+    throw std::runtime_error("Incomplete vec4");
 }
 
 static void to_json(nlohmann::json& j, const sgct::vec4& v) {
@@ -931,6 +936,9 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "devices", t.devices);
     parseValue(j, "offset", t.offset);
 
+    parseValue(j, "scale", t.scale);
+    parseValue(j, "matrix", t.transformation);
+
     if (auto it = j.find("orientation");  it != j.end()) {
         const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
@@ -938,8 +946,6 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
         std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
         t.transformation = o;
     }
-    parseValue(j, "scale", t.scale);
-    parseValue(j, "matrix", t.transformation);
 }
 
 static void to_json(nlohmann::json& j, const Tracker& t) {
@@ -1586,12 +1592,11 @@ static void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "border", w.isDecorated);
     parseValue(j, "resizable", w.isResizable);
-    parseValue(j, "mirror", w.isMirrored);
     parseValue(j, "noerror", w.noError);
     parseValue(j, "blitwindowid", w.blitWindowId);
     parseValue(j, "mirrorx", w.mirrorX);
-    parseValue(j, "monitor", w.monitor);
     parseValue(j, "mirrory", w.mirrorY);
+    parseValue(j, "monitor", w.monitor);
 
     if (auto it = j.find("stereo");  it != j.end()) {
         w.stereo = parseStereoType(it->get<std::string>());
@@ -1714,10 +1719,6 @@ static void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.isResizable.has_value()) {
         j["resizable"] = *w.isResizable;
-    }
-
-    if (w.isMirrored.has_value()) {
-        j["mirror"] = *w.isMirrored;
     }
 
     if (w.noError.has_value()) {

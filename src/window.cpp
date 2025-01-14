@@ -166,11 +166,11 @@ namespace {
             }
 
             // when rendering textures to backbuffer (using fbo)
-            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT);
         }
         else {
-            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
@@ -342,6 +342,7 @@ Window::Window(const config::Window& window)
     , _id(window.id)
     , _hideMouseCursor(window.hideMouseCursor.value_or(false))
     , _takeScreenshot(window.takeScreenshot.value_or(true))
+    , _hasAlpha(window.alpha.value_or(false))
     , _hasCallDraw2DFunction(window.draw2D.value_or(true))
     , _hasCallDraw3DFunction(window.draw3D.value_or(true))
     , _isFullScreen(window.isFullScreen.value_or(false))
@@ -549,7 +550,8 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
             *this,
             ScreenCapture::EyeIndex::Mono,
             bytesPerColor,
-            colorDataType
+            colorDataType,
+            _hasAlpha
         );
     }
     else {
@@ -557,13 +559,15 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
             *this,
             ScreenCapture::EyeIndex::StereoLeft,
             bytesPerColor,
-            colorDataType
+            colorDataType,
+            _hasAlpha
         );
         _screenCaptureRight = std::make_unique<ScreenCapture>(
             *this,
             ScreenCapture::EyeIndex::Mono,
             bytesPerColor,
-            colorDataType
+            colorDataType,
+            _hasAlpha
         );
     }
     _finalFBO = std::make_unique<OffScreenBuffer>(_internalColorFormat);
@@ -1561,7 +1565,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
                 // run scissor test to prevent clearing of entire buffer
                 vp->setupViewport(frustum);
                 glEnable(GL_SCISSOR_TEST);
-                glClearColor(0.f, 0.f, 0.f, 1.f);
+                glClearColor(0.f, 0.f, 0.f, 0.f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_SCISSOR_TEST);
 
@@ -1586,7 +1590,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
 
     // If we did not render anything, make sure we clear the screen at least
     if (!_hasCallDraw3DFunction && _blitWindowId == -1) {
-        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     else if (_blitWindowId != -1) {
@@ -1602,7 +1606,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
         const Window& srcWin = **it;
 
         if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
-            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
@@ -1738,7 +1742,7 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     viewport.setupViewport(mode);
-    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 

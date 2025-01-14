@@ -1565,6 +1565,7 @@ static void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "tags", w.tags);
     parseValue(j, "hidemousecursor", w.hideMouseCursor);
     parseValue(j, "takescreenshot", w.takeScreenshot);
+    parseValue(j, "alpha", w.alpha);
     parseValue(j, "draw2d", w.draw2D);
     parseValue(j, "draw3d", w.draw3D);
 

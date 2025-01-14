@@ -41,7 +41,7 @@ public:
     };
 
     ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei, int bytesPerColor,
-        unsigned int colorDataType);
+        unsigned int colorDataType, bool addAlpha);
     ~ScreenCapture();
 
     /**
@@ -69,12 +69,13 @@ private:
     std::mutex _mutex;
     std::vector<ScreenCaptureThreadInfo> _captureInfos;
 
-    unsigned int _nThreads;
+    const unsigned int _nThreads;
     unsigned int _pbo = 0;
-    unsigned int _downloadType = 0x1401; // GL_UNSIGNED_BYTE;
+    const unsigned int _downloadType;
     int _dataSize = 0;
     ivec2 _resolution = ivec2{ 0, 0 };
-    int _bytesPerColor = 1;
+    const int _bytesPerColor;
+    const bool _addAlpha;
 
     const EyeIndex _eyeIndex;
     const Window& _window;

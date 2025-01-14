@@ -358,6 +358,7 @@ private:
 
     bool _hideMouseCursor;
     bool _takeScreenshot;
+    bool _hasAlpha;
     bool _hasCallDraw2DFunction;
     bool _hasCallDraw3DFunction;
     bool _isFullScreen;

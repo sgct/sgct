@@ -22,10 +22,11 @@
 namespace sgct {
 
 ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
-                             int bytesPerColor, unsigned int colorDataType)
+                             int bytesPerColor, unsigned int colorDataType, bool addAlpha)
     : _nThreads(Engine::instance().settings().capture.nCaptureThreads)
     , _downloadType(colorDataType)
     , _bytesPerColor(bytesPerColor)
+    , _addAlpha(addAlpha)
     , _eyeIndex(ei)
     , _window(window)
 {
@@ -60,7 +61,7 @@ void ScreenCapture::resize(ivec2 resolution) {
 
     _resolution = std::move(resolution);
 
-    constexpr int nChannels = 3;
+    const int nChannels = _addAlpha ? 4 : 3;
     _dataSize = _resolution.x * _resolution.y * nChannels * _bytesPerColor;
 
     const std::unique_lock lock(_mutex);
@@ -124,7 +125,13 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
 
     if (capSrc == CaptureSource::Texture) {
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, _downloadType, nullptr);
+        glGetTexImage(
+            GL_TEXTURE_2D,
+            0,
+            _addAlpha ? GL_BGRA : GL_BGR,
+            _downloadType,
+            nullptr
+        );
     }
     else {
         // set the target framebuffer to read
@@ -144,7 +151,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         const ivec2& s = imPtr->size();
         const GLsizei w = static_cast<GLsizei>(s.x);
         const GLsizei h = static_cast<GLsizei>(s.y);
-        glReadPixels(0, 0, w, h, GL_BGR, _downloadType, nullptr);
+        glReadPixels(0, 0, w, h, _addAlpha ? GL_BGRA : GL_BGR, _downloadType, nullptr);
     }
 
     unsigned char* ptr = reinterpret_cast<unsigned char*>(
@@ -243,7 +250,7 @@ Image* ScreenCapture::prepareImage(int index, std::string file) {
     Log::Debug(std::format("Starting thread for screenshot/capture [{}]", index));
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
-        constexpr int nChannels = 3;
+        const int nChannels = _addAlpha ? 4 : 3;
         _captureInfos[index].frameBufferImage = std::make_unique<Image>();
         _captureInfos[index].frameBufferImage->setBytesPerChannel(_bytesPerColor);
         _captureInfos[index].frameBufferImage->setChannels(nChannels);

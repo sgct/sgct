@@ -95,6 +95,7 @@ public:
     bool isUpdated() const;
     void sendData(const void* data, int length) const;
 
+    static int receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
     /**
      * Iterates the send frame number and returns the new frame number.
      */

@@ -321,48 +321,6 @@ std::condition_variable& Network::startConnectionConditionVar() {
     return _startConnectionCond;
 }
 
-void Network::closeSocket(SGCT_SOCKET socket) {
-    if (socket == INVALID_SOCKET) {
-        return;
-    }
-
-    // set timeout
-    const int timeout = 0; // infinite
-    setsockopt(
-        *socket,
-        SOL_SOCKET,
-        SO_SNDTIMEO,
-        reinterpret_cast<const char*>(&timeout),
-        sizeof(timeout)
-    );
-
-    int sockoptRes = setsockopt(
-        *socket,
-        SOL_SOCKET,
-        SO_REUSEADDR,
-        reinterpret_cast<const char*>(&flag),
-        sizeof(flag)
-    );
-    if (sockoptRes == SOCKET_ERROR) {
-        throw Err(5006, fmt::format("Failed to set reuse address: {}", SGCT_ERRNO));
-    }
-
-    if (type() != Network::ConnectionType::SyncConnection) {
-        // set on all connections types, cluster nodes sends data several times per
-        // second so there is no need so send alive packages
-        int iResult = setsockopt(
-            *socket,
-            SOL_SOCKET,
-            SO_KEEPALIVE,
-            reinterpret_cast<const char*>(&flag),
-            sizeof(flag)
-        );
-        if (iResult == SOCKET_ERROR) {
-            throw Err(5009, fmt::format("Failed to set keep alive: {}", SGCT_ERRNO));
-        }
-    }
-}
-
 void Network::closeSocket(SGCT_SOCKET lSocket) {
     if (lSocket == INVALID_SOCKET) {
         return;
@@ -371,11 +329,11 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
     const std::unique_lock lock(_connectionMutex);
 
 #ifdef WIN32
-    shutdown(socket, SD_BOTH);
-    closesocket(socket);
+    shutdown(lSocket, SD_BOTH);
+    closesocket(lSocket);
 #else // ^^^^ WIN32 // !WIN32 vvvv
-    shutdown(socket, SHUT_RDWR);
-    close(socket);
+    shutdown(lSocket, SHUT_RDWR);
+    close(lSocket);
 #endif // WIN32
 }
 
@@ -489,10 +447,6 @@ void Network::setRecvFrame(int i) {
     _timeStampTotal = time() - _timeStampSend;
 }
 
-int Network::lastError() {
-    return SGCT_ERRNO;
-}
-
 int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
     int attempts = 1;
 
@@ -510,7 +464,7 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
             iResult += tmpRes;
         }
         else if (SGCT_ERRNO == sgctError && attempts <= MaxNumberOfAttempts) {
-            Log::Warning(fmt::format(
+            Log::Warning(std::format(
                 "Receiving data after interrupted system error (attempt {})", attempts
             ));
             attempts++;
@@ -528,7 +482,7 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
 }
 
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
-                           uint32_t& currSize {
+                           uint32_t& currSize) {
     // only grow
     if (reqSize <= currSize) {
         return;

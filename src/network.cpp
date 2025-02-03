@@ -526,7 +526,7 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
     // enough data to fill this, so we should be fine
     return static_cast<int>(iResult);
 }
-<<<<<<< HEAD
+
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
                            uint32_t& currSize {
     // only grow

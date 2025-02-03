@@ -29,9 +29,59 @@ namespace {
     // Helper structs for the visitor pattern of the std::variant on projections
     template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
     template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+    // Taken from Ghoul::stringhelper
+    std::vector<std::string> tokenizeString(const std::string& input, char separator) {
+        size_t separatorPos = input.find(separator);
+        if (separatorPos == std::string::npos) {
+            return { input };
+        }
+        else {
+            std::vector<std::string> res;
+            size_t prevSeparator = 0;
+            while (separatorPos != std::string::npos) {
+                res.push_back(input.substr(prevSeparator, separatorPos - prevSeparator));
+                prevSeparator = separatorPos + 1;
+                separatorPos = input.find(separator, separatorPos + 1);
+            }
+            res.push_back(input.substr(prevSeparator));
+            return res;
+        }
+    }
 } // namespace
 
 namespace sgct::config {
+
+void simplifyIpAddress(std::string& address) {
+    // First convert the address into lowercase characters
+    std::transform(
+        address.cbegin(),
+        address.cend(),
+        address.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
+
+    // Then we should check if we have a true IP address that has extra leading 0s, for
+    // example: 192.168.001.050 which corresponds to 192.168.1.50
+
+    std::vector<std::string> tokens = tokenizeString(address, '.');
+    if (tokens.size() != 4) {
+        // In this case we are not dealing with a IPv4 address
+        return;
+    }
+
+    // Delete 0s from the beginning of each token until there are none left. The check
+    // against an empty string is just a measure to prevent a crash from an invalid
+    // address and should never happen
+    for (std::string& token : tokens) {
+        while (!token.empty() && token.front() == '0') {
+            token.erase(token.begin());
+        }
+    }
+
+    // Reassemble the IP address
+    address = std::format("{}.{}.{}.{}", tokens[0], tokens[1], tokens[2], tokens[3]);
+}
 
 void validateUser(const User& u) {
     if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
@@ -1778,16 +1828,12 @@ static void to_json(nlohmann::json& j, const Window& w) {
 static void from_json(const nlohmann::json& j, Node& n) {
     if (auto it = j.find("address");  it != j.end()) {
         it->get_to(n.address);
-        std::transform(
-            n.address.cbegin(),
-            n.address.cend(),
-            n.address.begin(),
-            [](char c) { return static_cast<char>(::tolower(c)); }
-        );
     }
     else {
         throw Err(6040, "Missing field address in node");
     }
+
+    simplifyIpAddress(n.address);
 
     if (auto it = j.find("port");  it != j.end()) {
         it->get_to(n.port);
@@ -1872,6 +1918,8 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
     else {
         throw Err(6084, "Cannot find master address");
     }
+
+    simplifyIpAddress(c.masterAddress);
 
     parseValue(j, "debuglog", c.debugLog);
     parseValue(j, "threadaffinity", c.threadAffinity);

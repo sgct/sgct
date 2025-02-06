@@ -6,19 +6,21 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-if (SGCT_DEP_INCLUDE_CATCH2)
-  add_subdirectory(catch2)
-  # Catch2 by default compiles with C++14, which leads to some linker errors:
-  # https://github.com/catchorg/Catch2/issues/2046
-  target_compile_features(Catch2 PUBLIC cxx_std_20)
-  target_compile_features(Catch2WithMain PUBLIC cxx_std_20)
-  set_property(TARGET Catch2 PROPERTY FOLDER "External")
-  set_property(TARGET Catch2WithMain PROPERTY FOLDER "External")
-  sgct_register_package(Catch2 Catch2::Catch2)
-elseif (TARGET Catch2::Catch2)
-  sgct_register_package(Catch2 Catch2::Catch2)
-else ()
-  find_package(Catch2 REQUIRED)
+if (SGCT_BUILD_TESTS)
+  if (SGCT_DEP_INCLUDE_CATCH2)
+    add_subdirectory(catch2)
+    # Catch2 by default compiles with C++14, which leads to some linker errors:
+    # https://github.com/catchorg/Catch2/issues/2046
+    target_compile_features(Catch2 PUBLIC cxx_std_20)
+    target_compile_features(Catch2WithMain PUBLIC cxx_std_20)
+    set_property(TARGET Catch2 PROPERTY FOLDER "External")
+    set_property(TARGET Catch2WithMain PROPERTY FOLDER "External")
+    sgct_register_package(Catch2 Catch2::Catch2)
+  elseif (TARGET Catch2::Catch2)
+    sgct_register_package(Catch2 Catch2::Catch2)
+  else ()
+    find_package(Catch2 REQUIRED)
+  endif ()
 endif ()
 
 if (SGCT_DEP_INCLUDE_GLAD)

@@ -77,6 +77,13 @@ void simplifyIpAddress(std::string& address) {
         while (!token.empty() && token.front() == '0') {
             token.erase(token.begin());
         }
+
+        // We might be overzealous and remove all of the characters if an IP address is
+        // just a 0 (for example in 127.0.0.1). So in case a portion ends up empty, we
+        // know that it was just a 0, 00, or 000 to be begin with
+        if (token.empty()) {
+            token = "0";
+        }
     }
 
     // Reassemble the IP address

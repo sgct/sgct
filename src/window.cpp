@@ -325,7 +325,7 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
     };
 
     res.viewports = {
-        config::Viewport{ .projection = proj }
+        config::Viewport{ .projection = proj, .correctionMeshTexture =  path}
     };
 
     EasyBlendSDK_Uninitialize(&mesh);

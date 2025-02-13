@@ -218,39 +218,7 @@ config::Cluster loadCluster(std::optional<std::filesystem::path> path) {
         }
     }
     else {
-        config::PlanarProjection::FOV fov;
-        fov.down = -(90.f / (16.f / 9.f)) / 2.f;
-        fov.left = -90.f / 2.f;
-        fov.right = 90.f / 2.f;
-        fov.up = (90.f / (16.f / 9.f)) / 2.f;
-        config::PlanarProjection proj;
-        proj.fov = fov;
-
-        config::Viewport viewport;
-        viewport.projection = proj;
-
-        config::Window window;
-        window.id = 0;
-        window.isFullScreen = false;
-        window.size = ivec2 { 1280, 720 };
-        window.viewports.push_back(viewport);
-
-        config::Node node;
-        node.address = "localhost";
-        node.port = 20401;
-        node.windows.push_back(window);
-
-        config::User user;
-        user.eyeSeparation = 0.06f;
-        user.position = vec3 { 0.f, 0.f, 0.f };
-
-        config::Cluster res;
-        res.success = true;
-        res.masterAddress = "localhost";
-        res.nodes.push_back(node);
-        res.users.push_back(user);
-
-        return res;
+        return defaultCluster();
     }
 }
 

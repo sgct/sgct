@@ -1467,7 +1467,7 @@ static void from_json(const nlohmann::json& j, Viewport& v) {
     std::string type;
     if (auto it = j.find("projection");  it != j.end()) {
         if (it->is_null()) {
-            v.projection = sgct::config::NoProjection();
+            v.projection = NoProjection();
         }
         else {
             type = it->at("type").get<std::string>();
@@ -1996,6 +1996,7 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 }
 
 } // namespace sgct::config
+
 namespace sgct {
 
 config::Cluster readConfig(const std::filesystem::path& filename) {
@@ -2037,7 +2038,7 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
     }
 }
 
-sgct::config::Cluster readJsonConfig(std::string_view configuration) {
+config::Cluster readJsonConfig(std::string_view configuration) {
     nlohmann::json j = nlohmann::json::parse(configuration);
 
     auto it = j.find("version");
@@ -2045,10 +2046,46 @@ sgct::config::Cluster readJsonConfig(std::string_view configuration) {
         throw std::runtime_error("Missing 'version' information");
     }
 
-    sgct::config::Cluster cluster;
+    config::Cluster cluster;
     from_json(j, cluster);
     cluster.success = true;
     return cluster;
+}
+
+config::Cluster defaultCluster() {
+    config::PlanarProjection::FOV fov;
+    fov.down = -(90.f / (16.f / 9.f)) / 2.f;
+    fov.left = -90.f / 2.f;
+    fov.right = 90.f / 2.f;
+    fov.up = (90.f / (16.f / 9.f)) / 2.f;
+    config::PlanarProjection proj;
+    proj.fov = fov;
+
+    config::Viewport viewport;
+    viewport.projection = proj;
+
+    config::Window window;
+    window.id = 0;
+    window.isFullScreen = false;
+    window.size = ivec2{ 1280, 720 };
+    window.viewports.push_back(viewport);
+
+    config::Node node;
+    node.address = "localhost";
+    node.port = 20401;
+    node.windows.push_back(window);
+
+    config::User user;
+    user.eyeSeparation = 0.06f;
+    user.position = vec3{ 0.f, 0.f, 0.f };
+
+    config::Cluster res;
+    res.success = true;
+    res.masterAddress = "localhost";
+    res.nodes.push_back(node);
+    res.users.push_back(user);
+
+    return res;
 }
 
 std::string serializeConfig(const config::Cluster& cluster,

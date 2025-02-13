@@ -471,6 +471,8 @@ SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(
  */
 SGCT_EXPORT [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 
+SGCT_EXPORT [[nodiscard]] config::Cluster defaultCluster();
+
 /**
  * Serialize the provided \p cluster into its JSON string representation such that parsing
  * the serialized string later with #readJsonConfig will result int the same \p cluster

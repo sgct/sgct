@@ -12,6 +12,7 @@
 #include <sgct/sgctexports.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
+#include <filesystem>
 #include <functional>
 #include <optional>
 #include <string_view>
@@ -448,7 +449,7 @@ private:
     // ScalableMesh
     struct {
         void* sdk = nullptr;
-        std::string path;
+        std::filesystem::path path;
     } _scalableMesh;
 };
 

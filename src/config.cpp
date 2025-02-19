@@ -2137,8 +2137,16 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
             }
         }
     );
-    const std::string configStr = stringifyJsonFile(configuration);
-    const json config = json::parse(configStr);
+    json config;
+    // The configuration passed into us can either be a path to a file that we should load
+    // or the raw string of a configuration
+    if (std::filesystem::is_regular_file(configuration)) {
+        std::string configStr = stringifyJsonFile(configuration);
+        config = json::parse(configStr);
+    }
+    else {
+        config = json::parse(configuration);
+    }
     try {
         validator.validate(config);
         return "";

@@ -324,6 +324,8 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
         static_cast<float>(mesh.Frustum.ZOffset)
     };
 
+    res.scalableMesh = path;
+
     res.viewports = {
         config::Viewport{ .projection = proj }
     };
@@ -423,6 +425,10 @@ Window::Window(const config::Window& window)
         _videoBufferPong.resize(res.x * res.y * 4);
     }
 #endif // SGCT_HAS_NDI
+
+#ifdef SGCT_HAS_SCALABLE
+    _scalableMesh.path = window.scalableMesh.value_or(_scalableMesh.path);
+#endif // SGCT_HAS_SCALABLE
 
     for (const config::Viewport& viewport : window.viewports) {
         auto vp = std::make_unique<Viewport>(viewport, *this);
@@ -784,8 +790,10 @@ void Window::initializeContextSpecific() {
 
 #ifdef SGCT_HAS_SCALABLE
     if (!_scalableMesh.path.empty()) {
+        std::string path = _scalableMesh.path.string();
+        _scalableMesh.sdk = new EasyBlendSDK_Mesh;
         [[maybe_unused]] EasyBlendSDKError err = EasyBlendSDK_Initialize(
-            _scalableMesh.path.c_str(),
+            path.c_str(),
             reinterpret_cast<EasyBlendSDK_Mesh*>(_scalableMesh.sdk)
         );
         // We already loaded the path in the constructor and verified that it works
@@ -1194,7 +1202,7 @@ void Window::makeOpenGLContextCurrent() {
 }
 
 bool Window::needsCompatibilityProfile() const {
-    return _scalableMesh.sdk != nullptr;
+    return !_scalableMesh.path.empty();
 }
 
 bool Window::shouldTakeScreenshot() const {

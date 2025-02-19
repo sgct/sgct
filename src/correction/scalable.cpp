@@ -403,7 +403,6 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             }
             const std::string_view s = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
-
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
                 throw Error(

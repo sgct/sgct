@@ -297,38 +297,66 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
     res.isDecorated = false;
     res.pos = ivec2 { 0, 0 };
     res.size = ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
-
-    // Set projection values
-    config::PlanarProjection proj;
-    proj.fov = {
-        .down = static_cast<float>(mesh.Frustum.BottomAngle),
-        .left = static_cast<float>(mesh.Frustum.LeftAngle),
-        .right = static_cast<float>(mesh.Frustum.RightAngle),
-        .up = static_cast<float>(mesh.Frustum.TopAngle)
-    };
-    double heading = 0.0;
-    double pitch = 0.0;
-    double roll = 0.0;
-    EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
-    // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
-    // right-handed coordinate system
-    const glm::quat q = glm::quat(glm::vec3(
-        glm::radians(-pitch),
-        glm::radians(-heading),
-        glm::radians(roll)
-    ));
-    proj.orientation = quat(q.x, q.y, q.z, q.w);
-    proj.offset = vec3{
-        static_cast<float>(mesh.Frustum.XOffset),
-        static_cast<float>(mesh.Frustum.YOffset),
-        static_cast<float>(mesh.Frustum.ZOffset)
-    };
-
     res.scalableMesh = path;
 
-    res.viewports = {
-        config::Viewport{ .projection = proj }
-    };
+    if (mesh.Projection == EasyBlendSDK_PROJECTION_Perspective) {
+        // If the projection type in the mesh file is PERSPECTIVE, we can extract the
+        // field-of-view values out of the files and create a PlanarProjection with them
+
+        // Set projection values
+        config::PlanarProjection proj;
+        proj.fov = {
+            .down = static_cast<float>(mesh.Frustum.BottomAngle),
+            .left = static_cast<float>(mesh.Frustum.LeftAngle),
+            .right = static_cast<float>(mesh.Frustum.RightAngle),
+            .up = static_cast<float>(mesh.Frustum.TopAngle)
+        };
+        double heading = 0.0;
+        double pitch = 0.0;
+        double roll = 0.0;
+        EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
+        // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
+        // right-handed coordinate system
+        const glm::quat q = glm::quat(glm::vec3(
+            glm::radians(-pitch),
+            glm::radians(-heading),
+            glm::radians(roll)
+        ));
+        proj.orientation = quat(q.x, q.y, q.z, q.w);
+        proj.offset = vec3{
+            static_cast<float>(mesh.Frustum.XOffset),
+            static_cast<float>(mesh.Frustum.YOffset),
+            static_cast<float>(mesh.Frustum.ZOffset)
+        };
+
+        res.viewports = {
+            config::Viewport {.projection = proj }
+        };
+    }
+    else if (mesh.Projection == EasyBlendSDK_PROJECTION_Orthographic) {
+        // If the projection is orthographic, we need to create a fisheye projection
+        // instead
+
+        res.resolution = ivec2{ 4096, 4096 };
+        config::FisheyeProjection proj;
+        proj.background = vec4{ 0.f, 0.f, 0.f, 1.f };
+        res.viewports = {
+            config::Viewport {
+                .projection = proj
+            }
+        };
+
+    }
+    else {
+        throw Error(
+            sgct::Error::Component::Config,
+            1104,
+            std::format(
+                "Could not read ScalableMesh '{}' with error: Unknown projection type {}",
+                path, mesh.Projection
+            )
+        );
+    }
 
     EasyBlendSDK_Uninitialize(&mesh);
 #else // ^^^^ SGCT_HAS_SCALABLE // !SGCT_HAS_SCALABLE vvvv

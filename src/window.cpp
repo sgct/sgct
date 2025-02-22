@@ -274,12 +274,12 @@ unsigned int Window::swapGroupFrameNumber() {
     return frameNumber;
 }
 
-config::Window createScalableConfiguration(std::filesystem::path path) {
+config::Window createScalableConfiguration(const config::Window::Scalable& scalable) {
     config::Window res;
 
 #ifdef SGCT_HAS_SCALABLE
     EasyBlendSDK_Mesh mesh;
-    std::string p = path.string();
+    std::string p = scalable.mesh.string();
     EasyBlendSDKError err = EasyBlendSDK_Initialize(
         p.c_str(),
         &mesh,
@@ -290,14 +290,17 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
         throw Error(
             sgct::Error::Component::Config,
             1104,
-            std::format("Could not read ScalableMesh '{}' with error: {}", path, err)
+            std::format(
+                "Could not read ScalableMesh '{}' with error: {}", scalable.mesh, err
+            )
         );
     }
 
     res.isDecorated = false;
+    res.draw2D = false;
     res.pos = ivec2 { 0, 0 };
     res.size = ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
-    res.scalableMesh = path;
+    res.scalable = scalable;
 
     if (mesh.Projection == EasyBlendSDK_PROJECTION_Perspective) {
         // If the projection type in the mesh file is PERSPECTIVE, we can extract the
@@ -337,9 +340,15 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
         // If the projection is orthographic, we need to create a fisheye projection
         // instead
 
-        res.resolution = ivec2{ 4096, 4096 };
-        config::FisheyeProjection proj;
-        proj.background = vec4{ 0.f, 0.f, 0.f, 1.f };
+        res.resolution = ivec2{
+            scalable.orthographicResolution.value_or(4096),
+            scalable.orthographicResolution.value_or(4096)
+        };
+        config::FisheyeProjection proj = {
+            .quality = scalable.orthographicQuality.value_or(2048),
+            .background = vec4{ 0.f, 0.f, 0.f, 1.f }
+        };
+
         res.viewports = {
             config::Viewport {
                 .projection = proj
@@ -353,7 +362,7 @@ config::Window createScalableConfiguration(std::filesystem::path path) {
             1104,
             std::format(
                 "Could not read ScalableMesh '{}' with error: Unknown projection type {}",
-                path, mesh.Projection
+                scalable.mesh, mesh.Projection
             )
         );
     }
@@ -455,7 +464,9 @@ Window::Window(const config::Window& window)
 #endif // SGCT_HAS_NDI
 
 #ifdef SGCT_HAS_SCALABLE
-    _scalableMesh.path = window.scalableMesh.value_or(_scalableMesh.path);
+    if (window.scalable.has_value()) {
+        _scalableMesh.path = window.scalable->mesh;
+    }
 #endif // SGCT_HAS_SCALABLE
 
     for (const config::Viewport& viewport : window.viewports) {

@@ -354,6 +354,12 @@ struct SGCT_EXPORT Window {
         auto operator<=>(const NDI&) const noexcept = default;
     };
 
+    struct Scalable {
+        std::filesystem::path mesh;
+        std::optional<int> orthographicQuality;
+        std::optional<int> orthographicResolution;
+    };
+
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;
@@ -384,7 +390,7 @@ struct SGCT_EXPORT Window {
     std::optional<StereoMode> stereo;
     std::optional<Spout> spout;
     std::optional<NDI> ndi;
-    std::optional<std::filesystem::path> scalableMesh;
+    std::optional<Scalable> scalable;
 
     auto operator<=>(const Window&) const noexcept = default;
 };

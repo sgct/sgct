@@ -1626,10 +1626,15 @@ static void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "draw2d", w.draw2D);
     parseValue(j, "draw3d", w.draw3D);
 
-    parseValue(j, "scalablemesh", w.scalableMesh);
-    if (w.scalableMesh.has_value()) {
+    std::optional<std::filesystem::path> mesh;
+    parseValue(j, "scalablemesh", mesh);
+    if (mesh) {
+        w.scalable = Window::Scalable();
+        w.scalable->mesh = std::filesystem::current_path() / *mesh;
+        parseValue(j, "scalablemesh_ortho_quality", w.scalable->orthographicQuality);
+        parseValue(j, "scalablemesh_ortho_res", w.scalable->orthographicResolution);
+
         // If we have a scalable mesh, we don't want to parse the rest of the values
-        w.scalableMesh = std::filesystem::current_path() / *w.scalableMesh;
         return;
     }
 
@@ -1821,10 +1826,17 @@ static void to_json(nlohmann::json& j, const Window& w) {
         j["res"] = *w.resolution;
     }
 
-    if (w.scalableMesh.has_value()) {
+    if (w.scalable.has_value()) {
         // We add the current path to the mesh in the loading step, so here we need to
         // remove it again to make the paths patch
-        j["scalablemesh"] = *w.scalableMesh;
+        j["scalablemesh"] = w.scalable->mesh;
+
+        if (w.scalable->orthographicQuality.has_value()) {
+            j["scalable_ortho_quality"] = *w.scalable->orthographicQuality;
+        }
+        if (w.scalable->orthographicResolution.has_value()) {
+            j["scalable_ortho_resolution"] = *w.scalable->orthographicResolution;
+        }
     }
 
     if (!w.viewports.empty()) {

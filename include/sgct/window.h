@@ -453,7 +453,7 @@ private:
     } _scalableMesh;
 };
 
-config::Window createScalableConfiguration(std::filesystem::path path);
+config::Window createScalableConfiguration(const config::Window::Scalable& scalable);
 
 } // namespace sgct
 

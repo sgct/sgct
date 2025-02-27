@@ -358,6 +358,8 @@ struct SGCT_EXPORT Window {
         std::filesystem::path mesh;
         std::optional<int> orthographicQuality;
         std::optional<int> orthographicResolution;
+
+        auto operator<=>(const Scalable&) const noexcept = default;
     };
 
     std::optional<ivec2> pos;

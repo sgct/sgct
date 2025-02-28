@@ -110,7 +110,7 @@ function (set_compile_options target)
 
     "-Wno-missing-braces"
     "-Wno-unknown-pragmas"
-    "-Wc++98-c++11-compat-binary-literal"
+    "-Wno-c++98-c++11-compat-binary-literal"
   )
 
   set(GCC_WARNINGS

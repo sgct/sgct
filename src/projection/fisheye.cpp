@@ -597,15 +597,15 @@ void FisheyeProjection::initShaders() {
     {
         // It would be nice to do a multidimensional switch statement -.-
 
-        constexpr auto tuple = [](bool useOffAxis, bool useDepth,
-                                  bool useNormal, bool usePosition) -> uint16_t
+        constexpr auto tuple = [](bool useOffAxis_, bool useDepth_,
+                                  bool useNormal_, bool usePosition_) -> uint16_t
         {
             // Injective mapping from <bool, bool, bool, bool.> to uint8_t
                 uint8_t value = 0;
-                value |= useOffAxis ? 0b0000 : 0b0001;
-                value |= useDepth ? 0b0000 : 0b0010;
-                value |= useNormal ? 0b0000 : 0b0100;
-                value |= usePosition ? 0b0000 : 0b1000;
+                value |= useOffAxis_ ? 0b0000 : 0b0001;
+                value |= useDepth_ ? 0b0000 : 0b0010;
+                value |= useNormal_ ? 0b0000 : 0b0100;
+                value |= usePosition_ ? 0b0000 : 0b1000;
                 return value;
         };
 

@@ -250,9 +250,6 @@ void validateWindow(const Window& w) {
     if (std::any_of(w.tags.begin(), w.tags.end(), std::mem_fn(&std::string::empty))) {
         throw Error(1101, "Empty tags are not allowed for windows");
     }
-    if (w.monitor && *w.monitor < -1) {
-        throw Error(1103, "Monitor index must be non-negative or -1");
-    }
 
 #ifndef SGCT_HAS_SCALABLE
     if (w.scalable.has_value()) {
@@ -298,9 +295,7 @@ void validateNode(const Node& n) {
         usedIds.push_back(win.id);
 
         if (win.blitWindowId) {
-            if (*win.blitWindowId < 0 ||
-                *win.blitWindowId > std::numeric_limits<int8_t>::max())
-            {
+            if (*win.blitWindowId < 0) {
                 throw Error(1108, "BlitWindowId must be between 0 and 127");
             }
             auto it = std::find_if(

@@ -154,11 +154,11 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glReadPixels(0, 0, w, h, _addAlpha ? GL_BGRA : GL_BGR, _downloadType, nullptr);
     }
 
-    unsigned char* ptr = reinterpret_cast<unsigned char*>(
+    unsigned char* memoryPtr = reinterpret_cast<unsigned char*>(
         glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
     );
-    if (ptr) {
-        std::memcpy(imPtr->data(), ptr, _dataSize);
+    if (memoryPtr) {
+        std::memcpy(imPtr->data(), memoryPtr, _dataSize);
 
         // save the image
         _captureInfos[threadIndex].isRunning = true;

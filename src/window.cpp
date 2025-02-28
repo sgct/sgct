@@ -274,7 +274,9 @@ unsigned int Window::swapGroupFrameNumber() {
     return frameNumber;
 }
 
-config::Window createScalableConfiguration(const config::Window::Scalable& scalable) {
+config::Window createScalableConfiguration([[maybe_unused]]
+                                           const config::Window::Scalable& scalable)
+{
     config::Window res;
 
 #ifdef SGCT_HAS_SCALABLE

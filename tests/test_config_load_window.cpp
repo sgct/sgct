@@ -4016,7 +4016,9 @@ TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .scalableMesh = std::filesystem::current_path() / "abc"
+                            .scalable = Window::Scalable {
+                                .mesh = std::filesystem::current_path() / "abc"
+                            }
                         }
                     }
                 }
@@ -4060,7 +4062,9 @@ TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .scalableMesh = std::filesystem::current_path() / "def"
+                            .scalable = Window::Scalable {
+                                .mesh = std::filesystem::current_path() / "def"
+                            }
                         }
                     }
                 }

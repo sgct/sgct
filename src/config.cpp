@@ -250,15 +250,12 @@ void validateWindow(const Window& w) {
     if (std::any_of(w.tags.begin(), w.tags.end(), std::mem_fn(&std::string::empty))) {
         throw Error(1101, "Empty tags are not allowed for windows");
     }
-    if (w.msaa && *w.msaa < 0 && *w.msaa >= std::numeric_limits<uint8_t>::max()) {
-        throw Error(1102, "Number of MSAA samples must be between 0 and 127");
-    }
     if (w.monitor && *w.monitor < -1) {
         throw Error(1103, "Monitor index must be non-negative or -1");
     }
 
 #ifndef SGCT_HAS_SCALABLE
-    if (w.scalableMesh) {
+    if (w.scalable.has_value()) {
         throw Error(1004, "Tried to load ScalableMesh without SGCT support");
     }
 #endif // SGCT_HAS_SCALABLE

@@ -33,7 +33,7 @@ target_sources(
     test_config_load_window.cpp
 )
 
-target_compile_features(SGCTTest PRIVATE cxx_std_20)
+target_compile_features(SGCTTest PRIVATE cxx_std_23)
 target_compile_definitions(SGCTTest PUBLIC BASE_PATH="${PROJECT_SOURCE_DIR}")
 
 if (MSVC)

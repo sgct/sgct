@@ -971,7 +971,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 
     // check if swapgroups are supported
 #ifdef WIN32
-    const bool hasSwapGroup = glfwExtensionSupported("WGL_NV_swap_group");
+    const bool hasSwapGroup = glfwExtensionSupported("WGL_NV_swap_group") == GLFW_TRUE;
     Log::Info(
         hasSwapGroup ?
         "Swap groups are supported by hardware" :

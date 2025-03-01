@@ -11,8 +11,8 @@ if (SGCT_BUILD_TESTS)
     add_subdirectory(catch2)
     # Catch2 by default compiles with C++14, which leads to some linker errors:
     # https://github.com/catchorg/Catch2/issues/2046
-    target_compile_features(Catch2 PUBLIC cxx_std_20)
-    target_compile_features(Catch2WithMain PUBLIC cxx_std_20)
+    target_compile_features(Catch2 PUBLIC cxx_std_23)
+    target_compile_features(Catch2WithMain PUBLIC cxx_std_23)
     set_property(TARGET Catch2 PROPERTY FOLDER "External")
     set_property(TARGET Catch2WithMain PROPERTY FOLDER "External")
     sgct_register_package(Catch2 Catch2::Catch2)

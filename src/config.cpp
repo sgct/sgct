@@ -1123,11 +1123,11 @@ static void to_json(nlohmann::json& j, const PlanarProjection& p) {
 }
 
 static void from_json(const nlohmann::json& j, TextureMappedProjection& p) {
-    from_json(j, reinterpret_cast<PlanarProjection&>(p));
+    from_json(j, static_cast<PlanarProjection&>(p));
 }
 
 static void to_json(nlohmann::json& j, const TextureMappedProjection& p) {
-    to_json(j, reinterpret_cast<const PlanarProjection&>(p));
+    to_json(j, static_cast<const PlanarProjection&>(p));
 }
 
 static void from_json(const nlohmann::json& j, FisheyeProjection& p) {

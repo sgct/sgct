@@ -57,7 +57,6 @@ namespace {
 
 #ifdef WIN32
 #pragma warning(pop)
-#pragma warning(push)
 #pragma warning(disable : 4611)
 #endif // WIN32
 

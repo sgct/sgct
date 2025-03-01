@@ -271,7 +271,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.label = std::string(rest);
         }
         else if (first == "APPLY_MASK") {
-            data.applyMask = std::stoi(std::string(rest));
+            data.applyMask = std::stoi(std::string(rest)) != 0;
             if (data.applyMask) {
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply a mask. Currently this is handled "
@@ -281,7 +281,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             }
         }
         else if (first == "APPLY_BLACK_LEVEL") {
-            data.applyBlackLevel = std::stoi(std::string(rest));
+            data.applyBlackLevel = std::stoi(std::string(rest)) != 0;
             if (data.applyBlackLevel) {
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply a blacklevel image. Currently this is "
@@ -291,7 +291,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             }
         }
         else if (first == "APPLY_COLOR") {
-            data.applyColor = std::stoi(std::string(rest));
+            data.applyColor = std::stoi(std::string(rest)) != 0;
             if (data.applyBlackLevel) {
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply an overlay image. Currently this is "

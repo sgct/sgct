@@ -7,7 +7,9 @@
 ##########################################################################################
 
 function (set_compile_options target)
-  target_compile_features(${target} PRIVATE cxx_std_23)
+  # Switching to cxx_std_23 triggers a bug in Clang17
+  # https://github.com/llvm/llvm-project/issues/61415
+  target_compile_features(${target} PRIVATE cxx_std_20)
 
   set(MSVC_WARNINGS
     "/MP"       # Multi-threading support

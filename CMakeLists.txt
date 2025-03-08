@@ -45,6 +45,10 @@ if (WIN32)
   option(SGCT_NDI_SUPPORT "SGCT NDI Support" ON)
 endif ()
 
+if (WIN32)
+  option(SGCT_GSTREAMER_SUPPORT "SGCT GStreamer support" OFF)
+endif ()
+
 # Exceptions for external libraries
 option(SGCT_DEP_INCLUDE_CATCH2 "Include Catch2 library" ON)
 option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)

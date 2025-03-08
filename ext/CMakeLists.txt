@@ -241,7 +241,7 @@ else ()
   find_package(nlohmann_json_schema_validator REQUIRED)
 endif ()
 
-if (SGCT_DEP_INCLUDE_SCALABLE)
+if (SGCT_DEP_INCLUDE_SCALABLE AND WIN32)
   add_subdirectory(scalable SYSTEM)
 endif ()
 

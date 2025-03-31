@@ -1,5 +1,6 @@
 # (abock, 2022-07-04) Modified the required version to suppress CMake deprecation warning
-cmake_minimum_required(VERSION 2.9.0)
+# (abock, 2025-03-31) Modified the required version to make it configure with CMake 4.0
+cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")

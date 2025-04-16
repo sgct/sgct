@@ -44,7 +44,6 @@ else ()
   target_compile_options(SGCTTest PRIVATE "-O0")
 endif ()
 
-find_package(nlohmann_json REQUIRED)
 find_package(glm REQUIRED)
 find_package(Catch2 REQUIRED)
 

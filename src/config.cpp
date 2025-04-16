@@ -14,7 +14,14 @@
 #include <sgct/profiling.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#define JSON_HAS_CPP_11
+#define JSON_HAS_CPP_14
+#define JSON_HAS_CPP_17
+#define JSON_HAS_CPP_20
+#define JSON_USE_IMPLICIT_CONVERSIONS 0
 #include <nlohmann/json.hpp>
+
 #include <nlohmann/json-schema.hpp>
 #include <algorithm>
 #include <cassert>

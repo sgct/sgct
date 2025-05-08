@@ -497,9 +497,9 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         if (_noError) {
             glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
         }
-
 #ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+        glfwWindowHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
 #endif // __APPLE__
         if (!_isVisible) {
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);

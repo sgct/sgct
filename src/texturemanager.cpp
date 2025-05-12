@@ -68,11 +68,21 @@ namespace {
                 GL_TEXTURE_MAG_FILTER,
                 interpolate ? GL_LINEAR : GL_NEAREST
             );
-            glTexParameterf(
-                GL_TEXTURE_2D,
-                GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                anisotropicFilterSize
-            );
+
+            // GL_TEXTURE_MAX_ANISOTROPY is no longer an extension, but a core feature in OpenGL 4.0
+            #ifdef GL_TEXTURE_MAX_ANISOTROPY
+                glTexParameterf(
+                    GL_TEXTURE_2D,
+                    GL_TEXTURE_MAX_ANISOTROPY,
+                    anisotropicFilterSize
+                );
+            #else
+                glTexParameterf(
+                    GL_TEXTURE_2D,
+                    GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                    anisotropicFilterSize
+                );
+            #endif
         }
         else {
             glTexParameteri(

@@ -21,6 +21,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <sgct/format_compat.h>
 
 namespace sgct {
 
@@ -62,7 +63,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
 #endif
 
     if (parent == nullptr) {
-        Log::Error(std::format("Error getting handle to tracker for device '{}'", _name));
+        Log::Error(sgctcompat::format("Error getting handle to tracker for device '{}'", _name));
         return;
     }
 

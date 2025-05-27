@@ -12,9 +12,15 @@ enable_testing()
 
 project(sgct VERSION 3.0.0)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+function(add_submodule name)
+  add_subdirectory(${name})
+endfunction()
 
 include(support/cmake/register_package.cmake)
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
@@ -24,8 +30,9 @@ list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_BINARY_DIR}/pkg
 )
 
+# set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15") - we want a more recent version
 if (APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+  find_package(fmt REQUIRED)  
   if (NOT CMAKE_OSX_ARCHITECTURES)
     set(CMAKE_OSX_ARCHITECTURES "x86_64")
   endif ()

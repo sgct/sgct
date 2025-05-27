@@ -24,6 +24,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <sgct/format_compat.h>
 
 
 namespace {
@@ -79,7 +80,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {
-        Log::Info(std::format(
+        Log::Info(sgctcompat::format(
             "Spout: Initing {}x{} texture from '{}'", width, height, senderName
         ));
         initialized = true;

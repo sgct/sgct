@@ -240,10 +240,11 @@ target_compile_definitions(sgct
 if (WIN32)
   target_link_libraries(sgct PRIVATE ws2_32)
 elseif (APPLE)
+  find_package(fmt REQUIRED)
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)
   find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
-  target_link_libraries(sgct PRIVATE ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+  target_link_libraries(sgct PRIVATE fmt::fmt ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
 else () # Linux
   find_package(X11 REQUIRED)
   find_package(Threads REQUIRED)

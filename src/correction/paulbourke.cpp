@@ -18,6 +18,7 @@
 #include <glm/glm.hpp>
 #include <scn/scan.h>
 #include <fstream>
+#include <sgct/format_compat.h>
 
 namespace sgct::correction {
 
@@ -28,13 +29,13 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
 
     Buffer buf;
 
-    Log::Info(std::format("Reading Paul Bourke spherical mirror mesh from '{}'", path));
+    Log::Info(sgctcompat::format("Reading Paul Bourke spherical mirror mesh from '{}'", path));
 
     std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::PaulBourke, 2040,
-            std::format("Failed to open '{}'", path)
+            sgctcompat::format("Failed to open '{}'", path)
         );
     }
 
@@ -46,7 +47,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
         if (!r) {
             throw Error(
                 Error::Component::PaulBourke, 2041,
-                std::format("Error reading mapping type in file '{}'", path)
+                sgctcompat::format("Error reading mapping type in file '{}'", path)
             );
         }
     }
@@ -58,7 +59,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
         if (!r) {
             throw Error(
                 Error::Component::PaulBourke, 2042,
-                std::format("Invalid data in file '{}'", path)
+                sgctcompat::format("Invalid data in file '{}'", path)
             );
         }
         const auto& [valX, valY] = r->values();

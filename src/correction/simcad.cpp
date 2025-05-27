@@ -17,6 +17,7 @@
 #include <sgct/viewport.h>
 #include <glm/glm.hpp>
 #include <sstream>
+#include <sgct/format_compat.h>
 
 #define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
 
@@ -45,21 +46,21 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
 
     Buffer buf;
 
-    Log::Info(std::format("Reading simcad warp data from '{}'", path));
+    Log::Info(sgctcompat::format("Reading simcad warp data from '{}'", path));
 
     tinyxml2::XMLDocument xmlDoc;
     const std::string p = path.string();
     if (xmlDoc.LoadFile(p.c_str()) != tinyxml2::XML_SUCCESS) {
         std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
         std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
-        throw Error(2080, std::format("Error loading file {}. {} {}", path, s1, s2));
+        throw Error(2080, sgctcompat::format("Error loading file {}. {} {}", path, s1, s2));
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
         throw Error(
             2081,
-            std::format("Error reading file '{}'. Missing 'GeometryFile'", path)
+            sgctcompat::format("Error reading file '{}'. Missing 'GeometryFile'", path)
         );
     }
 
@@ -68,7 +69,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     if (element == nullptr) {
         throw Error(
             2082,
-            std::format("Error reading file '{}'. Missing 'GeometryDefinition'", path)
+            sgctcompat::format("Error reading file '{}'. Missing 'GeometryDefinition'", path)
         );
     }
 

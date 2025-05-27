@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <sgct/format_compat.h>
 
 namespace sgct {
 
@@ -116,7 +117,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
                                        unsigned int type)
 {
     generateCubeMap(_textures.cubeMapColor, internalFormat, format, type);
-    Log::Debug(std::format(
+    Log::Debug(sgctcompat::format(
         "{}x{} color cube map texture (id: {}) generated",
         _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapColor
     ));
@@ -128,7 +129,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
             GL_DEPTH_COMPONENT,
             GL_FLOAT
         );
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "{}x{} depth cube map texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapDepth
         ));
@@ -141,13 +142,13 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
                 GL_DEPTH_COMPONENT,
                 GL_FLOAT
             );
-            Log::Debug(std::format(
+            Log::Debug(sgctcompat::format(
                 "{}x{} depth swap map texture (id: {}) generated",
                 _cubemapResolution.x, _cubemapResolution.y, _textures.depthSwap
             ));
 
             generateMap(_textures.colorSwap, internalFormat, format, type);
-            Log::Debug(std::format(
+            Log::Debug(sgctcompat::format(
                 "{}x{} color swap map texture (id: {}) generated",
                 _cubemapResolution.x, _cubemapResolution.y, _textures.colorSwap
             ));
@@ -156,7 +157,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
 
     if (Engine::instance().settings().useNormalTexture) {
         generateCubeMap(_textures.cubeMapNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "{}x{} normal cube map texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapNormals
         ));
@@ -164,7 +165,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
 
     if (Engine::instance().settings().usePositionTexture) {
         generateCubeMap(_textures.cubeMapPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "{}x{} position cube map texture ({}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapPositions
         ));
@@ -196,12 +197,12 @@ void NonLinearProjection::generateMap(unsigned int& texture, unsigned int intern
     GLint maxMapRes = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
     if (_cubemapResolution.x > maxMapRes) {
-        Log::Error(std::format(
+        Log::Error(sgctcompat::format(
             "Requested size is too big ({} > {})", _cubemapResolution.x, maxMapRes
         ));
     }
     if (_cubemapResolution.y > maxMapRes) {
-        Log::Error(std::format(
+        Log::Error(sgctcompat::format(
             "Requested size is too big ({} > {})", _cubemapResolution.y, maxMapRes
         ));
     }
@@ -245,11 +246,11 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapRes);
     if (_cubemapResolution.x > maxCubeMapRes) {
         _cubemapResolution.x = maxCubeMapRes;
-        Log::Debug(std::format("Cubemap size set to max size: {}", maxCubeMapRes));
+        Log::Debug(sgctcompat::format("Cubemap size set to max size: {}", maxCubeMapRes));
     }
     if (_cubemapResolution.y > maxCubeMapRes) {
         _cubemapResolution.y = maxCubeMapRes;
-        Log::Debug(std::format("Cubemap size set to max size: {}", maxCubeMapRes));
+        Log::Debug(sgctcompat::format("Cubemap size set to max size: {}", maxCubeMapRes));
     }
 
 

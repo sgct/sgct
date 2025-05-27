@@ -57,6 +57,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <sgct/format_compat.h>
 
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
@@ -209,14 +210,14 @@ void Window::initNvidiaSwapGroups() {
         if (res == GL_FALSE) {
             throw Err(3006, "Error requesting maximum number of swap groups");
         }
-        Log::Info(std::format(
+        Log::Info(sgctcompat::format(
             "WGL_NV_swap_group extension is supported. Max number of groups: {}. "
             "Max number of barriers: {}", maxGroup, maxBarrier
         ));
 
         if (maxGroup > 0) {
             _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Joining swapgroup 1 [{}]", _useSwapGroups ? "ok" : "failed"
             ));
         }
@@ -292,7 +293,7 @@ config::Window createScalableConfiguration([[maybe_unused]]
         throw Error(
             sgct::Error::Component::Config,
             1104,
-            std::format(
+            sgctcompat::format(
                 "Could not read ScalableMesh '{}' with error: {}", scalable.mesh, err
             )
         );
@@ -362,7 +363,7 @@ config::Window createScalableConfiguration([[maybe_unused]]
         throw Error(
             sgct::Error::Component::Config,
             1104,
-            std::format(
+            sgctcompat::format(
                 "Could not read ScalableMesh '{}' with error: Unknown projection type {}",
                 scalable.mesh, mesh.Projection
             )
@@ -508,7 +509,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     if (_stereoMode == StereoMode::Active) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Log::Info(std::format("Window {}: Enabling quadbuffered rendering", _id));
+        Log::Info(sgctcompat::format("Window {}: Enabling quadbuffered rendering", _id));
     }
 
     GLFWmonitor* mon = nullptr;
@@ -523,7 +524,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         else {
             mon = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                Log::Info(std::format(
+                Log::Info(sgctcompat::format(
                     "Window({}): Invalid monitor index ({}). Computer has {} monitors",
                     _id, _monitorIndex, count
                 ));
@@ -660,7 +661,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         );
     }
 
-    const std::string title = std::format(
+    const std::string title = sgctcompat::format(
         "SGCT node: {} ({}: {})",
         ClusterManager::instance().thisNode().address(),
         (NetworkManager::instance().isComputerServer() ? "server" : "client"),
@@ -708,22 +709,22 @@ void Window::closeWindow() {
 
     makeSharedContextCurrent();
 
-    Log::Info(std::format("Deleting screen capture data for window {}", _id));
+    Log::Info(sgctcompat::format("Deleting screen capture data for window {}", _id));
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
+        Log::Info(sgctcompat::format("Releasing OpenGL buffers for window {}", _id));
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Log::Info(std::format("Deleting VBOs for window {}", _id));
+    Log::Info(sgctcompat::format("Deleting VBOs for window {}", _id));
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Log::Info(std::format("Deleting VAOs for window {}", _id));
+    Log::Info(sgctcompat::format("Deleting VAOs for window {}", _id));
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -761,7 +762,7 @@ void Window::initialize() {
 
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
 
-    Log::Debug(std::format(
+    Log::Debug(sgctcompat::format(
         "Window {}: FBO initiated successfully. Number of samples: {}",
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     ));
@@ -795,7 +796,7 @@ void Window::initialize() {
             );
         }
         if (!success) {
-            Log::Error(std::format("Error creating SPOUT handle for {}", _spoutName));
+            Log::Error(sgctcompat::format("Error creating SPOUT handle for {}", _spoutName));
         }
     }
 #endif // SGCT_HAS_SPOUT
@@ -856,7 +857,7 @@ void Window::updateResolutions() {
         // adjusting only the horizontal (x) values
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Log::Debug(std::format(
+            Log::Debug(sgctcompat::format(
                 "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
             ));
         }
@@ -865,7 +866,7 @@ void Window::updateResolutions() {
         // Redraw window
         glfwSetWindowSize(_windowHandle, _windowRes->x, _windowRes->y);
 
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "Resolution changed to {}x{} in window {}", _windowRes->x, _windowRes->y, _id
         ));
         _pendingWindowRes = std::nullopt;
@@ -894,7 +895,7 @@ void Window::updateResolutions() {
     if (_pendingFramebufferRes) {
         _framebufferRes = *_pendingFramebufferRes;
 
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "Framebuffer resolution changed to {}x{} for window {}",
             _framebufferRes.x, _framebufferRes.y, _id
         ));
@@ -1127,7 +1128,7 @@ void Window::renderFBOTexture() {
             _framebufferRes.y
         );
         if (!s) {
-            Log::Error(std::format("Error sending Spout texture for '{}'", _spoutName));
+            Log::Error(sgctcompat::format("Error sending Spout texture for '{}'", _spoutName));
         }
     }
 #endif // SGCT_HAS_SPOUT
@@ -1398,7 +1399,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Log::Debug(std::format("HFOV changed to {} for window {}", hFovDeg, _id));
+    Log::Debug(sgctcompat::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
 float Window::horizFieldOfViewDegrees() const {
@@ -1433,7 +1434,7 @@ void Window::createTextures() {
     GLint max = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error(std::format(
+        Log::Error(sgctcompat::format(
             "Window {}: Requested framebuffer too big (Max: {})", _id, max
         ));
         return;
@@ -1458,7 +1459,7 @@ void Window::createTextures() {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
+    Log::Debug(sgctcompat::format("Targets initialized successfully for window {}", _id));
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1498,7 +1499,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         std::get<2>(formats),
         nullptr
     );
-    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
+    Log::Debug(sgctcompat::format("{}x{} texture generated for window {}", res.x, res.y, id));
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

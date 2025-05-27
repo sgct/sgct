@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <sgct/format_compat.h>
 
 #define Error(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 
@@ -254,7 +255,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
 
     _warpGeometry = CorrectionMeshGeometry(buf);
 
-    Log::Debug(std::format(
+    Log::Debug(sgctcompat::format(
         "CorrectionMesh read successfully. Vertices={}, Indices={}",
         buf.vertices.size(), buf.indices.size()
     ));

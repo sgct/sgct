@@ -17,6 +17,7 @@
 #include <scn/scan.h>
 #include <algorithm>
 #include <fstream>
+#include <sgct/format_compat.h>
 
 namespace sgct::correction {
 
@@ -25,13 +26,13 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
 {
     ZoneScoped;
 
-    Log::Info(std::format("Reading DomeProjection mesh data from '{}'", path));
+    Log::Info(sgctcompat::format("Reading DomeProjection mesh data from '{}'", path));
 
     std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
         throw Error(
             Error::Component::DomeProjection, 2010,
-            std::format("Failed to open '{}'", path)
+            sgctcompat::format("Failed to open '{}'", path)
         );
     }
 

@@ -27,6 +27,7 @@
 
 #include <array>
 #include <optional>
+#include <sgct/format_compat.h>
 
 namespace {
     struct GlyphData {
@@ -291,7 +292,7 @@ void Font::createCharacter(char c) {
         _fontFaceData[c] = std::move(*ffd);
     }
     else {
-        Log::Error(std::format("Error creating character {}", c));
+        Log::Error(sgctcompat::format("Error creating character {}", c));
     }
 }
 

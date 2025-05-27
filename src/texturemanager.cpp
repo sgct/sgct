@@ -13,6 +13,7 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <algorithm>
+#include <sgct/format_compat.h>
 
 namespace {
     unsigned int uploadImage(const sgct::Image& img, bool interpolate, int mipmap,
@@ -32,7 +33,7 @@ namespace {
             }
         }(img.channels());
 
-        sgct::Log::Debug(std::format(
+        sgct::Log::Debug(sgctcompat::format(
             "Creating texture. Size: {}x{}, {}-channels, Type: {:#04x}, Format: {:#04x}",
             img.size().x, img.size().y, img.channels(), type, internalFormat
         ));
@@ -143,7 +144,7 @@ unsigned int TextureManager::loadTexture(const std::filesystem::path& filename,
         anisotropicFilterSize,
         mipmapLevels
     );
-    Log::Debug(std::format("Texture created from '{}' [id={}]", filename, t));
+    Log::Debug(sgctcompat::format("Texture created from '{}' [id={}]", filename, t));
     return t;
 }
 

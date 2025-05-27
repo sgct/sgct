@@ -12,6 +12,7 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <algorithm>
+#include <sgct/format_compat.h>
 
 // @TODO (abock, 2020-01-07) It would probably be better to only create a single offscreen
 // buffer of the maximum window size and reuse that between all windows.  That way we
@@ -85,7 +86,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             samples = 0;
         }
 
-        Log::Debug(std::format("Max samples supported: {}", maxSamples));
+        Log::Debug(sgctcompat::format("Max samples supported: {}", maxSamples));
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -191,14 +192,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     );
 
     if (_isMultiSampled) {
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "Created {}x{} buffers: FBO id={}  Multisample FBO id={}"
             "RBO depth buffer id={}  RBO color buffer id={}", width, height,
             _frameBuffer, _multiSampledFrameBuffer, _depthBuffer, _colorBuffer
         ));
     }
     else {
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "Created {}x{} buffers: FBO id={}  RBO Depth buffer id={}",
             width, height, _frameBuffer, _depthBuffer
         ));

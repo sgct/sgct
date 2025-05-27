@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <numeric>
 #include <thread>
+#include <sgct/format_compat.h>
 
 namespace {
     struct {
@@ -351,7 +352,7 @@ void initializeBox() {
     ImageData front;
     front.filename = "test-pattern-0.png";
     if (!std::filesystem::exists(front.filename)) {
-        Log::Error(std::format("Could not find image '{}'", front.filename));
+        Log::Error(sgctcompat::format("Could not find image '{}'", front.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t1(loadImage, std::ref(front));
@@ -359,7 +360,7 @@ void initializeBox() {
     ImageData right;
     right.filename = "test-pattern-1.png";
     if (!std::filesystem::exists(right.filename)) {
-        Log::Error(std::format("Could not find image '{}'", right.filename));
+        Log::Error(sgctcompat::format("Could not find image '{}'", right.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t2(loadImage, std::ref(right));
@@ -367,7 +368,7 @@ void initializeBox() {
     ImageData back;
     back.filename = "test-pattern-2.png";
     if (!std::filesystem::exists(back.filename)) {
-        Log::Error(std::format("Could not find image '{}'", back.filename));
+        Log::Error(sgctcompat::format("Could not find image '{}'", back.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t3(loadImage, std::ref(back));
@@ -375,7 +376,7 @@ void initializeBox() {
     ImageData left;
     left.filename = "test-pattern-3.png";
     if (!std::filesystem::exists(left.filename)) {
-        Log::Error(std::format("Could not find image '{}'", left.filename));
+        Log::Error(sgctcompat::format("Could not find image '{}'", left.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t4(loadImage, std::ref(left));
@@ -383,7 +384,7 @@ void initializeBox() {
     ImageData top;
     top.filename = "test-pattern-4.png";
     if (!std::filesystem::exists(top.filename)) {
-        Log::Error(std::format("Could not find image '{}'", top.filename));
+        Log::Error(sgctcompat::format("Could not find image '{}'", top.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t5(loadImage, std::ref(top));
@@ -391,7 +392,7 @@ void initializeBox() {
     ImageData bottom;
     bottom.filename = "test-pattern-5.png";
     if (!std::filesystem::exists(bottom.filename)) {
-        Log::Error(std::format("Could not find image '{}'", bottom.filename));
+        Log::Error(sgctcompat::format("Could not find image '{}'", bottom.filename));
         exit(EXIT_FAILURE);
     }
     std::thread t6(loadImage, std::ref(bottom));
@@ -556,7 +557,7 @@ void draw2D(const RenderData& data) {
 void postDraw() {
     if (runTests) {
         frameNumber++;
-        Log::Info(std::format("Frame: {}", frameNumber));
+        Log::Info(sgctcompat::format("Frame: {}", frameNumber));
     }
 
     if (Engine::instance().isMaster() && runTests) {

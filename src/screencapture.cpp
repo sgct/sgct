@@ -18,6 +18,7 @@
 #include <sgct/window.h>
 #include <cstring>
 #include <string>
+#include <sgct/format_compat.h>
 
 namespace sgct {
 
@@ -37,7 +38,7 @@ ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
         _captureInfos[i].mutex = &_mutex;
         _captureInfos[i].isRunning = false;
     }
-    Log::Debug(std::format("Number of screencapture threads is set to {}", _nThreads));
+    Log::Debug(sgctcompat::format("Number of screencapture threads is set to {}", _nThreads));
 }
 
 ScreenCapture::~ScreenCapture() {
@@ -78,7 +79,7 @@ void ScreenCapture::resize(ivec2 resolution) {
     }
 
     glGenBuffers(1, &_pbo);
-    Log::Debug(std::format(
+    Log::Debug(sgctcompat::format(
         "Generating {}x{}x{} PBO: {}", _resolution.x, _resolution.y, nChannels, _pbo
     ));
 
@@ -96,7 +97,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         uint64_t end = Engine::instance().settings().capture.limits->second;
 
         if (number < begin || number >= end) {
-            Log::Debug(std::format(
+            Log::Debug(sgctcompat::format(
                 "Skipping screenshot {} outside range [{}, {}]", number, begin, end
             ));
             return;
@@ -198,7 +199,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
 
     std::array<char, 6> Buffer = {};
     std::fill(Buffer.begin(), Buffer.end(), '\0');
-    std::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
+    sgctcompat::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
     std::filesystem::path file;
     if (!Engine::instance().settings().capture.capturePath.empty()) {
@@ -211,11 +212,11 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     if (Engine::instance().settings().capture.addNodeName &&
         ClusterManager::instance().numberOfNodes() > 1)
     {
-        file += std::format("node{}_", ClusterManager::instance().thisNodeId());
+        file += sgctcompat::format("node{}_", ClusterManager::instance().thisNodeId());
     }
     if (Engine::instance().settings().capture.addWindowName) {
         file +=
-            _window.name().empty() ? std::format("win{}", _window.id()) : _window.name();
+            _window.name().empty() ? sgctcompat::format("win{}", _window.id()) : _window.name();
         file += '_';
     }
 
@@ -223,7 +224,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return std::format("{}{}.png", file, std::string(Buffer.begin(), Buffer.end()));
+    return sgctcompat::format("{}{}.png", file, std::string(Buffer.begin(), Buffer.end()));
 }
 
 int ScreenCapture::availableCaptureThread() {
@@ -247,7 +248,7 @@ int ScreenCapture::availableCaptureThread() {
 }
 
 Image* ScreenCapture::prepareImage(int index, std::string file) {
-    Log::Debug(std::format("Starting thread for screenshot/capture [{}]", index));
+    Log::Debug(sgctcompat::format("Starting thread for screenshot/capture [{}]", index));
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
         const int nChannels = _addAlpha ? 4 : 3;

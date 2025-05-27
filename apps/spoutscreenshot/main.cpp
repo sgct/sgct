@@ -17,6 +17,7 @@
 #define NOMINMAX
 #endif
 #include <SpoutLibrary.h>
+#include <sgct/format_compat.h>
 
 namespace {
     struct {
@@ -59,7 +60,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        Log::Info(std::format(
+        Log::Info(sgctcompat::format(
             "Spout: Initing {}x{} texture from '{}'", width, height, sender
         ));
         initialized = true;

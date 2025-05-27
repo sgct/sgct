@@ -13,6 +13,7 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <algorithm>
+#include <sgct/format_compat.h>
 
 #define Error(code, msg) Error(Error::Component::Shader, code, msg)
 
@@ -45,7 +46,7 @@ void ShaderManager::addShaderProgram(std::string name, std::string_view vertexSr
     if (shaderProgramExists(name)) {
         throw Error(
             7000,
-            std::format("Cannot add shader program '{}': Already exists", name)
+            sgctcompat::format("Cannot add shader program '{}': Already exists", name)
         );
     }
 
@@ -66,7 +67,7 @@ bool ShaderManager::removeShaderProgram(std::string_view name) {
 
     if (shaderIt == _shaderPrograms.end()) {
         Log::Warning(
-            std::format("Unable to remove shader program '{}': Not found", name)
+            sgctcompat::format("Unable to remove shader program '{}': Not found", name)
         );
         return false;
     }
@@ -84,7 +85,7 @@ const ShaderProgram& ShaderManager::shaderProgram(std::string_view name) const {
         [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
     if (shaderIt == _shaderPrograms.end()) {
-        throw Error(7001, std::format("Could not find shader with name '{}'", name));
+        throw Error(7001, sgctcompat::format("Could not find shader with name '{}'", name));
     }
     return *shaderIt;
 }

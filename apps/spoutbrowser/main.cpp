@@ -24,6 +24,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <sgct/format_compat.h>
 
 namespace {
     GLuint vao = 0;
@@ -97,7 +98,7 @@ bool bindSpout() {
     }
     const bool creationSuccess = receiver->CreateReceiver(name.data(), width, height);
     if (!isInitialized && creationSuccess) {
-        Log::Info(std::format(
+        Log::Info(sgctcompat::format(
             "Spout: Initializing {}x{} texture from '{}'", width, height, name.data()
         ));
         isInitialized = true;
@@ -192,12 +193,12 @@ void draw2D(const RenderData& data) {
         const Sender& sender = senders[i];
         std::string text;
         if (i == currentSender) {
-            text = std::format(
+            text = sgctcompat::format(
                 FormatSelected, i, sender.name, sender.width, sender.height
             );
         }
         else {
-            text = std::format(
+            text = sgctcompat::format(
                 Format, i, sender.name, sender.width, sender.height
             );
         }

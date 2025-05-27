@@ -50,7 +50,8 @@ find_package(Catch2 REQUIRED)
 target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::nlohmann_json_schema_validator glm::glm)
 
 if (APPLE)
-  target_link_libraries(SGCTTest PRIVATE ${CARBON_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COCOA_LIBRARY} ${APP_SERVICES_LIBRARY})
+  find_package(fmt REQUIRED)
+  target_link_libraries(SGCTTest PRIVATE fmt::fmt ${CARBON_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COCOA_LIBRARY} ${APP_SERVICES_LIBRARY})
 endif ()
 
 add_test(NAME SGCTTest COMMAND SGCTTest)

@@ -11,6 +11,7 @@
 #include <sgct/format.h>
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
+#include <sgct/format_compat.h>
 #include <cstdarg>
 #include <fstream>
 #include <iostream>
@@ -64,10 +65,10 @@ void Log::printv(Level level, std::string message) {
         timeInfoPtr = localtime(&now);
         strftime(timeBuffer.data(), TimeBufferSize, "%X", timeInfoPtr);
 
-        message = std::format("{} | {}", timeBuffer.data(), message);
+        message = sgctcompat::format("{} | {}", timeBuffer.data(), message);
     }
     if (_showLevel) {
-        message = std::format("({}) {}", levelToString(level), message);
+        message = sgctcompat::format("({}) {}", levelToString(level), message);
     }
 
     if (_logToConsole) {

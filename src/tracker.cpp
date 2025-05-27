@@ -16,6 +16,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <sgct/format_compat.h>
 
 namespace sgct {
 
@@ -29,7 +30,7 @@ void Tracker::setEnabled(bool state) {
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-    Log::Info(std::format("{}: Adding device '{}'", _name, name));
+    Log::Info(sgctcompat::format("{}: Adding device '{}'", _name, name));
 }
 
 const std::vector<std::unique_ptr<TrackingDevice>>& Tracker::devices() const {

@@ -24,6 +24,7 @@
 #include <array>
 #include <optional>
 #include <variant>
+#include <sgct/format_compat.h>
 
 namespace {
     // Helper structs for the visitor pattern of the std::variant on projections
@@ -57,7 +58,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
         User* user = ClusterManager::instance().user(*viewport.user);
         if (!user) {
             Log::Warning(
-                std::format("Could not find user with name '{}'", *viewport.user)
+                sgctcompat::format("Could not find user with name '{}'", *viewport.user)
             );
         }
 

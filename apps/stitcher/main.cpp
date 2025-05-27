@@ -13,6 +13,7 @@
 #include <sgct/user.h>
 #include <cstring>
 #include <format>
+#include <sgct/format_compat.h>
 
 namespace {
     enum class Rotation { Deg0 = 0, Deg90, Deg180, Deg270 };
@@ -467,14 +468,14 @@ int main(int argc, char** argv) {
             texturePaths[static_cast<int>(getSideIndex(numberOfTextures))] = tmpStr;
 
             numberOfTextures++;
-            Log::Info(std::format("Adding texture: {}", argv[i + 1]));
+            Log::Info(sgctcompat::format("Adding texture: {}", argv[i + 1]));
         }
         else if (arg == "-seq" && argc > (i + 2)) {
             sequence = true;
             int startIndex = atoi(argv[i + 1]);
             stopIndex = atoi(argv[i + 2]);
             iterator = startIndex;
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Loading sequence from {} to {}", startIndex, stopIndex
             ));
         }
@@ -485,7 +486,7 @@ int main(int argc, char** argv) {
                 atoi(argv[i + 3]),
                 atoi(argv[i + 4])
             };
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting image rotations to L: {}, R: {}, T: {}, B: {}",
                 rotations.x, rotations.y, rotations.z, rotations.w
             ));
@@ -510,59 +511,59 @@ int main(int argc, char** argv) {
         }
         else if (arg == "-start" && argc > (i + 1)) {
             startFrame = atoi(argv[i + 1]);
-            Log::Info(std::format("Start frame set to {}", startFrame));
+            Log::Info(sgctcompat::format("Start frame set to {}", startFrame));
         }
         else if (arg == "-alpha" && argc > (i + 1)) {
             settings.alpha = std::string_view(argv[i + 1]) == "1";
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting alpha to {}", settings.alpha ? "true" : "false"
             ));
         }
         else if (arg == "-stereo" && argc > (i + 1)) {
             settings.stereo = std::string_view(argv[i + 1]) == "1";
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting stereo to {}", settings.stereo ? "true" : "false"
             ));
         }
         else if (arg == "-cubic" && argc > (i + 1)) {
             settings.cubic = std::string_view(argv[i + 1]) == "1";
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting cubic interpolation to {}", settings.cubic ? "true" : "false"
             ));
         }
         else if (arg == "-fxaa" && argc > (i + 1)) {
             settings.fxaa = std::string_view(argv[i + 1]) == "1";
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting fxaa to {}", settings.fxaa ? "true" : "false"
             ));
         }
         else if (arg == "-eyeSep" && argc > (i + 1)) {
             settings.eyeSeparation = static_cast<float>(atof(argv[i + 1]));
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting eye separation to {}", settings.eyeSeparation
             ));
         }
         else if (arg == "-diameter" && argc > (i + 1)) {
             settings.domeDiameter = static_cast<float>(atof(argv[i + 1]));
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Setting dome diameter to {}", settings.domeDiameter
             ));
         }
         else if (arg == "-msaa" && argc > (i + 1)) {
             settings.numberOfMSAASamples = atoi(argv[i + 1]);
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Number of MSAA samples set to {}", settings.numberOfMSAASamples
             ));
         }
         else if (arg == "-res" && argc > (i + 1)) {
             settings.resolution = atoi(argv[i + 1]);
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Resolution set to {}", settings.resolution
             ));
         }
         else if (arg == "-cubemap" && argc > (i + 1)) {
             settings.cubemapRes = atoi(argv[i + 1]);
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Cubemap resolution set to {}", settings.cubemapRes
             ));
         }
@@ -584,11 +585,11 @@ int main(int argc, char** argv) {
                 }
             } (arg2);
             Settings::instance().setCaptureFormat(f);
-            Log::Info(std::format("Format set to {}", argv[i + 1]));
+            Log::Info(sgctcompat::format("Format set to {}", argv[i + 1]));
         }
         else if (arg == "-path" && argc > (i + 1)) {
             Settings::instance().setCapturePath(argv[i + 1]);
-            Log::Info(std::format("Left path set to {}", argv[i + 1]));
+            Log::Info(sgctcompat::format("Left path set to {}", argv[i + 1]));
         }
         else if (arg == "-leftPath" || arg == "-rightPath") {
             Log::Warning("-leftPath and -rightPath are no longer supported; use -path");

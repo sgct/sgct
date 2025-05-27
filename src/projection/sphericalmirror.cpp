@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <sgct/format_compat.h>
 
 namespace {
     constexpr std::string_view SphericalProjectionVert = R"(
@@ -191,7 +192,7 @@ void SphericalMirrorProjection::initTextures(unsigned int internalFormat,
             return;
         }
         generateMap(texture, internalFormat, format, type);
-        Log::Debug(std::format(
+        Log::Debug(sgctcompat::format(
             "{}x{} cube face texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, texture
         ));

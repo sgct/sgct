@@ -42,6 +42,7 @@
 #include <sgct/shareddata.h>
 #include <algorithm>
 #include <cstring>
+#include <sgct/format_compat.h>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::Network, code, msg)
 
@@ -65,7 +66,7 @@ namespace {
 #else // ^^^^ WIN32 // !WIN32 vvvv
             else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
 #endif // WIN32
-                sgct::Log::Warning(std::format(
+                sgct::Log::Warning(sgctcompat::format(
                     "Receiving data after interrupted system error (attempt {})", attempts
                 ));
                 attempts++;
@@ -97,7 +98,7 @@ namespace {
         if (delayRes != NO_ERROR) {
             throw Err(
                 5005,
-                std::format("Failed to set network no-delay option: {}", SGCT_ERRNO)
+                sgctcompat::format("Failed to set network no-delay option: {}", SGCT_ERRNO)
             );
         }
 
@@ -119,7 +120,7 @@ namespace {
             sizeof(TrueFlag)
         );
         if (sockoptRes == SOCKET_ERROR) {
-            throw Err(5006, std::format("Failed to set reuse address: {}", SGCT_ERRNO));
+            throw Err(5006, sgctcompat::format("Failed to set reuse address: {}", SGCT_ERRNO));
         }
 
         if (connectionType != sgct::Network::ConnectionType::SyncConnection) {
@@ -133,7 +134,7 @@ namespace {
                 sizeof(TrueFlag)
             );
             if (iResult == SOCKET_ERROR) {
-                throw Err(5009, std::format("Failed to set keep alive: {}", SGCT_ERRNO));
+                throw Err(5009, sgctcompat::format("Failed to set keep alive: {}", SGCT_ERRNO));
             }
         }
     }
@@ -229,7 +230,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
     else {
         // Client socket: Connect to server
         while (!_shouldTerminate) {
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Attempting to connect to server (id: {}, ip: {}, type: {})",
                 _id, address, typeStr(type())
             ));
@@ -255,7 +256,7 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
                 Log::Debug("Waiting for connection...");
             }
             else {
-                Log::Debug(std::format("Connect error code: {}", SGCT_ERRNO));
+                Log::Debug(sgctcompat::format("Connect error code: {}", SGCT_ERRNO));
             }
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
         }
@@ -310,7 +311,7 @@ void Network::connectionHandler() {
         });
     }
 
-    Log::Info(std::format("Exiting connection handler for connection {}", _id));
+    Log::Info(sgctcompat::format("Exiting connection handler for connection {}", _id));
 }
 
 int Network::port() const {
@@ -476,7 +477,7 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
             if (syncFrame < 0) {
                 throw Err(
                     5010,
-                    std::format(
+                    sgctcompat::format(
                         "Error in sync frame {} for connection {}", syncFrame, _id
                     )
                 );
@@ -546,7 +547,7 @@ int Network::readExternalMessage() {
     while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
 #endif // WIN32
         iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
-        Log::Info(std::format(
+        Log::Info(sgctcompat::format(
             "Receiving data after interrupted system error (attempt {})", attempts
         ));
         attempts++;
@@ -563,7 +564,7 @@ void Network::communicationHandler() {
     // listen for client if server
     if (_isServer) {
         Log::Info(
-            std::format("Waiting for client {} to connect on port {}", _id, _port)
+            sgctcompat::format("Waiting for client {} to connect on port {}", _id, _port)
         );
 
         _socket = accept(_listenSocket, nullptr, nullptr);
@@ -574,14 +575,14 @@ void Network::communicationHandler() {
         while (!_shouldTerminate && _socket == INVALID_SOCKET && SGCT_ERRNO == EINTR) {
 #endif // WIN32
             Log::Info(
-                std::format("Re-accept after interrupted system on connection {}", _id)
+                sgctcompat::format("Re-accept after interrupted system on connection {}", _id)
             );
             _socket = accept(_listenSocket, nullptr, nullptr);
         }
 
         if (_socket == INVALID_SOCKET) {
             Log::Error(
-                std::format("Accept connection {} failed. Error: {}", _id, SGCT_ERRNO)
+                sgctcompat::format("Accept connection {} failed. Error: {}", _id, SGCT_ERRNO)
             );
 
             if (_updateCallback) {
@@ -592,7 +593,7 @@ void Network::communicationHandler() {
     }
 
     setConnectedStatus(true);
-    Log::Info(std::format("Connection {} established", _id));
+    Log::Info(sgctcompat::format("Connection {} established", _id));
 
     if (_updateCallback) {
         _updateCallback(*this);
@@ -613,7 +614,7 @@ void Network::communicationHandler() {
     do {
         // resize buffer request
         if (type() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
-            Log::Info(std::format(
+            Log::Info(sgctcompat::format(
                 "Re-sizing buffer {} -> {}", _bufferSize, _requestedSize.load()
             ));
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
@@ -648,13 +649,13 @@ void Network::communicationHandler() {
         // handle failed receive
         if (iResult == 0) {
             setConnectedStatus(false);
-            Log::Info(std::format("TCP connection {} closed", _id));
+            Log::Info(sgctcompat::format("TCP connection {} closed", _id));
         }
         else if (iResult < 0) {
             setConnectedStatus(false);
             throw Err(
                 5013,
-                std::format("TCP connection {} receive failed: {}", _id, SGCT_ERRNO)
+                sgctcompat::format("TCP connection {} receive failed: {}", _id, SGCT_ERRNO)
             );
         }
 
@@ -669,7 +670,7 @@ void Network::communicationHandler() {
                     _shouldTerminate = true;
                 }
 
-                Log::Info(std::format("Client {} terminated connection", _id));
+                Log::Info(sgctcompat::format("Client {} terminated connection", _id));
                 break;
             }
             // handle sync communication
@@ -690,7 +691,7 @@ void Network::communicationHandler() {
             // Disconnect if requested
             if (isDisconnectPackage(RecvHeader.data())) {
                 setConnectedStatus(false);
-                Log::Info(std::format("File connection {} terminated", _id));
+                Log::Info(sgctcompat::format("File connection {} terminated", _id));
             }
             //  Handle communication
             else {
@@ -734,7 +735,7 @@ void Network::communicationHandler() {
         _updateCallback(*this);
     }
 
-    Log::Info(std::format("Node {} disconnected", _id));
+    Log::Info(sgctcompat::format("Node {} disconnected", _id));
 }
 
 void Network::sendData(const void* data, int length) const {
@@ -751,7 +752,7 @@ void Network::sendData(const void* data, int length) const {
             0
         );
         if (sentLen == SOCKET_ERROR) {
-            throw Err(5014, std::format("Send data failed: {}", SGCT_ERRNO));
+            throw Err(5014, sgctcompat::format("Send data failed: {}", SGCT_ERRNO));
         }
         sendSize -= sentLen;
     }
@@ -782,7 +783,7 @@ void Network::closeNetwork(bool forced) {
     }
     _mainThread = nullptr;
 
-    Log::Info(std::format("Connection {} successfully terminated", _id));
+    Log::Info(sgctcompat::format("Connection {} successfully terminated", _id));
 }
 
 void Network::initShutdown() {
@@ -795,7 +796,7 @@ void Network::initShutdown() {
         sendData(GameOver.data(), HeaderSize);
     }
 
-    Log::Info(std::format("Closing connection {}", _id));
+    Log::Info(sgctcompat::format("Closing connection {}", _id));
 
     {
         ZoneScopedN("Decoder callback lock");

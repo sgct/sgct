@@ -11,6 +11,7 @@
 #include <sgct/opengl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <sgct/format_compat.h>
 
 namespace {
     std::unique_ptr<std::thread> connectionThread;
@@ -69,25 +70,25 @@ void networkConnectionUpdated(Network& conn) {
 
     connected = conn.isConnected();
 
-    Log::Info(std::format(
+    Log::Info(sgctcompat::format(
         "Network is {}", conn.isConnected() ? "connected" : "disconneced"
     ));
 }
 
 void networkAck(int packageId, int) {
-    Log::Info(std::format("Network package {} is received", packageId));
+    Log::Info(sgctcompat::format("Network package {} is received", packageId));
 
     if (timerData.second == packageId) {
-        Log::Info(std::format(
+        Log::Info(sgctcompat::format(
             "Loop time: {} ms", (time() - timerData.first) * 1000.0
         ));
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    Log::Info(std::format("Network decoding package {}", packageId));
+    Log::Info(sgctcompat::format("Network decoding package {}", packageId));
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-    Log::Info(std::format("Message: \"{}\"", test));
+    Log::Info(sgctcompat::format("Message: \"{}\"", test));
 }
 
 void connect() {
@@ -110,7 +111,7 @@ void connect() {
 
     // init
     try {
-        Log::Debug(std::format("Initiating network connection at port {}", port));
+        Log::Debug(sgctcompat::format("Initiating network connection at port {}", port));
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
@@ -118,7 +119,7 @@ void connect() {
         networkPtr->initialize();
     }
     catch (const std::runtime_error& err) {
-        Log::Error(std::format("Network error: {}", err.what()));
+        Log::Error(sgctcompat::format("Network error: {}", err.what()));
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);
@@ -278,11 +279,11 @@ int main(int argc, char** argv) {
         std::string_view v(argv[i]);
         if (v == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            Log::Info(std::format("Setting port to: {}", port));
+            Log::Info(sgctcompat::format("Setting port to: {}", port));
         }
         else if (v == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            Log::Info(std::format("Setting address to: {}", address));
+            Log::Info(sgctcompat::format("Setting address to: {}", address));
         }
         else if (v == "--server") {
             isServer = true;

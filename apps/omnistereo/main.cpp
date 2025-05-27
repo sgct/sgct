@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <sgct/format_compat.h>
 
 namespace {
     constexpr float Diameter = 14.8f;
@@ -156,7 +157,7 @@ void initOmniStereo(bool mask) {
         win.framebufferResolution().y / tileSize
     };
 
-    Log::Info(std::format(
+    Log::Info(sgctcompat::format(
         "Allocating: {} MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
     ));
     omniProjections.resize(res.x);
@@ -339,7 +340,7 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    Log::Info(std::format(
+    Log::Info(sgctcompat::format(
         "Time to init viewports: {} s\n{} %% will be rendered",
         time() - t0, percentage
     ));
@@ -410,7 +411,7 @@ void drawOmniStereo(const RenderData& renderData) {
         }
     }
 
-    Log::Info(std::format("Time to draw frame: {}s", time() - t0));
+    Log::Info(sgctcompat::format("Time to draw frame: {}s", time() - t0));
 }
 
 void draw(const RenderData& data) {
@@ -542,11 +543,11 @@ int main(int argc, char** argv) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            Log::Info(std::format("Setting turn map path to {}", turnMapSrc));
+            Log::Info(sgctcompat::format("Setting turn map path to {}", turnMapSrc));
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            Log::Info(std::format("Setting separation map path to '{}'", sepMapSrc));
+            Log::Info(sgctcompat::format("Setting separation map path to '{}'", sepMapSrc));
         }
     }
 

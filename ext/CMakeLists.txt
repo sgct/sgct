@@ -211,7 +211,7 @@ if (SGCT_TRACY_SUPPORT)
 endif ()
 
 if (SGCT_DEP_INCLUDE_JSON)
-  add_submodule(json)
+  add_subdirectory(json)
   sgct_register_package(nlohmann_json nlohmann_json::nlohmann_json)
 elseif (TARGET nlohmann_json)
   sgct_register_package(nlohmann_json nlohmann_json::nlohmann_json)

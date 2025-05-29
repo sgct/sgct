@@ -80,8 +80,7 @@ void Image::load(const std::filesystem::path& filename) {
     _data = stbi_load(name.c_str(), &_size.x, &_size.y, &_nChannels, 0);
     if (_data == nullptr) {
         throw Err(
-            9001, std::format("Could not open file '{}' for loading image", filename)
-        );
+            9001, std::format("Could not open file '{}' for loading image", filename.string()));
     }
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
@@ -128,7 +127,7 @@ void Image::save(const std::filesystem::path& filename) {
     std::string f = filename.string();
     FILE* fp = fopen(f.c_str(), "wb");
     if (fp == nullptr) {
-        throw Err(9008, std::format("Cannot create PNG file '{}'", filename));
+        throw Err(9008, std::format("Cannot create PNG file '{}'", filename.string()));
     }
 
     // initialize stuff
@@ -213,7 +212,7 @@ void Image::save(const std::filesystem::path& filename) {
     fclose(fp);
 
     const double t = (time() - t0) * 1000.0;
-    Log::Debug(std::format("'{}' was saved successfully ({:.2f} ms)", filename, t));
+    Log::Debug(std::format("'{}' was saved successfully ({:.2f} ms)", filename.string(), t));
 }
 
 unsigned char* Image::data() {

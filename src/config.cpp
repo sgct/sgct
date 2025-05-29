@@ -565,7 +565,7 @@ namespace {
     std::string stringifyJsonFile(const std::filesystem::path& filename) {
         std::ifstream myfile = std::ifstream(filename);
         if (myfile.fail()) {
-            throw Err(6082, std::format("Failed to open '{}'", filename));
+            throw Err(6082, std::format("Failed to open '{}'", filename.string()));
         }
         std::stringstream buffer;
         buffer << myfile.rdbuf();
@@ -2019,7 +2019,7 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            std::format("Could not find configuration file: {}", name)
+            std::format("Could not find configuration file: {}", name.string())
         );
     }
 
@@ -2125,7 +2125,7 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
     const json_validator validator = json_validator(
         schemaInput,
         [&schemaDir](const json_uri& id, json& value) {
-            std::string loadPath = std::format("{}/{}", schemaDir, id.to_string());
+            std::string loadPath = std::format("{}/{}", schemaDir.string(), id.to_string());
             const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);

@@ -193,7 +193,7 @@ config::Cluster loadCluster(std::optional<std::filesystem::path> path) {
     if (path) {
         assert(std::filesystem::exists(*path) && std::filesystem::is_regular_file(*path));
         try {
-            Log::Debug(std::format("Parsing config '{}'", *path));
+            Log::Debug(std::format("Parsing config '{}'", path->string()));
             config::Cluster cluster = readConfig(*path);
 
             Log::Debug("Config file read successfully");

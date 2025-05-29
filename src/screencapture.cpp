@@ -222,8 +222,9 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     if (!eyeSuffix.empty()) {
         file += eyeSuffix + '_';
     }
+    std::string bufferString(Buffer.begin(), Buffer.end());
 
-    return std::format("{}{}.png", file, std::string(Buffer.begin(), Buffer.end()));
+    return std::format("{}{}.png", file.string(), bufferString);
 }
 
 int ScreenCapture::availableCaptureThread() {

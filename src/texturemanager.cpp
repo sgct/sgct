@@ -143,7 +143,7 @@ unsigned int TextureManager::loadTexture(const std::filesystem::path& filename,
         anisotropicFilterSize,
         mipmapLevels
     );
-    Log::Debug(std::format("Texture created from '{}' [id={}]", filename, t));
+    Log::Debug(std::format("Texture created from '{}' [id={}]", filename.string(), t));
     return t;
 }
 

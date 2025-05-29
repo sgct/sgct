@@ -26,14 +26,20 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
     Buffer buf;
 
-    Log::Info(std::format("Reading 3D/stereo mesh data (in PFM image) from '{}'", path));
+    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+    // formatting std::filesystem::path
+    Log::Info(std::format(
+        "Reading 3D/stereo mesh data (in PFM image) from '{}'", path.string()
+    ));
 
     std::ifstream meshFile = std::ifstream(path, std::ifstream::binary);
     if (!meshFile.good()) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::Pfm,
             2050,
-            std::format("Failed to open '{}'", path)
+            std::format("Failed to open '{}'", path.string())
         );
     }
 
@@ -47,23 +53,29 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
     auto result = scn::scan<unsigned int, unsigned int>(dims, "{} {}");
     if (!result) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::Pfm, 2052,
-            std::format("Invalid header syntax in file '{}'", path)
+            std::format("Invalid header syntax in file '{}'", path.string())
         );
     }
     auto [nCols, nRows] = result->values();
     auto result2 = scn::scan<float>(endiannessIndicator, "{}");
     if (!result2) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::Pfm, 2052,
-            std::format("Invalid endianness value in file '{}'", path)
+            std::format("Invalid endianness value in file '{}'", path.string())
         );
     }
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::Pfm, 2053,
-            std::format("Incorrect file type in file '{}'", path)
+            std::format("Incorrect file type in file '{}'", path.string())
         );
     }
 
@@ -80,9 +92,11 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         meshFile.read(reinterpret_cast<char*>(&dumpValue), sizeof(float));
 
         if (!meshFile.good()) {
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
             throw Error(
                 Error::Component::Pfm, 2054,
-                std::format("Error reading correction values in file '{}'", path)
+                std::format("Error reading correction values in file '{}'", path.string())
             );
         }
     }

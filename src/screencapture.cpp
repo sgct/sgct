@@ -222,8 +222,10 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     if (!eyeSuffix.empty()) {
         file += eyeSuffix + '_';
     }
-
-    return std::format("{}{}.png", file, std::string(Buffer.begin(), Buffer.end()));
+    std::string bufferString = std::string(Buffer.begin(), Buffer.end());
+    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+    // formatting std::filesystem::path
+    return std::format("{}{}.png", file.string(), bufferString);
 }
 
 int ScreenCapture::availableCaptureThread() {

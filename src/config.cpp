@@ -2019,6 +2019,8 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
 
     std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Err(
             6081,
             std::format("Could not find configuration file: {}", name.string())
@@ -2127,7 +2129,11 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
     const json_validator validator = json_validator(
         schemaInput,
         [&schemaDir](const json_uri& id, json& value) {
-            std::string loadPath = std::format("{}/{}", schemaDir.string(), id.to_string());
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
+            std::string loadPath = std::format(
+                "{}/{}", schemaDir.string(), id.to_string()
+            );
             const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);

@@ -99,12 +99,18 @@ namespace sgct::correction {
 Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& parent) {
     ZoneScoped;
 
+    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+    // formatting std::filesystem::path
     Log::Info(std::format("Reading scalable mesh data from '{}'", path.string()));
 
     std::ifstream file = std::ifstream(path);
     if (!file.good()) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
-            Error::Component::Scalable, 2060, std::format("Failed to open '{}'", path.string())
+            Error::Component::Scalable,
+            2060,
+            std::format("Failed to open '{}'", path.string())
         );
     }
 
@@ -125,6 +131,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
         if (first == "OPENMESH") {
             if (rest != "Version 1.1") {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found {} in mesh '{}' but expected Version 1.1 so the loading might "
                     "misbehave", rest, path.string()
@@ -141,6 +149,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         }
         else if (first == "MAPPING") {
             if (rest != "NORMALIZED") {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found mapping '{}' in mesh '{}' but only 'NORMALIZED' is supported",
                     rest, path.string()
@@ -149,6 +159,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         }
         else if (first == "SAMPLING") {
             if (rest != "LINEAR") {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found sampling '{}' in mesh '{}' but only 'LINEAR' is supported",
                     rest, path.string()
@@ -157,6 +169,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         }
         else if (first == "PROJECTION") {
             if (rest != "PERSPECTIVE") {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found projection '{}' in mesh '{}' but only 'PERSPECTIVE' is "
                     "supported", rest, path.string()
@@ -221,6 +235,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "SUBVERSION") {
             const int version = std::stoi(std::string(rest));
             if (version != 5) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found subversion {} in mesh '{}' but only version 5 is tested",
                     version, path.string()
@@ -231,6 +247,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             const float gamma = std::stof(std::string(rest));
             if (gamma != data.gamma) {
                 data.gamma = gamma;
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found GAMMA value of {} in mesh '{}' we do not support per-viewport "
                     "gamma values", data.gamma, path.string()
@@ -243,6 +261,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "USE_SPHERE_SAMPLE_COORDINATE_SYSTEM") {
             const bool useSphereSampling = std::stoi(std::string(rest)) != 0;
             if (useSphereSampling) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Found request to use Sphere Sample Coordinate System in mesh {} "
                     "but we do not support this", path.string()
@@ -252,6 +272,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "FRUSTUM_EULER_ANGLES") {
             data.frustumEulerAngles.useAngles = std::stoi(std::string(rest)) != 0;
             if (data.frustumEulerAngles.useAngles) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Enabled frustum euler angles in mesh '{}' but we do not know how "
                     "these work, yet", path.string()
@@ -273,6 +295,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "APPLY_MASK") {
             data.applyMask = std::stoi(std::string(rest)) != 0;
             if (data.applyMask) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply a mask. Currently this is handled "
                     "outside the mesh by specifying a 'mask' attribute on the 'Viewport' "
@@ -283,6 +307,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "APPLY_BLACK_LEVEL") {
             data.applyBlackLevel = std::stoi(std::string(rest)) != 0;
             if (data.applyBlackLevel) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply a blacklevel image. Currently this is "
                     "handled outside the mesh by specifying a 'BlackLevelMask' attribute "
@@ -293,6 +319,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "APPLY_COLOR") {
             data.applyColor = std::stoi(std::string(rest)) != 0;
             if (data.applyBlackLevel) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply an overlay image. Currently this is "
                     "handled outside the mesh by specifying an 'overlay' attribute on "
@@ -304,6 +332,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             // Face
             size_t sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2035,
                     std::format(
@@ -317,6 +347,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2035,
                     std::format(
@@ -330,6 +362,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2035,
                     std::format(
@@ -354,6 +388,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 [[maybe_unused]] const float dummy = std::stof(std::string(first));
             }
             catch (const std::invalid_argument&) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
                     "Unknown key {} found in scalable mesh '{}'. Please report usage of "
                     "this key, preferably with an example, to the SGCT developers",
@@ -367,6 +403,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
             size_t sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2036,
                     std::format(
@@ -380,6 +418,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2036,
                     std::format(
@@ -393,6 +433,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2036,
                     std::format(
@@ -405,6 +447,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             rest = rest.substr(sep + 1);
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::Scalable, 2036,
                     std::format(
@@ -456,6 +500,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
     if (data.nVertices != static_cast<int>(data.vertices.size()) ||
         data.nFaces != static_cast<int>(data.faces.size()))
     {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::Scalable, 2061,
             std::format("Incorrect mesh data geometry in file '{}'", path.string())
@@ -502,11 +548,3 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 }
 
 } // namespace sgct::correction
-
-
-
-
-
-
-
-

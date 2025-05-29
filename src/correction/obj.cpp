@@ -37,10 +37,14 @@ namespace sgct::correction {
 Buffer generateOBJMesh(const std::filesystem::path& path) {
     ZoneScoped;
 
+    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+    // formatting std::filesystem::path
     Log::Info(std::format("Reading Wavefront OBJ mesh data from '{}'", path.string()));
 
     std::ifstream file = std::ifstream(path);
     if (!file.good()) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::OBJ, 2030, std::format("Failed to open '{}'", path.string())
         );
@@ -69,10 +73,15 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         if (first == "v") {
             size_t sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::OBJ, 2034,
                     std::format(
-                        "Illegal vertex format in OBJ file '{}' in line {}", path.string(), line
+                        "Illegal vertex format in OBJ file '{}' in line {}",
+                        path.string(), line
                     )
                 );
             }
@@ -81,10 +90,13 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
 
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::OBJ, 2034,
                     std::format(
-                        "Illegal vertex format in OBJ file '{}' in line {}", path.string(), line
+                        "Illegal vertex format in OBJ file '{}' in line {}",
+                        path.string(), line
                     )
                 );
             }
@@ -94,8 +106,11 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             const std::string_view v3 = rest;
             const float z = std::stof(std::string(v3));
             if (z != 0.f) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
-                    "Vertex in '{}' was using z coordinate which is not supported", path.string()
+                    "Vertex in '{}' was using z coordinate which is not supported",
+                    path.string()
                 ));
             }
 
@@ -120,10 +135,13 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         else if (first == "f") {
             size_t sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::OBJ, 2035,
                     std::format(
-                        "Illegal face format in OBJ file '{}' in line {}", path.string(), line
+                        "Illegal face format in OBJ file '{}' in line {}",
+                        path.string(), line
                     )
                 );
             }
@@ -132,10 +150,13 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
 
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 throw Error(
                     Error::Component::OBJ, 2035,
                     std::format(
-                        "Illegal face format in OBJ file '{}' in line {}", path.string(), line
+                        "Illegal face format in OBJ file '{}' in line {}",
+                        path.string(), line
                     )
                 );
             }
@@ -159,66 +180,91 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         }
         else if (first == "vn") {
             if (std::find(reported.begin(), reported.end(), "vn") == reported.end()) {
-                Log::Warning(std::format("Ignoring normals in mesh '{}'", path.string()));
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring normals in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("vn");
             }
         }
         else if (first == "vp") {
             if (std::find(reported.begin(), reported.end(), "vp") == reported.end()) {
-                Log::Warning(
-                    std::format("Ignoring parameter space values in mesh '{}'", path.string())
-                );
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring parameter space values in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("vp");
             }
         }
         else if (first == "l") {
             if (std::find(reported.begin(), reported.end(), "l") == reported.end()) {
-                Log::Warning(std::format("Ignoring line elements in mesh '{}'", path.string()));
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring line elements in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("l");
             }
         }
         else if (first == "mtllib") {
             if (std::find(reported.begin(), reported.end(), "mtllib") == reported.end()) {
-                Log::Warning(std::format("Ignoring material library in mesh '{}'", path.string()));
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring material library in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("mtllib");
             }
         }
         else if (first == "usemtl") {
             if (std::find(reported.begin(), reported.end(), "usemtl") == reported.end()) {
-                Log::Warning(
-                    std::format("Ignoring material specification in mesh '{}'", path.string())
-                );
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring material specification in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("usemtl");
             }
         }
         else if (first == "o") {
             if (std::find(reported.begin(), reported.end(), "o") == reported.end()) {
-                Log::Warning(
-                    std::format("Ignoring object specification in mesh '{}'", path.string())
-                );
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring object specification in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("o");
             }
         }
         else if (first == "g") {
             if (std::find(reported.begin(), reported.end(), "g") == reported.end()) {
-                Log::Warning(
-                    std::format("Ignoring object group specification in mesh '{}'", path.string())
-                );
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring object group specification in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("g");
             }
         }
         else if (first == "s") {
             if (std::find(reported.begin(), reported.end(), "s") == reported.end()) {
-                Log::Warning(
-                    std::format("Ignoring shading specification in mesh '{}'", path.string())
-                );
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
+                Log::Warning(std::format(
+                    "Ignoring shading specification in mesh '{}'", path.string()
+                ));
                 reported.emplace_back("s");
             }
         }
         else {
             if (std::find(reported.begin(), reported.end(), first) == reported.end()) {
+                // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+                // formatting std::filesystem::path
                 Log::Warning(std::format(
-                    "Encounted unsupported value type '{}' in mesh '{}'", first, path.string()
+                    "Encounted unsupported value type '{}' in mesh '{}'",
+                    first, path.string()
                 ));
                 reported.emplace_back(first);
             }
@@ -226,10 +272,13 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
     }
 
     if (positions.size() != texCoords.size()) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::OBJ, 2031,
             std::format(
-                "Vertex count doesn't match number of texture coordinates in '{}'", path.string()
+                "Vertex count doesn't match number of texture coordinates in '{}'",
+                path.string()
             )
         );
     }
@@ -239,15 +288,20 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         // of positions
         const bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;
         if (invalid) {
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
             throw Error(
                 Error::Component::OBJ, 2032,
                 std::format(
-                    "Faces in mesh '{}' referenced vertices that were undefined", path.string()
+                    "Faces in mesh '{}' referenced vertices that were undefined",
+                    path.string()
                 )
             );
         }
 
         if (f.f1 < 0 || f.f2 < 0 || f.f3 < 0) {
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
             throw Error(
                 Error::Component::OBJ, 2033,
                 std::format(

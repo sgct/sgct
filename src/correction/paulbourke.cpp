@@ -28,10 +28,16 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
 
     Buffer buf;
 
-    Log::Info(std::format("Reading Paul Bourke spherical mirror mesh from '{}'", path.string()));
+    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+    // formatting std::filesystem::path
+    Log::Info(std::format(
+        "Reading Paul Bourke spherical mirror mesh from '{}'", path.string()
+    ));
 
     std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
+        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+        // formatting std::filesystem::path
         throw Error(
             Error::Component::PaulBourke, 2040,
             std::format("Failed to open '{}'", path.string())
@@ -44,6 +50,8 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     if (std::getline(meshFile, line)) {
         auto r = scn::scan_value<int>(line);
         if (!r) {
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
             throw Error(
                 Error::Component::PaulBourke, 2041,
                 std::format("Error reading mapping type in file '{}'", path.string())
@@ -56,6 +64,8 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     if (std::getline(meshFile, line)) {
         auto r = scn::scan<int, int>(line, "{} {}");
         if (!r) {
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
             throw Error(
                 Error::Component::PaulBourke, 2042,
                 std::format("Invalid data in file '{}'", path.string())

@@ -565,6 +565,8 @@ namespace {
     std::string stringifyJsonFile(const std::filesystem::path& filename) {
         std::ifstream myfile = std::ifstream(filename);
         if (myfile.fail()) {
+            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
+            // formatting std::filesystem::path
             throw Err(6082, std::format("Failed to open '{}'", filename.string()));
         }
         std::stringstream buffer;

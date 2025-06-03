@@ -498,6 +498,16 @@ SGCT_EXPORT [[nodiscard]] std::string serializeConfig(const config::Cluster& clu
 SGCT_EXPORT [[nodiscard]] std::string validateConfigAgainstSchema(
     std::string_view configuration, const std::filesystem::path& schema);
 
+
+/**
+ * Validate the provided configuration file against the schema file located at the
+ * provided \p schema file. If the JSON is valid according to the schema, the function
+ * returns the empty string. Otherwise it contains an error message that describes which
+ * parts of the JSON are ill-formed.
+*/
+SGCT_EXPORT [[nodiscard]] std::string validateConfigAgainstSchema(
+    const std::filesystem::path& configuration, const std::filesystem::path& schema);
+
 } // namespace sgct
 
 #endif // __SGCT__CONFIG__H__

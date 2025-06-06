@@ -1,4 +1,3 @@
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -19,7 +18,7 @@
 #include <gstreamer-1.0/gst/gl/gstgldisplay.h>
 #include <gstreamer-1.0/gst/gl/gstglmemory.h>
 #include <gstreamer-1.0/gst/gl/gstglcontext.h>
-#include <libsoup-2.4/libsoup/soup.h>
+#include <libsoup-3.0/libsoup/soup.h>
 #include <glib-2.0/glib-object.h>
 #include <json/json.hpp> //SGCT
 #include <gstreamer-1.0/gst/sdp/sdp.h>
@@ -362,30 +361,29 @@ static void allocateGstGlMemory() {
 }
 
 static void connectToSignalingServer() {
-    SoupLogger* logger;   // debug logging support
-    SoupMessage* message; // HTTP request and response
-    SoupSession* session; // object that controls client-side HTTP
-    const char* https_aliases[] = { "wss", NULL };
+    SoupLogger* logger;
+    SoupMessage* message;
+    SoupSession* session;
 
-    // Create a session with options. In this case
-    session = soup_session_new_with_options(
-        SOUP_SESSION_SSL_STRICT, !disable_ssl,        // enable (?) SSL
-        SOUP_SESSION_SSL_USE_SYSTEM_CA_FILE, TRUE,    // use the local CA databaes
-        //SOUP_SESSION_SSL_CA_FILE, "/etc/ssl/certs/ca-bundle.crt", // use this CA database (whatever is there)
-        SOUP_SESSION_HTTPS_ALIASES, https_aliases,    // So we can use wss:// the same as https://, for example
-        NULL);
+    session = soup_session_new();
+    logger = soup_logger_new(SOUP_LOGGER_LOG_BODY);
+    soup_session_add_feature(session, SOUP_SESSION_FEATURE(logger));
+    g_object_unref(logger);
 
-    logger = soup_logger_new(SOUP_LOGGER_LOG_BODY, -1);  // Create unlimited size logger 
-    soup_session_add_feature(session, SOUP_SESSION_FEATURE(logger)); // add the logger to the session
-    g_object_unref(logger);  // since the session gets a copy of the logger, deref this logger
-
-    message = soup_message_new(SOUP_METHOD_GET, server_url); // set the message destination
+    message = soup_message_new(SOUP_METHOD_GET, server_url);
 
     g_print("Connecting to server...\n");
 
-    // Once connected, we will register 
-    soup_session_websocket_connect_async(session, message, NULL, NULL, NULL,
-        (GAsyncReadyCallback)onServerConnected, message);
+    soup_session_websocket_connect_async(
+        session,
+        message,
+        NULL,      // origin (const char*)
+        NULL,      // protocols (const char*)
+        1000,      // "i/o priority", docs are not clear about what this is
+        NULL,      // cancellable
+        (GAsyncReadyCallback)onServerConnected,
+        message    // user_data
+    );
     app_state = SERVER_CONNECTING;
 }
 
@@ -734,7 +732,7 @@ static void sendIceCandidateMessage(GstElement* webrtc G_GNUC_UNUSED, guint mlin
     };
 
     std::string msgDump = iceMsg.dump();
-    char* msgString = const_cast<char*>(msgDump.c_str());
+    const char* msgString = const_cast<char*>(msgDump.c_str());
     sendToSocket("ICE", iceMsg);
 }
 
@@ -746,7 +744,7 @@ static void sendToSocket(const char* type, const char* content) {
         {"caller_id", ourId}
     };
     std::string msgDump = msgJSON.dump();
-    char* msgString = const_cast<char*>(msgDump.c_str());
+    const char* msgString = const_cast<char*>(msgDump.c_str());
     soup_websocket_connection_send_text(ws_conn, msgString);
 };
 
@@ -758,7 +756,7 @@ static void sendToSocket(const char* type, const unsigned int content) {
         {"caller_id", ourId}
     };
     std::string msgDump = msgJSON.dump();
-    char* msgString = const_cast<char*>(msgDump.c_str());
+    const char* msgString = const_cast<char*>(msgDump.c_str());
     soup_websocket_connection_send_text(ws_conn, msgString);
 };
 
@@ -770,7 +768,7 @@ static void sendToSocket(const char* type, nlohmann::json content) {
     };
     msgJSON.insert(content.begin(), content.end());
     std::string msgDump = msgJSON.dump();
-    char* msgString = const_cast<char*>(msgDump.c_str());
+    const char* msgString = const_cast<char*>(msgDump.c_str());
     soup_websocket_connection_send_text(ws_conn, msgString);
 };
 

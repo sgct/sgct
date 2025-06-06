@@ -70,7 +70,7 @@ namespace {
             );
             glTexParameterf(
                 GL_TEXTURE_2D,
-                GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                GL_TEXTURE_MAX_ANISOTROPY,
                 anisotropicFilterSize
             );
         }

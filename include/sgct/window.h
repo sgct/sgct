@@ -263,12 +263,12 @@ public:
     float horizFieldOfViewDegrees() const;
 
     /**
-     * Set if the specifed Draw2D function pointer should be called for this window.
+     * Set if the specified Draw2D function pointer should be called for this window.
      */
     void setCallDraw2DFunction(bool state);
 
     /**
-     * Set if the specifed Draw3D function pointer should be called for this window.
+     * Set if the specified Draw3D function pointer should be called for this window.
      */
     void setCallDraw3DFunction(bool state);
 

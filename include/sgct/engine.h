@@ -367,9 +367,28 @@ public:
      * in the range [0,1]. If the statistics graph is currently not showing, calling this
      * function will not have any effects.
      *
-     * \param scale The new scaling value for the statistcs graph rendering
+     * \param scale The new scaling value for the statistics graph rendering
      */
     void setStatsGraphScale(float scale);
+
+    /**
+     * Returns the current offset value used to render the statistics graphics away from
+     * the center of the screen if they are enabled. If the statistics graphs are
+     * currently not shown, an error value of `{-1, -1}` is returned instead.
+     *
+     * \return The current offset value for the statistics graph
+     */
+    vec2 statsGraphOffset() const;
+
+    /**
+     * Sets the new offet value for the statistics graph rendering. This value determines
+     * the placement of the center of the graphs on the screen and is usually in the range
+     * of [0,1]. If the statistics graph is currently not showing, calling this function
+     * will not have any effects.
+     *
+     * \param offset The new offset value for the statistics graph rendering
+     */
+    void setStatsGraphOffset(vec2 offset);
 
     /**
      * Takes an RGBA screenshot and saves it as a PNG file. If stereo rendering is enabled

@@ -29,6 +29,9 @@ public:
     float scale() const;
     void setScale(float scale);
 
+    vec2 offset() const;
+    void setOffset(vec2 offset);
+
 private:
     const Engine::Statistics& _statistics;
 
@@ -109,6 +112,7 @@ private:
     Histogram _histogram;
 
     float _scale = 0.5f;
+    vec2 _offset;
 };
 
 } // namespace sgct

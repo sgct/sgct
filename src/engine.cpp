@@ -352,29 +352,36 @@ void Engine::initialize() {
     int minor = 0;
     {
         ZoneScopedN("OpenGL Version");
-
+    
         // Detect the available OpenGL version
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    #ifdef __APPLE__
+        // On macOS, request 4.1 Core - required for modern macOS
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif // __APPLE__
+    #endif
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    
         GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
+        if (!offscreen) {
+            Log::Error("Failed to create offscreen OpenGL context");
+            throw std::runtime_error("glfwCreateWindow failed during OpenGL version detection");
+        }
+    
         glfwMakeContextCurrent(offscreen);
         gladLoadGL();
-
+    
         // Get the OpenGL version
         glGetIntegerv(GL_MAJOR_VERSION, &major);
         glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-        // And get rid of the window again
+    
+        // Cleanup
         glfwDestroyWindow(offscreen);
         glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
     }
     Log::Info(std::format("Detected OpenGL version: {}.{}", major, minor));
-
+    
     initWindows(major, minor);
 
     // Window resolution may have been set by the config. However, it only sets a pending

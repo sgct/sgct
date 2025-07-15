@@ -355,6 +355,11 @@ void Engine::initialize() {
     
         // Detect the available OpenGL version
     #ifdef __APPLE__
+        // must call glfwInit() before glfwWindowHint()
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW!" << std::endl;
+            return -1;
+        }
         // On macOS, request 4.1 Core - required for modern macOS
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);

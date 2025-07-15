@@ -276,6 +276,11 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
     {
         ZoneScopedN("GLFW initialization");
+
+#ifdef __APPLE__
+        glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
+#endif // __APPLE__
+
         glfwSetErrorCallback(
             [](int error, const char* desc) {
                 throw Err(3010, std::format("GLFW error ({}): {}", error, desc));

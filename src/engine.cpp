@@ -367,6 +367,9 @@ void Engine::initialize() {
 #endif // __APPLE__
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
         GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
+        if (!offscreen) {
+            throw Err(3007, "Error creating OpenGL context when initializing the engine");
+        }
         glfwMakeContextCurrent(offscreen);
         gladLoadGL();
 

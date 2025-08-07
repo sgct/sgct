@@ -58,11 +58,6 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     ZoneScoped;
 
     // Static background quad
-    struct Vertex {
-        Vertex(float x_, float y_) : x(x_), y(y_) {}
-        float x = 0.f;
-        float y = 0.f;
-    };
     std::vector<Vertex> vs;
     vs.emplace_back(0.f, 0.f);
     vs.emplace_back(static_cast<float>(Engine::Statistics::HistoryLength), 0.f);

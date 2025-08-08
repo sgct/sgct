@@ -9,10 +9,7 @@
 #include <sgct/networkmanager.h>
 
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#define VC_EXTRALEAN
-#include <windows.h>
+#include <Windows.h>
 #endif // WIN32
 
 #include <sgct/clustermanager.h>

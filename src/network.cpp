@@ -9,9 +9,6 @@
 #include <sgct/network.h>
 
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-#define NOMINMAX
 #include <Windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>

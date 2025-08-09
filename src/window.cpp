@@ -175,7 +175,7 @@ namespace {
 
 namespace sgct {
 
-GLFWwindow* _activeContext = nullptr;
+static GLFWwindow* _activeContext = nullptr;
 
 bool Window::_useSwapGroups = false;
 bool Window::_isBarrierActive = false;

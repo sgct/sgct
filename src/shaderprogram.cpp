@@ -40,7 +40,7 @@ namespace {
             case GL_FRAGMENT_SHADER: return "Fragment shader";
             case GL_GEOMETRY_SHADER: return "Geometry shader";
             default:                 throw std::logic_error("Unhandled case label");
-        };
+        }
     }
 
     void checkCompilationStatus(GLenum type, GLint id) {

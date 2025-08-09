@@ -54,7 +54,7 @@ public:
      * \param face The truetype face pointer
      * \param height Font height in pixels
      */
-    Font(FT_Library lib, FT_Face face, unsigned int h);
+    Font(FT_Library lib, FT_Face face, unsigned int height);
 
     /**
      * Cleans up memory used by the Font and destroys the OpenGL objects.

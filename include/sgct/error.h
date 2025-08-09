@@ -36,6 +36,7 @@ struct SGCT_EXPORT Error final : public std::runtime_error {
     };
 
     Error(Component comp, int c, std::string msg);
+    ~Error() noexcept override;
 
     const Component component;
     const int code;

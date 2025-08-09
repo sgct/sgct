@@ -260,7 +260,7 @@ void validateWindow(const Window& w) {
 
 #ifndef SGCT_HAS_SCALABLE
     if (w.scalable.has_value()) {
-        throw Error(1004, "Tried to load ScalableMesh without SGCT support");
+        throw Err(1004, "Tried to load ScalableMesh without SGCT support");
     }
 #endif // SGCT_HAS_SCALABLE
 

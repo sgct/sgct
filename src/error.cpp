@@ -45,4 +45,6 @@ Error::Error(Component comp, int c, std::string msg)
     , message(std::move(msg))
 {}
 
+Error::~Error() noexcept {}
+
 } // namespace sgct

@@ -14,7 +14,7 @@
 #include <sgct/opengl.h>
 #include <algorithm>
 
-#define Error(code, msg) Error(Error::Component::Shader, code, msg)
+#define Err(code, msg) Error(Error::Component::Shader, code, msg)
 
 namespace sgct {
 
@@ -43,7 +43,7 @@ void ShaderManager::addShaderProgram(std::string name, std::string_view vertexSr
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
-        throw Error(
+        throw Err(
             7000,
             std::format("Cannot add shader program '{}': Already exists", name)
         );
@@ -84,7 +84,7 @@ const ShaderProgram& ShaderManager::shaderProgram(std::string_view name) const {
         [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
     if (shaderIt == _shaderPrograms.end()) {
-        throw Error(7001, std::format("Could not find shader with name '{}'", name));
+        throw Err(7001, std::format("Could not find shader with name '{}'", name));
     }
     return *shaderIt;
 }

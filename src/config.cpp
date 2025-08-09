@@ -30,7 +30,7 @@
 #include <iterator>
 #include <numeric>
 
-#define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
+#define Err(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
 
 namespace {
     // Helper structs for the visitor pattern of the std::variant on projections
@@ -99,27 +99,27 @@ void simplifyIpAddress(std::string& address) {
 
 void validateUser(const User& u) {
     if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
-        throw Error(1000, "Eye separation must be zero or a positive number");
+        throw Err(1000, "Eye separation must be zero or a positive number");
     }
     if (u.tracking && u.tracking->device.empty()) {
-        throw Error(1001, "Tracking device name must not be empty");
+        throw Err(1001, "Tracking device name must not be empty");
     }
     if (u.tracking && u.tracking->tracker.empty()) {
-        throw Error(1002, "Tracking tracker name must not be empty");
+        throw Err(1002, "Tracking tracker name must not be empty");
     }
     if (u.name && *u.name == "default") {
-        throw Error(1003, "Name 'default' is not permitted for a user");
+        throw Err(1003, "Name 'default' is not permitted for a user");
     }
 }
 
 void validateCapture(const Capture& c) {
     if (c.path && c.path->empty()) {
-        throw Error(1010, "Capture path must not be empty");
+        throw Err(1010, "Capture path must not be empty");
     }
 
     if (c.range) {
         if (c.range->first >= c.range->last && c.range->last != -1) {
-            throw Error(1011, "Screenshot ranges beginning has to be before the end");
+            throw Err(1011, "Screenshot ranges beginning has to be before the end");
         }
     }
 }
@@ -128,34 +128,34 @@ void validateScene(const Scene&) {}
 
 void validateSettings(const Settings& s) {
     if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
-        throw Error(1020, "Swap interval must not be negative");
+        throw Err(1020, "Swap interval must not be negative");
     }
     if (s.display && s.display->refreshRate && *s.display->refreshRate < 0) {
-        throw Error(1021, "Refresh rate must not be negative");
+        throw Err(1021, "Refresh rate must not be negative");
     }
 }
 
 void validateTracker(const Tracker& t) {
     if (t.name.empty()) {
-        throw Error(1040, "Tracker name must not be empty");
+        throw Err(1040, "Tracker name must not be empty");
     }
 
     auto validateDevice = [](const Tracker::Device& d) {
         auto validateAddress = [](const auto& v) { return !v.vrpnAddress.empty(); };
 
         if (d.name.empty()) {
-            throw Error(1030, "Device name must not be empty");
+            throw Err(1030, "Device name must not be empty");
         }
         if (!std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress)) {
-            throw Error(1031, "VRPN address for sensors must not be empty");
+            throw Err(1031, "VRPN address for sensors must not be empty");
 
         }
         if (!std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress)) {
-            throw Error(1032, "VRPN address for buttons must not be empty");
+            throw Err(1032, "VRPN address for buttons must not be empty");
 
         }
         if (!std::all_of(d.axes.begin(), d.axes.end(), validateAddress)) {
-            throw Error(1033, "VRPN address for axes must not be empty");
+            throw Err(1033, "VRPN address for axes must not be empty");
         }
     };
     std::for_each(t.devices.begin(), t.devices.end(), validateDevice);
@@ -163,10 +163,10 @@ void validateTracker(const Tracker& t) {
 
 void validateProjection(const PlanarProjection& p) {
     if (p.fov.up == p.fov.down) {
-        throw Error(1050, "Up and down field of views can not be the same");
+        throw Err(1050, "Up and down field of views can not be the same");
     }
     if (p.fov.left == p.fov.right) {
-        throw Error(1051, "Left and right field of views can not be the same");
+        throw Err(1051, "Left and right field of views can not be the same");
     }
 }
 
@@ -176,49 +176,49 @@ void validateProjection(const TextureMappedProjection& p) {
 
 void validateProjection(const FisheyeProjection& p) {
     if (p.fov && *p.fov <= 0.f) {
-        throw Error(1060, "Field of view setting must be positive");
+        throw Err(1060, "Field of view setting must be positive");
     }
     if (p.crop && p.crop->left > p.crop->right) {
-        throw Error(1061, "Left and right crop must not overlap");
+        throw Err(1061, "Left and right crop must not overlap");
     }
     if (p.crop && p.crop->bottom > p.crop->top) {
-        throw Error(1062, "Bottom and top crop must not overlap");
+        throw Err(1062, "Bottom and top crop must not overlap");
     }
     if (p.quality && *p.quality <= 0) {
-        throw Error(1063, "Quality value must be positive");
+        throw Err(1063, "Quality value must be positive");
     }
     if (p.quality && ((*p.quality & (*p.quality - 1)) != 0 && *p.quality != 1536)) {
-        throw Error(1064, "Quality setting only allows powers of two and 1536");
+        throw Err(1064, "Quality setting only allows powers of two and 1536");
     }
     if (p.diameter && *p.diameter <= 0.f) {
-        throw Error(1065, "Diameter must be positive");
+        throw Err(1065, "Diameter must be positive");
     }
     if (p.background) {
         const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
-            throw Error(1066, "All background color components have to be positive");
+            throw Err(1066, "All background color components have to be positive");
         }
     }
 }
 
 void validateProjection(const SphericalMirrorProjection& p) {
     if (p.quality && *p.quality <= 0) {
-        throw Error(1070, "Quality value must be positive");
+        throw Err(1070, "Quality value must be positive");
     }
     if (p.quality && ((*p.quality & (*p.quality - 1)) != 0)) {
-        throw Error(1071, "Quality setting only allows powers of two");
+        throw Err(1071, "Quality setting only allows powers of two");
     }
     if (p.background) {
         const vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
-            throw Error(1072, "All background color components have to be positive");
+            throw Err(1072, "All background color components have to be positive");
         }
     }
 }
 
 void validateProjection(const CubemapProjection& p) {
     if (p.quality && *p.quality <= 0) {
-        throw Error(1080, "Quality value must be positive");
+        throw Err(1080, "Quality value must be positive");
     }
 }
 
@@ -232,19 +232,19 @@ void validateProjection(const NoProjection&) {}
 
 void validateViewport(const Viewport& v) {
     if (v.user && v.user->empty()) {
-        throw Error(1090, "User must not be empty");
+        throw Err(1090, "User must not be empty");
     }
     if (v.overlayTexture && v.overlayTexture->empty()) {
-        throw Error(1091, "Overlay texture path must not be empty");
+        throw Err(1091, "Overlay texture path must not be empty");
     }
     if (v.blendMaskTexture && v.blendMaskTexture->empty()) {
-        throw Error(1092, "Blendmask texture path must not be empty");
+        throw Err(1092, "Blendmask texture path must not be empty");
     }
     if (v.blackLevelMaskTexture && v.blackLevelMaskTexture->empty()) {
-        throw Error(1093, "Blendmask level texture path must not be empty");
+        throw Err(1093, "Blendmask level texture path must not be empty");
     }
     if (v.correctionMeshTexture && v.correctionMeshTexture->empty()) {
-        throw Error(1094, "Correction mesh texture path must not be empty");
+        throw Err(1094, "Correction mesh texture path must not be empty");
     }
 
     std::visit([](const auto& p) { validateProjection(p); }, v.projection);
@@ -252,10 +252,10 @@ void validateViewport(const Viewport& v) {
 
 void validateWindow(const Window& w) {
     if (w.name && w.name->empty()) {
-        throw Error(1100, "Window name must not be empty");
+        throw Err(1100, "Window name must not be empty");
     }
     if (std::any_of(w.tags.begin(), w.tags.end(), std::mem_fn(&std::string::empty))) {
-        throw Error(1101, "Empty tags are not allowed for windows");
+        throw Err(1101, "Empty tags are not allowed for windows");
     }
 
 #ifndef SGCT_HAS_SCALABLE
@@ -271,27 +271,27 @@ void validateWindow(const Window& w) {
 
 void validateNode(const Node& n) {
     if (n.address.empty()) {
-        throw Error(1110, "Node address must not be empty");
+        throw Err(1110, "Node address must not be empty");
     }
     if (n.port <= 0) {
-        throw Error(1111, "Node port must be a positive number");
+        throw Err(1111, "Node port must be a positive number");
     }
     if (n.dataTransferPort && *n.dataTransferPort <= 0) {
-        throw Error(1112, "Node data transfer port must be a positive number");
+        throw Err(1112, "Node data transfer port must be a positive number");
     }
     if (n.windows.empty()) {
-        throw Error(1113, "Every node must contain at least one window");
+        throw Err(1113, "Every node must contain at least one window");
     }
     std::vector<int> usedIds;
     for (const Window& win : n.windows) {
         validateWindow(win);
 
         if (win.id < 0) {
-            throw Error(1107, "Window id must be non-negative and unique");
+            throw Err(1107, "Window id must be non-negative and unique");
         }
 
         if (std::find(usedIds.begin(), usedIds.end(), win.id) != usedIds.end()) {
-            throw Error(
+            throw ErrError(
                 1107,
                 std::format(
                     "Window id must be non-negative and unique. {} used multiple times",
@@ -303,14 +303,14 @@ void validateNode(const Node& n) {
 
         if (win.blitWindowId) {
             if (*win.blitWindowId < 0) {
-                throw Error(1108, "BlitWindowId must be between 0 and 127");
+                throw Err(1108, "BlitWindowId must be between 0 and 127");
             }
             auto it = std::find_if(
                 n.windows.cbegin(), n.windows.cend(),
                 [id = *win.blitWindowId](const Window& w) { return w.id == id; }
             );
             if (it == n.windows.cend()) {
-                throw Error(
+                throw Err(
                     1109,
                     std::format(
                         "Tried to configure window {} to be blitted from window {}, but "
@@ -319,7 +319,7 @@ void validateNode(const Node& n) {
                 );
             }
             if (win.id == *win.blitWindowId) {
-                throw Error(
+                throw Err(
                     1110,
                     std::format(
                         "Window {} tried to blit from itself, which cannot work", win.id

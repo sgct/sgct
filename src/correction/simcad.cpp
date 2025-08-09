@@ -18,7 +18,7 @@
 #include <glm/glm.hpp>
 #include <sstream>
 
-#define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
+#define Err(code, msg) Error(Error::Component::SimCAD, code, msg)
 
 namespace {
     std::vector<std::string> split(std::string str, char delimiter) {
@@ -56,7 +56,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
         std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
         // @TODO: Remove `.string()` as soon as Clang on MacOS supports
         // formatting std::filesystem::path
-        throw Error(
+        throw Err(
             2080,
             std::format("Error loading file {}. {} {}", path.string(), s1, s2)
         );
@@ -66,7 +66,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     if (XMLroot == nullptr) {
         // @TODO: Remove `.string()` as soon as Clang on MacOS supports
         // formatting std::filesystem::path
-        throw Error(
+        throw Err(
             2081,
             std::format("Error reading file '{}'. Missing 'GeometryFile'", path.string())
         );
@@ -77,7 +77,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     if (element == nullptr) {
         // @TODO: Remove `.string()` as soon as Clang on MacOS supports
         // formatting std::filesystem::path
-        throw Error(
+        throw Err(
             2082,
             std::format(
                 "Error reading file '{}'. Missing 'GeometryDefinition'", path.string()
@@ -116,14 +116,14 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        throw Error(2083, "Not the same x coords as y coords");
+        throw Err(2083, "Not the same x coords as y coords");
     }
 
     const float nColumnsf = std::sqrt(static_cast<float>(xcorrections.size()));
     const float nRowsf = std::sqrt(static_cast<float>(ycorrections.size()));
 
     if (std::ceil(nColumnsf) != nColumnsf || std::ceil(nRowsf) != nRowsf) {
-        throw Error(2084, "Not a valid squared matrix read from SimCAD file");
+        throw Err(2084, "Not a valid squared matrix read from SimCAD file");
     }
 
     const size_t nCols = static_cast<unsigned int>(nColumnsf);

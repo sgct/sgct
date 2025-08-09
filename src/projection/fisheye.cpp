@@ -342,7 +342,7 @@ void FisheyeProjection::initViewports() {
     if (_method == FisheyeMethod::FiveFaceCube &&
         _fov >= topFaceLimit && _fov <= fiveFaceLimit)
     {
-        const float cosAngle = cos(glm::radians(_fov / 2.f));
+        const float cosAngle = std::cos(glm::radians(_fov / 2.f));
         const float normalizedProjectionOffset =
             _fov < 180.f ?
                 1.f - _fov / 180.f :

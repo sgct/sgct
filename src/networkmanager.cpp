@@ -296,7 +296,7 @@ void NetworkManager::initialize() {
             if (port == cm.thisNode().syncPort() ||
                 port == cm.thisNode().dataTransferPort())
             {
-                throw Error(
+                throw Err(
                     5023,
                     std::format(
                         "Port {} is already used by connection {}",

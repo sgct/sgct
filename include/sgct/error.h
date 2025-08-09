@@ -15,7 +15,7 @@
 
 namespace sgct {
 
-struct SGCT_EXPORT Error : public std::runtime_error {
+struct SGCT_EXPORT Error final : public std::runtime_error {
     enum class Component {
         Config,
         CorrectionMesh,

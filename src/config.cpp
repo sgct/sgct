@@ -291,7 +291,7 @@ void validateNode(const Node& n) {
         }
 
         if (std::find(usedIds.begin(), usedIds.end(), win.id) != usedIds.end()) {
-            throw ErrError(
+            throw Err(
                 1107,
                 std::format(
                     "Window id must be non-negative and unique. {} used multiple times",
@@ -332,7 +332,7 @@ void validateNode(const Node& n) {
 
 void validateCluster(const Cluster& c) {
     if (c.masterAddress.empty()) {
-        throw Error(1120, "Cluster master address must not be empty");
+        throw Err(1120, "Cluster master address must not be empty");
     }
     if (c.scene) {
         validateScene(*c.scene);
@@ -345,7 +345,7 @@ void validateCluster(const Cluster& c) {
     }
 
     if (c.users.empty()) {
-        throw Error(1122, "There must be at least one user in the cluster");
+        throw Err(1122, "There must be at least one user in the cluster");
     }
 
     const int nDefaultUsers = static_cast<int>(
@@ -356,7 +356,7 @@ void validateCluster(const Cluster& c) {
     );
 
     if (nDefaultUsers > 1) {
-        throw Error(1123, "More than one unnamed users specified");
+        throw Err(1123, "More than one unnamed users specified");
     }
 
     std::for_each(c.users.cbegin(), c.users.cend(), validateUser);
@@ -369,7 +369,7 @@ void validateCluster(const Cluster& c) {
         [](const User& user) { return user.name.value_or(""); }
     );
     if (std::unique(usernames.begin(), usernames.end()) != usernames.end()) {
-        throw Error(1124, "No two users can have the same name");
+        throw Err(1124, "No two users can have the same name");
     }
 
 
@@ -391,7 +391,7 @@ void validateCluster(const Cluster& c) {
         }
     );
     if (!foundAllTrackers) {
-        throw Error(
+        throw Err(
             1125,
             "All trackers specified in the User's have to be valid tracker names"
         );
@@ -429,11 +429,11 @@ void validateCluster(const Cluster& c) {
         }
     );
     if (!allDevicesValid) {
-        throw Error(1126, "All devices in the 'User's have to be valid devices");
+        throw Err(1126, "All devices in the 'User's have to be valid devices");
     }
 
     if (c.nodes.empty()) {
-        throw Error(1127, "Configuration must contain at least one node");
+        throw Err(1127, "Configuration must contain at least one node");
     }
     std::for_each(c.nodes.cbegin(), c.nodes.cend(), validateNode);
 }
@@ -458,7 +458,7 @@ std::string GeneratorVersion::versionString() const {
 
 } // namespace sgct::config
 
-#undef Error
+#undef Err
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
 namespace {

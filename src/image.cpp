@@ -31,6 +31,7 @@
 #pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined __GNUC__
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Walloc-zero"
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wtype-limits"
@@ -42,9 +43,7 @@ namespace {
 #define STBI_NO_SIMD
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
-} // namespace
 
-namespace {
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 } // namespace

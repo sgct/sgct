@@ -42,9 +42,6 @@
 #endif // SGCT_HAS_SPOUT
 
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#define VC_EXTRALEAN
 #include <Windows.h>
 #include <glad/glad_wgl.h>
 #endif // WIN32
@@ -178,7 +175,7 @@ namespace {
 
 namespace sgct {
 
-GLFWwindow* _activeContext = nullptr;
+static GLFWwindow* _activeContext = nullptr;
 
 bool Window::_useSwapGroups = false;
 bool Window::_isBarrierActive = false;

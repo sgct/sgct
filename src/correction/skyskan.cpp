@@ -23,7 +23,7 @@
 #include <fstream>
 #include <optional>
 
-#define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
+#define Err(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 
 namespace sgct::correction {
 
@@ -40,7 +40,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     if (!meshFile.good()) {
         // @TODO: Remove `.string()` as soon as Clang on MacOS supports
         // formatting std::filesystem::path
-        throw Error(2090, std::format("Failed to open file '{}'", path.string()));
+        throw Err(2090, std::format("Failed to open file '{}'", path.string()));
     }
 
     std::optional<float> azimuth;
@@ -128,7 +128,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     {
         // @TODO: Remove `.string()` as soon as Clang on MacOS supports
         // formatting std::filesystem::path
-        throw Error(2091, std::format("Data reading error in file '{}'", path.string()));
+        throw Err(2091, std::format("Data reading error in file '{}'", path.string()));
     }
 
     // create frustums and projection matrices

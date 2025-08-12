@@ -29,7 +29,7 @@
 #include <fstream>
 #include <iomanip>
 
-#define Error(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
+#define Err(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 
 namespace sgct {
 
@@ -249,7 +249,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
         buf = generateSimCADMesh(path, parentPos, parentSize);
     }
     else {
-        throw Error(2002, "Could not determine format for warping mesh");
+        throw Err(2002, "Could not determine format for warping mesh");
     }
 
     _warpGeometry = CorrectionMeshGeometry(buf);

@@ -322,7 +322,6 @@ private:
      * Causes all of the viewports of the provided \p window be rendered with the
      * \p frustum into the texture behind the provided \p ti texture index.
      *
-     * \param window The window whose viewports should be rendered
      * \param frustum The frustum that should be used to render the viewports
      * \param eye The eye that should be rendered
      */
@@ -332,7 +331,6 @@ private:
      * Draw viewport overlays if there are any. This function renders stats, OSD and
      * overlays of the provided \p window and using the provided \p frustum.
      *
-     * \param window The Window object for which the overlays should be drawn
      * \param frustum The frustum for which the overlay should be drawn
      */
     void render2D(FrustumMode frustum) const;
@@ -343,8 +341,6 @@ private:
      *
      * \param prevWindow The source window whose content should be copied into the
      *        \p window
-     * \param window The destination into which the contents of the \p prevWindow is
-     *        copied
      * \param viewport The viewport of the window that should be compied
      * \param mode The frustum that should be used to copy the window contents
      *

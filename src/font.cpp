@@ -13,18 +13,8 @@
 #include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
-
-#pragma GCC diagnostic pop
-#pragma clang diagnostic pop
-
 #include <array>
 #include <optional>
 

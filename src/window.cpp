@@ -539,12 +539,26 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     {
         ZoneScopedN("glfwCreateWindow");
         assert(_windowRes);
-        _windowHandle = glfwCreateWindow(_windowRes->x, _windowRes->y, "SGCT", mon, share);
+        _windowHandle = glfwCreateWindow(
+            _windowRes->x,
+            _windowRes->y,
+            "SGCT",
+            mon,
+            share
+        );
         glfwSetWindowUserPointer(_windowHandle, this);
         if (_windowHandle == nullptr) {
             throw Err(8000, "Error opening GLFW window");
         }
     }
+
+    glfwSetWindowIconifyCallback(
+        _windowHandle,
+        [](GLFWwindow* window, int iconified) {
+            Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+            win->_isIconified = iconified != 0;
+        }
+    );
 
     {
         ZoneScopedN("glfwMakeContextCurrent");
@@ -902,7 +916,7 @@ void Window::updateResolutions() {
 void Window::update() {
     ZoneScoped;
 
-    if (!_isVisible || !isWindowResized()) {
+    if (!isVisible() || !isWindowResized()) {
         return;
     }
     makeOpenGLContextCurrent();
@@ -935,7 +949,7 @@ void Window::update() {
 void Window::draw() {
     ZoneScopedN("Render window");
 
-    if (!(isVisible() || isRenderingWhileHidden())) [[unlikely]] {
+    if (!isRenderingWhileHidden() && (!isVisible() || _isIconified)) [[unlikely]] {
         return;
     }
 
@@ -992,7 +1006,7 @@ void Window::draw() {
 void Window::renderFBOTexture() {
     ZoneScoped;
 
-    if (!_isVisible) [[unlikely]] {
+    if (!isVisible()) [[unlikely]] {
         return;
     }
 
@@ -1174,7 +1188,7 @@ void Window::renderFBOTexture() {
 }
 
 void Window::swapBuffers(bool takeScreenshot) {
-    if (!(_isVisible || _shouldRenderWhileHidden)) {
+    if (!(isVisible() || _shouldRenderWhileHidden)) {
         return;
     }
 

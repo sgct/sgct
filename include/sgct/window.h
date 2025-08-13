@@ -373,6 +373,7 @@ private:
     bool _mirrorY;
     bool _noError;
     bool _isVisible;
+    bool _isIconified = false;
     StereoMode _stereoMode;
     std::optional<ivec2> _windowPos;
     std::optional<ivec2> _windowRes;

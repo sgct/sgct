@@ -1108,9 +1108,9 @@ void Window::renderFBOTexture() {
         glCopyTexImage2D(
             GL_TEXTURE_2D,
             0,
-            0,
-            0,
             _internalColorFormat,
+            0,
+            0,
             _framebufferRes.x,
             _framebufferRes.y,
             0

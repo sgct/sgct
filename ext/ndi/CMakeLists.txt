@@ -14,4 +14,5 @@ add_library(ndi SHARED IMPORTED GLOBAL)
 
 target_include_directories(ndi SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set_target_properties(ndi PROPERTIES IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/lib/Processing.NDI.Lib.x64.lib)
+set_target_properties(ndi PROPERTIES IMPORTED_IMPLIB_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/lib/Processing.NDI.Lib.x64.lib)
 set_target_properties(ndi PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/lib/Processing.NDI.Lib.x64.dll)

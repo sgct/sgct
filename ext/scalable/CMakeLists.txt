@@ -15,4 +15,5 @@ add_library(scalable SHARED IMPORTED GLOBAL)
 
 target_include_directories(scalable SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(scalable PROPERTIES IMPORTED_IMPLIB ${CMAKE_CURRENT_SOURCE_DIR}/mplEasyBlendSDK.lib)
+set_target_properties(scalable PROPERTIES IMPORTED_IMPLIB_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/mplEasyBlendSDK.lib)
 set_target_properties(scalable PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/mplEasyBlendSDK.dll)

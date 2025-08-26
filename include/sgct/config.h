@@ -24,7 +24,7 @@ struct SGCT_EXPORT User {
         std::string tracker;
         std::string device;
 
-        auto operator<=>(const Tracking&) const noexcept = default;
+        bool operator==(const Tracking&) const noexcept = default;
     };
 
     std::optional<std::string> name;
@@ -33,7 +33,7 @@ struct SGCT_EXPORT User {
     std::optional<mat4> transformation;
     std::optional<Tracking> tracking;
 
-    auto operator<=>(const User&) const noexcept = default;
+    bool operator==(const User&) const noexcept = default;
 };
 SGCT_EXPORT void validateUser(const User& user);
 
@@ -44,13 +44,13 @@ struct SGCT_EXPORT Capture {
         int first = -1; // inclusive
         int last = -1;  // exclusive
 
-        auto operator<=>(const ScreenShotRange&) const noexcept = default;
+        bool operator==(const ScreenShotRange&) const noexcept = default;
     };
 
     std::optional<std::filesystem::path> path;
     std::optional<ScreenShotRange> range;
 
-    auto operator<=>(const Capture&) const noexcept = default;
+    bool operator==(const Capture&) const noexcept = default;
 };
 SGCT_EXPORT void validateCapture(const Capture& capture);
 
@@ -61,7 +61,7 @@ struct SGCT_EXPORT Scene {
     std::optional<quat> orientation;
     std::optional<float> scale;
 
-    auto operator<=>(const Scene&) const noexcept = default;
+    bool operator==(const Scene&) const noexcept = default;
 };
 SGCT_EXPORT void validateScene(const Scene& scene);
 
@@ -74,7 +74,7 @@ struct SGCT_EXPORT Settings {
         std::optional<int8_t> swapInterval;
         std::optional<int> refreshRate;
 
-        auto operator<=>(const Display&) const noexcept = default;
+        bool operator==(const Display&) const noexcept = default;
     };
 
     std::optional<bool> useDepthTexture;
@@ -83,7 +83,7 @@ struct SGCT_EXPORT Settings {
     std::optional<BufferFloatPrecision> bufferFloatPrecision;
     std::optional<Display> display;
 
-    auto operator<=>(const Settings&) const noexcept = default;
+    bool operator==(const Settings&) const noexcept = default;
 };
 SGCT_EXPORT void validateSettings(const Settings& settings);
 
@@ -95,19 +95,19 @@ struct SGCT_EXPORT Tracker {
             std::string vrpnAddress;
             int identifier = -1;
 
-            auto operator<=>(const Sensor&) const noexcept = default;
+            bool operator==(const Sensor&) const noexcept = default;
         };
         struct Button {
             std::string vrpnAddress;
             int count = 0;
 
-            auto operator<=>(const Button&) const noexcept = default;
+            bool operator==(const Button&) const noexcept = default;
         };
         struct Axis {
             std::string vrpnAddress;
             int count = 0;
 
-            auto operator<=>(const Axis&) const noexcept = default;
+            bool operator==(const Axis&) const noexcept = default;
         };
 
         std::string name;
@@ -117,7 +117,7 @@ struct SGCT_EXPORT Tracker {
         std::optional<vec3> offset;
         std::optional<mat4> transformation;
 
-        auto operator<=>(const Device&) const noexcept = default;
+        bool operator==(const Device&) const noexcept = default;
     };
 
     std::string name;
@@ -126,14 +126,14 @@ struct SGCT_EXPORT Tracker {
     std::optional<double> scale;
     std::optional<mat4> transformation;
 
-    auto operator<=>(const Tracker&) const noexcept = default;
+    bool operator==(const Tracker&) const noexcept = default;
 };
 SGCT_EXPORT void validateTracker(const Tracker& tracker);
 
 
 
 struct SGCT_EXPORT NoProjection {
-    auto operator<=>(const NoProjection&) const noexcept = default;
+    bool operator==(const NoProjection&) const noexcept = default;
 };
 
 
@@ -147,14 +147,14 @@ struct SGCT_EXPORT CubemapProjection {
         bool left = true;
         bool zRight = true;
 
-        auto operator<=>(const Channels&) const noexcept = default;
+        bool operator==(const Channels&) const noexcept = default;
     };
 
     struct Spout {
         bool enabled = true;
         std::optional<std::string> name;
 
-        auto operator<=>(const Spout&) const noexcept = default;
+        bool operator==(const Spout&) const noexcept = default;
     };
 
     struct NDI {
@@ -162,7 +162,7 @@ struct SGCT_EXPORT CubemapProjection {
         std::optional<std::string> name;
         std::optional<std::string> groups;
 
-        auto operator<=>(const NDI&) const noexcept = default;
+        bool operator==(const NDI&) const noexcept = default;
     };
 
     std::optional<int> quality;
@@ -171,7 +171,7 @@ struct SGCT_EXPORT CubemapProjection {
     std::optional<Channels> channels;
     std::optional<vec3> orientation;
 
-    auto operator<=>(const CubemapProjection&) const noexcept = default;
+    bool operator==(const CubemapProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const CubemapProjection& proj);
 
@@ -183,7 +183,7 @@ struct SGCT_EXPORT CylindricalProjection {
     std::optional<float> heightOffset;
     std::optional<float> radius;
 
-    auto operator<=>(const CylindricalProjection&) const noexcept = default;
+    bool operator==(const CylindricalProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const CylindricalProjection& proj);
 
@@ -192,7 +192,7 @@ SGCT_EXPORT void validateProjection(const CylindricalProjection& proj);
 struct SGCT_EXPORT EquirectangularProjection {
     std::optional<int> quality;
 
-    auto operator<=>(const EquirectangularProjection&) const noexcept = default;
+    bool operator==(const EquirectangularProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const EquirectangularProjection& proj);
 
@@ -208,7 +208,7 @@ struct SGCT_EXPORT FisheyeProjection {
         float bottom = 0.f;
         float top = 0.f;
 
-        auto operator<=>(const Crop&) const noexcept = default;
+        bool operator==(const Crop&) const noexcept = default;
     };
     std::optional<float> fov;
     std::optional<int> quality;
@@ -220,7 +220,7 @@ struct SGCT_EXPORT FisheyeProjection {
     std::optional<vec3> offset;
     std::optional<vec4> background;
 
-    auto operator<=>(const FisheyeProjection&) const noexcept = default;
+    bool operator==(const FisheyeProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const FisheyeProjection& proj);
 
@@ -234,13 +234,13 @@ struct SGCT_EXPORT PlanarProjection {
         float up = 0.f;
         std::optional<float> distance;
 
-        auto operator<=>(const FOV&) const noexcept = default;
+        bool operator==(const FOV&) const noexcept = default;
     };
     FOV fov;
     std::optional<quat> orientation;
     std::optional<vec3> offset;
 
-    auto operator<=>(const PlanarProjection&) const noexcept = default;
+    bool operator==(const PlanarProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const PlanarProjection& proj);
 
@@ -251,7 +251,7 @@ struct SGCT_EXPORT ProjectionPlane {
     vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
     vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
 
-    auto operator<=>(const ProjectionPlane&) const noexcept = default;
+    bool operator==(const ProjectionPlane&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
 
@@ -264,14 +264,14 @@ struct SGCT_EXPORT SphericalMirrorProjection {
         std::string right;
         std::string top;
 
-        auto operator<=>(const Mesh&) const noexcept = default;
+        bool operator==(const Mesh&) const noexcept = default;
     };
     std::optional<int> quality;
     std::optional<float> tilt;
     std::optional<vec4> background;
     Mesh mesh;
 
-    auto operator<=>(const SphericalMirrorProjection&) const noexcept = default;
+    bool operator==(const SphericalMirrorProjection&) const noexcept = default;
 };
 SGCT_EXPORT void validateProjection(const SphericalMirrorProjection& proj);
 
@@ -304,7 +304,7 @@ struct SGCT_EXPORT Viewport {
     std::optional<std::string> user;
 
 
-    auto operator<=>(const Viewport&) const noexcept = default;
+    bool operator==(const Viewport&) const noexcept = default;
 };
 SGCT_EXPORT void validateViewport(const Viewport& viewport);
 
@@ -343,7 +343,7 @@ struct SGCT_EXPORT Window {
         bool enabled = true;
         std::optional<std::string> name;
 
-        auto operator<=>(const Spout&) const noexcept = default;
+        bool operator==(const Spout&) const noexcept = default;
     };
 
     struct NDI {
@@ -351,7 +351,7 @@ struct SGCT_EXPORT Window {
         std::optional<std::string> name;
         std::optional<std::string> groups;
 
-        auto operator<=>(const NDI&) const noexcept = default;
+        bool operator==(const NDI&) const noexcept = default;
     };
 
     struct Scalable {
@@ -359,7 +359,7 @@ struct SGCT_EXPORT Window {
         std::optional<int> orthographicQuality;
         std::optional<int> orthographicResolution;
 
-        auto operator<=>(const Scalable&) const noexcept = default;
+        bool operator==(const Scalable&) const noexcept = default;
     };
 
     std::optional<ivec2> pos;
@@ -394,7 +394,7 @@ struct SGCT_EXPORT Window {
     std::optional<NDI> ndi;
     std::optional<Scalable> scalable;
 
-    auto operator<=>(const Window&) const noexcept = default;
+    bool operator==(const Window&) const noexcept = default;
 };
 SGCT_EXPORT void validateWindow(const Window& window);
 
@@ -407,7 +407,7 @@ struct SGCT_EXPORT Node {
     std::optional<bool> swapLock;
     std::vector<Window> windows;
 
-    auto operator<=>(const Node&) const noexcept = default;
+    bool operator==(const Node&) const noexcept = default;
 };
 SGCT_EXPORT void validateNode(const Node& node);
 
@@ -418,7 +418,7 @@ struct SGCT_EXPORT GeneratorVersion {
     int major = 0;
     int minor = 0;
 
-    auto operator<=>(const GeneratorVersion&) const noexcept = default;
+    bool operator==(const GeneratorVersion&) const noexcept = default;
 
     bool versionCheck(GeneratorVersion check) const;
 
@@ -435,7 +435,7 @@ struct SGCT_EXPORT Meta {
     std::optional<std::string> name;
     std::optional<std::string> version;
 
-    auto operator<=>(const Meta&) const noexcept = default;
+    bool operator==(const Meta&) const noexcept = default;
 };
 
 
@@ -457,7 +457,7 @@ struct SGCT_EXPORT Cluster {
     std::optional<GeneratorVersion> generator;
     std::optional<Meta> meta;
 
-    auto operator<=>(const Cluster&) const noexcept = default;
+    bool operator==(const Cluster&) const noexcept = default;
 };
 SGCT_EXPORT void validateCluster(const Cluster& cluster);
 

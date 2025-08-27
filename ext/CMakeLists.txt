@@ -182,6 +182,7 @@ if (WIN32 AND SGCT_SPOUT_SUPPORT)
   add_library(spout SHARED IMPORTED GLOBAL)
   target_include_directories(spout INTERFACE spout)
   set_property(TARGET spout PROPERTY IMPORTED_IMPLIB ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.lib)
+  set_property(TARGET spout PROPERTY IMPORTED_IMPLIB_RELEASE ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.lib)
   set_property(TARGET spout PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.dll)
 endif ()
 

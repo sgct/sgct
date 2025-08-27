@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 cmake_policy(VERSION 3.25)
 enable_testing()
 
-project(sgct VERSION 3.0.0)
+project(sgct VERSION 4.0.0)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

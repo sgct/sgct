@@ -83,8 +83,8 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
     nCols++;
     nRows++;
 
-    for (unsigned int c = 0; c < nCols; ++c) {
-        for (unsigned int r = 0; r < nRows; ++r) {
+    for (unsigned int c = 0; c < nCols; c++) {
+        for (unsigned int r = 0; r < nRows; r++) {
             // 3      2
             //  x____x
             //  |   /|

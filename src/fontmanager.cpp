@@ -97,12 +97,14 @@ FontManager::FontManager() {
 
     // Set default font path
 #ifdef WIN32
-    constexpr int BufferSize = 256;
-    char FontDir[BufferSize];
-    const UINT success = GetWindowsDirectory(FontDir, 256);
+    WCHAR winDir[MAX_PATH];
+    const UINT success = GetWindowsDirectory(winDir, MAX_PATH);
+
     if (success > 0) {
-        SystemFontPath = FontDir;
-        SystemFontPath += "\\Fonts\\";
+        std::wstringstream ss;
+        ss << winDir << "\\Fonts\\";
+        std::wstring wSystemFontPath = ss.str();
+        SystemFontPath = std::string(wSystemFontPath.begin(), wSystemFontPath.end());
     }
 #elif defined(__APPLE__)
     // System Fonts

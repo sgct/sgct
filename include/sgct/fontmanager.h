@@ -106,7 +106,7 @@ public:
      * \param name Specify a name for the font
      * \param file Path to the font file
      */
-    bool addFont(std::string name, std::string file);
+    bool addFont(std::string name, std::string file, bool absolutePath = false);
 
     /**
      * Get a font face that is loaded into memory.

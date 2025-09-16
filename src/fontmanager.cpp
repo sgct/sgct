@@ -134,10 +134,11 @@ void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) co
     glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, mvp.values.data());
 }
 
-bool FontManager::addFont(std::string name, std::string file, bool absolutePath) {
+bool FontManager::addFont(std::string name, std::string file, bool isAbsolutePath) {
     // Perform file exists check
-    if(!absolutePath)
+    if (!isAbsolutePath) {
         file = SystemFontPath + file;
+    }
 
     const bool inserted = _fontPaths.insert({ name, std::move(file) }).second;
     if (!inserted) {

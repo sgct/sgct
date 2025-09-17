@@ -97,8 +97,15 @@ FontManager::FontManager() {
 
     // Set default font path
 #ifdef WIN32
-    WCHAR winDir[MAX_PATH];
-    const UINT success = GetWindowsDirectory(winDir, MAX_PATH);
+    #ifdef UNICODE
+    constexpr int BufferSize = MAX_PATH;
+    WCHAR winDir[BufferSize];
+    #else
+    constexpr int BufferSize = 256;
+    char winDir[BufferSize];
+    #endif // !UNICODE
+
+    const UINT success = GetWindowsDirectory(winDir, BufferSize);
 
     if (success > 0) {
         std::wstringstream ss;

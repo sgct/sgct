@@ -105,8 +105,10 @@ public:
      *
      * \param name Specify a name for the font
      * \param file Path to the font file
+     * \param isAbsolutePath If this value is `true`, the \p file specifies an absolute
+     *        path
      */
-    bool addFont(std::string name, std::string file);
+    bool addFont(std::string name, std::string file, bool isAbsolutePath = false);
 
     /**
      * Get a font face that is loaded into memory.

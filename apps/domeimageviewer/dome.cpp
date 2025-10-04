@@ -77,7 +77,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
 
             indices.push_back(numVerts);
             indices.push_back(_azimuthSteps + numVerts);
-            ++numVerts;
+            numVerts++;
         }
 
         indices.push_back(numVerts - _azimuthSteps);

@@ -155,8 +155,8 @@ void initializeGrid() {
     // elevation and then the azimuth will lead to the bottom most ring be filled first,
     // before going to the upper rings.  That also means that two vertices on top of each
     // other should be separated in the vertices list by 'AzimuthSteps' positions
-    for (int e = 0; e <= ElevationSteps; ++e) {
-        for (int a = 0; a < AzimuthSteps; ++a) {
+    for (int e = 0; e <= ElevationSteps; e++) {
+        for (int a = 0; a < AzimuthSteps; a++) {
             float ev = static_cast<float>(e) / static_cast<float>(ElevationSteps - 1);
             float av = static_cast<float>(a) / static_cast<float>(AzimuthSteps - 1);
             
@@ -184,7 +184,7 @@ void initializeGrid() {
         indices.reserve(2 * ElevationSteps * AzimuthSteps);
 
         // First the horizontal, azimuth lines
-        for (int e = 0; e < ElevationSteps; ++e) {
+        for (int e = 0; e < ElevationSteps; e++) {
             std::vector<uint16_t> t(AzimuthSteps);
             std::iota(t.begin(), t.end(), static_cast<uint16_t>(e * AzimuthSteps));
             t.push_back(static_cast<uint16_t>(e * AzimuthSteps)); // close the ring
@@ -194,8 +194,8 @@ void initializeGrid() {
         indices.push_back(RestartIndex);
         // Then the vertical lines; see above; every vertical vertex is separated by
         // exactly 'AzimuthSteps' positions in the vertex array
-        for (int a = 0; a < AzimuthSteps; ++a) {
-            for (int e = 0; e < ElevationSteps; ++e) {
+        for (int a = 0; a < AzimuthSteps; a++) {
+            for (int e = 0; e < ElevationSteps; e++) {
                 indices.push_back(static_cast<uint16_t>(a + e * AzimuthSteps));
             }
             indices.push_back(RestartIndex);

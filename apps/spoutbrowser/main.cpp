@@ -130,7 +130,7 @@ void postSyncPreDraw() {
 
     senders.clear();
     senders.reserve(count);
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; i++) {
         char Buffer[256];
         bool success = receiver->GetSenderName(i, Buffer, 256);
 

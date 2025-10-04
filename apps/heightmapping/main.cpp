@@ -161,13 +161,13 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
 
     Geometry res;
 
-    for (int depthIndex = 0; depthIndex < dRes; ++depthIndex) {
+    for (int depthIndex = 0; depthIndex < dRes; depthIndex++) {
         const float dPosLow = dStart + dD * static_cast<float>(depthIndex);
         const float dPosHigh = dStart + dD * static_cast<float>(depthIndex + 1);
         const float dTexCoordLow = depthIndex / static_cast<float>(dRes);
         const float dTexCoordHigh = (depthIndex + 1) / static_cast<float>(dRes);
 
-        for (int widthIndex = 0; widthIndex < wRes; ++widthIndex) {
+        for (int widthIndex = 0; widthIndex < wRes; widthIndex++) {
             const float wPos = wStart + dW * static_cast<float>(widthIndex);
             const float wTexCoord = widthIndex / static_cast<float>(wRes);
 

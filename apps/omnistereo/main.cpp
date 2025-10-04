@@ -164,7 +164,7 @@ void initOmniStereo(bool mask) {
         omniProjections[i].resize(res.y);
     }
 
-    int VPCounter = 0;
+    int vpCounter = 0;
 
     for (int eye = 0; eye <= 2; eye++) {
         float eyeSep = Engine::instance().defaultUser().eyeSeparation();
@@ -332,13 +332,13 @@ void initOmniStereo(bool mask) {
                     omniProjections[x][y].viewProjectionMatrix[fm] = glm::make_mat4(
                         proj.viewProjectionMatrix().values.data()
                     );
-                    VPCounter++;
+                    vpCounter++;
                 }
             }
         }
     }
 
-    int percentage = (100 * VPCounter) / (res.x * res.y * 3);
+    int percentage = (100 * vpCounter) / (res.x * res.y * 3);
     Log::Info(std::format(
         "Time to init viewports: {} s\n{} %% will be rendered",
         time() - t0, percentage

@@ -14,6 +14,7 @@
 // not change anytime soon anyway (famous last words)
 
 namespace sgct {
+
 enum class MouseButton {
 #ifdef WIN32
     Button1 = 0, // = GLFW_MOUSE_BUTTON_1;
@@ -33,6 +34,7 @@ enum class MouseButton {
     ButtonMiddle = 2
 #endif // WIN32
 };
+
 } // namespace sgct
 
 #endif // __SGCT__MOUSE__H__

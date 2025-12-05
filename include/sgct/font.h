@@ -12,23 +12,14 @@
 #ifdef SGCT_HAS_TEXT
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
-#include <string>
 #include <unordered_map>
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#endif // __clang__
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif // __clang__
-
-typedef struct FT_LibraryRec_  *FT_Library;
-typedef struct FT_GlyphRec_*  FT_Glyph;
-typedef struct FT_FaceRec_*  FT_Face;
-typedef signed long  FT_Fixed;
+typedef struct FT_LibraryRec_ *FT_Library;
+typedef struct FT_GlyphRec_ *FT_Glyph;
+typedef struct FT_FaceRec_ *FT_Face;
+typedef signed long FT_Fixed;
 
 namespace sgct::text {
 

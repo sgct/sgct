@@ -309,7 +309,9 @@ bool OffScreenBuffer::isMultiSampled() const {
     return _isMultiSampled;
 }
 
-void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) const {
+void OffScreenBuffer::attachColorTexture(unsigned int texId,
+                                         unsigned int attachment) const
+{
     glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texId, 0);
 }
 
@@ -318,7 +320,7 @@ void OffScreenBuffer::attachDepthTexture(unsigned int texId) const {
 }
 
 void OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face,
-                                           GLenum attachment) const
+                                           unsigned int attachment) const
 {
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,

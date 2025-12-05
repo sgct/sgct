@@ -10,8 +10,10 @@
 #define __SGCT__NETWORK__H__
 
 #include <sgct/sgctexports.h>
+
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>

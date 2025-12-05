@@ -10,8 +10,10 @@
 #define __SGCT__SHADERMANAGER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/shaderprogram.h>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace sgct {

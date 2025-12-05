@@ -10,7 +10,7 @@
 #define __SGCT__ERROR__H__
 
 #include <sgct/sgctexports.h>
-#include <stdexcept>
+
 #include <string>
 
 namespace sgct {

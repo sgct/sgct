@@ -10,7 +10,9 @@
 #define __SGCT__FREETYPE__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
+#include <string>
 
 namespace sgct {
     class BaseViewport;

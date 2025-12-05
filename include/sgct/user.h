@@ -10,10 +10,13 @@
 #define __SGCT__USER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
 #include <string>
 
 namespace sgct {
+
+namespace config { struct User; }
 
 /**
  * Helper class for setting user variables.

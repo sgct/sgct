@@ -9,6 +9,8 @@
 #ifndef __SGCT__INTERNALSHADERS__H__
 #define __SGCT__INTERNALSHADERS__H__
 
+#include <string_view>
+
 namespace sgct::shaders {
 
 constexpr std::string_view BaseVert = R"(

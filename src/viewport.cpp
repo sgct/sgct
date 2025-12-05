@@ -8,11 +8,13 @@
 
 #include <sgct/viewport.h>
 
+#include <sgct/baseviewport.h>
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
+#include <sgct/definitions.h>
 #include <sgct/log.h>
+#include <sgct/math.h>
 #include <sgct/profiling.h>
-#include <sgct/screencapture.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/cubemap.h>
 #include <sgct/projection/cylindrical.h>
@@ -20,9 +22,15 @@
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirror.h>
-#include <algorithm>
-#include <array>
+#include <sgct/window.h>
+#include <cassert>
+#include <cstdint>
+#include <filesystem>
+#include <format>
+#include <memory>
 #include <optional>
+#include <stdexcept>
+#include <utility>
 #include <variant>
 
 namespace {
@@ -56,9 +64,9 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
     if (viewport.user) {
         User* user = ClusterManager::instance().user(*viewport.user);
         if (!user) {
-            Log::Warning(
-                std::format("Could not find user with name '{}'", *viewport.user)
-            );
+            Log::Warning(std::format(
+                "Could not find user with name '{}'", *viewport.user
+            ));
         }
 
         // If the user name is not empty, the User better exists

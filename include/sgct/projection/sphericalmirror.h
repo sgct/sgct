@@ -13,8 +13,16 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
+#include <sgct/definitions.h>
+#include <sgct/shaderprogram.h>
 
 namespace sgct {
+
+namespace config { struct SphericalMirrorProjection; }
+
+class BaseViewport;
+class User;
+class Window;
 
 /**
  * This class manages and renders non-linear fisheye projections.

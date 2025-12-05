@@ -10,7 +10,9 @@
 #define __SGCT__SHADERPROGRAM__H__
 
 #include <sgct/sgctexports.h>
+
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace sgct {

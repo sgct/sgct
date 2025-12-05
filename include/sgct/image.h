@@ -10,6 +10,7 @@
 #define __SGCT__IMAGE__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
 #include <filesystem>
 

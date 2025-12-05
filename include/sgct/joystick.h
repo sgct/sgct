@@ -14,6 +14,7 @@
 // not change anytime soon anyway (famous last words)
 
 namespace sgct {
+
 enum class Joystick {
     Joystick1 = 0, // = GLFW_JOYSTICK_1;
     Joystick2 = 1, // = GLFW_JOYSTICK_2;
@@ -32,6 +33,7 @@ enum class Joystick {
     Joystick15 = 14, // = GLFW_JOYSTICK_15;
     Joystick16 = 15 // = GLFW_JOYSTICK_16;
 };
+
 } // namespace sgct
 
 #endif // __SGCT__JOYSTICK__H__

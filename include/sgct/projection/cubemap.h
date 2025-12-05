@@ -12,9 +12,13 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/callbackdata.h>
+#include <sgct/definitions.h>
+#include <sgct/math.h>
+#include <sgct/shaderprogram.h>
 #include <array>
 #include <memory>
+#include <string>
+#include <vector>
 
 #ifdef SGCT_HAS_SPOUT
 struct SPOUTLIBRARY;
@@ -27,7 +31,12 @@ typedef SPOUTLIBRARY* SPOUTHANDLE;
 
 namespace sgct {
 
+namespace config { struct CubemapProjection; }
+
+class BaseViewport;
 class OffScreenBuffer;
+class Window;
+class User;
 
 /**
  * This class manages and renders non-linear fisheye projections.

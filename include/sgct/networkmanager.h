@@ -10,12 +10,14 @@
 #define __SGCT__NETWORKMANAGER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/network.h>
-#include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 

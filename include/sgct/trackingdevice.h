@@ -10,6 +10,7 @@
 #define __SGCT__TRACKINGDEVICE__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
 #include <string>
 #include <vector>

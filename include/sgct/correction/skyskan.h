@@ -10,6 +10,7 @@
 #define __SGCT__CORRECTION_SKYSKAN__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 

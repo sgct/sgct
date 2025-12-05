@@ -10,15 +10,16 @@
 #define __SGCT__CLUSTERMANAGER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
-namespace sgct::config { struct Cluster; }
-
 namespace sgct {
+
+namespace config { struct Cluster; }
 
 class Node;
 class User;

@@ -10,7 +10,7 @@
 #define __SGCT__CORRECTION_SCALABLE__H__
 
 #include <sgct/sgctexports.h>
-#include <sgct/math.h>
+
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 

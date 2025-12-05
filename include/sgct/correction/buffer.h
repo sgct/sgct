@@ -10,6 +10,7 @@
 #define __SGCT__BUFFER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <vector>
 
 namespace sgct::correction {

@@ -12,11 +12,17 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/callbackdata.h>
 #include <sgct/definitions.h>
 #include <sgct/math.h>
+#include <sgct/shaderprogram.h>
 
 namespace sgct {
+
+namespace config { struct EquirectangularProjection; }
+
+class BaseViewport;
+class Window;
+class User;
 
 class SGCT_EXPORT EquirectangularProjection final : public NonLinearProjection {
 public:

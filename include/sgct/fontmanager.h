@@ -12,23 +12,16 @@
 #ifdef SGCT_HAS_TEXT
 
 #include <sgct/sgctexports.h>
+
+#include <sgct/font.h>
 #include <sgct/math.h>
 #include <sgct/shaderprogram.h>
-
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-#endif // __clang__
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif // __clang__
-
-typedef struct FT_LibraryRec_  *FT_Library;
+typedef struct FT_LibraryRec_ *FT_Library;
 
 namespace sgct::text {
 

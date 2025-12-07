@@ -12,6 +12,8 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/definitions.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/screencapture.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
 #include <cmath>
@@ -38,9 +40,6 @@ typedef SPOUTLIBRARY* SPOUTHANDLE;
 namespace sgct {
 
 namespace config { struct Window; }
-
-class OffScreenBuffer;
-class ScreenCapture;
 
 class SGCT_EXPORT Window {
 public:

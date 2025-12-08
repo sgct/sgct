@@ -11,7 +11,6 @@
 
 #include <sgct/sgctexports.h>
 #include <array>
-#include <compare>
 
 namespace sgct {
 

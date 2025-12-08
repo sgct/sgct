@@ -10,6 +10,7 @@
 #define __SGCT__CALLBACKDATA__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/definitions.h>
 #include <sgct/math.h>
 #include <utility>

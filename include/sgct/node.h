@@ -10,10 +10,10 @@
 #define __SGCT__NODE__H__
 
 #include <sgct/sgctexports.h>
-#include <sgct/keys.h>
-#include <sgct/offscreenbuffer.h>
-#include <sgct/screencapture.h>
+
 #include <sgct/window.h>
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 

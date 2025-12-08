@@ -10,10 +10,11 @@
 #define __SGCT__NONLINEARPROJECTION__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/baseviewport.h>
-#include <sgct/shaderprogram.h>
+#include <sgct/definitions.h>
+#include <cstdint>
 #include <memory>
-#include <string>
 
 namespace sgct {
 
@@ -27,7 +28,7 @@ class SGCT_EXPORT NonLinearProjection {
 public:
     enum class InterpolationMode : uint8_t { Linear, Cubic };
 
-    NonLinearProjection(const Window& parent);
+    explicit NonLinearProjection(const Window& parent);
 
     virtual ~NonLinearProjection();
 

@@ -10,11 +10,11 @@
 #define __SGCT__BASEVIEWPORT__H__
 
 #include <sgct/definitions.h>
+
 #include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <sgct/projection.h>
 #include <sgct/projection/projectionplane.h>
-#include <string>
 
 namespace sgct {
 
@@ -26,7 +26,7 @@ class User;
  */
 class SGCT_EXPORT BaseViewport {
 public:
-    BaseViewport(const Window& parent, FrustumMode eye = FrustumMode::Mono);
+    explicit BaseViewport(const Window& parent, FrustumMode eye = FrustumMode::Mono);
     virtual ~BaseViewport();
 
     void setupViewport(FrustumMode frustum) const;

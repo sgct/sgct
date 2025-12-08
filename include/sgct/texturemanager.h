@@ -10,6 +10,7 @@
 #define __SGCT__TEXTUREMANAGER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <filesystem>
 #include <vector>
 

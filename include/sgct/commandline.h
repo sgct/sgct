@@ -10,6 +10,7 @@
 #define __SGCT__COMMANDLINE__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/log.h>
 #include <filesystem>
 #include <optional>

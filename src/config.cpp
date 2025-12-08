@@ -771,7 +771,7 @@ static void from_json(const nlohmann::json& j, User& u) {
         const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
         sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
+        std::memcpy(o.values.data(), glm::value_ptr(m), 16 * sizeof(float));
         u.transformation = o;
     }
 
@@ -1001,7 +1001,7 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
         const quat q = it->get<quat>();
         glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
         sgct::mat4 o;
-        std::memcpy(&o, glm::value_ptr(m), 16 * sizeof(float));
+        std::memcpy(o.values.data(), glm::value_ptr(m), 16 * sizeof(float));
         t.transformation = o;
     }
 }

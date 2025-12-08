@@ -8,17 +8,20 @@
 
 #include <sgct/projection/cylindrical.h>
 
-#include <sgct/clustermanager.h>
-#include <sgct/engine.h>
+#include <sgct/baseviewport.h>
+#include <sgct/definitions.h>
+#include <sgct/projection/nonlinearprojection.h>
+#include <sgct/projection/projectionplane.h>
+#include <sgct/shaderprogram.h>
 #include <sgct/internalshaders.h>
-#include <sgct/log.h>
-#include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <array>
+#include <cstddef>
+#include <string_view>
 
 namespace {
     constexpr std::string_view FragmentShader = R"(

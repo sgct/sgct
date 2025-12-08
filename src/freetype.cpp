@@ -105,7 +105,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
             );
             glm::mat4 scale = glm::scale(trans, glm::vec3(ffd.size.x, ffd.size.y, 1.f));
             sgct::mat4 s;
-            std::memcpy(&s, glm::value_ptr(scale), sizeof(sgct::mat4));
+            std::memcpy(s.values.data(), glm::value_ptr(scale), sizeof(sgct::mat4));
 
             FontManager::instance().bindShader(s, color, 0);
 

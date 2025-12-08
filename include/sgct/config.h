@@ -10,10 +10,13 @@
 #define __SGCT__CONFIG__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 

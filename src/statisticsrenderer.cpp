@@ -8,16 +8,28 @@
 
 #include <sgct/statisticsrenderer.h>
 
+#include <sgct/engine.h>
+#include <sgct/math.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <sgct/shaderprogram.h>
+#include <sgct/viewport.h>
+#include <sgct/window.h>
 #ifdef SGCT_HAS_TEXT
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
+#include <glad/glad.h>
+#include <glm/fwd.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include <array>
+#include <format>
+#include <string_view>
+#include <tuple>
+#include <vector>
 
 namespace {
     // Line parameters

@@ -8,6 +8,8 @@
 
 #include <sgct/sgct.h>
 
+#include <sgct/joystick.h>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 

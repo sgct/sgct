@@ -10,6 +10,7 @@
 #define __SGCT__PROJECTIONPLANE__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/math.h>
 
 namespace sgct {

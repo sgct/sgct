@@ -11,6 +11,8 @@
 
 #include <sgct/sgctexports.h>
 
+#include <cstdint>
+
 namespace sgct {
 
 enum class SGCT_EXPORT Eye : uint8_t { MonoOrLeft, Right };

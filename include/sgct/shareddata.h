@@ -10,12 +10,15 @@
 #define __SGCT__SHAREDDATA__H__
 
 #include <sgct/sgctexports.h>
-#include <sgct/mutexes.h>
+
 #include <sgct/network.h>
 #include <array>
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace sgct {
@@ -93,8 +96,10 @@ void serializeObject(std::vector<std::byte>& buffer, const std::vector<T>& value
 template <>
 SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer, std::string_view value);
 
-SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer, const std::string& value);
-SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value);
+SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer,
+    const std::string& value);
+SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer,
+    const std::wstring& value);
 
 template <typename T>
 void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,

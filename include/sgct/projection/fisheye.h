@@ -12,9 +12,17 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/callbackdata.h>
+#include <sgct/definitions.h>
+#include <sgct/shaderprogram.h>
+#include <sgct/math.h>
 
 namespace sgct {
+
+namespace config { struct FisheyeProjection; }
+
+class BaseViewport;
+class Window;
+class User;
 
 /**
  * This class manages and renders non linear fisheye projections.

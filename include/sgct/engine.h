@@ -10,26 +10,34 @@
 #define __SGCT__ENGINE__H__
 
 #include <sgct/sgctexports.h>
+
 #include <sgct/actions.h>
 #include <sgct/callbackdata.h>
 #include <sgct/config.h>
-#include <sgct/definitions.h>
-#include <sgct/joystick.h>
 #include <sgct/keys.h>
+#include <sgct/math.h>
 #include <sgct/modifiers.h>
 #include <sgct/mouse.h>
 #include <sgct/window.h>
+#include <algorithm>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
-#include <functional>
+#include <memory>
 #include <optional>
+#include <string>
+#include <string_view>
 #include <thread>
+#include <utility>
+#include <vector>
 
 namespace sgct {
 
 struct Configuration;
 class Node;
 class StatisticsRenderer;
+class User;
 
 /**
  * Loads the cluster information from the provided \p path. The \p path is a configuration

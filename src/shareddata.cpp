@@ -9,6 +9,7 @@
 #include <sgct/shareddata.h>
 
 #include <sgct/log.h>
+#include <sgct/mutexes.h>
 #include <sgct/profiling.h>
 #include <zlib.h>
 #include <cstring>

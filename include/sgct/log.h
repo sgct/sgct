@@ -10,6 +10,7 @@
 #define __SGCT__LOGGER__H__
 
 #include <sgct/sgctexports.h>
+
 #include <functional>
 #include <mutex>
 #include <string>

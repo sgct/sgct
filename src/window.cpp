@@ -7,25 +7,41 @@
  ****************************************************************************************/
 
 #include <sgct/window.h>
+
+#include <sgct/callbackdata.h>
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
+#include <sgct/definitions.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/format.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
+#include <sgct/math.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/screencapture.h>
-#include <sgct/statisticsrenderer.h>
-#include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <glm/gtc/matrix_transform.hpp>
+#include <sgct/screencapture.h>
+#include <sgct/shaderprogram.h>
+#include <sgct/statisticsrenderer.h>
+#include <sgct/viewport.h>
+#include <glad/glad.h>
 #include <glm/gtc/quaternion.hpp>
 #include <algorithm>
+#include <array>
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <format>
+#include <functional>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #ifdef SGCT_HAS_SCALABLE
 #include "EasyBlendSDK.h"
@@ -567,7 +583,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     }
 
     // Mac for example scales the window size != frame buffer size
-    glm::ivec2 bufferSize;
+    glm::ivec2 bufferSize = glm::ivec2(0);
     {
         ZoneScopedN("glfwGetFramebufferSize");
         glfwGetFramebufferSize(_windowHandle, &bufferSize[0], &bufferSize[1]);

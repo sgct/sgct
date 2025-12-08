@@ -10,11 +10,19 @@
 #define __SGCT__WINDOW__H__
 
 #include <sgct/sgctexports.h>
+
+#include <sgct/definitions.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/screencapture.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
-#include <functional>
+#include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -32,9 +40,6 @@ typedef SPOUTLIBRARY* SPOUTHANDLE;
 namespace sgct {
 
 namespace config { struct Window; }
-
-class OffScreenBuffer;
-class ScreenCapture;
 
 class SGCT_EXPORT Window {
 public:

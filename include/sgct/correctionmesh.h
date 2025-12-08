@@ -10,9 +10,9 @@
 #define __SGCT__CORRECTION_MESH__H__
 
 #include <sgct/sgctexports.h>
+
 #include <filesystem>
 #include <optional>
-#include <vector>
 
 namespace sgct {
 

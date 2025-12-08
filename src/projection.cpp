@@ -71,7 +71,7 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
     _frustum.farPlane = farClip;
 
     glm::mat4 complete = glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(b + o));
-    std::memcpy(&_viewMatrix, glm::value_ptr(complete), sizeof(sgct::mat4));
+    std::memcpy(_viewMatrix.values.data(), glm::value_ptr(complete), sizeof(sgct::mat4));
 
     // calc frustum matrix
     glm::mat4 frustum = glm::frustum(
@@ -82,7 +82,11 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
         _frustum.nearPlane,
         _frustum.farPlane
     );
-    std::memcpy(&_projectionMatrix, glm::value_ptr(frustum), sizeof(sgct::mat4));
+    std::memcpy(
+        _projectionMatrix.values.data(),
+        glm::value_ptr(frustum),
+        sizeof(sgct::mat4)
+    );
 
     _viewProjectionMatrix = _projectionMatrix * _viewMatrix;
 }

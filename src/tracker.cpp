@@ -59,10 +59,14 @@ void Tracker::setOrientation(quat q) {
 
     // create inverse rotation matrix
     glm::mat4 orientation = glm::inverse(glm::mat4_cast(glm::make_quat(&q.x)));
-    std::memcpy(&_orientation, glm::value_ptr(orientation), 16 * sizeof(float));
+    std::memcpy(
+        _orientation.values.data(),
+        glm::value_ptr(orientation),
+        16 * sizeof(float)
+    );
 
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x));
-    std::memcpy(&_transform, glm::value_ptr(transMat), 16 * sizeof(float));
+    std::memcpy(_transform.values.data(), glm::value_ptr(transMat), 16 * sizeof(float));
 }
 
 void Tracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -79,7 +83,7 @@ void Tracker::setOffset(vec3 offset) {
     glm::mat4 trans =
         glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x)) *
         glm::make_mat4(_orientation.values.data());
-    std::memcpy(&_transform, glm::value_ptr(trans), 16 * sizeof(float));
+    std::memcpy(_transform.values.data(), glm::value_ptr(trans), 16 * sizeof(float));
 }
 
 void Tracker::setScale(double scaleVal) {

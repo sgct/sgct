@@ -9,15 +9,16 @@
 #include <sgct/log.h>
 
 #include <sgct/format.h>
-#include <sgct/networkmanager.h>
-#include <sgct/mutexes.h>
-#include <cstdarg>
-#include <fstream>
+#include <array>
+#include <ctime>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
+#include <utility>
 
 #ifdef WIN32
 #include <Windows.h>
+#include <corecrt.h>
 #endif // WIN32
 
 namespace {

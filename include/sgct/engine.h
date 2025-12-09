@@ -64,7 +64,6 @@ SGCT_EXPORT config::Cluster loadCluster(
  */
 SGCT_EXPORT double time();
 
-
 /**
  * The Engine class is the central part of SGCT and handles most of the callbacks,
  * rendering, network handling, input devices, etc.

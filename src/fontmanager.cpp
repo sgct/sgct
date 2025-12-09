@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <sstream>
 
 #ifdef WIN32
 #include <Windows.h>

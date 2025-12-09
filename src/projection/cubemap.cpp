@@ -14,6 +14,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string_view>
 
 #ifdef SGCT_HAS_SPOUT
 #ifndef WIN32_LEAN_AND_MEAN
@@ -24,6 +25,8 @@
 #endif // NOMINMAX
 #include <SpoutLibrary.h>
 #endif // SGCT_HAS_SPOUT
+#include <sgct/config.h>
+#include <sgct/window.h>
 
 namespace {
     constexpr std::string_view FragmentShader = R"(

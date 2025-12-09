@@ -13,7 +13,6 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
-#include <sgct/definitions.h>
 #include <sgct/shaderprogram.h>
 
 namespace sgct {

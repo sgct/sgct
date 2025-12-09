@@ -13,8 +13,13 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <filesystem>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace {
     struct Position {

@@ -8,6 +8,7 @@
 
 #include <sgct/correctionmesh.h>
 
+#include <sgct/baseviewport.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
@@ -16,6 +17,7 @@
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
+#include <sgct/correction/buffer.h>
 #include <sgct/correction/domeprojection.h>
 #include <sgct/correction/obj.h>
 #include <sgct/correction/paulbourke.h>
@@ -26,8 +28,7 @@
 #include <sgct/correction/skyskan.h>
 #include <sgct/projection/fisheye.h>
 #include <algorithm>
-#include <fstream>
-#include <iomanip>
+#include <cassert>
 
 #define Err(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 

@@ -8,6 +8,7 @@
 
 #include <sgct/correction/sciss.h>
 
+#include <sgct/baseviewport.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
@@ -20,6 +21,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <fstream>
+#include <vector>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::SCISS, code, msg)
 
@@ -151,7 +153,10 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         nVertices * sizeof(SCISSTexturedVertex)
     );
     if (!file.good()) {
-        throw Err(2076, std::format("Error parsing vertices from file '{}'", path.string()));
+        throw Err(
+            2076,
+            std::format("Error parsing vertices from file '{}'", path.string())
+        );
     }
 
     // read number of indices
@@ -170,7 +175,10 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
             nIndices * sizeof(unsigned int)
         );
         if (!file.good()) {
-            throw Err(2078, std::format("Error parsing faces from file '{}'", path.string()));
+            throw Err(
+                2078,
+                std::format("Error parsing faces from file '{}'", path.string())
+            );
         }
     }
 

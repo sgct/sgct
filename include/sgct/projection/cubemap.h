@@ -12,11 +12,9 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/definitions.h>
 #include <sgct/math.h>
 #include <sgct/shaderprogram.h>
 #include <array>
-#include <memory>
 #include <string>
 #include <vector>
 

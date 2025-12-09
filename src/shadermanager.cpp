@@ -13,6 +13,7 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <algorithm>
+#include <utility>
 
 #define Err(code, msg) Error(Error::Component::Shader, code, msg)
 

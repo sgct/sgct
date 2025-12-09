@@ -15,11 +15,13 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <sgct/callbackdata.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string_view>
 
 namespace {
     constexpr std::string_view SphericalProjectionVert = R"(

@@ -19,7 +19,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <filesystem>
 #include <fstream>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace {
     struct Data {

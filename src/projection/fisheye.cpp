@@ -8,7 +8,6 @@
 
 #include <sgct/projection/fisheye.h>
 
-#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
@@ -17,9 +16,12 @@
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
-
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <cstdint>
+#include <stdexcept>
+#include <string_view>
+#include <utility>
 
 namespace {
     struct Vertex {

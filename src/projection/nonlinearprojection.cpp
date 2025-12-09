@@ -16,8 +16,7 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <algorithm>
-#include <array>
+#include <sgct/window.h>
 #include <cmath>
 
 namespace sgct {

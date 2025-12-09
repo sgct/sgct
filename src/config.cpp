@@ -21,14 +21,17 @@
 #define JSON_HAS_CPP_20
 #define JSON_USE_IMPLICIT_CONVERSIONS 0
 #include <nlohmann/json.hpp>
-
 #include <nlohmann/json-schema.hpp>
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstring>
+#include <exception>
 #include <fstream>
 #include <functional>
 #include <iterator>
 #include <numeric>
+#include <sstream>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
 
@@ -464,20 +467,20 @@ std::string GeneratorVersion::versionString() const {
 namespace {
     sgct::config::Window::StereoMode parseStereoType(std::string_view t) {
         using M = sgct::config::Window::StereoMode;
-        if (t == "none" || t == "no_stereo") { return M::NoStereo; }
-        if (t == "active" || t == "quadbuffer") { return M::Active; }
-        if (t == "checkerboard") { return M::Checkerboard; }
-        if (t == "checkerboard_inverted") { return M::CheckerboardInverted; }
-        if (t == "anaglyph_red_cyan") { return M::AnaglyphRedCyan; }
-        if (t == "anaglyph_amber_blue") { return M::AnaglyphAmberBlue; }
-        if (t == "anaglyph_wimmer") { return M::AnaglyphRedCyanWimmer; }
-        if (t == "vertical_interlaced") { return M::VerticalInterlaced; }
+        if (t == "none" || t == "no_stereo")     { return M::NoStereo; }
+        if (t == "active" || t == "quadbuffer")  { return M::Active; }
+        if (t == "checkerboard")                 { return M::Checkerboard; }
+        if (t == "checkerboard_inverted")        { return M::CheckerboardInverted; }
+        if (t == "anaglyph_red_cyan")            { return M::AnaglyphRedCyan; }
+        if (t == "anaglyph_amber_blue")          { return M::AnaglyphAmberBlue; }
+        if (t == "anaglyph_wimmer")              { return M::AnaglyphRedCyanWimmer; }
+        if (t == "vertical_interlaced")          { return M::VerticalInterlaced; }
         if (t == "vertical_interlaced_inverted") { return M::VerticalInterlacedInverted; }
-        if (t == "test" || t == "dummy") { return M::Dummy; }
-        if (t == "side_by_side") { return M::SideBySide; }
-        if (t == "side_by_side_inverted") { return M::SideBySideInverted; }
-        if (t == "top_bottom") { return M::TopBottom; }
-        if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
+        if (t == "test" || t == "dummy")         { return M::Dummy; }
+        if (t == "side_by_side")                 { return M::SideBySide; }
+        if (t == "side_by_side_inverted")        { return M::SideBySideInverted; }
+        if (t == "top_bottom")                   { return M::TopBottom; }
+        if (t == "top_bottom_inverted")          { return M::TopBottomInverted; }
 
         throw Err(6085, std::format("Unknown stereo mode {}", t));
     }

@@ -21,6 +21,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <cstring>
+#include <utility>
 
 namespace sgct {
 

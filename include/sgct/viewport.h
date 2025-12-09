@@ -13,8 +13,6 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/correctionmesh.h>
-#include <sgct/definitions.h>
-#include <sgct/math.h>
 #include <sgct/window.h>
 #include <cstdint>
 #include <filesystem>

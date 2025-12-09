@@ -15,6 +15,7 @@
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
 #include <scn/scan.h>
+#include <filesystem>
 #include <fstream>
 
 namespace sgct::correction {

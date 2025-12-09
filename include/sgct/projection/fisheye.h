@@ -12,7 +12,6 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/definitions.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/math.h>
 

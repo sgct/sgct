@@ -10,16 +10,18 @@
 
 #include <sgct/freetype.h>
 
-#include <sgct/engine.h>
+#include <sgct/baseviewport.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/opengl.h>
+#include <sgct/shaderprogram.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <cstdarg>
+#include <cstring>
 #include <sstream>
+#include <utility>
 
 namespace {
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {

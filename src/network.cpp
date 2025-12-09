@@ -11,6 +11,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #include <winsock2.h>
+#include <ws2def.h>
 #include <ws2tcpip.h>
 #define SGCT_ERRNO WSAGetLastError()
 #else // ^^^^ WIN32 // !WIN32 vvvv
@@ -38,7 +39,13 @@
 #include <sgct/profiling.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
+#include <array>
+#include <chrono>
+#include <cstdint>
 #include <cstring>
+#include <stdexcept>
+#include <string_view>
+#include <utility>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::Network, code, msg)
 
@@ -46,7 +53,6 @@ namespace {
     constexpr int MaxNumberOfAttempts = 10;
 
     constexpr int MaxNetworkSyncFrameNumber = 10000;
-
 
     int receiveData(SGCT_SOCKET lsocket, char* buffer, int length, int flags) {
         long iResult = 0;
@@ -134,7 +140,6 @@ namespace {
             }
         }
     }
-
 
     std::string typeStr(sgct::Network::ConnectionType ct) {
         switch (ct) {

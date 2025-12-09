@@ -22,19 +22,24 @@
 #include <sgct/profiling.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
+#include <array>
+#include <chrono>
 #include <cstring>
-#include <numeric>
+#include <limits>
+#include <stdexcept>
+#include <thread>
 
 #ifdef WIN32
-    #include <ws2tcpip.h>
+#include <ws2def.h>
+#include <ws2tcpip.h>
 #else // ^^^^ WIN32 // !WIN32 vvvv
-    // Use BSD sockets
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
-    #include <unistd.h>
+// Use BSD sockets
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
 #endif // WIN32
 
 #define Err(code, msg) Error(Error::Component::Network, code, msg)

@@ -9,15 +9,17 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
-#include <sgct/format.h>
-#include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
+#include <sgct/window.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
 #include <stdexcept>
-#include <type_traits>
+#include <utility>
 
 namespace sgct {
 

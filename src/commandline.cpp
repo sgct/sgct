@@ -9,6 +9,7 @@
 #include <sgct/commandline.h>
 
 #include <iostream>
+#include <string_view>
 
 namespace sgct {
 

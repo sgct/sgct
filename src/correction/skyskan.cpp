@@ -8,6 +8,7 @@
 
 #include <sgct/correction/skyskan.h>
 
+#include <sgct/baseviewport.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
@@ -22,6 +23,7 @@
 #include <scn/scan.h>
 #include <fstream>
 #include <optional>
+#include <tuple>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 

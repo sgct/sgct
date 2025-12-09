@@ -15,8 +15,11 @@
 #include <sgct/opengl.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
+#include <algorithm>
 #include <array>
 #include <optional>
+#include <utility>
+#include <vector>
 
 namespace {
     struct GlyphData {

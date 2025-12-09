@@ -16,8 +16,14 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
+#include <algorithm>
+#include <array>
+#include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace sgct {
 

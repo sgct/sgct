@@ -18,6 +18,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <cstring>
+#include <functional>
+#include <stdexcept>
+#include <utility>
 
 namespace sgct {
 

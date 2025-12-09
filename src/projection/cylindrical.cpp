@@ -9,6 +9,7 @@
 #include <sgct/projection/cylindrical.h>
 
 #include <sgct/baseviewport.h>
+#include <sgct/config.h>
 #include <sgct/definitions.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/projectionplane.h>

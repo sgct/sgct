@@ -9,9 +9,9 @@
 #ifndef __SGCT__BASEVIEWPORT__H__
 #define __SGCT__BASEVIEWPORT__H__
 
-#include <sgct/definitions.h>
-
 #include <sgct/sgctexports.h>
+
+#include <sgct/definitions.h>
 #include <sgct/math.h>
 #include <sgct/projection.h>
 #include <sgct/projection/projectionplane.h>

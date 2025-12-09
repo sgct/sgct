@@ -38,7 +38,7 @@ SharedData::SharedData() {
 
     // fill rest of header with Network::DefaultId
     std::memset(_headerSpace.data(), Network::DefaultId, Network::HeaderSize);
-    _headerSpace[0] = std::byte { Network::DataId };
+    _headerSpace[0] = static_cast<std::byte>(Network::DataId);
 }
 
 void SharedData::setEncodeFunction(std::function<std::vector<std::byte>()> function) {

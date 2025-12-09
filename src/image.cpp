@@ -16,7 +16,11 @@
 #include <zlib.h>
 #include <algorithm>
 #include <chrono>
+#include <csetjmp>
+#include <cstdio>
+#include <stdexcept>
 #include <string>
+#include <utility>
 
 #ifdef WIN32
 #include <CodeAnalysis/warnings.h>

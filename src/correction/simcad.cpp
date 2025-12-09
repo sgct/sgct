@@ -14,9 +14,13 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/tinyxml.h>
-#include <sgct/viewport.h>
 #include <glm/glm.hpp>
+#include <tinyxml2.h>
+#include <cmath>
 #include <sstream>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #define Err(code, msg) Error(Error::Component::SimCAD, code, msg)
 

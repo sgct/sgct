@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>
 
-typedef struct FT_LibraryRec_ *FT_Library;
+typedef struct FT_LibraryRec_* FT_Library;
 
 namespace sgct::text {
 

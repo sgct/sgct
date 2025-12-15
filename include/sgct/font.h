@@ -16,9 +16,9 @@
 #include <sgct/math.h>
 #include <unordered_map>
 
-typedef struct FT_LibraryRec_ *FT_Library;
-typedef struct FT_GlyphRec_ *FT_Glyph;
-typedef struct FT_FaceRec_ *FT_Face;
+typedef struct FT_LibraryRec_* FT_Library;
+typedef struct FT_GlyphRec_* FT_Glyph;
+typedef struct FT_FaceRec_* FT_Face;
 typedef signed long FT_Fixed;
 
 namespace sgct::text {

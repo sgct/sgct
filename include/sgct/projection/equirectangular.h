@@ -18,10 +18,9 @@
 namespace sgct {
 
 namespace config { struct EquirectangularProjection; }
-
 class BaseViewport;
-class Window;
 class User;
+class Window;
 
 class SGCT_EXPORT EquirectangularProjection final : public NonLinearProjection {
 public:

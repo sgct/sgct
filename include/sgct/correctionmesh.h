@@ -16,9 +16,8 @@
 
 namespace sgct {
 
-class BaseViewport;
-
 namespace correction { struct Buffer; }
+class BaseViewport;
 
 /**
  * Helper class for reading and rendering a correction mesh. A correction mesh is used for

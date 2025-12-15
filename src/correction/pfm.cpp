@@ -8,6 +8,7 @@
 
 #include <sgct/correction/pfm.h>
 
+#include <sgct/correction/buffer.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>

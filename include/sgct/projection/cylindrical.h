@@ -18,10 +18,9 @@
 namespace sgct {
 
 namespace config { struct CylindricalProjection; }
-
 class BaseViewport;
-class Window;
 class User;
+class Window;
 
 class SGCT_EXPORT CylindricalProjection final : public NonLinearProjection {
 public:

@@ -18,7 +18,6 @@
 namespace sgct {
 
 namespace config { struct SphericalMirrorProjection; }
-
 class BaseViewport;
 class User;
 class Window;

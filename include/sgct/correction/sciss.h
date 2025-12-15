@@ -11,12 +11,13 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/correction/buffer.h>
 #include <filesystem>
 
 namespace sgct { class BaseViewport; }
 
 namespace sgct::correction {
+
+struct Buffer;
 
 SGCT_EXPORT Buffer generateScissMesh(const std::filesystem::path& path,
     BaseViewport& parent);

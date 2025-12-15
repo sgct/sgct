@@ -18,10 +18,9 @@
 namespace sgct {
 
 namespace config { struct FisheyeProjection; }
-
 class BaseViewport;
-class Window;
 class User;
+class Window;
 
 /**
  * This class manages and renders non linear fisheye projections.

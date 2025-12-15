@@ -26,16 +26,16 @@
 #include <string_view>
 #include <vector>
 
+#ifdef SGCT_HAS_NDI
+#include <Processing.NDI.Lib.h>
+#endif // SGCT_HAS_NDI
+
 struct GLFWwindow;
 
 #ifdef SGCT_HAS_SPOUT
 struct SPOUTLIBRARY;
-typedef SPOUTLIBRARY* SPOUTHANDLE;
+using SPOUTHANDLE = SPOUTLIBRARY*;
 #endif // SGCT_HAS_SPOUT
-
-#ifdef SGCT_HAS_NDI
-#include <Processing.NDI.Lib.h>
-#endif // SGCT_HAS_NDI
 
 namespace sgct {
 

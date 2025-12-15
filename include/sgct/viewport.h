@@ -21,7 +21,6 @@
 namespace sgct {
 
 namespace config { struct Viewport; }
-
 class NonLinearProjection;
 
 /**

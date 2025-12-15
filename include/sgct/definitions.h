@@ -15,8 +15,16 @@
 
 namespace sgct {
 
-enum class SGCT_EXPORT Eye : uint8_t { MonoOrLeft, Right };
-enum class SGCT_EXPORT FrustumMode : uint8_t { Mono, StereoLeft, StereoRight };
+enum class SGCT_EXPORT Eye : uint8_t {
+    MonoOrLeft,
+    Right
+};
+
+enum class SGCT_EXPORT FrustumMode : uint8_t {
+    Mono,
+    StereoLeft,
+    StereoRight
+};
 
 } // namespace sgct
 

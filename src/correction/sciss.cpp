@@ -9,6 +9,7 @@
 #include <sgct/correction/sciss.h>
 
 #include <sgct/baseviewport.h>
+#include <sgct/correction/buffer.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>

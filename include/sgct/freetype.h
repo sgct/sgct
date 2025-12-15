@@ -23,7 +23,7 @@ namespace sgct::text {
 
 class Font;
 
-enum class Alignment { TopLeft, TopCenter, TopRight};
+enum class Alignment { TopLeft, TopCenter, TopRight };
 
 SGCT_EXPORT void print(const Window& window, const BaseViewport& viewport, Font& font,
     Alignment mode, float x, float y, const vec4& color, std::string text);

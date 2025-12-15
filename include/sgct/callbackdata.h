@@ -13,7 +13,6 @@
 
 #include <sgct/definitions.h>
 #include <sgct/math.h>
-#include <utility>
 
 namespace sgct {
 

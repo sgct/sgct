@@ -20,7 +20,6 @@
 namespace sgct {
 
 namespace config { struct Cluster; }
-
 class Node;
 class User;
 

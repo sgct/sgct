@@ -14,7 +14,6 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <glm/glm.hpp>
 #include <scn/scan.h>
 #include <algorithm>
 #include <fstream>

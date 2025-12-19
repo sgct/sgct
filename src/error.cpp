@@ -9,7 +9,6 @@
 #include <sgct/error.h>
 
 #include <sgct/format.h>
-#include <string>
 #include <utility>
 
 namespace {

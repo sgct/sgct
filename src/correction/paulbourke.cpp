@@ -16,7 +16,6 @@
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
 #include <scn/scan.h>
-#include <filesystem>
 #include <fstream>
 #include <string>
 

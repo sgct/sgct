@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/correction/skyskan.h>
+#include <sgct/correction/obj.h>
 
 #include <sgct/correction/buffer.h>
 #include <sgct/error.h>
@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
-#include <filesystem>
 #include <string>
 #include <string_view>
 #include <vector>

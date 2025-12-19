@@ -18,8 +18,8 @@
 
 namespace sgct {
 
-class Window;
 class User;
+class Window;
 
 /**
  * This class holds and manages viewportdata and calculates frustums.

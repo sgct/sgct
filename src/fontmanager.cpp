@@ -10,7 +10,6 @@
 
 #include <sgct/fontmanager.h>
 
-#include <sgct/font.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>

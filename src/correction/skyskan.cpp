@@ -16,7 +16,6 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/viewport.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>

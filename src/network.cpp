@@ -34,14 +34,12 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/mutexes.h>
 #include <sgct/networkmanager.h>
 #include <sgct/profiling.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <string_view>

@@ -8,8 +8,7 @@
 
 #include <sgct/statisticsrenderer.h>
 
-#include <sgct/engine.h>
-#include <sgct/math.h>
+#include <sgct/format.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/shaderprogram.h>
@@ -25,8 +24,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
-#include <array>
-#include <format>
 #include <string_view>
 #include <tuple>
 #include <vector>

@@ -8,7 +8,6 @@
 
 #include <sgct/trackingdevice.h>
 
-#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/format.h>
 #include <sgct/log.h>

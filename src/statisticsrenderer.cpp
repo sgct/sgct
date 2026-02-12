@@ -170,7 +170,12 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
         unsigned int vbo = _histogram.dynamicDraw.vbo;
 
         glCreateBuffers(1, &vbo);
-        glBufferData(vbo, sizeof(Histogram::Vertices), nullptr, GL_DYNAMIC_DRAW);
+        glNamedBufferStorage(
+            vbo,
+            sizeof(Histogram::Vertices),
+            nullptr,
+            GL_DYNAMIC_STORAGE_BIT
+        );
 
         glCreateVertexArrays(1, &vao);
         glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Histogram::Vertices));

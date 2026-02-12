@@ -426,7 +426,6 @@ void Engine::initialize() {
 
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
-    const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::updateResolutions));
 

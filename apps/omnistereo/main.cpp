@@ -45,50 +45,60 @@ namespace {
     std::string sepMapSrc;
 
     constexpr std::string_view BaseVertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec2 texCoords;
-  layout(location = 1) in vec3 normals;
-  layout(location = 2) in vec3 vertPositions;
+  layout(location = 0) in vec2 in_texCoords;
+  layout(location = 1) in vec3 in_normal;
+  layout(location = 2) in vec3 in_position;
+
+  out Data {
+    vec2 texCoords;
+  } out_data;
 
   uniform mat4 mvp;
-  out vec2 uv;
+
 
   void main() {
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp * vec4(vertPositions, 1.0);
-    uv = texCoords;
+    gl_Position = mvp * vec4(in_position, 1.0);
+    out_data.texCoords = in_texCoords;
   })";
 
    constexpr std::string_view BaseFragmentShader = R"(
-  #version 330 core
+  #version 460 core
+
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
+  out vec4 out_color;
 
   uniform sampler2D tex;
 
-  in vec2 uv;
-  out vec4 color;
 
-  void main() { color = texture(tex, uv); }
+  void main() { out_color = texture(tex, in_data.texCoords); }
 )";
 
    constexpr std::string_view GridVertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec3 vertPositions;
+  layout(location = 0) in vec3 in_position;
 
   uniform mat4 mvp;
 
+
   void main() {
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp * vec4(vertPositions, 1.0);
+    gl_Position = mvp * vec4(in_position, 1.0);
   })";
 
    constexpr std::string_view GridFragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  out vec4 color;
+  out vec4 out_color;
 
-  void main() { color = vec4(1.0, 0.5, 0.0, 1.0); }
+
+  void main() { out_color = vec4(1.0, 0.5, 0.0, 1.0); }
 )";
 
    unsigned char getSampleAt(const sgct::Image& img, int x, int y) {
@@ -385,8 +395,7 @@ void drawOmniStereo(const RenderData& renderData) {
     };
 
     ShaderManager::instance().shaderProgram("xform").bind();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBindTextureUnit(0, textureId);
 
     FrustumMode fm = renderData.frustumMode;
     for (int x = 0; x < res.x; x++) {
@@ -429,8 +438,7 @@ void draw(const RenderData& data) {
 
         ShaderManager::instance().shaderProgram("xform").bind();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        glBindTextureUnit(0, textureId);
         renderBoxes(vp * glm::make_mat4(data.modelMatrix.values.data()));
     }
 
@@ -469,17 +477,13 @@ void initOGL(GLFWwindow*) {
     ShaderManager& sm = ShaderManager::instance();
     sm.addShaderProgram("grid", GridVertexShader, GridFragmentShader);
     const ShaderProgram& gridProg = sm.shaderProgram("grid");
-    gridProg.bind();
     gridMatrixLoc = glGetUniformLocation(gridProg.id(), "mvp");
-    gridProg.unbind();
 
     sm.addShaderProgram("xform", BaseVertexShader, BaseFragmentShader);
     const ShaderProgram& xformProg = sm.shaderProgram("xform");
-    xformProg.bind();
     matrixLoc = glGetUniformLocation(xformProg.id(), "mvp");
     GLint textureLoc = glGetUniformLocation(xformProg.id(), "tex");
-    glUniform1i(textureLoc, 0);
-    xformProg.unbind();
+    glProgramUniform1i(xformProg.id(), textureLoc, 0);
 
     initOmniStereo(maskOutSimilarities);
 }

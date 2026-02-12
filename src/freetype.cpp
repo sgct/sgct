@@ -82,7 +82,6 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindVertexArray(font.vao());
-    glActiveTexture(GL_TEXTURE0);
 
     for (size_t i = 0; i < lines.size(); i++) {
         glm::vec3 offset(x, y - h * i, 0.f);
@@ -97,9 +96,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
         for (const char c : lines[i]) {
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
 
-            glBindTexture(GL_TEXTURE_2D, ffd.texId);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glBindTextureUnit(0, ffd.texId);
 
             const glm::mat4 trans = glm::translate(
                 orthoMatrix,

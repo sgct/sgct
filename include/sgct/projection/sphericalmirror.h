@@ -29,7 +29,7 @@ class SGCT_EXPORT SphericalMirrorProjection final : public NonLinearProjection {
 public:
     SphericalMirrorProjection(const config::SphericalMirrorProjection& config,
         const Window& parent, User& user);
-    virtual ~SphericalMirrorProjection() final;
+    ~SphericalMirrorProjection() final;
 
     void update(const vec2& size) const override;
 
@@ -52,8 +52,7 @@ public:
     void setTilt(float angle);
 
 private:
-    void initTextures(unsigned int internalFormat, unsigned int format,
-        unsigned int type) override;
+    void initTextures(unsigned int internalFormat) override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;

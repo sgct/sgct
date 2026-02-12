@@ -99,40 +99,43 @@ correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
 CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
                                                          const correction::Buffer& buffer)
 {
+    using Vertex = correction::Buffer::Vertex;
+
     ZoneScoped;
     TracyGpuZone("createMesh");
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    constexpr int s = sizeof(correction::Buffer::Vertex);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        buffer.vertices.size() * s,
+    glCreateBuffers(1, &vbo);
+    glNamedBufferStorage(
+        vbo,
+        buffer.vertices.size() * sizeof(Vertex),
         buffer.vertices.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, s, nullptr);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(8));
-
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(16));
-
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
+    glCreateBuffers(1, &ibo);
+    glNamedBufferStorage(
+        ibo,
         buffer.indices.size() * sizeof(unsigned int),
         buffer.indices.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
-    glBindVertexArray(0);
+
+
+    glCreateVertexArrays(1, &vao);
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
+    glVertexArrayElementBuffer(vao, ibo);
+
+    glEnableVertexArrayAttrib(vao, 0);
+    glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
+
+    glEnableVertexArrayAttrib(vao, 1);
+    glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(vao, 1, 0);
+
+    glEnableVertexArrayAttrib(vao, 2);
+    glVertexArrayAttribFormat(vao, 2, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, r));
+    glVertexArrayAttribBinding(vao, 2, 0);
 
     nVertices = static_cast<int>(buffer.vertices.size());
     nIndices = static_cast<int>(buffer.indices.size());

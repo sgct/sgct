@@ -71,8 +71,8 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     // later as it doesn't impact the rendering.  All FBOs will be complete before we
     // render anything either way
 
-    glGenFramebuffers(1, &_frameBuffer);
-    glGenRenderbuffers(1, &_depthBuffer);
+    glCreateFramebuffers(1, &_frameBuffer);
+    glCreateRenderbuffers(1, &_depthBuffer);
 
     _size = ivec2{ width, height };
     _isMultiSampled = samples > 1;
@@ -89,19 +89,19 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         Log::Debug(std::format("Max samples supported: {}", maxSamples));
 
         // generate the multisample buffer
-        glGenFramebuffers(1, &_multiSampledFrameBuffer);
+        glCreateFramebuffers(1, &_multiSampledFrameBuffer);
 
         // generate render buffer for intermediate diffuse color storage
-        glGenRenderbuffers(1, &_colorBuffer);
+        glCreateRenderbuffers(1, &_colorBuffer);
 
         // generate render buffer for intermediate normal storage
         if (Engine::instance().settings().useNormalTexture) {
-            glGenRenderbuffers(1, &_normalBuffer);
+            glCreateRenderbuffers(1, &_normalBuffer);
         }
 
         // generate render buffer for intermediate position storage
         if (Engine::instance().settings().usePositionTexture) {
-            glGenRenderbuffers(1, &_positionBuffer);
+            glCreateRenderbuffers(1, &_positionBuffer);
         }
 
         // Bind FBO

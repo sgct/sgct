@@ -36,8 +36,7 @@ public:
      * Initialize the non-linear projection. The arguments should match the texture
      * settings for the parent window's FBO target.
      */
-    virtual void initialize(unsigned int internalFormat, unsigned int format,
-        unsigned int type, int nSamples);
+    virtual void initialize(unsigned int internalFormat, int nSamples);
 
     virtual void render(const BaseViewport& viewport, FrustumMode frustumMode) const = 0;
     virtual void renderCubemap(FrustumMode frustumMode) const = 0;
@@ -77,18 +76,15 @@ public:
     ivec2 cubemapResolution() const;
 
 protected:
-    virtual void initTextures(unsigned int internalFormat, unsigned int format,
-        unsigned int type);
+    virtual void initTextures(unsigned int internalFormat);
     virtual void initFBO(unsigned int internalFormat, int nSamples);
     virtual void initVBO() = 0;
     virtual void initViewports() = 0;
     virtual void initShaders() = 0;
 
     void setupViewport(const BaseViewport& vp) const;
-    void generateMap(unsigned int& texture, unsigned int internalFormat,
-        unsigned int format, unsigned int type);
-    void generateCubeMap(unsigned int& texture, unsigned int internalFormat,
-        unsigned int format, unsigned int type);
+    void generateMap(unsigned int& texture, unsigned int internalFormat);
+    void generateCubeMap(unsigned int& texture, unsigned int internalFormat);
 
     void attachTextures(int face) const;
     void blitCubeFace(int face) const;

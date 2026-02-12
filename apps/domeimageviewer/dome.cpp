@@ -18,14 +18,32 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
 {
     struct VertexData {
         float s = 0.f;
-        float t = 0.f;  // Texcoord0 -> size=8
+        float t = 0.f;
         float nx = 0.f;
         float ny = 0.f;
-        float nz = 0.f; // size=12
+        float nz = 0.f;
         float x = 0.f;
         float y = 0.f;
-        float z = 0.f;  // size=12 ; total size=32 = power of two
+        float z = 0.f;
     };
+
+    glCreateBuffers(1, &_vbo);
+    glCreateBuffers(1, &_ibo);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(VertexData));
+    glVertexArrayElementBuffer(_vao, _ibo);
+
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
+
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, nx));
+    glVertexArrayAttribBinding(_vao, 1, 0);
+
+    glEnableVertexArrayAttrib(_vao, 2);
+    glVertexArrayAttribFormat(_vao, 2, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, x));
+    glVertexArrayAttribBinding(_vao, 2, 0);
 
     if (_azimuthSteps < 4) {
         sgct::Log::Warning("Azimuth steps must be higher than 4");
@@ -90,40 +108,25 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     const float y = std::sin(elevation);
     verts.push_back({ 0.5f, 0.5f,  0.f, 1.f, 0.f,  0.f, y * r, 0.f });
 
+    glNamedBufferStorage(
+        _vbo,
+        verts.size() * sizeof(VertexData),
+        verts.data(),
+        GL_NONE_BIT
+    );
+
     indices.push_back(numVerts + _azimuthSteps);
     for (int a = 1; a <= _azimuthSteps; a++) {
         indices.push_back(numVerts + _azimuthSteps - a);
     }
     indices.push_back(numVerts + _azimuthSteps - 1);
 
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    const GLsizei size = sizeof(VertexData);
-    glBufferData(GL_ARRAY_BUFFER, verts.size() * size, verts.data(), GL_STATIC_DRAW);
-
-    // texcoords
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, nullptr);
-    // normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(8));
-    // vert positions
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(20));
-
-    glGenBuffers(1, &_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
+    glNamedBufferStorage(
+        _ibo,
         indices.size() * sizeof(unsigned int),
         indices.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
-
-    glBindVertexArray(0);
 }
 
 Dome::~Dome() {

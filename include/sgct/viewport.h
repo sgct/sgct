@@ -32,7 +32,7 @@ public:
     ~Viewport() override;
 
     void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-        unsigned int format, unsigned int type, uint8_t samples);
+        uint8_t samples);
 
     void loadData();
 

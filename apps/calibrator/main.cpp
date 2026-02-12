@@ -57,22 +57,24 @@ namespace {
     float radius = 7.4f;
 
     constexpr std::string_view GridVertexShader = R"(
-#version 330 core
+#version 460 core
 
 layout(location = 0) in vec2 in_position;
 
-out vec4 tr_color;
+out Data {
+  vec4 color;
+} out_data;
 
 uniform float radius;
 uniform mat4 mvp;
 uniform mat4 camera;
 
 const float PI = 3.141592654;
-const float PI_HALF = PI / 2.0;
+
 
 void main() {
-  float elevation = in_position[0];
-  float azimuth = in_position[1];
+  float elevation = in_position.x;
+  float azimuth = in_position.y;
 
   vec3 p = vec3(
     radius * cos(elevation) * sin(azimuth),
@@ -80,50 +82,60 @@ void main() {
     -radius * cos(elevation) * cos(azimuth)
   );
   gl_Position = mvp * camera * vec4(p, 1.0);
-  tr_color = vec4(p, 1.0);
+  out_data.color = vec4(p, 1.0);
 }
 )";
 
     constexpr std::string_view GridFragmentShader = R"(
-#version 330 core
+#version 460 core
 
-in vec4 tr_color;
-out vec4 color;
+in Data {
+  vec4 color;
+} in_data;
 
-void main() { color = tr_color; }
+out vec4 out_color;
+
+void main() { out_color = in_data.color; }
 )";
 
     constexpr std::string_view BoxVertexShader = R"(
-#version 330 core
+#version 460 core
 
 layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec2 in_uv;
+layout(location = 1) in vec2 in_texCoords;
 layout(location = 2) in int in_textureId;
 
-out vec2 tr_uv;
-flat out int tr_textureId;
+out Data {
+  vec2 texCoords;
+  flat int textureId;
+} out_data;
 
 uniform mat4 mvp;
 uniform mat4 camera;
 
+
 void main() {
-    gl_Position = mvp * camera * vec4(in_position, 1.0);
-    tr_uv = in_uv;
-    tr_textureId = in_textureId;
+  gl_Position = mvp * camera * vec4(in_position, 1.0);
+  out_data.texCoords = in_texCoords;
+  out_data.textureId = in_textureId;
 }
 )";
 
     constexpr std::string_view BoxFragmentShader = R"(
-#version 330 core
+#version 460 core
 
-in vec2 tr_uv;
-flat in int tr_textureId;
+in Data {
+  vec2 texCoords;
+  flat int textureId;
+} in_data;
+
 out vec4 color;
 
 uniform sampler2D tex[6];
 
+
 void main() {
-    color = texture(tex[tr_textureId], tr_uv);
+    color = texture(tex[in_data.textureId], in_data.texCoords);
 }
 )";
 
@@ -132,24 +144,29 @@ void main() {
 using namespace sgct;
 
 void initializeGrid() {
-    constexpr uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
-    glEnable(GL_PRIMITIVE_RESTART);
-    glPrimitiveRestartIndex(RestartIndex);
-
-    glGenVertexArrays(1, &grid.vao);
-    glGenBuffers(1, &grid.vbo);
-    glGenBuffers(1, &grid.iboLine);
-
-    glBindVertexArray(grid.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, grid.vbo);
-
-    constexpr int ElevationSteps = 40;
-    constexpr int AzimuthSteps = 160;
-
     struct GridVertex {
         float elevation;
         float azimuth;
     };
+
+    constexpr uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
+    glEnable(GL_PRIMITIVE_RESTART);
+    glPrimitiveRestartIndex(RestartIndex);
+
+    glCreateBuffers(1, &grid.vbo);
+    glCreateBuffers(1, &grid.iboLine);
+    glCreateVertexArrays(1, &grid.vao);
+
+    glVertexArrayVertexBuffer(grid.vao, 0, grid.vbo, 0, sizeof(GridVertex));
+    glVertexArrayElementBuffer(grid.vao, grid.iboLine);
+
+    glEnableVertexArrayAttrib(grid.vao, 0);
+    glVertexArrayAttribFormat(grid.vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(grid.vao, 0, 0);
+
+    constexpr int ElevationSteps = 40;
+    constexpr int AzimuthSteps = 160;
+
     std::vector<GridVertex> vertices;
     // (abock, 2019-10-09) We generate the vertices ring-wise;  first iterating over the
     // elevation and then the azimuth will lead to the bottom most ring be filled first,
@@ -166,51 +183,44 @@ void initializeGrid() {
             vertices.push_back(vertex);
         }
     }
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GridVertex), nullptr);
-    glBufferData(
-        GL_ARRAY_BUFFER,
+    glNamedBufferStorage(
+        grid.vao,
         vertices.size() * sizeof(GridVertex),
         vertices.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
 
-    {
-        // Line representation
-        // (abock, 2019-10-09) It's possible to compute a better size of how many indices
-        // we'll need, but I can't be asked (and we are seriously not performance limited)
-        std::vector<uint16_t> indices;
-        indices.reserve(2 * ElevationSteps * AzimuthSteps);
+    // Line representation
+    // (abock, 2019-10-09) It's possible to compute a better size of how many indices
+    // we'll need, but I can't be asked (and we are seriously not performance limited)
+    std::vector<uint16_t> indices;
+    indices.reserve(2 * ElevationSteps * AzimuthSteps);
 
-        // First the horizontal, azimuth lines
+    // First the horizontal, azimuth lines
+    for (int e = 0; e < ElevationSteps; e++) {
+        std::vector<uint16_t> t(AzimuthSteps);
+        std::iota(t.begin(), t.end(), static_cast<uint16_t>(e * AzimuthSteps));
+        t.push_back(static_cast<uint16_t>(e * AzimuthSteps)); // close the ring
+        t.push_back(RestartIndex); // restart for the next ring
+        indices.insert(indices.end(), t.begin(), t.end());
+    }
+    indices.push_back(RestartIndex);
+    // Then the vertical lines; see above; every vertical vertex is separated by
+    // exactly 'AzimuthSteps' positions in the vertex array
+    for (int a = 0; a < AzimuthSteps; a++) {
         for (int e = 0; e < ElevationSteps; e++) {
-            std::vector<uint16_t> t(AzimuthSteps);
-            std::iota(t.begin(), t.end(), static_cast<uint16_t>(e * AzimuthSteps));
-            t.push_back(static_cast<uint16_t>(e * AzimuthSteps)); // close the ring
-            t.push_back(RestartIndex); // restart for the next ring
-            indices.insert(indices.end(), t.begin(), t.end());
+            indices.push_back(static_cast<uint16_t>(a + e * AzimuthSteps));
         }
         indices.push_back(RestartIndex);
-        // Then the vertical lines; see above; every vertical vertex is separated by
-        // exactly 'AzimuthSteps' positions in the vertex array
-        for (int a = 0; a < AzimuthSteps; a++) {
-            for (int e = 0; e < ElevationSteps; e++) {
-                indices.push_back(static_cast<uint16_t>(a + e * AzimuthSteps));
-            }
-            indices.push_back(RestartIndex);
-        }
-
-        grid.nVertLine = static_cast<int>(indices.size());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grid.iboLine);
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            indices.size() * sizeof(uint16_t),
-            indices.data(),
-            GL_STATIC_DRAW
-        );
     }
-    glBindVertexArray(0);
+
+    grid.nVertLine = static_cast<int>(indices.size());
+    glNamedBufferStorage(
+        grid.iboLine,
+        indices.size() * sizeof(uint16_t),
+        indices.data(),
+        GL_NONE_BIT
+    );
 
 
     ShaderManager::instance().addShaderProgram(
@@ -219,22 +229,16 @@ void initializeGrid() {
         GridFragmentShader
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("grid");
-    prog.bind();
     grid.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
     assert(grid.mvpMatrixLocation != -1);
     grid.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
     assert(grid.cameraMatrixLocation != -1);
     GLuint radiusLocation = glGetUniformLocation(prog.id(), "radius");
     assert(radiusLocation != std::numeric_limits<GLuint>::max());
-    glUniform1f(radiusLocation, radius);
-    prog.unbind();
+    glProgramUniform1f(prog.id(), radiusLocation, radius);
 }
 
 void initializeBox() {
-    glGenVertexArrays(1, &box.vao);
-    glGenBuffers(1, &box.vbo);
-    glBindVertexArray(box.vao);
-
     struct BoxVertex {
         float x;
         float y;
@@ -245,6 +249,28 @@ void initializeBox() {
 
         uint8_t textureId;
     };
+
+    glCreateBuffers(1, &box.vbo);
+    glCreateVertexArrays(1, &box.vao);
+    glVertexArrayVertexBuffer(box.vao, 0, box.vbo, 0, sizeof(BoxVertex));
+
+    glEnableVertexArrayAttrib(box.vao, 0);
+    glVertexArrayAttribFormat(box.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(box.vao, 0, 0);
+
+    glEnableVertexArrayAttrib(box.vao, 1);
+    glVertexArrayAttribFormat(box.vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(BoxVertex, s));
+    glVertexArrayAttribBinding(box.vao, 1, 0);
+
+    glEnableVertexArrayAttrib(box.vao, 2);
+    glVertexArrayAttribIFormat(
+        box.vao,
+        2,
+        1,
+        GL_UNSIGNED_BYTE,
+        offsetof(BoxVertex, textureId)
+    );
+    glVertexArrayAttribBinding(box.vao, 2, 0);
 
     constexpr std::array<BoxVertex, 2 * 3 * 6> Vertices = {
         // Front
@@ -301,34 +327,12 @@ void initializeBox() {
         BoxVertex{  10.f, -10.f,  10.f, 1.f, 0.f, 5 },  // +-+
         BoxVertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
     };
-    glBindBuffer(GL_ARRAY_BUFFER, box.vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
+    glNamedBufferStorage(
+        box.vbo,
         Vertices.size() * sizeof(BoxVertex),
         Vertices.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BoxVertex), nullptr);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(BoxVertex),
-        reinterpret_cast<void*>(offsetof(BoxVertex, s))
-    );
-    glEnableVertexAttribArray(2);
-    glVertexAttribIPointer(
-        2,
-        1,
-        GL_UNSIGNED_BYTE,
-        sizeof(BoxVertex),
-        reinterpret_cast<void*>(offsetof(BoxVertex, textureId))
-    );
-
-    glBindVertexArray(0);
 
 
     struct ImageData {
@@ -432,7 +436,6 @@ void initializeBox() {
         BoxFragmentShader
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("box");
-    prog.bind();
     box.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
     assert(box.mvpMatrixLocation != -1);
     box.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
@@ -441,8 +444,7 @@ void initializeBox() {
     GLuint texLoc = glGetUniformLocation(prog.id(), "tex");
     assert(texLoc != std::numeric_limits<GLuint>::max());
     constexpr std::array<int, 6> Indices = { 0, 1, 2, 3, 4, 5 };
-    glUniform1iv(texLoc, 6, Indices.data());
-    prog.unbind();
+    glProgramUniform1iv(prog.id(), texLoc, 6, Indices.data());
 }
 
 void initGL(GLFWwindow*) {
@@ -490,21 +492,15 @@ void draw(const RenderData& data) {
         ShaderManager::instance().shaderProgram("box").bind();
         glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
         glUniformMatrix4fv(box.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
+
+        glBindTextureUnit(0, box.textureFront);
+        glBindTextureUnit(1, box.textureRight);
+        glBindTextureUnit(2, box.textureBack);
+        glBindTextureUnit(3, box.textureLeft);
+        glBindTextureUnit(4, box.textureTop);
+        glBindTextureUnit(5, box.textureBottom);
+
         glBindVertexArray(box.vao);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, box.textureFront);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, box.textureRight);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, box.textureBack);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, box.textureLeft);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, box.textureTop);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, box.textureBottom);
-
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         ShaderManager::instance().shaderProgram("grid").unbind();

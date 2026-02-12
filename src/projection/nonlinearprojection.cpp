@@ -47,11 +47,9 @@ NonLinearProjection::~NonLinearProjection() {
     glDeleteTextures(1, &_textures.cubeFaceBack);
 }
 
-void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int format,
-                                     unsigned int type, int nSamples)
-{
+void NonLinearProjection::initialize(unsigned int internalFormat, int nSamples) {
     initViewports();
-    initTextures(internalFormat, format, type);
+    initTextures(internalFormat);
     initFBO(internalFormat, nSamples);
     initVBO();
     initShaders();
@@ -111,22 +109,15 @@ ivec2 NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
 }
 
-void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int format,
-                                       unsigned int type)
-{
-    generateCubeMap(_textures.cubeMapColor, internalFormat, format, type);
+void NonLinearProjection::initTextures(unsigned int internalFormat) {
+    generateCubeMap(_textures.cubeMapColor, internalFormat);
     Log::Debug(std::format(
         "{}x{} color cube map texture (id: {}) generated",
         _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapColor
     ));
 
     if (Engine::instance().settings().useDepthTexture) {
-        generateCubeMap(
-            _textures.cubeMapDepth,
-            GL_DEPTH_COMPONENT32,
-            GL_DEPTH_COMPONENT,
-            GL_FLOAT
-        );
+        generateCubeMap(_textures.cubeMapDepth, GL_DEPTH_COMPONENT32);
         Log::Debug(std::format(
             "{}x{} depth cube map texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapDepth
@@ -134,18 +125,13 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
 
         if (_useDepthTransformation) {
             // generate swap textures
-            generateMap(
-                _textures.depthSwap,
-                GL_DEPTH_COMPONENT32,
-                GL_DEPTH_COMPONENT,
-                GL_FLOAT
-            );
+            generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32);
             Log::Debug(std::format(
                 "{}x{} depth swap map texture (id: {}) generated",
                 _cubemapResolution.x, _cubemapResolution.y, _textures.depthSwap
             ));
 
-            generateMap(_textures.colorSwap, internalFormat, format, type);
+            generateMap(_textures.colorSwap, internalFormat);
             Log::Debug(std::format(
                 "{}x{} color swap map texture (id: {}) generated",
                 _cubemapResolution.x, _cubemapResolution.y, _textures.colorSwap
@@ -154,7 +140,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
     }
 
     if (Engine::instance().settings().useNormalTexture) {
-        generateCubeMap(_textures.cubeMapNormals, GL_RGB32F, GL_RGB, GL_FLOAT);
+        generateCubeMap(_textures.cubeMapNormals, GL_RGB32F);
         Log::Debug(std::format(
             "{}x{} normal cube map texture (id: {}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapNormals
@@ -162,7 +148,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat, unsigned int
     }
 
     if (Engine::instance().settings().usePositionTexture) {
-        generateCubeMap(_textures.cubeMapPositions, GL_RGB32F, GL_RGB, GL_FLOAT);
+        generateCubeMap(_textures.cubeMapPositions, GL_RGB32F);
         Log::Debug(std::format(
             "{}x{} position cube map texture ({}) generated",
             _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapPositions
@@ -187,8 +173,7 @@ void NonLinearProjection::setupViewport(const BaseViewport& vp) const {
     glScissor(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
 }
 
-void NonLinearProjection::generateMap(unsigned int& texture, unsigned int internalFormat,
-                                      unsigned int format, unsigned int type)
+void NonLinearProjection::generateMap(unsigned int& texture, unsigned int internalFormat)
 {
     glDeleteTextures(1, &texture);
 
@@ -206,35 +191,24 @@ void NonLinearProjection::generateMap(unsigned int& texture, unsigned int intern
     }
 
 
-    // set up texture target
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // Disable mipmaps
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+    glTextureParameteri(texture, GL_TEXTURE_BASE_LEVEL, 0);
+    glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureStorage2D(
+        texture,
+        1,
         internalFormat,
         _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
+        _cubemapResolution.y
     );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void NonLinearProjection::generateCubeMap(unsigned int& texture,
-                                          unsigned int internalFormat,
-                                          unsigned int format, unsigned int type)
+                                          unsigned int internalFormat)
 {
     glDeleteTextures(1, &texture);
 
@@ -252,86 +226,23 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
     }
 
 
-    // set up texture target
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &texture);
 
-    // Disable mipmaps
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(texture, GL_TEXTURE_BASE_LEVEL, 0);
+    glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-        0,
+    glTextureStorage2D(
+        texture,
+        1,
         internalFormat,
         _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
+        _cubemapResolution.y
     );
-    glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-        0,
-        internalFormat,
-        _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
-    );
-    glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-        0,
-        internalFormat,
-        _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
-    );
-    glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-        0,
-        internalFormat,
-        _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
-    );
-    glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-        0,
-        internalFormat,
-        _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
-    );
-    glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-        0,
-        internalFormat,
-        _cubemapResolution.x,
-        _cubemapResolution.y,
-        0,
-        format,
-        type,
-        nullptr
-    );
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }

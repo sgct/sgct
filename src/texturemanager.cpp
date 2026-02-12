@@ -21,8 +21,7 @@ namespace {
                              float anisotropicFilterSize)
     {
         unsigned int tex = 0;
-        glGenTextures(1, &tex);
-        glBindTexture(GL_TEXTURE_2D, tex);
+        glCreateTextures(GL_TEXTURE_2D, 1, &tex);
 
         const auto [type, internalFormat] = [](int c) -> std::pair<GLenum, GLenum> {
             switch (c) {
@@ -42,65 +41,44 @@ namespace {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        constexpr GLenum Format = GL_UNSIGNED_BYTE;
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            internalFormat,
-            img.size().x,
-            img.size().y,
-            0,
-            type,
-            Format,
-            img.data()
-        );
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
+        glTextureParameteri(tex, GL_TEXTURE_BASE_LEVEL, 0);
+        glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
+
+        const GLenum interp = interpolate ? GL_LINEAR : GL_NEAREST;
 
         if (mipmap > 1) {
-            glGenerateMipmap(GL_TEXTURE_2D);
-
-            glTexParameteri(
-                GL_TEXTURE_2D,
+            glTextureParameteri(
+                tex,
                 GL_TEXTURE_MIN_FILTER,
                 interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR
             );
-            glTexParameteri(
-                GL_TEXTURE_2D,
-                GL_TEXTURE_MAG_FILTER,
-                interpolate ? GL_LINEAR : GL_NEAREST
-            );
-
-            // GL_TEXTURE_MAX_ANISOTROPY is no longer an extension, but a core feature in OpenGL 4.0
-            #ifdef GL_TEXTURE_MAX_ANISOTROPY
-                glTexParameterf(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_MAX_ANISOTROPY,
-                    anisotropicFilterSize
-                );
-            #else
-                glTexParameterf(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                    anisotropicFilterSize
-                );
-            #endif
+            glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, interp);
+            glTextureParameterf(tex, GL_TEXTURE_MAX_ANISOTROPY, anisotropicFilterSize);
         }
         else {
-            glTexParameteri(
-                GL_TEXTURE_2D,
-                GL_TEXTURE_MIN_FILTER,
-                interpolate ? GL_LINEAR : GL_NEAREST
-            );
-            glTexParameteri(
-                GL_TEXTURE_2D,
-                GL_TEXTURE_MAG_FILTER,
-                interpolate ? GL_LINEAR : GL_NEAREST
-            );
+            glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, interp);
+            glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, interp);
         }
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureStorage2D(tex, mipmap, internalFormat, img.size().x, img.size().y);
+        glTextureSubImage2D(
+            tex,
+            0,
+            0,
+            0,
+            img.size().x,
+            img.size().y,
+            type,
+            GL_UNSIGNED_BYTE,
+            img.data()
+        );
+
+        if (mipmap > 1) {
+            glGenerateTextureMipmap(tex);
+        }
 
         return tex;
     }

@@ -66,40 +66,49 @@ namespace {
     };
 
     constexpr std::string_view GridVertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec3 vertPosition;
+  layout(location = 0) in vec3 in_position;
 
   uniform mat4 mvp;
 
+
   void main() {
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp * vec4(vertPosition, 1.0);
+    gl_Position = mvp * vec4(in_position, 1.0);
   })";
 
     constexpr std::string_view GridFragmentShader = R"(
-  #version 330 core
-  out vec4 color;
-  void main() { color = vec4(1.0, 1.0, 1.0, 0.8); }
+  #version 460 core
+
+  out vec4 out_color;
+
+
+  void main() { out_color = vec4(1.0, 1.0, 1.0, 0.8); }
 )";
 
     constexpr std::string_view PyramidVertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec3 vertPosition;
+  layout(location = 0) in vec3 in_position;
 
   uniform mat4 mvp;
 
+
   void main() {
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp * vec4(vertPosition, 1.0);
+    gl_Position = mvp * vec4(in_position, 1.0);
   })";
 
     constexpr std::string_view PyramidFragmentShader = R"(
-  #version 330 core
+  #version 460 core
+
+  out vec4 out_color;
+
   uniform float alpha;
-  out vec4 color;
-  void main() { color = vec4(1.0, 0.0, 0.5, alpha); }
+
+
+  void main() { out_color = vec4(1.0, 0.0, 0.5, alpha); }
 )";
 } // namespace
 
@@ -134,86 +143,65 @@ void createXZGrid(int size, float yPos) {
 
         i += 2;
     }
-
-    glBindVertexArray(grid.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, grid.vbo);
-
-    // upload data to GPU
-    glBufferData(
-        GL_ARRAY_BUFFER,
+    glNamedBufferStorage(
+        grid.vbo,
         sizeof(Vertex) * grid.nVerts,
         vertData.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void createPyramid(float width) {
-    std::vector<Vertex> vertData;
+    std::array<Vertex, 28> vertData;
 
     // enhance the pyramids with lines in the edges
     // -x
-    vertData.push_back(Vertex{ -width / 2.f, 0.f,  width / 2.f });
-    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ -width / 2.f, 0.f,  width / 2.f });
+    vertData[0] = Vertex{ -width / 2.f, 0.f,  width / 2.f };
+    vertData[1] = Vertex{-width / 2.f, 0.f, -width / 2.f};
+    vertData[2] = Vertex{0.f, 2.f,          0.f};
+    vertData[3] = Vertex{-width / 2.f, 0.f,  width / 2.f};
     // +x
-    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
-    vertData.push_back(Vertex{ width / 2.f, 0.f,  width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
+    vertData[4] = Vertex{width / 2.f, 0.f, -width / 2.f};
+    vertData[5] = Vertex{width / 2.f, 0.f,  width / 2.f};
+    vertData[6] = Vertex{0.f, 2.f,          0.f};
+    vertData[7] = Vertex{width / 2.f, 0.f, -width / 2.f};
     // -z
-    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
-    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
+    vertData[8] = Vertex{-width / 2.f, 0.f, -width / 2.f};
+    vertData[9] = Vertex{width / 2.f, 0.f, -width / 2.f};
+    vertData[10] = Vertex{0.f, 2.f,          0.f};
+    vertData[11] = Vertex{-width / 2.f, 0.f, -width / 2.f};
     // +z
-    vertData.push_back(Vertex{ width / 2.f, 0.f,  width / 2.f });
-    vertData.push_back(Vertex{ -width / 2.f, 0.f,  width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ width / 2.f, 0.f,  width / 2.f });
+    vertData[12] = Vertex{width / 2.f, 0.f,  width / 2.f};
+    vertData[13] = Vertex{-width / 2.f, 0.f,  width / 2.f};
+    vertData[14] = Vertex{0.f, 2.f,          0.f};
+    vertData[15] = Vertex{width / 2.f, 0.f,  width / 2.f};
 
     // triangles
     // -x
-    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ -width / 2.f, 0.f,  width / 2.f });
+    vertData[16] = Vertex{-width / 2.f, 0.f, -width / 2.f};
+    vertData[17] = Vertex{0.f, 2.f,          0.f};
+    vertData[18] = Vertex{-width / 2.f, 0.f,  width / 2.f};
     // +x
-    vertData.push_back(Vertex{ width / 2.f, 0.f,  width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,         0.f });
-    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
+    vertData[19] = Vertex{width / 2.f, 0.f,  width / 2.f};
+    vertData[20] = Vertex{0.f, 2.f,         0.f};
+    vertData[21] = Vertex{width / 2.f, 0.f, -width / 2.f};
     // -z
-    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
+    vertData[22] = Vertex{width / 2.f, 0.f, -width / 2.f};
+    vertData[23] = Vertex{0.f, 2.f,          0.f};
+    vertData[24] = Vertex{-width / 2.f, 0.f, -width / 2.f};
     // +z
-    vertData.push_back(Vertex{ -width / 2.f, 0.f,  width / 2.f });
-    vertData.push_back(Vertex{ 0.f, 2.f,          0.f });
-    vertData.push_back(Vertex{ width / 2.f, 0.f,  width / 2.f });
+    vertData[25] = Vertex{-width / 2.f, 0.f,  width / 2.f};
+    vertData[26] = Vertex{0.f, 2.f,          0.f};
+    vertData[27] = Vertex{width / 2.f, 0.f,  width / 2.f};
 
     pyramid.nVerts = static_cast<int>(vertData.size());
 
-    glBindVertexArray(pyramid.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, pyramid.vbo);
-
-    // upload data to GPU
-    glBufferData(
-        GL_ARRAY_BUFFER,
+    glNamedBufferStorage(
+        pyramid.vbo,
         sizeof(Vertex) * pyramid.nVerts,
         vertData.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    vertData.clear();
 }
 
 
@@ -263,14 +251,27 @@ void cleanup() {
 }
 
 void initOGL(GLFWwindow*) {
-    glGenVertexArrays(1, &pyramid.vao);
-    glGenVertexArrays(1, &grid.vao);
+    glCreateBuffers(1, &pyramid.vbo);
+    glCreateVertexArrays(1, &pyramid.vao);
+    glVertexArrayVertexBuffer(pyramid.vao, 0, pyramid.vbo, 0, sizeof(Vertex));
 
-    glGenBuffers(1, &pyramid.vbo);
-    glGenBuffers(1, &grid.vbo);
+    glEnableVertexArrayAttrib(pyramid.vao, 0);
+    glVertexArrayAttribFormat(pyramid.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(pyramid.vao, 0, 0);
+
+    createPyramid(0.6f);
+
+
+    glCreateBuffers(1, &grid.vbo);
+    glCreateVertexArrays(1, &grid.vao);
+    glVertexArrayVertexBuffer(grid.vao, 0, grid.vbo, 0, sizeof(Vertex));
+
+    glEnableVertexArrayAttrib(grid.vao, 0);
+    glVertexArrayAttribFormat(grid.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(grid.vao, 0, 0);
 
     createXZGrid(LandscapeSize, -1.5f);
-    createPyramid(0.6f);
+
 
     // pick a seed for the random function (must be same on all nodes)
     srand(9745);
@@ -287,9 +288,7 @@ void initOGL(GLFWwindow*) {
         GridFragmentShader
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("gridShader");
-    prog.bind();
     grid.matrixLocation = glGetUniformLocation(prog.id(), "mvp");
-    prog.unbind();
 
     ShaderManager::instance().addShaderProgram(
         "pyramidShader",
@@ -298,10 +297,8 @@ void initOGL(GLFWwindow*) {
     );
     const ShaderProgram& pyramidProg =
         ShaderManager::instance().shaderProgram("pyramidShader");
-    pyramidProg.bind();
     pyramid.matrixLocation = glGetUniformLocation(pyramidProg.id(), "mvp");
     alphaLocation = glGetUniformLocation(pyramidProg.id(), "alpha");
-    pyramidProg.unbind();
 }
 
 void preSync() {

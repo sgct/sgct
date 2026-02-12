@@ -136,11 +136,11 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
 Viewport::~Viewport() = default;
 
 void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-                          unsigned int format, unsigned int type, uint8_t samples)
+                          uint8_t samples)
 {
     if (_nonLinearProjection) {
         _nonLinearProjection->setStereo(hasStereo);
-        _nonLinearProjection->initialize(internalFormat, format, type, samples);
+        _nonLinearProjection->initialize(internalFormat, samples);
         _nonLinearProjection->update(std::move(size));
     }
 }

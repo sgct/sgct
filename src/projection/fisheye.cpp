@@ -100,17 +100,13 @@ void FisheyeProjection::update(const vec2& size) const {
         }
     }
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    const std::array<const Vertex, 4> v = {
+    const std::array<Vertex, 4> v = {
         Vertex{ -x, -y, -1.f, _cropLeft, _cropBottom },
         Vertex{ -x,  y, -1.f, _cropLeft, 1.f - _cropTop },
         Vertex{  x, -y, -1.f, 1.f - _cropRight, _cropBottom },
         Vertex{  x,  y, -1.f, 1.f - _cropRight, 1.f - _cropTop }
     };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vertex), v.data(), GL_STATIC_DRAW);
-    glBindVertexArray(0);
+    glNamedBufferSubData(_vbo, 0, 4 * sizeof(Vertex), v.data());
 }
 
 void FisheyeProjection::render(const BaseViewport& viewport,
@@ -124,29 +120,24 @@ void FisheyeProjection::render(const BaseViewport& viewport,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _shader.bind();
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // if for some reson the active texture has been reset
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
+    glBindTextureUnit(0, _textures.cubeMapColor);
 
     if (Engine::instance().settings().useDepthTexture) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
+        glBindTextureUnit(1, _textures.cubeMapDepth);
         glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
     if (Engine::instance().settings().useNormalTexture) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
+        glBindTextureUnit(2, _textures.cubeMapNormals);
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
     if (Engine::instance().settings().usePositionTexture) {
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
+        glBindTextureUnit(3, _textures.cubeMapPositions);
         glUniform1i(_shaderLoc.positionCubemap, 3);
     }
 
@@ -155,12 +146,14 @@ void FisheyeProjection::render(const BaseViewport& viewport,
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shaderLoc.cubemap, 0);
-    glUniform1f(_shaderLoc.halfFov, glm::radians(_fov / 2.f));
+    glProgramUniform1i(_shader.id(), _shaderLoc.cubemap, 0);
+    glProgramUniform1f(_shader.id(), _shaderLoc.halfFov, glm::radians(_fov / 2.f));
 
     if (_isOffAxis) {
-        glUniform3fv(_shaderLoc.offset, 1, &_totalOffset.x);
+        glProgramUniform3fv(_shader.id(), _shaderLoc.offset, 1, &_totalOffset.x);
     }
+
+    _shader.bind();
 
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -223,18 +216,23 @@ void FisheyeProjection::renderCubemap(FrustumMode frustumMode) const {
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_ALWAYS);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
+            glBindTextureUnit(0, _textures.colorSwap);
+            glBindTextureUnit(1, _textures.depthSwap);
 
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
+            glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapColor, 0);
+            glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapDepth, 1);
+            glProgramUniform1f(
+                _depthCorrectionShader.id(),
+                _shaderLoc.swapNear,
+                Engine::instance().nearClipPlane()
+            );
+            glProgramUniform1f(
+                _depthCorrectionShader.id(),
+                _shaderLoc.swapFar,
+                Engine::instance().farClipPlane()
+            );
 
             _depthCorrectionShader.bind();
-            glUniform1i(_shaderLoc.swapColor, 0);
-            glUniform1i(_shaderLoc.swapDepth, 1);
-            glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
-            glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
-
             vp.window().renderScreenQuad();
             ShaderProgram::unbind();
 
@@ -296,26 +294,19 @@ void FisheyeProjection::setKeepAspectRatio(bool state) {
 }
 
 void FisheyeProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
+    glCreateBuffers(1, &_vbo);
+    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, s))
-    );
-
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 void FisheyeProjection::initViewports() {
@@ -680,44 +671,42 @@ void FisheyeProjection::initShaders() {
 
 
     _shader.createAndLinkProgram();
-    _shader.bind();
 
-
-    glUniform4fv(glGetUniformLocation(_shader.id(), "bgColor"), 1, &_clearColor.x);
+    const unsigned int id = _shader.id();
+    glProgramUniform4fv(id, glGetUniformLocation(id, "bgColor"), 1, &_clearColor.x);
     if (isCubic) {
-        glUniform1f(
-            glGetUniformLocation(_shader.id(), "size"),
+        glProgramUniform1f(
+            id,
+            glGetUniformLocation(id, "size"),
             static_cast<float>(_cubemapResolution.x)
         );
     }
 
-    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemap, 0);
+    _shaderLoc.cubemap = glGetUniformLocation(id, "cubemap");
+    glProgramUniform1i(id, _shaderLoc.cubemap, 0);
 
     if (Engine::instance().settings().useDepthTexture) {
-        _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
-        glUniform1i(_shaderLoc.depthCubemap, 1);
+        _shaderLoc.depthCubemap = glGetUniformLocation(id, "depthmap");
+        glProgramUniform1i(id, _shaderLoc.depthCubemap, 1);
     }
 
     if (Engine::instance().settings().useNormalTexture) {
-        _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
-        glUniform1i(_shaderLoc.normalCubemap, 2);
+        _shaderLoc.normalCubemap = glGetUniformLocation(id, "normalmap");
+        glProgramUniform1i(id, _shaderLoc.normalCubemap, 2);
     }
 
     if (Engine::instance().settings().usePositionTexture) {
-        _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
-        glUniform1i(_shaderLoc.positionCubemap, 3);
+        _shaderLoc.positionCubemap = glGetUniformLocation(id, "positionmap");
+        glProgramUniform1i(id, _shaderLoc.positionCubemap, 3);
     }
 
-    _shaderLoc.halfFov = glGetUniformLocation(_shader.id(), "halfFov");
-    glUniform1f(_shaderLoc.halfFov, glm::half_pi<float>());
+    _shaderLoc.halfFov = glGetUniformLocation(id, "halfFov");
+    glProgramUniform1f(id, _shaderLoc.halfFov, glm::half_pi<float>());
 
     if (_isOffAxis) {
-        _shaderLoc.offset = glGetUniformLocation(_shader.id(), "offset");
-        glUniform3f(_shaderLoc.offset, _totalOffset.x, _totalOffset.y, _totalOffset.z);
+        _shaderLoc.offset = glGetUniformLocation(id, "offset");
+        glProgramUniform3fv(id, _shaderLoc.offset, 1, &_totalOffset.x);
     }
-
-    ShaderProgram::unbind();
 
     if (Engine::instance().settings().useDepthTexture) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
@@ -726,16 +715,13 @@ void FisheyeProjection::initShaders() {
             shaders_fisheye::FisheyeDepthCorrectionFrag
         );
         _depthCorrectionShader.createAndLinkProgram();
-        _depthCorrectionShader.bind();
 
         _shaderLoc.swapColor = glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
-        glUniform1i(_shaderLoc.swapColor, 0);
+        glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapColor, 0);
         _shaderLoc.swapDepth = glGetUniformLocation(_depthCorrectionShader.id(), "dTex");
-        glUniform1i(_shaderLoc.swapDepth, 1);
+        glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapDepth, 1);
         _shaderLoc.swapNear = glGetUniformLocation(_depthCorrectionShader.id(), "near");
         _shaderLoc.swapFar = glGetUniformLocation(_depthCorrectionShader.id(), "far");
-
-        ShaderProgram::unbind();
     }
 }
 

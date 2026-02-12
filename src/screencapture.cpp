@@ -82,14 +82,11 @@ void ScreenCapture::resize(ivec2 resolution) {
         info.isRunning = false;
     }
 
-    glGenBuffers(1, &_pbo);
     Log::Debug(std::format(
         "Generating {}x{}x{} PBO: {}", _resolution.x, _resolution.y, nChannels, _pbo
     ));
-
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
-    glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, nullptr, GL_STATIC_READ);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    glCreateBuffers(1, &_pbo);
+    glNamedBufferStorage(_pbo, _dataSize, nullptr, GL_NONE_BIT);
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {

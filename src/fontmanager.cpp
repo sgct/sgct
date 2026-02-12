@@ -42,30 +42,40 @@ namespace {
     std::string SystemFontPath;
 
     constexpr std::string_view FontVertShader = R"(
-#version 330 core
-layout (location = 0) in vec2 in_texCoord;
+#version 460 core
+
+layout (location = 0) in vec2 in_texCoords;
 layout (location = 1) in vec2 in_position;
-out vec2 tr_uv;
+
+out Data {
+  vec2 texCoords;
+} out_data;
 
 uniform mat4 mvp;
 
+
 void main() {
-    gl_Position = mvp * vec4(in_position, 0.0, 1.0);
-    tr_uv = in_texCoord;
+  gl_Position = mvp * vec4(in_position, 0.0, 1.0);
+  out_data.texCoords = in_texCoords;
 })";
 
     constexpr std::string_view FontFragShader = R"(
-#version 330 core
-in vec2 tr_uv;
+#version 460 core
+
+in Data {
+  vec2 texCoords;
+} in_data;
+
 out vec4 out_color;
 
 uniform vec4 col;
 uniform sampler2D tex;
 
+
 const vec4 StrokeCol = vec4(0.0, 0.0, 0.0, 0.9);
 
 void main() {
-    vec2 luminanceAlpha = texture(tex, tr_uv).rg;
+    vec2 luminanceAlpha = texture(tex, in_data.texCoords).rg;
     vec4 blend = mix(StrokeCol, col, luminanceAlpha.r);
     out_color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
 })";
@@ -141,9 +151,9 @@ FontManager::~FontManager() {
 void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) const {
     _shader.bind();
 
-    glUniform4fv(_colorLocation, 1, &color.x);
-    glUniform1i(_textureLocation, texture);
-    glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, mvp.values.data());
+    glProgramUniform4fv(_shader.id(), _colorLocation, 1, &color.x);
+    glProgramUniform1i(_shader.id(), _textureLocation, texture);
+    glProgramUniformMatrix4fv(_shader.id(), _mvpLocation, 1, GL_FALSE, mvp.values.data());
 }
 
 bool FontManager::addFont(std::string name, std::string file, bool isAbsolutePath) {
@@ -215,12 +225,10 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         _shader.addVertexShader(FontVertShader);
         _shader.addFragmentShader(FontFragShader);
         _shader.createAndLinkProgram();
-        _shader.bind();
 
         _mvpLocation = glGetUniformLocation(_shader.id(), "mvp");
         _colorLocation = glGetUniformLocation(_shader.id(), "col");
         _textureLocation = glGetUniformLocation(_shader.id(), "tex");
-        ShaderProgram::unbind();
 
         isShaderCreated = true;
     }

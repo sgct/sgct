@@ -40,29 +40,39 @@ namespace {
     double currentTime = 0.0;
 
     constexpr std::string_view VertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec2 texCoords;
-  layout(location = 1) in vec3 normals;
-  layout(location = 2) in vec3 vertPositions;
+  layout(location = 0) in vec2 in_texCoords;
+  layout(location = 1) in vec3 in_normal;
+  layout(location = 2) in vec3 in_position;
+
+  out Data {
+    vec2 texCoords;
+  } out_data;
 
   uniform mat4 mvp;
   uniform int flip;
 
-  out vec2 uv;
 
   void main() {
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp * vec4(vertPositions, 1.0);
-    uv = texCoords;
+    gl_Position = mvp * vec4(in_position, 1.0);
+    out_data.texCoords = in_texCoords;
   })";
 
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
+
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
+  out vec4 out_color;
+
   uniform sampler2D tex;
-  in vec2 uv;
-  out vec4 color;
-  void main() { color = texture(tex, uv); }
+
+
+  void main() { out_color = texture(tex, in_data.texCoords); }
 )";
 } // namespace
 
@@ -89,14 +99,12 @@ void draw(const RenderData& data) {
     const glm::mat4 mvp =
         glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
 
-    glActiveTexture(GL_TEXTURE0);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
+    glBindTextureUnit(0, texture);
+    glProgramUniformMatrix4fv(prog.id(), matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
     prog.bind();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
     box->draw();
-
     prog.unbind();
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -184,12 +192,8 @@ void initOGL(GLFWwindow*) {
 
     ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
-    prog.bind();
-
     matrixLoc = glGetUniformLocation(prog.id(), "mvp");
-    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
-
-    prog.unbind();
+    glProgramUniform1i(prog.id(), glGetUniformLocation(prog.id(), "tex"), 0);
 }
 
 std::vector<std::byte> encode() {

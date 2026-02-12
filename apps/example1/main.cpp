@@ -14,62 +14,73 @@
 namespace {
     double currentTime = 0.0;
 
-    GLuint vertexArray = 0;
-    GLuint vertexBuffer = 0;
+    GLuint vao = 0;
+    GLuint vbo = 0;
 
     GLint matrixLoc = -1;
 
     constexpr std::string_view VertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec3 vertPosition;
-  layout(location = 1) in vec3 vertColor;
+  layout(location = 0) in vec3 in_position;
+  layout(location = 1) in vec3 in_color;
+
+  out Data {
+    vec3 color;
+  } out_data;
 
   uniform mat4 mvp;
-  out vec3 fragColor;
+
 
   void main() {
-    gl_Position = mvp * vec4(vertPosition, 1.0);
-    fragColor = vertColor;
+    gl_Position = mvp * vec4(in_position, 1.0);
+    out_data.color = in_color;
   })";
 
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  in vec3 fragColor;
-  out vec4 color;
+  in Data {
+    vec3 color;
+  } in_data;
 
-  void main() { color = vec4(fragColor, 1.0); }
+  out vec4 out_color;
+
+
+  void main() { out_color = vec4(in_data.color, 1.0); }
 )";
 } // namespace
 
 using namespace sgct;
 
 void initOGL(GLFWwindow*) {
-    constexpr GLfloat PositionData[] = {
-        // position           color
-        -0.5f, -0.5f, 0.f,   1.f, 0.f, 0.f,
-         0.f, 0.5f, 0.f,     0.f, 1.f, 0.f,
-         0.5f, -0.5f, 0.f,   0.f, 0.f, 1.f
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float r;
+        float g;
+        float b;
     };
 
-    // generate the VAO
-    glGenVertexArrays(1, &vertexArray);
-    glBindVertexArray(vertexArray);
+    glCreateBuffers(1, &vbo);
+    glCreateVertexArrays(1, &vao);
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, 3 * sizeof(float));
 
-    // generate VBO
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    // upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PositionData), PositionData, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<const void*>(3 * sizeof(GLfloat))
-    );
+    glEnableVertexArrayAttrib(vao, 0);
+    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
 
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(vao, 1);
+    glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, r));
+    glVertexArrayAttribBinding(vao, 1, 0);
+
+    constexpr std::array<Vertex, 3> Vertices = {
+        Vertex{ -0.5f, -0.5f, 0.f,  1.f, 0.f, 0.f },
+        Vertex{  0.f,   0.5f, 0.f,  0.f, 1.f, 0.f },
+        Vertex{  0.5f, -0.5f, 0.f,  0.f, 0.f, 1.f }
+    };
+    glNamedBufferStorage(vbo, 3 * sizeof(Vertices), Vertices.data(), GL_NONE_BIT);
 
     ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
@@ -93,7 +104,7 @@ void draw(const RenderData& data) {
     ShaderManager::instance().shaderProgram("xform").bind();
 
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    glBindVertexArray(vertexArray);
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
     ShaderManager::instance().shaderProgram("xform").unbind();
@@ -117,8 +128,8 @@ void decode(const std::vector<std::byte>& data) {
 }
 
 void cleanup() {
-    glDeleteBuffers(1, &vertexBuffer);
-    glDeleteVertexArrays(1, &vertexArray);
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
 }
 
 void keyboard(Key key, Modifier, Action action, int, Window*) {

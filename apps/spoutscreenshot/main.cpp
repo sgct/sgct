@@ -33,24 +33,34 @@ namespace {
     bool initialized = false;
 
     constexpr std::string_view VertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec2 vertPositions;
+  layout(location = 0) in vec2 in_position;
 
-  out vec2 uv;
+  out Data {
+    vec2 texCoords;
+  } out_data;
+
 
   void main() {
-    gl_Position = vec4(vertPositions, 0.0, 1.0);
-    uv = (vertPositions + vec2(1.0)) / vec2(2.0);
-    uv.y = 1.0 - uv.y;
+    gl_Position = vec4(in_position, 0.0, 1.0);
+    out_data.texCoords = (in_position + vec2(1.0)) / vec2(2.0);
+    out_data.texCoords.y = 1.0 - out_data.texCoords.y;
   })";
 
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
+
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
+  out vec4 out_color;
+
   uniform sampler2D tex;
-  in vec2 uv;
-  out vec4 color;
-  void main() { color = texture(tex, uv); }
+
+
+  void main() { out_color = texture(tex, in_data.texCoords); }
 )";
 } // namespace
 
@@ -93,6 +103,7 @@ void draw(const RenderData&) {
 
     glBindVertexArray(geometry.vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 
     prog.unbind();
     receiver->UnBindSharedTexture();
@@ -104,29 +115,31 @@ void draw(const RenderData&) {
 }
 
 void initOGL(GLFWwindow*) {
-    glGenVertexArrays(1, &geometry.vao);
-    glGenBuffers(1, &geometry.vbo);
+    struct Vertex {
+        float x, y;
+    };
 
-    glBindVertexArray(geometry.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
+    glCreateBuffers(1, &geometry.vbo);
+    glCreateVertexArrays(1, &geometry.vao);
+    glVertexArrayVertexBuffer(geometry.vao, 0, geometry.vbo, 0, sizeof(Vertex));
 
-    struct Vertex { float x, y; };
+    glEnableVertexArrayAttrib(geometry.vao, 0);
+    glVertexArrayAttribFormat(geometry.vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(geometry.vao, 0, 0);
 
-    std::array<Vertex, 6> vertices;
-    vertices[0] = { -1.f, -1.f };
-    vertices[1] = { 1.f,  1.f };
-    vertices[2] = {-1.f, 1.f };
-    vertices[3] = { -1.f, -1.f };
-    vertices[4] = { 1.f, -1.f };
-    vertices[5] = { 1.f,  1.f };
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        vertices.size() * sizeof(Vertex),
-        vertices.data(),
-        GL_STATIC_DRAW
+    constexpr std::array<Vertex, 6> Vertices = {
+        Vertex{ -1.f, -1.f },
+        Vertex{  1.f,  1.f },
+        Vertex{ -1.f,  1.f },
+        Vertex{ -1.f, -1.f },
+        Vertex{  1.f, -1.f },
+        Vertex{  1.f,  1.f },
+    };
+    glNamedBufferStorage(
+        geometry.vbo,
+        Vertices.size() * sizeof(Vertex),
+        Vertices.data(),
+        GL_NONE_BIT
     );
 
     // setup spout

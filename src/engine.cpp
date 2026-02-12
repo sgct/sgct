@@ -356,37 +356,77 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 void Engine::initialize() {
     ZoneScoped;
 
-    int major = 0;
-    int minor = 0;
+    ZoneScoped;
+
     {
-        ZoneScopedN("OpenGL Version");
-
-        // Detect the available OpenGL version
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif // __APPLE__
-        glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-        GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
-        if (!offscreen) {
-            throw Err(3007, "Error creating OpenGL context when initializing the engine");
-        }
-        glfwMakeContextCurrent(offscreen);
-        gladLoadGL();
-
-        // Get the OpenGL version
-        glGetIntegerv(GL_MAJOR_VERSION, &major);
-        glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-        // And get rid of the window again
-        glfwDestroyWindow(offscreen);
-        glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
+        int major = 0;
+        int minor = 0;
+        int release = 0;
+        glfwGetVersion(&major, &minor, &release);
+        Log::Info(std::format("Using GLFW version {}.{}.{}", major, minor, release));
     }
-    Log::Info(std::format("Detected OpenGL version: {}.{}", major, minor));
 
-    initWindows(major, minor);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+
+    const Node& thisNode = ClusterManager::instance().thisNode();
+    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
+
+    bool needsCompatProfile = std::any_of(
+        windows.cbegin(),
+        windows.cend(),
+        std::mem_fn(&Window::needsCompatibilityProfile)
+    );
+
+    glfwWindowHint(
+        GLFW_OPENGL_PROFILE,
+        needsCompatProfile ? GLFW_OPENGL_COMPAT_PROFILE : GLFW_OPENGL_CORE_PROFILE
+    );
+
+    if (_settings.createDebugContext) {
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+    }
+
+    if (_preWindowFn) {
+        ZoneScopedN("[SGCT] Pre-window creation");
+        _preWindowFn();
+    }
+
+    for (size_t i = 0; i < windows.size(); i++) {
+        ZoneScopedN("Creating Window");
+
+        GLFWwindow* s = (i == 0) ? nullptr : windows[0]->windowHandle();
+        const bool isLastWindow = i == windows.size() - 1;
+        windows[i]->openWindow(s, isLastWindow);
+        gladLoadGL();
+#ifdef WIN32
+        gladLoadWGL(wglGetCurrentDC());
+#endif // WIN32
+        TracyGpuContext;
+
+        if (i == 0) {
+            int major = 0;
+            glGetIntegerv(GL_MAJOR_VERSION, &major);
+            int minor = 0;
+            glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+            if (major != 4 || minor != 6) {
+                throw Err(
+                    3007,
+                    "Error creating OpenGL context with version 4.6 when initializing "
+                    "the engine"
+                );
+            }
+        }
+    }
+
+    // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (RunFrameLockCheckThread && ClusterManager::instance().numberOfNodes() > 1) {
+        _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
+    }
 
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
@@ -627,68 +667,6 @@ Engine::~Engine() {
     Log::Debug("Finished cleaning");
 }
 
-void Engine::initWindows(int majorVersion, int minorVersion) {
-    ZoneScoped;
-
-    assert(majorVersion > 0);
-    assert(minorVersion > 0);
-
-    {
-        int major = 0;
-        int minor = 0;
-        int release = 0;
-        glfwGetVersion(&major, &minor, &release);
-        Log::Info(std::format("Using GLFW version {}.{}.{}", major, minor, release));
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
-
-    const Node& thisNode = ClusterManager::instance().thisNode();
-    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
-
-    bool needsCompatProfile = std::any_of(
-        windows.cbegin(),
-        windows.cend(),
-        std::mem_fn(&Window::needsCompatibilityProfile)
-    );
-    
-    glfwWindowHint(
-        GLFW_OPENGL_PROFILE,
-        needsCompatProfile ? GLFW_OPENGL_COMPAT_PROFILE : GLFW_OPENGL_CORE_PROFILE
-    );
-
-    if (_settings.createDebugContext) {
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-    }
-
-    if (_preWindowFn) {
-        ZoneScopedN("[SGCT] Pre-window creation");
-        _preWindowFn();
-    }
-
-    for (size_t i = 0; i < windows.size(); i++) {
-        ZoneScopedN("Creating Window");
-
-        GLFWwindow* s = (i == 0) ? nullptr : windows[0]->windowHandle();
-        const bool isLastWindow = i == windows.size() - 1;
-        windows[i]->openWindow(s, isLastWindow);
-        gladLoadGL();
-#ifdef WIN32
-        gladLoadWGL(wglGetCurrentDC());
-#endif // WIN32
-        TracyGpuContext;
-    }
-
-    // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if (RunFrameLockCheckThread && ClusterManager::instance().numberOfNodes() > 1) {
-        _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
-    }
-}
-
 void Engine::terminate() {
     _shouldTerminate = true;
 }
@@ -801,9 +779,9 @@ void Engine::exec() {
     Window::makeSharedContextCurrent();
 
     unsigned int timeQueryBegin = 0;
-    glGenQueries(1, &timeQueryBegin);
+    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryBegin);
     unsigned int timeQueryEnd = 0;
-    glGenQueries(1, &timeQueryEnd);
+    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryEnd);
 
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();

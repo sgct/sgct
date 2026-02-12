@@ -131,32 +131,21 @@ namespace {
 
     unsigned int generateTexture(int w, int h, const std::vector<unsigned char>& buffer) {
         unsigned int tex = 0;
-        glGenTextures(1, &tex);
-        glBindTexture(GL_TEXTURE_2D, tex);
+        glCreateTextures(GL_TEXTURE_2D, 1, &tex);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_COMPRESSED_RG,
-            w,
-            h,
-            0,
-            GL_RG,
-            GL_UNSIGNED_BYTE,
-            buffer.data()
-        );
+        glTextureParameteri(tex, GL_TEXTURE_BASE_LEVEL, 0);
+        glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
+        glTextureStorage2D(tex, 1, GL_COMPRESSED_RG, w, h);
+        glTextureSubImage2D(tex, 0, 0, 0, w, h, GL_RG, GL_UNSIGNED_BYTE, buffer.data());
         return tex;
     }
 
@@ -221,28 +210,32 @@ Font::Font(FT_Library lib, FT_Face face, unsigned int height)
     , _face(face)
     , _height(static_cast<float>(height))
 {
-    glGenVertexArrays(1, &_vao);
-    glGenBuffers(1, &_vbo);
-
-    constexpr std::array<float, 16> c = std::array<float, 16> {
-        // x y s t
-        0.f, 1.f, 0.f, 0.f,
-        1.f, 1.f, 1.f, 0.f,
-        0.f, 0.f, 0.f, 1.f,
-        1.f, 0.f, 1.f, 1.f
+    struct Vertex {
+        float x;
+        float y;
+        float s;
+        float t;
+    };
+    constexpr std::array<Vertex, 4> c = {
+        Vertex{ 0.f, 1.f, 0.f, 0.f },
+        Vertex{ 1.f, 1.f, 1.f, 0.f },
+        Vertex{ 0.f, 0.f, 0.f, 1.f },
+        Vertex{ 1.f, 0.f, 1.f, 1.f }
     };
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
+    glCreateBuffers(1, &_vbo);
+    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), c.data(), GL_NONE_BIT);
 
-    constexpr int s = 4 * sizeof(float);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, s, nullptr);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(8));
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
+
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 Font::~Font() {

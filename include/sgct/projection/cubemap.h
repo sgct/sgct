@@ -42,7 +42,7 @@ class SGCT_EXPORT CubemapProjection final : public NonLinearProjection {
 public:
     CubemapProjection(const config::CubemapProjection& config,
         const Window& parent, User& user);
-    virtual ~CubemapProjection() override;
+    ~CubemapProjection() override;
 
     /**
      * Update projection when aspect ratio changes for the viewport.
@@ -61,8 +61,7 @@ public:
     void setSpoutRigOrientation(vec3 orientation);
 
 private:
-    void initTextures(unsigned int internalFormat, unsigned int format,
-        unsigned int type) override;
+    void initTextures(unsigned int internalFormat) override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;

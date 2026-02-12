@@ -29,6 +29,10 @@
 
 #include <glad/glad.h>
 
+#ifndef GL_NONE_BIT
+#define GL_NONE_BIT 0
+#endif // GL_NONE_BIT
+
 #ifdef SCGT_GLAD_APIENTRY_DEFINED
 #undef APIENTRY
 #undef SCGT_GLAD_APIENTRY_DEFINED

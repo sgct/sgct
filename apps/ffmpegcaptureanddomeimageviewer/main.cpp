@@ -84,27 +84,31 @@ namespace {
     constexpr std::string_view VertexShader = R"(
   #version 330 core
 
-  layout(location = 0) in vec2 texCoords;
-  layout(location = 1) in vec3 normals;
-  layout(location = 2) in vec3 vertPositions;
+  layout(location = 0) in vec2 in_texCoords;
+  layout(location = 1) in vec3 in_normal;
+  layout(location = 2) in vec3 in_position;
 
-  uniform mat4 mvp;
   out vec2 uv;
 
+  uniform mat4 mvp;
+
+
   void main() {
-    gl_Position =  mvp * vec4(vertPositions, 1.0);
-    uv = texCoords;
+    gl_Position = mvp * vec4(in_position, 1.0);
+    uv = in_texCoords;
   })";
 
     constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
+  in vec2 uv;
+
+  out vec4 color;
+
   uniform sampler2D tex;
   uniform vec2 scaleUV;
   uniform vec2 offsetUV;
 
-  in vec2 uv;
-  out vec4 color;
 
   void main() { color = texture(tex, (uv * scaleUV) + offsetUV); }
 )";

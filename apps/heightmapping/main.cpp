@@ -28,8 +28,8 @@ namespace {
     unsigned int heightTextureId = 0;
     unsigned int normalTextureId = 0;
 
-    GLuint vertexArray = 0;
-    GLuint vertexPositionBuffer = 0;
+    GLuint vao = 0;
+    GLuint vbo = 0;
 
     bool mPause = false;
 
@@ -41,21 +41,26 @@ namespace {
     sgct::Window::StereoMode stereoMode;
 
     struct Vertex {
-        float x, y, z;
-        float s, t;
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
     };
     using Geometry = std::vector<Vertex>;
 
     constexpr std::string_view VertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec3 vertPositions;
-  layout(location = 1) in vec2 texCoords;
+  layout(location = 0) in vec3 in_positions;
+  layout(location = 1) in vec2 in_texCoords;
 
-  out vec2 uv;
-  out float vScale; // Height scaling
-  out vec3 lightDir;
-  out vec3 v;
+  out Data {
+    vec2 texCoords;
+    float vScale; // Height scaling
+    vec3 lightDir;
+    vec3 v;
+  } out_data;
 
   uniform sampler2D hTex;
   uniform float currTime;
@@ -64,31 +69,35 @@ namespace {
   uniform mat4 mvLight;
   uniform vec4 lightPos;
 
-  void main() {
-    uv = texCoords;
 
-    vScale = 0.2 + 0.10 * sin(currTime);
-    float hVal = texture(hTex, uv).r;
-    vec4 transformedVertex = vec4(vertPositions + vec3(0.0, hVal * vScale, 0.0), 1.0);
+  void main() {
+    out_data.texCoords = in_texCoords;
+
+    out_data.vScale = 0.2 + 0.10 * sin(currTime);
+    float hVal = texture(hTex, out_data.texCoords).r;
+    vec4 transformedVertex = vec4(in_positions, 1.0);
+    transformedVertex.y += hVal * out_data.vScale;
 
     // Transform a vertex to model space
-    v = vec3(mv * transformedVertex);
+    out_data.v = vec3(mv * transformedVertex);
     vec3 l = vec3(mvLight * lightPos);
-    lightDir = normalize(l - v);
+    out_data.lightDir = normalize(l - out_data.v);
 
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position =  mvp * transformedVertex;
+    gl_Position = mvp * transformedVertex;
   })";
 
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  in vec2 uv;
-  in float vScale;
-  in vec3 lightDir;
-  in vec3 v;
+  in Data {
+    vec2 texCoords;
+    float vScale;
+    vec3 lightDir;
+    vec3 v;
+  } in_data;
 
-  out vec4 color;
+  out vec4 out_color;
 
   uniform sampler2D hTex;
   uniform sampler2D nTex;
@@ -98,6 +107,7 @@ namespace {
   uniform mat3 normalMatrix;
 
   const float Pi = 3.14159265358979323846264;
+
 
   // Computes the diffues shading by using the normal for
   // the fragment and direction from fragment to the light
@@ -110,41 +120,41 @@ namespace {
     idiff = clamp(idiff, 0.0, 1.0);
 
     // Specular contribution
-    vec3 E = normalize(-v);
+    vec3 E = normalize(-in_data.v);
     vec3 R = normalize(reflect(-L, N));
-    const float specExp = 32.0;
-    vec4 ispec = lightSpecular * pow(max(dot(R, E), 0.0), specExp);
+    const float SpecExp = 32.0;
+    vec4 ispec = lightSpecular * pow(max(dot(R, E), 0.0), SpecExp);
     ispec = clamp(ispec, 0.0, 1.0);
 
     return iamb + idiff + ispec;
   }
 
+
   void main() {
-    vec3 pixelVals = texture(nTex, uv).rgb;
+    vec3 pixelVals = texture(nTex, in_data.texCoords).rgb;
     vec3 normal = vec3(
       (pixelVals.r * 2.0 - 1.0),
-      (pixelVals.b * 2.0 - 1.0) / vScale,
+      (pixelVals.b * 2.0 - 1.0) / in_data.vScale,
       (pixelVals.g * 2.0 - 1.0)
     );
-    if (vScale < 0) {
+    if (in_data.vScale < 0) {
       normal = -normal;
     }
 
     // Set fragment color
     // This will result in a non-linear color temperature scale based on height value
-    float hVal = texture(hTex, uv).x;
-    color.rgb = vec3(1.0 - cos(Pi * hVal), sin(Pi * hVal), cos(Pi * hVal));
+    float hVal = texture(hTex, in_data.texCoords).x;
+    out_color.rgb = vec3(1.0 - cos(Pi * hVal), sin(Pi * hVal), cos(Pi * hVal));
 
     // multiply color with shading
-    color.rgb *= calcShading(normalize(normalMatrix * normal), lightDir).rgb;
-    color.a = 1.0;
+    out_color.rgb *= calcShading(normalize(normalMatrix * normal), in_data.lightDir).rgb;
+    out_color.a = 1.0;
   })";
 } // namespace
 
 using namespace sgct;
 
 /**
- *
  * Will draw a flat surface that can be used for the heightmapped terrain.
  *
  * \param width Width of the surface
@@ -208,44 +218,43 @@ void draw(const RenderData& data) {
         glm::vec3(0.f, 1.f, 0.f)
     );
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, heightTextureId);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalTextureId);
+    glBindTextureUnit(0, heightTextureId);
+    glBindTextureUnit(1, normalTextureId);
 
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
-    prog.bind();
 
     const glm::mat4 mvp =
         glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
-    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glProgramUniformMatrix4fv(prog.id(), mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     const glm::mat4 mv = glm::make_mat4(data.viewMatrix.values.data()) *
         glm::make_mat4(data.modelMatrix.values.data()) * scene;
-    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
+    glProgramUniformMatrix4fv(prog.id(), mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
     const glm::mat4 mvLight =
         glm::make_mat4(data.viewMatrix.values.data()) *
         glm::make_mat4(data.modelMatrix.values.data());
-    glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
+    glProgramUniformMatrix4fv(
+        prog.id(),
+        mvLightLoc,
+        1,
+        GL_FALSE,
+        glm::value_ptr(mvLight)
+    );
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
-    glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));
-    glUniform1f(currTimeLoc, static_cast<float>(currentTime));
+    glProgramUniformMatrix3fv(prog.id(), nmLoc, 1, GL_FALSE, glm::value_ptr(normal));
+    glProgramUniform1f(prog.id(), currTimeLoc, static_cast<float>(currentTime));
 
-    glBindVertexArray(vertexArray);
-
-    // Draw the triangles
+    prog.bind();
+    glBindVertexArray(vao);
     for (unsigned int i = 0; i < GridSize; i++) {
         glDrawArrays(GL_TRIANGLE_STRIP, i * GridSize * 2, GridSize * 2);
     }
-
     glBindVertexArray(0);
-
     prog.unbind();
 }
 
 void preSync() {
     if (Engine::instance().isMaster() && !mPause) {
-        currentTime += Engine::instance().statistics().avgDt();
+        currentTime += Engine::instance().statistics().dt();
     }
 }
 
@@ -277,8 +286,8 @@ void initOGL(GLFWwindow*) {
     mvLoc = glGetUniformLocation(prog.id(), "mv");
     mvLightLoc = glGetUniformLocation(prog.id(), "mvLight");
     nmLoc = glGetUniformLocation(prog.id(), "normalMatrix");
-    glUniform1i(glGetUniformLocation(prog.id(), "hTex"), 0);
-    glUniform1i(glGetUniformLocation(prog.id(), "nTex"), 1);
+    glProgramUniform1i(prog.id(), glGetUniformLocation(prog.id(), "hTex"), 0);
+    glProgramUniform1i(prog.id(), glGetUniformLocation(prog.id(), "nTex"), 1);
 
     // light data
     const glm::vec4 position(-2.f, 5.f, 5.f, 1.f);
@@ -286,46 +295,55 @@ void initOGL(GLFWwindow*) {
     const glm::vec4 diffuse(0.8f, 0.8f, 0.8f, 1.f);
     const glm::vec4 specular(1.f, 1.f, 1.f, 1.f);
 
-    glUniform4fv(
-        glGetUniformLocation(prog.id(), "lightPos"), 1, glm::value_ptr(position)
+    glProgramUniform4fv(
+        prog.id(),
+        glGetUniformLocation(prog.id(), "lightPos"),
+        1,
+        glm::value_ptr(position)
     );
-    glUniform4fv(
-        glGetUniformLocation(prog.id(), "lightAmbient"), 1, glm::value_ptr(ambient)
+    glProgramUniform4fv(
+        prog.id(),
+        glGetUniformLocation(prog.id(), "lightAmbient"),
+        1,
+        glm::value_ptr(ambient)
     );
-    glUniform4fv(
-        glGetUniformLocation(prog.id(), "lightDiffuse"), 1, glm::value_ptr(diffuse)
+    glProgramUniform4fv(
+        prog.id(),
+        glGetUniformLocation(prog.id(), "lightDiffuse"),
+        1,
+        glm::value_ptr(diffuse)
     );
-    glUniform4fv(
-        glGetUniformLocation(prog.id(), "lightSpecular"), 1, glm::value_ptr(specular)
+    glProgramUniform4fv(
+        prog.id(),
+        glGetUniformLocation(prog.id(), "lightSpecular"),
+        1,
+        glm::value_ptr(specular)
     );
     prog.unbind();
 
+
+
+
+    glCreateBuffers(1, &vbo);
+    glCreateVertexArrays(1, &vao);
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
+
+
+
     Geometry geometry = generateTerrainGrid(1.f, 1.f, GridSize, GridSize);
-
-    glGenVertexArrays(1, &vertexArray);
-    glBindVertexArray(vertexArray);
-
-    glGenBuffers(1, &vertexPositionBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
-    glBufferData(
-        GL_ARRAY_BUFFER,
+    glNamedBufferStorage(
+        vbo,
         sizeof(Vertex) * geometry.size(),
         geometry.data(),
-        GL_STATIC_DRAW
+        GL_NONE_BIT
     );
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(3 * sizeof(float))
-    );
+    glEnableVertexArrayAttrib(vao, 0);
+    glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
 
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(vao, 1);
+    glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(vao, 1, 0);
 }
 
 std::vector<std::byte> encode() {
@@ -390,8 +408,8 @@ void keyboard(Key key, Modifier, Action action, int, Window*) {
 }
 
 void cleanup() {
-    glDeleteBuffers(1, &vertexPositionBuffer);
-    glDeleteVertexArrays(1, &vertexArray);
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
 }
 
 int main(int argc, char** argv) {

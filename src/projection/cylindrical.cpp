@@ -24,9 +24,12 @@
 
 namespace {
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  in vec2 tr_uv;
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
   out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
@@ -35,23 +38,16 @@ namespace {
 
   const float PI = 3.141592654;
 
+
   void main() {
-    vec2 pixelNormalized = tr_uv;
+    vec2 pixelNormalized = in_data.texCoords;
     float angle = 2.0 * PI * pixelNormalized.x;
     vec2 direction = vec2(cos(-angle + rotation), sin(-angle + rotation));
 
-    vec3 sample = (vec3(direction, pixelNormalized.y + heightOffset));
-    out_diffuse = texture(cubemap, sample);
+    vec3 tex = vec3(direction, pixelNormalized.y + heightOffset);
+    out_diffuse = texture(cubemap, tex);
   }
 )";
-
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
 } // namespace
 
 namespace sgct {
@@ -88,28 +84,23 @@ void CylindricalProjection::render(const BaseViewport& viewport,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _shader.program.bind();
-
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // if for some reason the active texture has been reset
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
+    glBindTextureUnit(0, _textures.cubeMapColor);
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shader.cubemap, 0);
-    glUniform1f(_shader.rotation, glm::radians(_rotation));
-    glUniform1f(_shader.heightOffset, _heightOffset);
+    glProgramUniform1i(_shader.program.id(), _shader.cubemap, 0);
+    glProgramUniform1f(_shader.program.id(), _shader.rotation, glm::radians(_rotation));
+    glProgramUniform1f(_shader.program.id(), _shader.heightOffset, _heightOffset);
 
-
+    _shader.program.bind();
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-
     ShaderProgram::unbind();
 
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -131,34 +122,33 @@ void CylindricalProjection::renderCubemap(FrustumMode frustumMode) const {
 void CylindricalProjection::update(const vec2&) const {}
 
 void CylindricalProjection::initVBO() {
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    constexpr std::array<float, 20> v = {
-        -1.f, -1.f, -1.f, 0.f, 0.f,
-        -1.f,  1.f, -1.f, 0.f, 1.f,
-         1.f, -1.f, -1.f, 1.f, 0.f,
-         1.f,  1.f, -1.f, 1.f, 1.f
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
     };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glCreateBuffers(1, &_vbo);
+    constexpr std::array<Vertex, 4> v = {
+        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
+        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
+        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
+        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
+    };
+    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, s))
-    );
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
+
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 void CylindricalProjection::initViewports() {
@@ -288,14 +278,11 @@ void CylindricalProjection::initShaders() {
     _shader.program.addVertexShader(shaders_fisheye::BaseVert);
     _shader.program.addFragmentShader(FragmentShader);
     _shader.program.createAndLinkProgram();
-    _shader.program.bind();
 
     _shader.cubemap = glGetUniformLocation(_shader.program.id(), "cubemap");
-    glUniform1i(_shader.cubemap, 0);
+    glProgramUniform1i(_shader.program.id(), _shader.cubemap, 0);
     _shader.rotation = glGetUniformLocation(_shader.program.id(), "rotation");
     _shader.heightOffset = glGetUniformLocation(_shader.program.id(), "heightOffset");
-
-    ShaderProgram::unbind();
 }
 
 void CylindricalProjection::setRotation(float rotation) {

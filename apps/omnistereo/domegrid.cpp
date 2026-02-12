@@ -23,6 +23,13 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
         sgct::Log::Warning("Dome geometry resolution must be higher than 4");
     }
 
+    glCreateBuffers(1, &_vbo);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, 3 * sizeof(float));
+
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+
     // Create VAO
     const unsigned int numberOfVertices =
         (_segments * ((_resolution / 4) + 1) + _rings * _resolution) * 6;
@@ -61,19 +68,7 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
             pos += 3;
         }
     }
-
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    const size_t s = verts.size() * sizeof(float);
-    glBufferData(GL_ARRAY_BUFFER, s, verts.data(), GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glNamedBufferStorage(_vbo, verts.size() * sizeof(float), verts.data(), GL_NONE_BIT);
 }
 
 DomeGrid::~DomeGrid() {

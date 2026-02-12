@@ -42,29 +42,37 @@ namespace {
     double currentTime(0.0);
 
     constexpr std::string_view vertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec2 texCoords;
-  layout(location = 1) in vec3 normals;
-  layout(location = 2) in vec3 vertPositions;
+  layout(location = 0) in vec2 in_texCoords;
+  layout(location = 1) in vec3 in_normal;
+  layout(location = 2) in vec3 in_vertPosition;
+
+  out Data {
+    vec2 texCoords;
+  } out_data;
 
   uniform mat4 mvp;
-  out vec2 uv;
+
 
   void main() {
-    gl_Position =  mvp * vec4(vertPositions, 1.0);
-    uv = texCoords;
+    gl_Position =  mvp * vec4(in_vertPosition, 1.0);
+    out_data.texCoords = in_texCoords;
   })";
 
     constexpr std::string_view fragmentShader = R"(
-  #version 330 core
+  #version 460 core
+
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
+  out vec4 out_color;
 
   uniform sampler2D tex;
 
-  in vec2 uv;
-  out vec4 color;
 
-  void main() { color = texture(tex, uv); }
+  void main() { out_color = texture(tex, in_data.texCoords); }
 )";
 } // namespace
 
@@ -131,8 +139,7 @@ void uploadTexture() {
 
         // create texture
         GLuint tex;
-        glGenTextures(1, &tex);
-        glBindTexture(GL_TEXTURE_2D, tex);
+        glCreateTextures(GL_TEXTURE_2D, 1, &tex);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -162,23 +169,19 @@ void uploadTexture() {
 
         GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
+        glTextureParameteri(tex, GL_TEXTURE_BASE_LEVEL, 0);
+        glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, 0);
+
+        glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
         const GLsizei width = transImages[i]->size().x;
         const GLsizei height = transImages[i]->size().y;
         unsigned char* data = transImages[i]->data();
-        glTexStorage2D(GL_TEXTURE_2D, 1, internalformat, width, height);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, type, format, data);
-
-        // Disable mipmaps
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        // unbind
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glTextureStorage2D(tex, 1, internalformat, width, height);
+        glTextureSubImage2D(tex, 0, 0, 0, width, height, type, format, data);
 
         Log::Info(std::format(
             "Texture id %d loaded ({}x{}x{})",
@@ -191,8 +194,6 @@ void uploadTexture() {
     }
 
     transImages.clear();
-    glFinish();
-
     glfwMakeContextCurrent(nullptr);
 }
 
@@ -230,15 +231,13 @@ void draw(const RenderData& data) {
 
     const mat4& mvp = data.modelViewProjectionMatrix;
 
-    glActiveTexture(GL_TEXTURE0);
-
     if ((static_cast<int>(texIds.size()) > (texIndex + 1)) &&
         data.frustumMode == FrustumMode::StereoRight)
     {
-        glBindTexture(GL_TEXTURE_2D, texIds[texIndex + 1]);
+        glBindTextureUnit(0, texIds[texIndex + 1]);
     }
     else {
-        glBindTexture(GL_TEXTURE_2D, texIds[texIndex]);
+        glBindTextureUnit(0, texIds[texIndex]);
     }
 
     ShaderManager::instance().shaderProgram("xform").bind();
@@ -297,10 +296,8 @@ void initOGL(GLFWwindow* win) {
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
-    prog.bind();
     matrixLoc = glGetUniformLocation(prog.id(), "mvp");
-    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
-    prog.unbind();
+    glProgramUniform1i(prog.id(), glGetUniformLocation(prog.id(), "tex"), 0);
 }
 
 std::vector<std::byte> encode() {

@@ -20,18 +20,22 @@
 
 namespace {
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  in vec2 tr_uv;
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
   out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
 
   const float PI = 3.141592654;
 
+
   void main() {
-    float phi = PI * (1.0 - tr_uv.t);
-    float theta = 2.0 * PI * (tr_uv.s - 0.5);
+    float phi = PI * (1.0 - in_data.texCoords.t);
+    float theta = 2.0 * PI * (in_data.texCoords.s - 0.5);
     float x = sin(phi) * sin(theta);
     float y = sin(phi) * cos(theta);
     float z = cos(phi);
@@ -72,18 +76,16 @@ void EquirectangularProjection::render(const BaseViewport& viewport,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _shader.bind();
-
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // if for some reson the active texture has been reset
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
+    glBindTextureUnit(0, _textures.cubeMapColor);
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
+
+    _shader.bind();
 
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -118,34 +120,24 @@ void EquirectangularProjection::initVBO() {
         float t;
     };
 
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    constexpr std::array<float, 20> v = {
-        -1.f, -1.f, -1.f, 0.f, 0.f,
-        -1.f,  1.f, -1.f, 0.f, 1.f,
-         1.f, -1.f, -1.f, 1.f, 0.f,
-         1.f,  1.f, -1.f, 1.f, 1.f
+    glCreateBuffers(1, &_vbo);
+    constexpr std::array<Vertex, 4> v = {
+        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
+        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
+        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
+        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
     };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
+    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, s))
-    );
-
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 void EquirectangularProjection::initViewports() {
@@ -293,11 +285,7 @@ void EquirectangularProjection::initShaders() {
     _shader.addVertexShader(shaders_fisheye::BaseVert);
     _shader.addFragmentShader(FragmentShader);
     _shader.createAndLinkProgram();
-    _shader.bind();
-
-    glUniform1i(glGetUniformLocation(_shader.id(), "cubemap"), 0);
-
-    ShaderProgram::unbind();
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "cubemap"), 0);
 }
 
 } // namespace sgct

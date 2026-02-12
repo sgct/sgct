@@ -29,46 +29,52 @@ namespace {
     unsigned int textureId = 0;
 
     constexpr std::string_view VertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec2 texCoords;
-  layout(location = 1) in vec3 normals;
-  layout(location = 2) in vec3 vertPositions;
+  layout(location = 0) in vec2 in_texCoords;
+  layout(location = 1) in vec3 in_normal;
+  layout(location = 2) in vec3 in_position;
+
+  out Data {
+    vec2 texCoords;
+    vec3 n;
+    vec3 p;
+  } out_data;
 
   uniform mat4 mvpMatrix;
   uniform mat4 worldMatrixTranspose;
   uniform mat3 normalMatrix;
 
-  out vec2 uv;
-  out vec3 n;
-  out vec4 p;
 
   void main() {
     mat3 worldRotationInverse = mat3(worldMatrixTranspose);
 
-    gl_Position =  mvpMatrix * vec4(vertPositions, 1.0);
-    uv = texCoords;
-    n  = normalize(worldRotationInverse * normalMatrix * normals);
-    p  = gl_Position;
+    gl_Position = mvpMatrix * vec4(in_position, 1.0);
+    out_data.texCoords = in_texCoords;
+    out_data.n = normalize(worldRotationInverse * normalMatrix * in_normal);
+    out_data.p = gl_Position.xyz;
   })";
 
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  in vec2 uv;
-  in vec3 n;
-  in vec4 p;
+  in Data {
+    vec2 texCoords;
+    vec3 n;
+    vec3 p;
+  } in_data;
 
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
-  layout(location = 2) out vec3 position;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
+  layout(location = 2) out vec3 out_position;
 
   uniform sampler2D tDiffuse;
 
+
   void main() {
-    diffuse = texture(tDiffuse, uv);
-    normal = n;
-    position = p.xyz;
+    out_diffuse = texture(tDiffuse, in_data.texCoords);
+    out_normal = in_data.n;
+    out_position = in_data.p;
   }
 )";
 } // namespace
@@ -100,8 +106,7 @@ void draw(const RenderData& data) {
         glm::make_mat4(data.modelMatrix.values.data()) * scene;
     const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(mv));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBindTextureUnit(0, textureId);
 
     ShaderManager::instance().shaderProgram("MRT").bind();
     glUniformMatrix4fv(mvpMatrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -133,13 +138,11 @@ void postSyncPreDraw() {
 void initOGL(GLFWwindow*) {
     ShaderManager::instance().addShaderProgram("MRT", VertexShader, FragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("MRT");
-    prg.bind();
     textureLoc = glGetUniformLocation(prg.id(), "tDiffuse");
     worldMatrixTransposeLoc = glGetUniformLocation(prg.id(), "worldMatrixTranspose");
     mvpMatrixLoc = glGetUniformLocation(prg.id(), "mvpMatrix");
     normalMatrixLoc = glGetUniformLocation(prg.id(), "normalMatrix");
 
-    prg.bind();
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
 
     box = std::make_unique<Box>(2.f, Box::TextureMappingMode::Regular);

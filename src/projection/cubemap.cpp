@@ -30,9 +30,13 @@
 
 namespace {
     constexpr std::string_view FragmentShader = R"(
-  #version 330 core
+  #version 460 core
 
-  in vec2 tr_uv;
+  in Data {
+    vec2 texCoords;
+    vec4 color;
+  } in_data;
+
   out vec4 out_diffuse;
 
   uniform sampler2D right;
@@ -42,9 +46,10 @@ namespace {
   uniform sampler2D left;
   uniform sampler2D zRight;
 
+
   void main() {
-    float column = tr_uv.x * 3.0; // 3 columns
-    float row = tr_uv.y * 2.0;    // 2 rows
+    float column = in_data.texCoords.x * 3.0; // 3 columns
+    float row = in_data.texCoords.y * 2.0;    // 2 rows
     
     int col = int(floor(column));
     int rowId = int(floor(row));
@@ -52,22 +57,22 @@ namespace {
     vec2 localCoord = vec2(fract(column), fract(row));
     
     if (rowId == 0 && col == 0) {
-        out_diffuse = texture(zRight, localCoord);
+      out_diffuse = texture(zRight, localCoord);
     } 
     else if (rowId == 0 && col == 1) {
-        out_diffuse = texture(top, localCoord);
+      out_diffuse = texture(top, localCoord);
     } 
     else if (rowId == 0 && col == 2) {
-        out_diffuse = texture(left, localCoord);
+      out_diffuse = texture(left, localCoord);
     } 
     else if (rowId == 1 && col == 0) {
-        out_diffuse = texture(zLeft, localCoord);
+      out_diffuse = texture(zLeft, localCoord);
     } 
     else if (rowId == 1 && col == 1) {
-        out_diffuse = texture(bottom, localCoord);
-    } 
+      out_diffuse = texture(bottom, localCoord);
+    }
     else if (rowId == 1 && col == 2) {
-        out_diffuse = texture(right, localCoord);
+      out_diffuse = texture(right, localCoord);
     } 
   }
 )";
@@ -147,11 +152,8 @@ void CubemapProjection::render(const BaseViewport& viewport,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _shader.bind();
-
     for (int i = 0; i < 6; i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].enabled ? _cubeFaces[i].texture : 0);
+        glBindTextureUnit(i, _cubeFaces[i].enabled ? _cubeFaces[i].texture : 0);
     }
 
     glDisable(GL_CULL_FACE);
@@ -159,16 +161,14 @@ void CubemapProjection::render(const BaseViewport& viewport,
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
+    _shader.bind();
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-
     ShaderProgram::unbind();
 
     glDisable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-
-    ShaderProgram::unbind();
 
     for (int i = 0; i < 6; i++) {
         if (!_cubeFaces[i].enabled) {
@@ -196,12 +196,12 @@ void CubemapProjection::render(const BaseViewport& viewport,
 #ifdef SGCT_HAS_NDI
         if (_ndiEnabled) {
             // Download the texture data from the GPU
-            glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].texture);
-            glGetTexImage(
-                GL_TEXTURE_2D,
+            glGetTextureImage(
+                _cubeFaces[i].texture,
                 0,
                 GL_RGBA,
                 GL_UNSIGNED_BYTE,
+                _cubemapResolution.x * _cubemapResolution.y * 4,
                 _cubeFaces[i].ndi.currentVideoBuffer->data()
             );
 
@@ -237,10 +237,8 @@ void CubemapProjection::setSpoutRigOrientation(vec3 orientation) {
     _rigOrientation = std::move(orientation);
 }
 
-void CubemapProjection::initTextures(unsigned int internalFormat, unsigned int format,
-                                         unsigned int type)
-{
-    NonLinearProjection::initTextures(internalFormat, format, type);
+void CubemapProjection::initTextures(unsigned int internalFormat) {
+    NonLinearProjection::initTextures(internalFormat);
 
     Log::Debug("CubemapProjection initTextures");
 
@@ -250,26 +248,21 @@ void CubemapProjection::initTextures(unsigned int internalFormat, unsigned int f
             continue;
         }
 
-        glGenTextures(1, &_cubeFaces[i].texture);
-        glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].texture);
+        glCreateTextures(GL_TEXTURE_2D, 1, &_cubeFaces[i].texture);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_BASE_LEVEL, 0);
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureStorage2D(
+            _cubeFaces[i].texture,
+            1,
             internalFormat,
             _cubemapResolution.x,
-            _cubemapResolution.y,
-            0,
-            format,
-            type,
-            nullptr
+            _cubemapResolution.y
         );
 
 #ifdef SGCT_HAS_SPOUT
@@ -353,34 +346,25 @@ void CubemapProjection::initVBO() {
         float t;
     };
 
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    constexpr std::array<float, 20> v = {
-        -1.f, -1.f, -1.f, 0.f, 0.f,
-        -1.f,  1.f, -1.f, 0.f, 1.f,
-         1.f, -1.f, -1.f, 1.f, 0.f,
-         1.f,  1.f, -1.f, 1.f, 1.f
+    glCreateBuffers(1, &_vbo);
+    constexpr std::array<Vertex, 4> v = {
+        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
+        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
+        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
+        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
     };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
+    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, s))
-    );
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
 
-    glBindVertexArray(0);
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
+    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 void CubemapProjection::initViewports() {
@@ -530,16 +514,13 @@ void CubemapProjection::initShaders() {
     _shader.addVertexShader(shaders::BaseVert);
     _shader.addFragmentShader(FragmentShader);
     _shader.createAndLinkProgram();
-    _shader.bind();
 
-    glUniform1i(glGetUniformLocation(_shader.id(), "right"), 0);
-    glUniform1i(glGetUniformLocation(_shader.id(), "zLeft"), 1);
-    glUniform1i(glGetUniformLocation(_shader.id(), "bottom"), 2);
-    glUniform1i(glGetUniformLocation(_shader.id(), "top"), 3);
-    glUniform1i(glGetUniformLocation(_shader.id(), "left"), 4);
-    glUniform1i(glGetUniformLocation(_shader.id(), "zRight"), 5);
-
-    ShaderProgram::unbind();
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "right"), 0);
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "zLeft"), 1);
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "bottom"), 2);
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "top"), 3);
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "left"), 4);
+    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "zRight"), 5);
 }
 
 void CubemapProjection::initFBO(unsigned int internalFormat, int nSamples) {
@@ -547,7 +528,7 @@ void CubemapProjection::initFBO(unsigned int internalFormat, int nSamples) {
 
     _spoutFBO = std::make_unique<OffScreenBuffer>(internalFormat);
     _spoutFBO->createFBO(_cubemapResolution.x, _cubemapResolution.y, 1);
-    glGenFramebuffers(1, &_blitFbo);
+    glCreateFramebuffers(1, &_blitFbo);
 }
 
 void CubemapProjection::renderCubemap(FrustumMode frustumMode) const {

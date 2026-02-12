@@ -824,8 +824,6 @@ void Window::initialize() {
             viewportSize,
             _stereoMode != StereoMode::NoStereo,
             _internalColorFormat,
-            GL_BGRA,
-            _colorDataType,
             _nAASamples
         );
     }
@@ -1040,32 +1038,29 @@ void Window::renderFBOTexture() {
     if (_stereoMode > Window::StereoMode::Active &&
         _stereoMode < Window::StereoMode::SideBySide)
     {
+        glBindTextureUnit(0, _frameBufferTextures.leftEye);
+        glBindTextureUnit(1, _frameBufferTextures.rightEye);
+
         _stereo.bind();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
-
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
     }
     else {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
+        glBindTextureUnit(0, _frameBufferTextures.leftEye);
 
-        _fboQuad.bind();
         maskShaderSet = true;
 
-        glUniform1i(
+        glProgramUniform1i(
+            _fboQuad.id(),
             glGetUniformLocation(_fboQuad.id(), "flipX"),
             _mirrorX ? 1 : 0
         );
-        glUniform1i(
+        glProgramUniform1i(
+            _fboQuad.id(),
             glGetUniformLocation(_fboQuad.id(), "flipY"),
             _mirrorY ? 1 : 0
         );
 
+        _fboQuad.bind();
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
 
         // render right eye in active stereo mode
@@ -1079,7 +1074,7 @@ void Window::renderFBOTexture() {
                 FrustumMode::StereoRight
             );
 
-            glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.rightEye);
+            glBindTextureUnit(0, _frameBufferTextures.rightEye);
             std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
         }
     }
@@ -1481,44 +1476,31 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     TracyGpuZone("Generate Textures");
 
     glDeleteTextures(1, &id);
-    glGenTextures(1, &id);
-    glBindTexture(GL_TEXTURE_2D, id);
+    glCreateTextures(GL_TEXTURE_2D, 1, &id);
+
+    glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     // Determine the internal texture format, the texture format, and the pixel type
-    const std::tuple<GLenum, GLenum, GLenum> formats =
-        [this](Window::TextureType t) -> std::tuple<GLenum, GLenum, GLenum>
-    {
+    const GLenum formats = [this](Window::TextureType t) -> GLenum {
         switch (t) {
             case TextureType::Color:
-                return { _internalColorFormat, GL_BGRA, _colorDataType };
+                return _internalColorFormat;
             case TextureType::Depth:
-                return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
+                return GL_DEPTH_COMPONENT32;
             case TextureType::Normal:
             case TextureType::Position:
-                return { GL_RGB32F, GL_RGB, GL_FLOAT };
+                return GL_RGB32F;
             default:
                 throw std::logic_error("Unhandled case label");
         }
     }(type);
 
     const ivec2 res = _framebufferRes;
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        std::get<0>(formats),
-        res.x,
-        res.y,
-        0,
-        std::get<1>(formats),
-        std::get<2>(formats),
-        nullptr
-    );
+    glTextureStorage2D(id, 1, formats, res.x, res.y);
     Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 }
 
 void Window::resizeFBOs() {
@@ -1733,14 +1715,20 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
             glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            glActiveTexture(GL_TEXTURE0);
+            glBindTextureUnit(0, _frameBufferTextures.intermediate);
 
-            glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.intermediate);
+            glProgramUniform1f(
+                _fxaa->shader.id(),
+                _fxaa->sizeX,
+                static_cast<float>(framebufferSize.x)
+            );
+            glProgramUniform1f(
+                _fxaa->shader.id(),
+                _fxaa->sizeY,
+                static_cast<float>(framebufferSize.y)
+            );
 
             _fxaa->shader.bind();
-            glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
-            glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
-
             renderScreenQuad();
             ShaderProgram::unbind();
         }
@@ -1767,8 +1755,7 @@ void Window::render2D(FrustumMode frustum) const {
 
         // if viewport has overlay
         if (vp->hasOverlayTexture()) {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
+            glBindTextureUnit(0, vp->overlayTextureIndex());
             _overlay.bind();
             renderScreenQuad();
         }
@@ -1810,9 +1797,7 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    _overlay.bind();
 
-    glActiveTexture(GL_TEXTURE0);
     const unsigned int tex = [&prevWindow](FrustumMode v) {
         switch (v) {
             case FrustumMode::Mono:
@@ -1825,8 +1810,9 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
                 throw std::logic_error("Missing case label");
         }
     }(mode);
-    glBindTexture(GL_TEXTURE_2D, tex);
+    glBindTextureUnit(0, tex);
 
+    _overlay.bind();
     renderScreenQuad();
     ShaderProgram::unbind();
 }
@@ -1835,45 +1821,43 @@ void Window::createVBOs() {
     ZoneScoped;
     TracyGpuZone("Create VBOs");
 
-    constexpr std::array<const float, 36> QuadVerts = {
-    //     x     y     z      u    v      r    g    b    a
-        -1.f, -1.f, -1.f,   0.f, 0.f,   1.f, 1.f, 1.f, 1.f,
-         1.f, -1.f, -1.f,   1.f, 0.f,   1.f, 1.f, 1.f, 1.f,
-        -1.f,  1.f, -1.f,   0.f, 1.f,   1.f, 1.f, 1.f, 1.f,
-         1.f,  1.f, -1.f,   1.f, 1.f,   1.f, 1.f, 1.f, 1.f
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+
+        float u;
+        float v;
+
+        float r;
+        float g;
+        float b;
+        float a;
     };
 
-    glGenVertexArrays(1, &_vao);
-    glGenBuffers(1, &_vbo);
+    glCreateBuffers(1, &_vbo);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
 
-    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), nullptr);
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, u));
+    glVertexArrayAttribBinding(_vao, 1, 0);
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        9 * sizeof(float),
-        reinterpret_cast<void*>(3 * sizeof(float))
-    );
+    glEnableVertexArrayAttrib(_vao, 2);
+    glVertexArrayAttribFormat(_vao, 2, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, r));
+    glVertexArrayAttribBinding(_vao, 2, 0);
 
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(
-        2,
-        4,
-        GL_FLOAT,
-        GL_FALSE,
-        9 * sizeof(float),
-        reinterpret_cast<void*>(5 * sizeof(float))
-    );
-
-    glBindVertexArray(0);
+    constexpr std::array<Vertex, 4> QuadVerts = {
+        Vertex{ -1.f, -1.f, -1.f,   0.f, 0.f,   1.f, 1.f, 1.f, 1.f },
+        Vertex{  1.f, -1.f, -1.f,   1.f, 0.f,   1.f, 1.f, 1.f, 1.f },
+        Vertex{ -1.f,  1.f, -1.f,   0.f, 1.f,   1.f, 1.f, 1.f, 1.f },
+        Vertex{  1.f,  1.f, -1.f,   1.f, 1.f,   1.f, 1.f, 1.f, 1.f }
+    };
+    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), QuadVerts.data(), GL_NONE_BIT);
 }
 
 void Window::loadShaders() {
@@ -1886,8 +1870,7 @@ void Window::loadShaders() {
         _fboQuad.addVertexShader(shaders::BaseVert);
         _fboQuad.addFragmentShader(shaders::BaseFrag);
         _fboQuad.createAndLinkProgram();
-        _fboQuad.bind();
-        glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
+        glProgramUniform1i(_fboQuad.id(), glGetUniformLocation(_fboQuad.id(), "tex"), 0);
     }
 
     {
@@ -1896,8 +1879,7 @@ void Window::loadShaders() {
         _overlay.addVertexShader(shaders::BaseVert);
         _overlay.addFragmentShader(shaders::OverlayFrag);
         _overlay.createAndLinkProgram();
-        _overlay.bind();
-        glUniform1i(glGetUniformLocation(_overlay.id(), "tex"), 0);
+        glProgramUniform1i(_overlay.id(), glGetUniformLocation(_overlay.id(), "tex"), 0);
     }
 
     if (_useFXAA) {
@@ -1913,14 +1895,14 @@ void Window::loadShaders() {
         const int id = _fxaa->shader.id();
         _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
         const ivec2 framebufferSize = framebufferResolution();
-        glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
+        glProgramUniform1f(id, _fxaa->sizeX, static_cast<float>(framebufferSize.x));
 
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
-        glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
+        glProgramUniform1f(id, _fxaa->sizeY, static_cast<float>(framebufferSize.y));
 
-        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_TRIM"), 1.f / 4.f);
-        glUniform1f(glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET"), 1.f / 2.f);
-        glUniform1i(glGetUniformLocation(id, "tex"), 0);
+        glProgramUniform1f(id, glGetUniformLocation(id, "FxaaSubPixTrim"), 1.f / 4.f);
+        glProgramUniform1f(id, glGetUniformLocation(id, "FxaaSubpixOffset"), 1.f / 2.f);
+        glProgramUniform1i(id, glGetUniformLocation(id, "tex"), 0);
     }
 
 
@@ -1950,9 +1932,9 @@ void Window::loadShaders() {
         _stereo.addVertexShader(stereoVertShader);
         _stereo.addFragmentShader(stereoFragShader);
         _stereo.createAndLinkProgram();
-        _stereo.bind();
-        glUniform1i(glGetUniformLocation(_stereo.id(), "leftTex"), 0);
-        glUniform1i(glGetUniformLocation(_stereo.id(), "rightTex"), 1);
+        unsigned int id = _stereo.id();
+        glProgramUniform1i(id, glGetUniformLocation(id, "leftTex"), 0);
+        glProgramUniform1i(id, glGetUniformLocation(id, "rightTex"), 1);
     }
 
     ShaderProgram::unbind();

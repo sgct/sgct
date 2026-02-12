@@ -45,29 +45,37 @@ namespace {
     double currentTime(0.0);
 
     constexpr std::string_view vertexShader = R"(
-  #version 330 core
+  #version 460 core
 
-  layout(location = 0) in vec2 texCoords;
-  layout(location = 1) in vec3 normals;
-  layout(location = 2) in vec3 vertPositions;
+  layout(location = 0) in vec2 in_texCoords;
+  layout(location = 1) in vec3 in_normal;
+  layout(location = 2) in vec3 in_position;
+
+  out Data {
+    vec2 texCoords;
+  } out_data;
 
   uniform mat4 mvp;
-  out vec2 uv;
+
 
   void main() {
-    gl_Position =  mvp * vec4(vertPositions, 1.0);
-    uv = texCoords;
+    gl_Position = mvp * vec4(in_position, 1.0);
+    out_data.texCoords = in_texCoords;
   })";
 
     constexpr std::string_view fragmentShader = R"(
-  #version 330 core
+  #version 460 core
+
+  in Data {
+    vec2 texCoords;
+  } in_data;
+
+  out vec4 out_color;
 
   uniform sampler2D tex;
 
-  in vec2 uv;
-  out vec4 color;
 
-  void main() { color = texture(tex, uv); }
+  void main() { out_color = texture(tex, in_data.texCoords); }
 )";
 } // namespace
 
@@ -131,8 +139,7 @@ void uploadTexture() {
 
     // create texture
     GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
+    glCreateTextures(GL_TEXTURE_2D, 1, &tex);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -164,15 +171,24 @@ void uploadTexture() {
     int mipMapLevels = 8;
     GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-    glTexStorage2D(
-        GL_TEXTURE_2D,
+    glTextureParameteri(tex, GL_TEXTURE_BASE_LEVEL, 0);
+    glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, mipMapLevels - 1);
+
+    glGenerateTextureMipmap(tex);
+    glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(
+        tex,
         mipMapLevels,
         internalformat,
         transImg->size().x,
         transImg->size().y
     );
-    glTexSubImage2D(
-        GL_TEXTURE_2D,
+    glTextureSubImage2D(
+        tex,
         0,
         0,
         0,
@@ -183,17 +199,6 @@ void uploadTexture() {
         transImg->data()
     );
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels - 1);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     Log::Info(std::format(
         "Texture id {} loaded ({}x{}x{})",
         tex, transImg->size().x, transImg->size().y, transImg->channels()
@@ -202,7 +207,6 @@ void uploadTexture() {
     texIds.push_back(tex);
     transImg = nullptr;
 
-    glFinish();
     glfwMakeContextCurrent(nullptr);
 }
 
@@ -249,13 +253,11 @@ void draw(const RenderData& data) {
     const glm::mat4 mvp =
         glm::make_mat4x4(data.modelViewProjectionMatrix.values.data()) * scene;
 
-    glActiveTexture(GL_TEXTURE0);
-
     if (texIndex != -1) {
-        glBindTexture(GL_TEXTURE_2D, texIds[texIndex]);
+        glBindTextureUnit(0, texIds[texIndex]);
     }
     else {
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        glBindTextureUnit(0, textureId);
     }
 
     ShaderManager::instance().shaderProgram("xform").bind();

@@ -533,19 +533,6 @@ private:
     void initialize();
 
     /**
-     * Creates and initializes all of the windows that are specified for the current Node.
-     * This function will call the Callbacks::preWindow callback for each window created
-     * before the OpenGL context has been created and initialized.
-     *
-     * \param majorVersion The major version for OpenGL that is requested
-     * \param minorVersion The minor version for OpenGL that is requested
-     *
-     * \pre \p majorVersion must be bigger than 0
-     * \pre \p minorVersion must be bigger than 0
-     */
-    void initWindows(int majorVersion, int minorVersion);
-
-    /**
      * Locks the rendering thread for synchronization. Locks the clients until data is
      * successfully received.
      */

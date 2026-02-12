@@ -9,11 +9,6 @@
 #ifndef __SGCT__OPENGL_H__
 #define __SGCT__OPENGL_H__
 
-#ifdef __APPLE__
-#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
-#undef __gl_h_
-#endif // __APPLE__
-
 // Workaround for APIENTRY macro redefinition
 // Problem: glad.h will define APIENTRY if it is not defined. But if windows.h is included
 // after glad.h it will also unconditionally set APIENTRY and we get a macro redefinition

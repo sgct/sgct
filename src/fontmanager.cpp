@@ -128,10 +128,7 @@ FontManager::FontManager() {
         SystemFontPath = std::string(wSystemFontPath.begin(), wSystemFontPath.end());
     }
 #endif // UNICODE
-#elif defined(__APPLE__)
-    // System Fonts
-    SystemFontPath = "/System/Library/Fonts/";
-#else // !WIN32 && !__APPLE__
+#else // !WIN32
     SystemFontPath = "/usr/share/fonts/truetype/freefont/";
 #endif // WIN32
 }

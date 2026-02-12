@@ -280,10 +280,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     {
         ZoneScopedN("GLFW initialization");
 
-#ifdef __APPLE__
-        glfwInitHint(GLFW_COCOA_MENUBAR, GLFW_FALSE);
-#endif // __APPLE__
-
         glfwSetErrorCallback(
             [](int error, const char* desc) {
                 throw Err(3010, std::format("GLFW error ({}): {}", error, desc));
@@ -553,9 +549,7 @@ void Engine::initialize() {
 #ifdef SGCT_HAS_TEXT
 #ifdef WIN32
     constexpr std::string_view FontName = "verdanab.ttf";
-#elif defined(__APPLE__)
-    constexpr std::string_view FontName = "HelveticaNeue.ttc";
-#else // !WIN32 && !__APPLE__
+#else // !WIN32
     constexpr std::string_view FontName = "FreeSansBold.ttf";
 #endif // WIN32
     text::FontManager::instance().addFont("SGCTFont", std::string(FontName));
@@ -572,7 +566,11 @@ void Engine::initialize() {
     Window::setBarrier(true);
     Window::resetSwapGroupFrameNumber();
 
-    std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::initializeContextSpecific));
+    std::for_each(
+        wins.cbegin(),
+        wins.cend(),
+        std::mem_fn(&Window::initializeContextSpecific)
+    );
 
 #ifdef SGCT_HAS_VRPN
     // start sampling tracking data

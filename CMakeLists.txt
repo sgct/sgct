@@ -24,14 +24,6 @@ list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_BINARY_DIR}/pkg
 )
 
-if (APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3")
-  if (NOT CMAKE_OSX_ARCHITECTURES)
-    set(CMAKE_OSX_ARCHITECTURES "x86_64")
-  endif ()
-  mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
-endif ()
-
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 
 option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)

@@ -8,12 +8,7 @@
 
 #include "sgct.h"
 
-#ifdef __APPLE__
-#include <OpenAL/al.h>
-// #include <ALUT/alut.h>
-#else
 #include <AL/al.h>
-#endif
 #include <AL/alut.h>
 
 sgct::Engine* gEngine;

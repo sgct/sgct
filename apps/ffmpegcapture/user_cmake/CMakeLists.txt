@@ -32,13 +32,6 @@ if (MSVC)
 	option(USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
 endif ()
 
-if (APPLE)
-	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
-	if (CMAKE_GENERATOR STREQUAL Xcode)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
-	endif ()
-endif ()
-	
 if (NOT DEFINED SGCT_RELEASE_LIBRARY)
 	if (SGCT_CPP11)	
 		find_library(SGCT_RELEASE_LIBRARY
@@ -106,19 +99,6 @@ elseif (WIN32) #MINGW or similar
 		ws2_32
 		${FFMPEG_LIBS}
 	)
-elseif (APPLE)
-	find_library(COCOA_LIBRARY Cocoa REQUIRED)
-	find_library(IOKIT_LIBRARY IOKit REQUIRED)
-	find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
-
-	set(LIBS
-		${SGCT_LIBS}
-		${OPENGL_gl_LIBRARY}
-		${COCOA_LIBRARY}
-		${IOKIT_LIBRARY}
-		${COREVIDEO_LIBRARY}
-		${FFMPEG_LIBS}
-	)
 else () #linux
 	find_package(X11 REQUIRED)
 	find_package(Threads REQUIRED)
@@ -180,17 +160,6 @@ if (WIN32)
 	add_definitions(-D__WIN32__)
 	if (MINGW)
 		set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-	endif ()
-elseif (APPLE)
-	add_definitions(-D__APPLE__)
-	if (SGCT_CPP11)
-		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
-		set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++11")
-		set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libc++")
-	else ()
-		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
-		set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-		set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libstdc++")
 	endif ()
 else ()
 	add_definitions(-D__LINUX__)

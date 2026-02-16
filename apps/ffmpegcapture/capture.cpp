@@ -50,9 +50,6 @@ bool Capture::initialize() {
 #ifdef WIN32
     AVInputFormat* iformat = av_find_input_format("dshow");
     const std::string inputName = "video=" + _videoDevice;
-#elif defined __APPLE__
-    AVInputFormat* iformat = av_find_input_format("avfoundation");
-    const std::string inputName = _videoDevice;
 #else  //linux NOT-Tested
     AVInputFormat* iformat = av_find_input_format("video4linux2");
     const std::string inputName = _videoDevice;

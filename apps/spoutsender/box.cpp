@@ -10,22 +10,38 @@
 
 #include <sgct/opengl.h>
 #include <array>
+#include <cstdint>
 
 Box::Box(float size, TextureMappingMode mode) {
-    struct VertexData {
-        float s = 0.f;
-        float t = 0.f;
-        float nx = 0.f;
-        float ny = 0.f;
-        float nz = 0.f;
-        float x = 0.f;
-        float y = 0.f;
-        float z = 0.f;
+    struct Vertex {
+        float s;
+        float t;
+        float nx;
+        float ny;
+        float nz;
+        float x;
+        float y;
+        float z;
     };
 
+    glCreateBuffers(1, &_vbo);
+    glCreateVertexArrays(1, &_vao);
+    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
+
+    glEnableVertexArrayAttrib(_vao, 0);
+    glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(_vao, 0, 0);
+
+    glEnableVertexArrayAttrib(_vao, 1);
+    glVertexArrayAttribFormat(_vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, nx));
+    glVertexArrayAttribBinding(_vao, 1, 0);
+
+    glEnableVertexArrayAttrib(_vao, 2);
+    glVertexArrayAttribFormat(_vao, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, x));
+    glVertexArrayAttribBinding(_vao, 2, 0);
 
     const float halfSize = size / 2.f;
-    std::array<VertexData, 36> v;
+    std::array<Vertex, 36> v;
 
     if (mode == TextureMappingMode::Regular) {
         // A (front/+z)
@@ -174,23 +190,7 @@ Box::Box(float size, TextureMappingMode mode) {
         v[34] = { 0.499f, 0.333333f, 0.f, -1.f, 0.f,  halfSize, -halfSize, -halfSize };
         v[35] = { 0.499f, 0.f, 0.f, -1.f, 0.f,  halfSize, -halfSize,  halfSize };
     }
-    glNamedBufferStorage(_vbo, v.size() * sizeof(VertexData), v.data(), GL_NONE_BIT);
-
-    glCreateBuffers(1, &_vbo);
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(VertexData));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, nx));
-    glVertexArrayAttribBinding(_vao, 1, 0);
-
-    glEnableVertexArrayAttrib(_vao, 2);
-    glVertexArrayAttribFormat(_vao, 2, 3, GL_FLOAT, GL_FALSE, offsetof(VertexData, x));
-    glVertexArrayAttribBinding(_vao, 2, 0);
+    glNamedBufferStorage(_vbo, v.size() * sizeof(Vertex), v.data(), GL_NONE_BIT);
 }
 
 Box::~Box() {

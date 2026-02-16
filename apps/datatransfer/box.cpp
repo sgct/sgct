@@ -12,7 +12,7 @@
 #include <array>
 #include <cstddef>
 
-Box::Box(float size, TextureMappingMode mode) {
+namespace {
     struct Vertex {
         float s;
         float t;
@@ -23,7 +23,9 @@ Box::Box(float size, TextureMappingMode mode) {
         float y;
         float z;
     };
+} // namespace
 
+Box::Box(float size, TextureMappingMode mode) {
     glCreateBuffers(1, &_vbo);
     glCreateVertexArrays(1, &_vao);
     glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));

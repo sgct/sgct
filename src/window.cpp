@@ -276,10 +276,12 @@ unsigned int Window::swapGroupFrameNumber() {
     return frameNumber;
 }
 
-config::Window createScalableConfiguration([[maybe_unused]]
-                                           const config::Window::Scalable& scalable)
+config::Window createScalableConfiguration(
+                                [[maybe_unused]] const config::Window::Scalable& scalable,
+                                                             const config::Window& window)
 {
-    config::Window res;
+    // Take the values from the already provided window configuration
+    config::Window res = window;
 
 #ifdef SGCT_HAS_SCALABLE
     EasyBlendSDK_Mesh mesh;
@@ -300,10 +302,11 @@ config::Window createScalableConfiguration([[maybe_unused]]
         );
     }
 
-    res.isDecorated = false;
-    res.draw2D = false;
-    res.pos = ivec2 { 0, 0 };
-    res.size = ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
+    res.isDecorated = res.isDecorated.value_or(false);
+    res.draw2D = res.draw2D.value_or(false);
+
+    res.pos = res.pos.value_or(ivec2{ 0, 0 });
+    res.size =  ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
     res.scalable = scalable;
 
     if (mesh.Projection == EasyBlendSDK_PROJECTION_Perspective) {

@@ -1635,9 +1635,6 @@ static void from_json(const nlohmann::json& j, Window& w) {
         w.scalable->mesh = std::filesystem::current_path() / *mesh;
         parseValue(j, "scalablemesh_ortho_quality", w.scalable->orthographicQuality);
         parseValue(j, "scalablemesh_ortho_res", w.scalable->orthographicResolution);
-
-        // If we have a scalable mesh, we don't want to parse the rest of the values
-        return;
     }
 
 

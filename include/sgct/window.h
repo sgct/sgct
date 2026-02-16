@@ -455,7 +455,8 @@ private:
     } _scalableMesh;
 };
 
-config::Window createScalableConfiguration(const config::Window::Scalable& scalable);
+config::Window createScalableConfiguration(const config::Window::Scalable& scalable,
+    const config::Window& window);
 
 } // namespace sgct
 

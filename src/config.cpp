@@ -568,9 +568,7 @@ namespace {
     std::string stringifyJsonFile(const std::filesystem::path& filename) {
         std::ifstream myfile = std::ifstream(filename);
         if (myfile.fail()) {
-            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-            // formatting std::filesystem::path
-            throw Err(6082, std::format("Failed to open '{}'", filename.string()));
+            throw Err(6082, std::format("Failed to open '{}'", filename));
         }
         std::stringstream buffer;
         buffer << myfile.rdbuf();
@@ -2022,12 +2020,7 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
 
     std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
-        throw Err(
-            6081,
-            std::format("Could not find configuration file: {}", name.string())
-        );
+        throw Err(6081, std::format("Could not find configuration file: {}", name));
     }
 
     // First save the old current working directory, set the new one
@@ -2132,11 +2125,7 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
     const json_validator validator = json_validator(
         schemaInput,
         [&schemaDir](const json_uri& id, json& value) {
-            // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-            // formatting std::filesystem::path
-            std::string loadPath = std::format(
-                "{}/{}", schemaDir.string(), id.to_string()
-            );
+            std::string loadPath = std::format("{}/{}", schemaDir, id.to_string());
             const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);

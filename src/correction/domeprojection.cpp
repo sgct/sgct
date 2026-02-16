@@ -26,17 +26,13 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
 {
     ZoneScoped;
 
-    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-    // formatting std::filesystem::path
-    Log::Info(std::format("Reading DomeProjection mesh data from '{}'", path.string()));
+    Log::Info(std::format("Reading DomeProjection mesh data from '{}'", path));
 
     std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
         throw Error(
             Error::Component::DomeProjection, 2010,
-            std::format("Failed to open '{}'", path.string())
+            std::format("Failed to open '{}'", path)
         );
     }
 

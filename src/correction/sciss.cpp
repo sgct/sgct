@@ -61,12 +61,12 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
 
     Buffer buf;
 
-    Log::Info(std::format("Reading SCISS mesh data from '{}'", path.string()));
+    Log::Info(std::format("Reading SCISS mesh data from '{}'", path));
 
     
     std::ifstream file = std::ifstream(path, std::ifstream::binary);
     if (!file.good()) {
-        throw Err(2070, std::format("Failed to open '{}'", path.string()));
+        throw Err(2070, std::format("Failed to open '{}'", path));
     }
 
     char fileID[3];
@@ -74,14 +74,14 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
 
     // check fileID
     if (!file.good() || fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C') {
-        throw Err(2071, std::format("Incorrect file id in file '{}'", path.string()));
+        throw Err(2071, std::format("Incorrect file id in file '{}'", path));
     }
 
     // read file version
     uint8_t fileVersion = 0;
     file.read(reinterpret_cast<char*>(&fileVersion), sizeof(uint8_t));
     if (!file.good()) {
-        throw Err(2072, std::format("Error parsing file version from file '{}'", path.string()));
+        throw Err(2072, std::format("Error parsing file version from file '{}'", path));
     }
 
     Log::Debug(std::format("SCISS file version '{}'", fileVersion));
@@ -90,7 +90,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     unsigned int type = 0;
     file.read(reinterpret_cast<char*>(&type), sizeof(unsigned int));
     if (!file.good()) {
-        throw Err(2073, std::format("Error parsing type from file '{}'", path.string()));
+        throw Err(2073, std::format("Error parsing type from file '{}'", path));
     }
 
     Log::Debug(std::format(
@@ -101,7 +101,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     SCISSViewData viewData;
     file.read(reinterpret_cast<char*>(&viewData), sizeof(SCISSViewData));
     if (!file.good()) {
-        throw Err(2074, std::format("Error parsing view data from file '{}'", path.string()));
+        throw Err(2074, std::format("Error parsing view data from file '{}'", path));
     }
 
     const double x = static_cast<double>(viewData.qx);
@@ -132,7 +132,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     unsigned int size[2];
     file.read(reinterpret_cast<char*>(size), 2 * sizeof(unsigned int));
     if (!file.good()) {
-        throw Err(2075, std::format("Error parsing file '{}'", path.string()));
+        throw Err(2075, std::format("Error parsing file '{}'", path));
     }
 
     unsigned int nVertices = 0;
@@ -155,7 +155,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     if (!file.good()) {
         throw Err(
             2076,
-            std::format("Error parsing vertices from file '{}'", path.string())
+            std::format("Error parsing vertices from file '{}'", path)
         );
     }
 
@@ -163,7 +163,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     unsigned int nIndices = 0;
     file.read(reinterpret_cast<char*>(&nIndices), sizeof(unsigned int));
     if (!file.good()) {
-        throw Err(2077, std::format("Error parsing indices from file '{}'", path.string()));
+        throw Err(2077, std::format("Error parsing indices from file '{}'", path));
     }
     Log::Debug(std::format("Number of indices: {}", nIndices));
 
@@ -177,7 +177,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         if (!file.good()) {
             throw Err(
                 2078,
-                std::format("Error parsing faces from file '{}'", path.string())
+                std::format("Error parsing faces from file '{}'", path)
             );
         }
     }

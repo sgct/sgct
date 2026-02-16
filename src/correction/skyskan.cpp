@@ -34,15 +34,11 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
 
     Buffer buf;
 
-    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-    // formatting std::filesystem::path
-    Log::Info(std::format("Reading SkySkan mesh data from '{}'", path.string()));
+    Log::Info(std::format("Reading SkySkan mesh data from '{}'", path));
 
     std::ifstream meshFile = std::ifstream(path);
     if (!meshFile.good()) {
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
-        throw Err(2090, std::format("Failed to open file '{}'", path.string()));
+        throw Err(2090, std::format("Failed to open file '{}'", path));
     }
 
     std::optional<float> azimuth;
@@ -128,9 +124,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
         !hFov.has_value() || *hFov <= 0.f)
     {
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
-        throw Err(2091, std::format("Data reading error in file '{}'", path.string()));
+        throw Err(2091, std::format("Data reading error in file '{}'", path));
     }
 
     // create frustums and projection matrices

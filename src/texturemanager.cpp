@@ -123,9 +123,7 @@ unsigned int TextureManager::loadTexture(const std::filesystem::path& filename,
         anisotropicFilterSize,
         mipmapLevels
     );
-    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-    // formatting std::filesystem::path
-    Log::Debug(std::format("Texture created from '{}' [id={}]", filename.string(), t));
+    Log::Debug(std::format("Texture created from '{}' [id={}]", filename, t));
     return t;
 }
 

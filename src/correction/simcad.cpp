@@ -50,43 +50,30 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
 
     Buffer buf;
 
-    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-    // formatting std::filesystem::path
-    Log::Info(std::format("Reading simcad warp data from '{}'", path.string()));
+    Log::Info(std::format("Reading simcad warp data from '{}'", path));
 
     tinyxml2::XMLDocument xmlDoc;
     const std::string p = path.string();
     if (xmlDoc.LoadFile(p.c_str()) != tinyxml2::XML_SUCCESS) {
         std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
         std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
-        throw Err(
-            2080,
-            std::format("Error loading file {}. {} {}", path.string(), s1, s2)
-        );
+        throw Err(2080, std::format("Error loading file {}. {} {}", path, s1, s2));
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
         throw Err(
             2081,
-            std::format("Error reading file '{}'. Missing 'GeometryFile'", path.string())
+            std::format("Error reading file '{}'. Missing 'GeometryFile'", path)
         );
     }
 
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement("GeometryDefinition");
     if (element == nullptr) {
-        // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-        // formatting std::filesystem::path
         throw Err(
             2082,
-            std::format(
-                "Error reading file '{}'. Missing 'GeometryDefinition'", path.string()
-            )
+            std::format("Error reading file '{}'. Missing 'GeometryDefinition'", path)
         );
     }
 

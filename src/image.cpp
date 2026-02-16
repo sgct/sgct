@@ -215,11 +215,7 @@ void Image::save(const std::filesystem::path& filename) {
     fclose(fp);
 
     const double t = (time() - t0) * 1000.0;
-    // @TODO: Remove `.string()` as soon as Clang on MacOS supports
-    // formatting std::filesystem::path
-    Log::Debug(std::format(
-        "'{}' was saved successfully ({:.2f} ms)", filename.string(), t
-    ));
+    Log::Debug(std::format("'{}' was saved successfully ({:.2f} ms)", filename, t));
 }
 
 unsigned char* Image::data() {

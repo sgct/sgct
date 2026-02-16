@@ -10,9 +10,9 @@
 
 #include <sgct/opengl.h>
 #include <array>
-#include <cstdint>
+#include <cstddef>
 
-namespace {
+Box::Box(float size, TextureMappingMode mode) {
     struct Vertex {
         float s;
         float t;
@@ -23,9 +23,7 @@ namespace {
         float y;
         float z;
     };
-} // namespace
 
-Box::Box(float size, TextureMappingMode mode) {
     glCreateBuffers(1, &_vbo);
     glCreateVertexArrays(1, &_vao);
     glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));

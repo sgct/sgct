@@ -148,10 +148,6 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
         unsigned int vbo = _histogram.staticDraw.vbo;
 
         glCreateBuffers(1, &vbo);
-        struct Vertex {
-            float x;
-            float y;
-        };
         constexpr std::array<Vertex, 4> Vertices = {
             Vertex{ 0.f, 0.f }, Vertex{ 1.f, 0.f }, Vertex{ 0.f, 0.f }, Vertex{ 0.f, 1.f }
         };

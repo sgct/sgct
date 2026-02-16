@@ -13,15 +13,17 @@
 #include <cstddef>
 
 Box::Box(float size, TextureMappingMode mode) {
-    float s;
-    float t;
-    float nx;
-    float ny;
-    float nz;
-    float x;
-    float y;
-    float z;
-};
+    struct Vertex {
+        float s;
+        float t;
+        float nx;
+        float ny;
+        float nz;
+        float x;
+        float y;
+        float z;
+    };
+
     glCreateBuffers(1, &_vbo);
     glCreateVertexArrays(1, &_vao);
     glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));

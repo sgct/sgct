@@ -83,8 +83,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     _colorLoc = glGetUniformLocation(_shader.id(), "col");
 
     {
-        unsigned int vao = _lines.staticDraw.vao;
-        unsigned int vbo = _lines.staticDraw.vbo;
+        unsigned int& vao = _lines.staticDraw.vao;
+        unsigned int& vbo = _lines.staticDraw.vbo;
 
         constexpr float Length = static_cast<float>(Engine::Statistics::HistoryLength);
         // Static background quad
@@ -124,19 +124,19 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     }
 
     {
-        unsigned int vao = _lines.dynamicDraw.vao;
-        unsigned int vbo = _lines.dynamicDraw.vbo;
+        unsigned int& vao = _lines.dynamicDraw.vao;
+        unsigned int& vbo = _lines.dynamicDraw.vbo;
 
         glCreateBuffers(1, &vbo);
         glNamedBufferStorage(
             vbo,
-            sizeof(Engine::Statistics),
+            sizeof(StatisticsRenderer::Lines::Vertices),
             nullptr,
             GL_DYNAMIC_STORAGE_BIT
         );
 
         glCreateVertexArrays(1, &vao);
-        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Engine::Statistics));
+        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
 
         glEnableVertexArrayAttrib(vao, 0);
         glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
@@ -144,8 +144,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     }
 
     {
-        unsigned int vao = _histogram.staticDraw.vao;
-        unsigned int vbo = _histogram.staticDraw.vbo;
+        unsigned int& vao = _histogram.staticDraw.vao;
+        unsigned int& vbo = _histogram.staticDraw.vbo;
 
         glCreateBuffers(1, &vbo);
         constexpr std::array<Vertex, 4> Vertices = {
@@ -162,8 +162,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     }
 
     {
-        unsigned int vao = _histogram.dynamicDraw.vao;
-        unsigned int vbo = _histogram.dynamicDraw.vbo;
+        unsigned int& vao = _histogram.dynamicDraw.vao;
+        unsigned int& vbo = _histogram.dynamicDraw.vbo;
 
         glCreateBuffers(1, &vbo);
         glNamedBufferStorage(
@@ -174,7 +174,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
         );
 
         glCreateVertexArrays(1, &vao);
-        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Histogram::Vertices));
+        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
 
         glEnableVertexArrayAttrib(vao, 0);
         glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
@@ -289,14 +289,12 @@ void StatisticsRenderer::update() {
     convertValues(h.buffer.loopTimeMin, h.values.loopTimeMin, h.maxBinValue.loopTimeMin);
     convertValues(h.buffer.loopTimeMax, h.values.loopTimeMax, h.maxBinValue.loopTimeMax);
 
-
     glNamedBufferSubData(
         _histogram.dynamicDraw.vbo,
         0,
         sizeof(Histogram::Vertices),
         _histogram.buffer.frametimes.data()
     );
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) const {

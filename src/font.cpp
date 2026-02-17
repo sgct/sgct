@@ -144,7 +144,7 @@ namespace {
         glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-        glTextureStorage2D(tex, 1, GL_COMPRESSED_RG, w, h);
+        glTextureStorage2D(tex, 1, GL_RG8, w, h);
         glTextureSubImage2D(tex, 0, 0, 0, w, h, GL_RG, GL_UNSIGNED_BYTE, buffer.data());
         return tex;
     }
@@ -174,7 +174,7 @@ namespace {
 
         sgct::text::Font::FontFaceData ffd;
         // create texture
-        if (charIndex > 0) {
+        if (charIndex > 0 && c != ' ') {
             ffd.texId = generateTexture(res.width, res.height, res.pixels);
         }
         else {

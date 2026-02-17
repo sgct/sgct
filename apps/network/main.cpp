@@ -199,8 +199,7 @@ void draw(const RenderData& data) {
     const glm::mat4 mvp =
         glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBindTextureUnit(0, textureId);
 
     ShaderManager::instance().shaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));

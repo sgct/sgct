@@ -222,8 +222,7 @@ void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
 }
 
 void OffScreenBuffer::bind() const {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTextureUnit(0, 0);
 
     if (_isMultiSampled) {
         glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
@@ -236,8 +235,7 @@ void OffScreenBuffer::bind() const {
 }
 
 void OffScreenBuffer::bind(bool isMultisampled, int n, const unsigned int* bufs) const {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTextureUnit(0, 0);
 
     if (isMultisampled) {
         glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);

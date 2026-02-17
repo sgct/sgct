@@ -1900,8 +1900,8 @@ void Window::loadShaders() {
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
         glProgramUniform1f(id, _fxaa->sizeY, static_cast<float>(framebufferSize.y));
 
-        glProgramUniform1f(id, glGetUniformLocation(id, "FxaaSubPixTrim"), 1.f / 4.f);
-        glProgramUniform1f(id, glGetUniformLocation(id, "FxaaSubpixOffset"), 1.f / 2.f);
+        glProgramUniform1f(id, glGetUniformLocation(id, "fxaaSubPixTrim"), 1.f / 4.f);
+        glProgramUniform1f(id, glGetUniformLocation(id, "fxaaSubpixOffset"), 1.f / 2.f);
         glProgramUniform1i(id, glGetUniformLocation(id, "tex"), 0);
     }
 

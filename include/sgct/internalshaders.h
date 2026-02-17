@@ -386,7 +386,7 @@ constexpr std::string_view FXAAVert = R"(
 
   uniform float rt_w;
   uniform float rt_h;
-  uniform float FxaaSubpixOffset;
+  uniform float fxaaSubpixOffset;
 
 
   void main() {
@@ -394,13 +394,13 @@ constexpr std::string_view FXAAVert = R"(
     out_data.texCoords = in_texCoords;
 
     out_data.texCoordsOffset[0] =
-      out_data.texCoords + FxaaSubpixOffset * vec2(-1.0 / rt_w,  -1.0 / rt_h);
+      out_data.texCoords + fxaaSubpixOffset * vec2(-1.0 / rt_w,  -1.0 / rt_h);
     out_data.texCoordsOffset[1] =
-      out_data.texCoords + FxaaSubpixOffset * vec2( 1.0 / rt_w,  -1.0 / rt_h);
+      out_data.texCoords + fxaaSubpixOffset * vec2( 1.0 / rt_w,  -1.0 / rt_h);
     out_data.texCoordsOffset[2] =
-      out_data.texCoords + FxaaSubpixOffset * vec2(-1.0 / rt_w,   1.0 / rt_h);
+      out_data.texCoords + fxaaSubpixOffset * vec2(-1.0 / rt_w,   1.0 / rt_h);
     out_data.texCoordsOffset[3] =
-      out_data.texCoords + FxaaSubpixOffset * vec2( 1.0 / rt_w,   1.0 / rt_h);
+      out_data.texCoords + fxaaSubpixOffset * vec2( 1.0 / rt_w,   1.0 / rt_h);
   }
 )";
 
@@ -422,13 +422,13 @@ constexpr std::string_view FXAAFrag = R"(
 
   const float FxaaSpanMax = 8.0;
 
-  // FxaaSubPixTrim: Controls removal of sub-pixel aliasing
+  // fxaaSubPixTrim: Controls removal of sub-pixel aliasing
   //   1/2 - low removal
   //   1/3 - medium removal
   //   1/4 - default removal
   //   1/8 - high removal
   //     0 - complete removal
-  uniform float FxaaSubPixTrim; // 1.0 / 8.0;
+  uniform float fxaaSubPixTrim; // 1.0 / 8.0;
 
   in Data {
     vec2 texCoords;
@@ -471,7 +471,7 @@ constexpr std::string_view FXAAFrag = R"(
 
     const float FxaaReduceMin = 1.0 / 128.0;
     float dirReduce = max(
-      (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FxaaSubPixTrim),
+      (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * fxaaSubPixTrim),
       FxaaReduceMin
     );
 

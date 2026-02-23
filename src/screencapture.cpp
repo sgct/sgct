@@ -86,7 +86,7 @@ void ScreenCapture::resize(ivec2 resolution) {
         "Generating {}x{}x{} PBO: {}", _resolution.x, _resolution.y, nChannels, _pbo
     ));
     glCreateBuffers(1, &_pbo);
-    glNamedBufferStorage(_pbo, _dataSize, nullptr, GL_NONE_BIT);
+    glNamedBufferStorage(_pbo, _dataSize, nullptr, GL_MAP_READ_BIT);
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {

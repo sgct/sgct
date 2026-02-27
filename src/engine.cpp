@@ -548,7 +548,7 @@ void Engine::initialize() {
 #ifdef SGCT_HAS_TEXT
 #ifdef WIN32
     constexpr std::string_view FontName = "verdanab.ttf";
-#else // !WIN32
+#else // ^^^^ WIN32 // !WIN32 vvvv
     constexpr std::string_view FontName = "FreeSansBold.ttf";
 #endif // WIN32
     text::FontManager::instance().addFont("SGCTFont", std::string(FontName));

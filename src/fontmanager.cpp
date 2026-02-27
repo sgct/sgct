@@ -117,7 +117,7 @@ FontManager::FontManager() {
         std::wstring wSystemFontPath = ss.str();
         SystemFontPath = std::string(wSystemFontPath.begin(), wSystemFontPath.end());
     }
-#else // !UNICODE
+#else // ^^^^ UNICODE // !UNICODE vvvv
     constexpr int BufferSize = 256;
     char winDir[BufferSize];
     const UINT success = GetWindowsDirectoryA(winDir, BufferSize);
@@ -128,7 +128,7 @@ FontManager::FontManager() {
         SystemFontPath = std::string(wSystemFontPath.begin(), wSystemFontPath.end());
     }
 #endif // UNICODE
-#else // !WIN32
+#else // ^^^^ WIN32 // !WIN32 vvvv
     SystemFontPath = "/usr/share/fonts/truetype/freefont/";
 #endif // WIN32
 }

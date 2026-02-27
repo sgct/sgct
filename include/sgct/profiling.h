@@ -30,7 +30,7 @@ void* operator new(size_t count);
 void operator delete(void* ptr) noexcept;
 #endif // SGCT_OVERRIDE_NEW_AND_DELETE
 
-#else // !
+#else // ^^^^ TRACY_ENABLE // !TRACY_ENABLE vvvv 
 
 #define ZoneScoped
 #define ZoneScopedN(x)
@@ -43,7 +43,7 @@ void operator delete(void* ptr) noexcept;
 #define TracyAlloc(ptr, bytes)
 #define TracyAllocN(ptr, bytes, name)
 
-#endif // ^^^^ TRACY_ENABLE // !TRACY_ENABLE vvvv 
+#endif // TRACY_ENABLE
 
 #ifdef WIN32
 #pragma warning(pop)

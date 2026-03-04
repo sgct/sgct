@@ -66,7 +66,7 @@ using namespace sgct;
 
 void networkConnectionUpdated(Network& conn) {
     if (conn.isServer()) {
-        // wake up the connection handler thread on server if node disconnects to enable
+        // Wake up the connection handler thread on server if node disconnects to enable
         // reconnection
         conn.startConnectionConditionVar().notify_all();
     }
@@ -99,7 +99,7 @@ void connect() {
         return;
     }
 
-    // no need to specify the address on the host/server
+    // No need to specify the address on the host/server
     if (!isServer && address.empty()) {
         Log::Error("Network error: No address set");
         return;
@@ -112,7 +112,7 @@ void connect() {
         Network::ConnectionType::DataTransfer
     );
 
-    // init
+    // Init
     try {
         Log::Debug(std::format("Initiating network connection at port {}", port));
 
@@ -135,14 +135,14 @@ void connect() {
 void networkLoop() {
     connect();
 
-    // if client try to connect to server even after disconnection
+    // If client try to connect to server even after disconnection
     if (!isServer) {
         while (running.load()) {
             if (connected.load() == false) {
                 connect();
             }
             else {
-                // just check if connected once per second
+                // Just check if connected once per second
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
@@ -153,10 +153,10 @@ void disconnect() {
     if (networkPtr) {
         networkPtr->initShutdown();
 
-        // wait for all nodes callbacks to run
+        // Wait for all nodes callbacks to run
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
-        // wait for threads to die
+        // Wait for threads to die
         networkPtr->closeNetwork(false);
         networkPtr = nullptr;
     }
@@ -183,7 +183,7 @@ void draw(const RenderData& data) {
 
     constexpr double Speed = 0.44;
 
-    //create scene transform (animation)
+    // Create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
@@ -293,14 +293,15 @@ int main(int argc, char** argv) {
         }
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

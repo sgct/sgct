@@ -245,8 +245,10 @@ void initOGL(GLFWwindow*) {
     glVertexArrayAttribBinding(vao, 0, 0);
 
     constexpr std::array<float, 6 * 2> Vertices = {
-        -1.f, -1.f,   1.f, -1.f,   1.f, 1.f,  // bottom right triangle
-        -1.f, -1.f,   1.f,  1.f,  -1.f, 1.f   // top left triangle
+        // Bottom right triangle
+        -1.f, -1.f,   1.f, -1.f,   1.f, 1.f,
+        // Top left triangle
+        -1.f, -1.f,   1.f,  1.f,  -1.f, 1.f
     };
     glNamedBufferStorage(
         vbo,
@@ -294,13 +296,14 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.draw = draw;
-    callbacks.draw2D = draw2D;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .postSyncPreDraw = postSyncPreDraw,
+        .draw = draw,
+        .draw2D = draw2D,
+        .cleanup = cleanup,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

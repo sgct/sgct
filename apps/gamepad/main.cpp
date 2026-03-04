@@ -66,8 +66,9 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.draw2D = draw2D;
+    const Engine::Callbacks callbacks = {
+        .draw2D = draw2D
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

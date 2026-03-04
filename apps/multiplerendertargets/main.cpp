@@ -16,11 +16,11 @@
 namespace {
     std::unique_ptr<Box> box;
 
-    // variables to share across cluster
+    // Variables to share across cluster
     double currentTime = 0.0;
     bool takeScreenshot = false;
 
-    // shader locs
+    // Shader locs
     int textureLoc = -1;
     int mvpMatrixLoc = -1;
     int worldMatrixTransposeLoc = -1;
@@ -87,7 +87,7 @@ void draw(const RenderData& data) {
 
     constexpr double Speed = 0.44;
 
-    // create scene transform (animation)
+    // Create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
@@ -198,15 +198,16 @@ int main(int argc, char** argv) {
         cluster.settings = settings;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .postSyncPreDraw = postSyncPreDraw,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

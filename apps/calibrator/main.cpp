@@ -138,7 +138,6 @@ void main() {
     color = texture(tex[in_data.textureId], in_data.texCoords);
 }
 )";
-
 } // namespace
 
 using namespace sgct;
@@ -205,8 +204,8 @@ void initializeGrid() {
         indices.insert(indices.end(), t.begin(), t.end());
     }
     indices.push_back(RestartIndex);
-    // Then the vertical lines; see above; every vertical vertex is separated by
-    // exactly 'AzimuthSteps' positions in the vertex array
+    // Then the vertical lines; see above; every vertical vertex is separated by exactly
+    // 'AzimuthSteps' positions in the vertex array
     for (int a = 0; a < AzimuthSteps; a++) {
         for (int e = 0; e < ElevationSteps; e++) {
             indices.push_back(static_cast<uint16_t>(a + e * AzimuthSteps));
@@ -727,16 +726,17 @@ int main(int argc, char** argv) {
 
     runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initGL;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.draw = draw;
-    callbacks.draw2D = draw2D;
-    callbacks.postDraw = postDraw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initGL,
+        .postSyncPreDraw = postSyncPreDraw,
+        .draw = draw,
+        .draw2D = draw2D,
+        .postDraw = postDraw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

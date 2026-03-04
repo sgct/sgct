@@ -95,7 +95,7 @@ void startDataTransfer() {
     int id = lastPackage;
     id++;
 
-    // make sure to keep within bounds
+    // Make sure to keep within bounds
     if (static_cast<int>(imagePaths.size()) <= id) {
         return;
     }
@@ -105,7 +105,7 @@ void startDataTransfer() {
     lastPackage = imageCounter - 1;
 
     for (int i = id; i < imageCounter; i++) {
-        // load from file
+        // Load from file
         const std::string& p = imagePaths[static_cast<size_t>(i)];
 
         std::ifstream file(p.c_str(), std::ios::binary);
@@ -132,12 +132,12 @@ void uploadTexture() {
 
     for (size_t i = 0; i < transImages.size(); i++) {
         if (!transImages[i]) {
-            // if invalid load
+            // If invalid load
             texIds.push_back(0);
             continue;
         }
 
-        // create texture
+        // Create texture
         GLuint tex;
         glCreateTextures(GL_TEXTURE_2D, 1, &tex);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -202,12 +202,12 @@ void threadWorker() {
         const bool trans = transfer;
         const bool serverDone = serverUploadDone;
         const bool clientDone = clientsUploadDone;
-        // runs only on master
+        // Runs only on master
         if (trans && !serverDone && !clientDone) {
             startDataTransfer();
             transfer = false;
 
-            // load textures on master
+            // Load textures on master
             uploadTexture();
             serverUploadDone = true;
 
@@ -253,11 +253,11 @@ void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = time();
 
-        // if texture is uploaded then iterate the index
+        // If texture is uploaded then iterate the index
         if (serverUploadDone && clientsUploadDone) {
             numSyncedTex = static_cast<int32_t>(texIds.size());
 
-            // only iterate up to the first new image, even if multiple images was added
+            // Only iterate up to the first new image, even if multiple images was added
             texIndex = numSyncedTex - serverUploadCount;
 
             serverUploadDone = false;
@@ -280,7 +280,7 @@ void initOGL(GLFWwindow* win) {
         Log::Info("Failed to create loader context");
     }
 
-    // restore to normal
+    // Restore to normal
     glfwMakeContextCurrent(sharedWindow);
 
     if (Engine::instance().isMaster()) {
@@ -291,7 +291,7 @@ void initOGL(GLFWwindow* win) {
 
     // Set up backface culling
     glCullFace(GL_BACK);
-    // our polygon winding is clockwise since we are inside of the dome
+    // Our polygon winding is clockwise since we are inside of the dome
     glFrontFace(GL_CW);
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
@@ -381,7 +381,7 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
 
     lastPackage = packageId;
 
-    // read the image on slave
+    // Read the image on slave
     readImage(reinterpret_cast<unsigned char*>(receivedData), receivedLength);
     uploadTexture();
 }
@@ -416,10 +416,10 @@ void drop(const std::vector<std::string_view>& paths) {
     if (Engine::instance().isMaster()) {
         std::vector<std::string> pathStrings;
         for (const std::string_view path : paths) {
-            // simply pick the first path to transmit
+            // Simply pick the first path to transmit
             std::string tmpStr = std::string(path);
 
-            // transform to lowercase
+            // Transform to lowercase
             std::transform(
                 tmpStr.begin(),
                 tmpStr.end(),
@@ -430,12 +430,12 @@ void drop(const std::vector<std::string_view>& paths) {
             pathStrings.push_back(tmpStr);
         }
 
-        // sort in alphabetical order
+        // Sort in alphabetical order
         std::sort(pathStrings.begin(), pathStrings.end());
 
         serverUploadCount = 0;
 
-        // iterate all drop paths
+        // Iterate all drop paths
         for (size_t i = 0; i < pathStrings.size(); i++) {
             std::string tmpStr = pathStrings[i];
 
@@ -443,14 +443,14 @@ void drop(const std::vector<std::string_view>& paths) {
             const size_t foundJpeg = tmpStr.find(".jpeg");
             if (foundJpg != std::string::npos || foundJpeg != std::string::npos) {
                 imagePaths.push_back(pathStrings[i]);
-                transfer = true; // tell transfer thread to start processing data
+                transfer = true; // Tell transfer thread to start processing data
                 serverUploadCount++;
             }
 
             const size_t foundPng = tmpStr.find(".png");
             if (foundPng != std::string::npos) {
                 imagePaths.push_back(pathStrings[i]);
-                transfer = true; // tell transfer thread to start processing data
+                transfer = true; // Tell transfer thread to start processing data
                 serverUploadCount++;
             }
         }
@@ -465,19 +465,20 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
-    callbacks.drop = drop;
-    callbacks.dataTransferDecode = dataTransferDecoder;
-    callbacks.dataTransferStatus = dataTransferStatus;
-    callbacks.dataTransferAcknowledge = dataTransferAcknowledge;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .postSyncPreDraw = postSyncPreDraw,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .dataTransferDecode = dataTransferDecoder,
+        .dataTransferStatus = dataTransferStatus,
+        .dataTransferAcknowledge = dataTransferAcknowledge,
+        .keyboard = keyboard,
+        .drop = drop
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

@@ -27,7 +27,7 @@ namespace {
     bool buttonLeft = false;
     bool buttonRight = false;
 
-    // to check if left mouse button is pressed
+    // To check if left mouse button is pressed
     bool mouseLeftButton = false;
     // Holds the difference in position between when the left mouse button is pressed and
     // when the mouse button is held.
@@ -154,7 +154,7 @@ void createXZGrid(int size, float yPos) {
 void createPyramid(float width) {
     std::array<Vertex, 28> vertData;
 
-    // enhance the pyramids with lines in the edges
+    // Enhance the pyramids with lines in the edges
     // -x
     vertData[0] = Vertex{ -width / 2.f, 0.f,  width / 2.f };
     vertData[1] = Vertex{-width / 2.f, 0.f, -width / 2.f};
@@ -214,13 +214,15 @@ void drawPyramid(glm::mat4 mvp, int index) {
 
     glBindVertexArray(pyramid.vao);
 
-    // draw lines
+    // Draw lines
     glLineWidth(2.f);
-    glPolygonOffset(1.f, 0.1f); // offset to avoid z-buffer fighting
+    // Offset to avoid z-buffer fighting
+    glPolygonOffset(1.f, 0.1f);
     glUniform1f(alphaLocation, 0.8f);
     glDrawArrays(GL_LINES, 0, 16);
-    // draw triangles
-    glPolygonOffset(0.f, 0.f); // offset to avoid z-buffer fighting
+    // Draw triangles
+    // Offset to avoid z-buffer fighting
+    glPolygonOffset(0.f, 0.f);
     glUniform1f(alphaLocation, 0.3f);
     glDrawArrays(GL_TRIANGLES, 16, 12);
 
@@ -235,7 +237,8 @@ void drawXZGrid(glm::mat4 mvp) {
     glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(proj));
     glBindVertexArray(grid.vao);
     glLineWidth(3.f);
-    glPolygonOffset(0.f, 0.f); // offset to avoid z-buffer fighting
+    // Offset to avoid z-buffer fighting
+    glPolygonOffset(0.f, 0.f);
     glDrawArrays(GL_LINES, 0, grid.nVerts);
 
     glBindVertexArray(0);
@@ -273,7 +276,7 @@ void initOGL(GLFWwindow*) {
     createXZGrid(LandscapeSize, -1.5f);
 
 
-    // pick a seed for the random function (must be same on all nodes)
+    // Pick a seed for the random function (must be same on all nodes)
     srand(9745);
     for (int i = 0; i < NumberOfPyramids; i++) {
         const float x = static_cast<float>(rand() % LandscapeSize - LandscapeSize / 2);
@@ -318,7 +321,7 @@ void preSync() {
             mouseDx * RotationSpeed * Engine::instance().statistics().dt()
         );
 
-        //rotation around the y-axis
+        // Rotation around the y-axis
         const glm::mat4 viewRotateX = glm::rotate(
             glm::mat4(1.f),
             panRot,
@@ -354,17 +357,17 @@ void preSync() {
          *   4. Transform the user back to original position
          *
          * However, mathwise this process need to be reversed due to the matrix
-         * multiplication order.
+         * multiplication order
          */
 
-        // 4. transform user back to original position
+        // 4. Transform user back to original position
         vec3 mono = Engine::defaultUser().posMono();
         xform = glm::translate(glm::mat4(1.f), glm::vec3(mono.x, mono.y, mono.z));
-        // 3. apply view rotation
+        // 3. Apply view rotation
         xform *= viewRotateX;
-        // 2. apply navigation translation
+        // 2. Apply navigation translation
         xform *= glm::translate(glm::mat4(1.f), pos);
-        // 1. transform user to coordinate system origin
+        // 1. Transform user to coordinate system origin
         xform *= glm::translate(glm::mat4(1.f), -glm::vec3(mono.x, mono.y, mono.z));
     }
 }
@@ -441,15 +444,16 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
-    callbacks.mouseButton = mouseButton;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard,
+        .mouseButton = mouseButton
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

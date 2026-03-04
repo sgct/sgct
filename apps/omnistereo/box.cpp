@@ -28,17 +28,17 @@ Box::Box(float size, TextureMappingMode mode) {
     glCreateVertexArrays(1, &_vao);
     glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
 
-    // texcoords
+    // Texcoords
     glEnableVertexArrayAttrib(_vao, 0);
     glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribBinding(_vao, 0, 0);
 
-    // normals
+    // Normals
     glEnableVertexArrayAttrib(_vao, 1);
     glVertexArrayAttribFormat(_vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, nx));
     glVertexArrayAttribBinding(_vao, 1, 0);
 
-    // vert positions
+    // Positions
     glEnableVertexArrayAttrib(_vao, 2);
     glVertexArrayAttribFormat(_vao, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, x));
     glVertexArrayAttribBinding(_vao, 2, 0);
@@ -144,7 +144,8 @@ Box::Box(float size, TextureMappingMode mode) {
         v[34] = { 1.f, 0.f, 0.f, -1.f, 0.f, halfSize, -halfSize, -halfSize };
         v[35] = { 1.f, 0.5f, 0.f, -1.f, 0.f, halfSize, -halfSize, halfSize };
     }
-    else { // skybox
+    else {
+        // Skybox
         // A (front/+z)
         v[0] = { 1.f, 0.666666f, 0.f, 0.f, 1.f, -halfSize, halfSize, halfSize };
         v[1] = { 1.f, 0.333334f, 0.f, 0.f, 1.f, -halfSize, -halfSize, halfSize };

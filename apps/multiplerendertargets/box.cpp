@@ -141,7 +141,8 @@ Box::Box(float size, TextureMappingMode mode) {
         v[34] = { 1.f, 0.f, 0.f, -1.f, 0.f, halfSize, -halfSize, -halfSize };
         v[35] = { 1.f, 0.5f, 0.f, -1.f, 0.f, halfSize, -halfSize, halfSize };
     }
-    else { // skybox
+    else {
+        // Skybox
         // A (front/+z)
         v[0] = { 1.f, 0.666666f, 0.f, 0.f, 1.f, -halfSize, halfSize, halfSize };
         v[1] = { 1.f, 0.333334f, 0.f, 0.f, 1.f, -halfSize, -halfSize, halfSize };

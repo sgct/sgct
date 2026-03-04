@@ -18,7 +18,7 @@
 namespace {
     constexpr int GridSize = 256;
 
-    // shader data
+    // Shader data
     GLint currTimeLoc = -1;
     GLint mvpLoc = -1;
     GLint mvLoc = -1;
@@ -33,7 +33,7 @@ namespace {
 
     bool mPause = false;
 
-    // variables to share across cluster
+    // Variables to share across cluster
     double currentTime = 0.0;
     bool stats = false;
     bool takeScreenshot = false;
@@ -181,20 +181,22 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
             const float wPos = wStart + dW * static_cast<float>(widthIndex);
             const float wTexCoord = widthIndex / static_cast<float>(wRes);
 
-            Vertex p0;
-            p0.x = wPos;
-            p0.y = 0.f;
-            p0.z = dPosLow;
-            p0.s = wTexCoord;
-            p0.t = dTexCoordLow;
+            Vertex p0 = {
+                .x = wPos,
+                .y = 0.f,
+                .z = dPosLow,
+                .s = wTexCoord,
+                .t = dTexCoordLow
+            };
             res.push_back(p0);
 
-            Vertex p1;
-            p1.x = wPos;
-            p1.y = 0.f;
-            p1.z = dPosHigh;
-            p1.s = wTexCoord;
-            p1.t = dTexCoordHigh;
+            Vertex p1 = {
+                .x = wPos,
+                .y = 0.f,
+                .z = dPosHigh,
+                .s = wTexCoord,
+                .t = dTexCoordHigh
+            };
             res.push_back(p1);
         }
     }
@@ -210,7 +212,7 @@ void draw(const RenderData& data) {
 
     constexpr double Speed = 0.14;
 
-    // create scene transform (animation)
+    // Create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -0.15f, 2.5f));
     scene = glm::rotate(
         scene,
@@ -276,7 +278,7 @@ void initOGL(GLFWwindow*) {
     heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);
     normalTextureId = TextureManager::instance().loadTexture("normalmap.png", true, 0);
 
-    // setup shader
+    // Setup shader
     ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
 
@@ -289,7 +291,7 @@ void initOGL(GLFWwindow*) {
     glProgramUniform1i(prog.id(), glGetUniformLocation(prog.id(), "hTex"), 0);
     glProgramUniform1i(prog.id(), glGetUniformLocation(prog.id(), "nTex"), 1);
 
-    // light data
+    // Light data
     const glm::vec4 position(-2.f, 5.f, 5.f, 1.f);
     const glm::vec4 ambient(0.1f, 0.1f, 0.1f, 1.f);
     const glm::vec4 diffuse(0.8f, 0.8f, 0.8f, 1.f);
@@ -420,15 +422,16 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .postSyncPreDraw = postSyncPreDraw,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

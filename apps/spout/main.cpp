@@ -38,7 +38,7 @@ namespace {
     unsigned int height;
     bool initialized = false;
 
-    // variables to share across cluster
+    // Variables to share across cluster
     double currentTime = 0.0;
 
     constexpr std::string_view VertexShader = R"(
@@ -103,7 +103,7 @@ bool bindSpout() {
         else {
             Log::Info("Spout disconnected");
 
-            // reset if disconnected
+            // Reset if disconnected
             initialized = false;
             senderName[0] = '\0';
             receiver->ReleaseReceiver();
@@ -119,7 +119,7 @@ void draw(const RenderData& data) {
 
     constexpr double Speed = 0.44;
 
-    //create scene transform (animation)
+    // Create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
@@ -134,9 +134,9 @@ void draw(const RenderData& data) {
     const glm::mat4 mvp =
         glm::make_mat4(data.modelViewProjectionMatrix.values.data()) * scene;
 
-    // spout init
+    // Spout init
     bool spoutStatus = false;
-    // check if spout supported (DX11 interop)
+    // Check if spout supported (DX11 interop)
     if (glfwExtensionSupported("WGL_NV_DX_interop2")) {
         spoutStatus = bindSpout();
     }
@@ -173,7 +173,7 @@ void preSync() {
 }
 
 void initOGL(GLFWwindow*) {
-    // setup spout
+    // Setup spout
     senderName[0] = '\0';
     receiver = GetSpout();
 
@@ -225,14 +225,15 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

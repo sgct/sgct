@@ -33,10 +33,11 @@ namespace {
     std::vector<SpoutData> spoutSendersData;
 
     size_t spoutSendersCount = 0;
-    std::vector<std::pair<int, bool>> windowData; // index and if lefteye
+    // Index and if lefteye
+    std::vector<std::pair<int, bool>> windowData;
     std::vector<std::string> senderNames;
 
-    // variables to share across cluster
+    // Variables to share across cluster
     double currentTime = 0.0;
 
     constexpr std::string_view VertexShader = R"(
@@ -84,7 +85,7 @@ void draw(const RenderData& data) {
 
     constexpr double Speed = 0.44;
 
-    // create scene transform (animation)
+    // Create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
@@ -166,7 +167,7 @@ void preWindowInit() {
 }
 
 void initOGL(GLFWwindow*) {
-    // setup spout
+    // Setup spout
     // Create a new SpoutData for every SGCT window
     spoutSendersData.resize(spoutSendersCount);
     for (size_t i = 0; i < spoutSendersCount; i++) {
@@ -230,16 +231,17 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.preWindow = preWindowInit;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.draw = draw;
-    callbacks.postDraw = postDraw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .preWindow = preWindowInit,
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .draw = draw,
+        .postDraw = postDraw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

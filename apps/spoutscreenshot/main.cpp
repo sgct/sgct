@@ -83,7 +83,7 @@ bool bindSpout() {
         else {
             Log::Info("Spout disconnected");
 
-            // reset if disconnected
+            // Reset if disconnected
             initialized = false;
             sender = '\0';
             receiver->ReleaseReceiver();
@@ -142,7 +142,7 @@ void initOGL(GLFWwindow*) {
         GL_NONE_BIT
     );
 
-    // setup spout
+    // Setup spout
     sender = '\0';
     receiver = GetSpout();
 
@@ -216,11 +216,12 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .draw = draw,
+        .cleanup = cleanup,
+        .keyboard = keyboard
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

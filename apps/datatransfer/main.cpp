@@ -41,7 +41,7 @@ namespace {
     std::unique_ptr<Box> box;
     GLint matrixLoc = -1;
 
-    // variables to share across cluster
+    // Variables to share across cluster
     double currentTime(0.0);
 
     constexpr std::string_view vertexShader = R"(
@@ -82,7 +82,7 @@ namespace {
 using namespace sgct;
 
 void readImage(unsigned char* data, int len) {
-    std::unique_lock lk(imageMutex);
+    const std::unique_lock lk(imageMutex);
 
     transImg = std::make_unique<Image>();
 
@@ -96,19 +96,19 @@ void readImage(unsigned char* data, int len) {
 }
 
 void startDataTransfer() {
-    // iterate
+    // Iterate
     int id = currentPackage;
     id++;
     currentPackage = id;
 
-    // make sure to keep within bounds
+    // Make sure to keep within bounds
     if (static_cast<int>(imagePaths.size()) <= id) {
         return;
     }
 
     sendTimer = time();
 
-    // load from file
+    // Load from file
     const std::string& tmpPair = imagePaths[static_cast<size_t>(id)];
 
     std::ifstream file(tmpPair.c_str(), std::ios::binary);
@@ -121,7 +121,7 @@ void startDataTransfer() {
         const int s = static_cast<int>(size);
         NetworkManager::instance().transferData(buffer.data(), s, id);
 
-        // read the image on master
+        // Read the image on master
         readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
     }
 }
@@ -130,14 +130,14 @@ void uploadTexture() {
     std::unique_lock lk(imageMutex);
 
     if (!transImg) {
-        // if invalid load
+        // If invalid load
         texIds.push_back(0);
         return;
     }
 
     glfwMakeContextCurrent(hiddenWindow);
 
-    // create texture
+    // Create texture
     GLuint tex;
     glCreateTextures(GL_TEXTURE_2D, 1, &tex);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -212,17 +212,17 @@ void uploadTexture() {
 
 void threadWorker() {
     while (isRunning) {
-        // runs only on master
+        // Runs only on master
         if (transfer && !serverUploadDone && !clientsUploadDone) {
             startDataTransfer();
             transfer = false;
 
-            // load texture on master
+            // Load texture on master
             uploadTexture();
             serverUploadDone = true;
 
             if (ClusterManager::instance().numberOfNodes() == 1) {
-                // no cluster
+                // No cluster
                 clientsUploadDone = true;
             }
         }
@@ -237,7 +237,7 @@ void draw(const RenderData& data) {
 
     constexpr double Speed = 0.44;
 
-    // create scene transform (animation)
+    // Create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
@@ -273,7 +273,7 @@ void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = time();
 
-        // if texture is uploaded then iterate the index
+        // If texture is uploaded then iterate the index
         if (serverUploadDone && clientsUploadDone) {
             texIndex++;
             serverUploadDone = false;
@@ -307,7 +307,8 @@ void initOGL(GLFWwindow* win) {
 
     // Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); // our polygon winding is counter clockwise
+    // Our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
@@ -370,7 +371,7 @@ void dataTransferDecoder(void* data, int length, int packageId, int clientIndex)
 
     currentPackage = packageId;
 
-    // read the image on master
+    // Read the image on master
     readImage(reinterpret_cast<unsigned char*>(data), length);
     uploadTexture();
 }
@@ -406,10 +407,10 @@ void drop(const std::vector<std::string_view>& path) {
         return;
     }
 
-    // simply pick the first path to transmit
+    // Simply pick the first path to transmit
     std::string tmpStr = std::string(path[0]);
 
-    // transform to lowercase
+    // Transform to lowercase
     std::transform(
         tmpStr.begin(),
         tmpStr.end(),
@@ -434,19 +435,20 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGL;
-    callbacks.preSync = preSync;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
-    callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.draw = draw;
-    callbacks.cleanup = cleanup;
-    callbacks.keyboard = keyboard;
-    callbacks.drop = drop;
-    callbacks.dataTransferDecode = dataTransferDecoder;
-    callbacks.dataTransferStatus = dataTransferStatus;
-    callbacks.dataTransferAcknowledge = dataTransferAcknowledge;
+    const Engine::Callbacks callbacks = {
+        .initOpenGL = initOGL,
+        .preSync = preSync,
+        .postSyncPreDraw = postSyncPreDraw,
+        .draw = draw,
+        .cleanup = cleanup,
+        .encode = encode,
+        .decode = decode,
+        .dataTransferDecode = dataTransferDecoder,
+        .dataTransferStatus = dataTransferStatus,
+        .dataTransferAcknowledge = dataTransferAcknowledge,
+        .keyboard = keyboard,
+        .drop = drop
+    };
 
     try {
         Engine::create(cluster, callbacks, config);

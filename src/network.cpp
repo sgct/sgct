@@ -295,8 +295,8 @@ void Network::connectionHandler() {
 
             // Wait for signal until next iteration in loop
             if (!_shouldTerminate) {
-                std::unique_lock lk(_connectionMutex);
-                _startConnectionCond.wait(lk);
+                std::unique_lock lock(_connectionMutex);
+                _startConnectionCond.wait(lock);
             }
         }
     }
@@ -604,7 +604,7 @@ void Network::communicationHandler() {
     std::memset(RecvHeader.data(), DefaultId, HeaderSize);
 
     {
-        const std::unique_lock lk(_connectionMutex);
+        const std::unique_lock lock(_connectionMutex);
         _recvBuffer.resize(_bufferSize);
         _uncompressBuffer.resize(_uncompressedBufferSize);
     }
@@ -708,7 +708,7 @@ void Network::communicationHandler() {
 
                     {
                         // Clear the buffers
-                        const std::unique_lock lk(_connectionMutex);
+                        const std::unique_lock lock(_connectionMutex);
 
                         _recvBuffer.clear();
                         _uncompressBuffer.clear();

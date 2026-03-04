@@ -692,8 +692,8 @@ void Engine::frameLockPreStage() {
     // Not server
     const double t0 = glfwGetTime();
     while (nm.isRunning() && !nm.isSyncComplete()) {
-        std::unique_lock lk(FrameSync);
-        NetworkManager::cond.wait(lk);
+        std::unique_lock lock(FrameSync);
+        NetworkManager::cond.wait(lock);
 
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
@@ -739,8 +739,8 @@ void Engine::frameLockPostStage() {
 
     const double t0 = glfwGetTime();
     while (nm.isRunning() && nm.activeConnectionsCount() > 0 && !nm.isSyncComplete()) {
-        std::unique_lock lk(FrameSync);
-        NetworkManager::cond.wait(lk);
+        std::unique_lock lock(FrameSync);
+        NetworkManager::cond.wait(lock);
 
         if (glfwGetTime() - t0 <= 1.0) {
             continue;

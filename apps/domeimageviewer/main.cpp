@@ -79,7 +79,7 @@ namespace {
 using namespace sgct;
 
 void readImage(unsigned char* data, int len) {
-    std::unique_lock lk(imageMutex);
+    const std::unique_lock lock(imageMutex);
 
     std::unique_ptr<Image> img = std::make_unique<Image>();
     try {
@@ -123,7 +123,7 @@ void startDataTransfer() {
 }
 
 void uploadTexture() {
-    std::unique_lock lk(imageMutex);
+    const std::unique_lock lock(imageMutex);
 
     if (transImages.empty()) {
         return;

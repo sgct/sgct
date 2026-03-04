@@ -47,7 +47,7 @@ ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
 
 ScreenCapture::~ScreenCapture() {
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
-        // kill threads that are still running
+        // Kill threads that are still running
         if (info.captureThread) {
             info.captureThread->join();
             info.captureThread = nullptr;
@@ -72,7 +72,7 @@ void ScreenCapture::resize(ivec2 resolution) {
     const std::unique_lock lock(_mutex);
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         if (info.frameBufferImage) {
-            // kill threads that are still running
+            // Kill threads that are still running
             if (info.captureThread) {
                 info.captureThread->join();
                 info.captureThread = nullptr;
@@ -136,7 +136,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         );
     }
     else {
-        // set the target framebuffer to read
+        // Set the target framebuffer to read
         switch (capSrc) {
             case CaptureSource::BackBuffer:
                 glReadBuffer(GL_BACK);
@@ -162,7 +162,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     if (memoryPtr) {
         std::memcpy(imPtr->data(), memoryPtr, _dataSize);
 
-        // save the image
+        // Save the image
         _captureInfos[threadIndex].isRunning = true;
         _captureInfos[threadIndex].captureThread = std::make_unique<std::thread>(
             [](void* arg) {
@@ -231,7 +231,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
 int ScreenCapture::availableCaptureThread() {
     while (true) {
         for (unsigned int i = 0; i < _captureInfos.size(); i++) {
-            // check if thread is dead
+            // Check if thread is dead
             if (_captureInfos[i].captureThread == nullptr) {
                 return i;
             }

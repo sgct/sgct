@@ -141,11 +141,11 @@ void EquirectangularProjection::initVBO() {
 }
 
 void EquirectangularProjection::initViewports() {
-    // radius is needed to calculate the distance to all view planes
+    // Radius is needed to calculate the distance to all view planes
     // const float radius = _diameter / 2.f;
     const float radius = 1.f;
 
-    // setup base viewport that will be rotated to create the other cubemap views
+    // Setup base viewport that will be rotated to create the other cubemap views
     // +Z face
     const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);

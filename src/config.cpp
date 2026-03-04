@@ -2035,12 +2035,12 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
             std::istreambuf_iterator<char>()
         );
         const config::Cluster cluster = readJsonConfig(contents);
-        // and reset the current working directory to the old value
+        // And reset the current working directory to the old value
         std::filesystem::current_path(oldPwd);
         return cluster;
     }
     catch (const nlohmann::json::exception& e) {
-        // and reset the current working directory to the old value
+        // And reset the current working directory to the old value
         std::filesystem::current_path(oldPwd);
         throw Err(6082, e.what());
     }
@@ -2061,37 +2061,44 @@ config::Cluster readJsonConfig(std::string_view configuration) {
 }
 
 config::Cluster defaultCluster() {
-    config::PlanarProjection::FOV fov;
-    fov.down = -(90.f / (16.f / 9.f)) / 2.f;
-    fov.left = -90.f / 2.f;
-    fov.right = 90.f / 2.f;
-    fov.up = (90.f / (16.f / 9.f)) / 2.f;
-    config::PlanarProjection proj;
-    proj.fov = fov;
+    config::PlanarProjection::FOV fov = {
+        .down = -(90.f / (16.f / 9.f)) / 2.f,
+        .left = -90.f / 2.f,
+        .right = 90.f / 2.f,
+        .up = (90.f / (16.f / 9.f)) / 2.f
+    };
+    config::PlanarProjection proj = {
+        .fov = fov
+    };
 
-    config::Viewport viewport;
-    viewport.projection = proj;
+    config::Viewport viewport = {
+        .projection = proj
+    };
 
-    config::Window window;
-    window.id = 0;
-    window.isFullScreen = false;
-    window.size = ivec2{ 1280, 720 };
-    window.viewports.push_back(viewport);
+    config::Window window = {
+        .size = ivec2{ 1280, 720 },
+        .viewports = { viewport },
+        .id = 0,
+        .isFullScreen = false
+    };
 
-    config::Node node;
-    node.address = "localhost";
-    node.port = 20401;
-    node.windows.push_back(window);
+    config::Node node = {
+        .address = "localhost",
+        .port = 20401,
+        .windows = { window }
+    };
 
-    config::User user;
-    user.eyeSeparation = 0.06f;
-    user.position = vec3{ 0.f, 0.f, 0.f };
+    config::User user = {
+        .eyeSeparation = 0.06f,
+        .position = vec3{ 0.f, 0.f, 0.f }
+    };
 
-    config::Cluster res;
-    res.success = true;
-    res.masterAddress = "localhost";
-    res.nodes.push_back(node);
-    res.users.push_back(user);
+    config::Cluster res = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = { node },
+        .users = { user }
+    };
 
     return res;
 }

@@ -69,7 +69,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
 
     const glm::mat4 parentTrans = glm::make_mat4(parent->transform().values.data());
 
-    // create matrixes
+    // Create matrixes
     const glm::mat4 sensorTransMat = glm::translate(
         glm::mat4(1.f),
         glm::make_vec3(&vec.x)
@@ -120,7 +120,7 @@ void TrackingDevice::setAnalogValue(const double* array, int size) {
 }
 
 void TrackingDevice::setOrientation(float xRot, float yRot, float zRot) {
-    // create rotation quaternion based on x, y, z rotations
+    // Create rotation quaternion based on x, y, z rotations
     glm::quat rotQuat = glm::quat(1.f, 0.f, 0.f, 0.f);
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.f, 0.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));

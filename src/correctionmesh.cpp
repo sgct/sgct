@@ -32,69 +32,71 @@
 
 #define Err(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 
-namespace sgct {
-
 namespace {
+    using namespace sgct;
 
-correction::Buffer setupMaskMesh(const vec2& pos, const vec2& size) {
-    correction::Buffer buff;
-    buff.geometryType = GL_TRIANGLE_STRIP;
-    buff.indices = { 0, 3, 1, 2 };
-    buff.vertices = {
-        {
-            2.f * pos.x - 1.f, 2.f * pos.y - 1.f,
-            0.f, 0.f,
-            1.f, 1.f, 1.f, 1.f
-        },
-        {
-            2.f * (pos.x + size.x) - 1.f, 2.f * pos.y - 1.f,
-            1.f, 0.f,
-            1.f, 1.f, 1.f, 1.f
-        },
-        {
-            2.f * (pos.x + size.x) - 1.f, 2.f * (pos.y + size.y) - 1.f,
-            1.f, 1.f,
-            1.f, 1.f, 1.f, 1.f
-        },
-        {
-            2.f * pos.x - 1.f, 2.f * (pos.y + size.y) - 1.f,
-            0.f, 1.f,
-            1.f, 1.f, 1.f, 1.f
-        }
-    };
-    return buff;
-}
+    correction::Buffer setupMaskMesh(const vec2& pos, const vec2& size) {
+        correction::Buffer buff = {
+            .vertices = {
+                {
+                    2.f * pos.x - 1.f, 2.f * pos.y - 1.f,
+                    0.f, 0.f,
+                    1.f, 1.f, 1.f, 1.f
+                },
+                {
+                    2.f * (pos.x + size.x) - 1.f, 2.f * pos.y - 1.f,
+                    1.f, 0.f,
+                    1.f, 1.f, 1.f, 1.f
+                },
+                {
+                    2.f * (pos.x + size.x) - 1.f, 2.f * (pos.y + size.y) - 1.f,
+                    1.f, 1.f,
+                    1.f, 1.f, 1.f, 1.f
+                },
+                {
+                    2.f * pos.x - 1.f, 2.f * (pos.y + size.y) - 1.f,
+                    0.f, 1.f,
+                    1.f, 1.f, 1.f, 1.f
+                }
+            },
+            .indices = { 0, 3, 1, 2 },
+            .geometryType = GL_TRIANGLE_STRIP
+        };
+        return buff;
+    }
 
-correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
-    correction::Buffer buff;
-    buff.geometryType = GL_TRIANGLE_STRIP;
-    buff.indices = { 0, 3, 1, 2 };
-    buff.vertices = {
-        {
-            2.f * pos.x - 1.f, 2.f * pos.y - 1.f,
-            pos.x, pos.y,
-            1.f, 1.f, 1.f, 1.f
-        },
-        {
-            2.f * (pos.x + size.x) - 1.f, 2.f * pos.y - 1.f,
-            pos.x + size.x, pos.y,
-            1.f, 1.f, 1.f, 1.f
-        },
-        {
-            2.f * (pos.x + size.x) - 1.f, 2.f * (pos.y + size.y) - 1.f,
-            1.f * size.x + pos.x, 1.f * size.y + pos.y,
-            1.f, 1.f, 1.f, 1.f
-        },
-        {
-            2.f * pos.x - 1.f, 2.f * (pos.y + size.y) - 1.f,
-            pos.x, pos.y + size.y,
-            1.f, 1.f, 1.f, 1.f
-        }
-    };
-    return buff;
-}
-
+    correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
+        correction::Buffer buff = {
+            .vertices = {
+                {
+                    2.f * pos.x - 1.f, 2.f * pos.y - 1.f,
+                    pos.x, pos.y,
+                    1.f, 1.f, 1.f, 1.f
+                },
+                {
+                    2.f * (pos.x + size.x) - 1.f, 2.f * pos.y - 1.f,
+                    pos.x + size.x, pos.y,
+                    1.f, 1.f, 1.f, 1.f
+                },
+                {
+                    2.f * (pos.x + size.x) - 1.f, 2.f * (pos.y + size.y) - 1.f,
+                    1.f * size.x + pos.x, 1.f * size.y + pos.y,
+                    1.f, 1.f, 1.f, 1.f
+                },
+                {
+                    2.f * pos.x - 1.f, 2.f * (pos.y + size.y) - 1.f,
+                    pos.x, pos.y + size.y,
+                    1.f, 1.f, 1.f, 1.f
+                }
+            },
+            .indices = { 0, 3, 1, 2 },
+            .geometryType = GL_TRIANGLE_STRIP
+        };
+        return buff;
+    }
 } // namespace
+
+namespace sgct {
 
 CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
                                                          const correction::Buffer& buffer)
@@ -160,7 +162,7 @@ CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     // Yes, glDeleteVertexArrays and glDeleteBuffers work when passing 0, but this check
     // is a standin for whether they were created in the first place. This would only fail
-    // if there is no OpenGL context, which would cause these functions to fail, too.
+    // if there is no OpenGL context, which would cause these functions to fail, too
     if (vao) {
         glDeleteVertexArrays(1, &vao);
         vao = 0;
@@ -184,14 +186,14 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
     const vec2& parentPos = parent.position();
     const vec2& parentSize = parent.size();
 
-    // generate unwarped mask
+    // Generate unwarped mask
     {
         ZoneScopedN("Create simple mask");
         const Buffer buf = setupSimpleMesh(parentPos, parentSize);
         _quadGeometry = CorrectionMeshGeometry(buf);
     }
 
-    // generate unwarped mesh for mask
+    // Generate unwarped mesh for mask
     if (needsMaskGeometry) {
         ZoneScopedN("Create unwarped mask");
         Log::Debug("CorrectionMesh: Creating mask mesh");
@@ -200,7 +202,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
         _maskGeometry = CorrectionMeshGeometry(buf);
     }
 
-    // fallback if no mesh is provided
+    // Fallback if no mesh is provided
     if (path.empty()) {
         const Buffer buf = setupSimpleMesh(parentPos, parentSize);
         _warpGeometry = CorrectionMeshGeometry(buf);
@@ -209,7 +211,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
 
     Buffer buf;
 
-    // find a suitable format
+    // Find a suitable format
     if (path.extension() == ".sgc") {
         buf = generateScissMesh(path, parent);
     }
@@ -229,7 +231,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
         const float aspectRatio = parent.window().aspectRatio();
         buf = generatePaulBourkeMesh(path, parentPos, parentSize, aspectRatio);
 
-        // force regeneration of dome render quad
+        // Force regeneration of dome render quad
         if (Viewport* vp = dynamic_cast<Viewport*>(&parent); vp) {
             auto fishPrj = dynamic_cast<FisheyeProjection*>(vp->nonLinearProjection());
             if (fishPrj) {

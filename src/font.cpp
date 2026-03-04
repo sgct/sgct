@@ -87,7 +87,7 @@ namespace {
         );
         std::fill(res.pixels.begin(), res.pixels.end(), static_cast<unsigned char>(0));
 
-        // read alpha to one channel and stroke - alpha in the second channel. We use the
+        // Read alpha to one channel and stroke - alpha in the second channel. We use the
         // ?: operator so that value which we use will be 0 if we are in the padding zone,
         // and whatever is the the Freetype bitmap otherwise
         const int offsetWidth = (res.gd.strokeBitmap->width - res.gd.bitmap->width) / 2;
@@ -166,14 +166,14 @@ namespace {
             return std::nullopt;
         }
 
-        // load pixel data
+        // Load pixel data
         const PixelDataResult res = getPixelData(library, face, strokeSize);
         if (!res.success) {
             return std::nullopt;
         }
 
         sgct::text::Font::FontFaceData ffd;
-        // create texture
+        // Create texture
         if (charIndex > 0 && c != ' ') {
             ffd.texId = generateTexture(res.width, res.height, res.pixels);
         }
@@ -181,7 +181,7 @@ namespace {
             ffd.texId = 0;
         }
 
-        // setup geometry data
+        // Setup geometry data
         ffd.pos.x = static_cast<float>(res.gd.bitmapGlyph->left);
         // abock (2010-10-19) Don't remove this variable;  if the expression is directly
         // inserted in the static_cast, something goes wrong when rows > top and things
@@ -191,7 +191,7 @@ namespace {
         ffd.size.x = static_cast<float>(res.width);
         ffd.size.y = static_cast<float>(res.height);
 
-        // delete the stroke glyph
+        // Delete the stroke glyph
         FT_Stroker_Done(res.gd.stroker);
         FT_Done_Glyph(res.gd.strokeGlyph);
 
@@ -257,7 +257,7 @@ void Font::setStrokeSize(int size) {
 
 const Font::FontFaceData& Font::fontFaceData(char c) {
     if (!_fontFaceData.contains(c)) {
-        // check if c does not exist in map
+        // Check if c does not exist in map
         createCharacter(c);
     }
     return _fontFaceData[c];

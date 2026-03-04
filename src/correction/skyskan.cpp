@@ -127,11 +127,11 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         throw Err(2091, std::format("Data reading error in file '{}'", path));
     }
 
-    // create frustums and projection matrices
+    // Create frustums and projection matrices
     if (!vFov.has_value() || *vFov <= 0.f) {
-        // half the width (radius is one unit, cancels it self out)
+        // Half the width (radius is one unit, cancels it self out)
         const float hw = std::tan(glm::radians<float>(*hFov) / 2.f);
-        // half height
+        // Half height
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(std::atan(hh));
 
@@ -168,7 +168,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
             const unsigned int i2 = (r + 1) * sizeX + (c + 1);
             const unsigned int i3 = (r + 1) * sizeX + c;
 
-            // triangle 1
+            // Triangle 1
             if (buf.vertices[i0].x != -1.f && buf.vertices[i0].y != -1.f &&
                 buf.vertices[i1].x != -1.f && buf.vertices[i1].y != -1.f &&
                 buf.vertices[i2].x != -1.f && buf.vertices[i2].y != -1.f)
@@ -178,7 +178,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
                 buf.indices.push_back(i2);
             }
 
-            // triangle 2
+            // Triangle 2
             if (buf.vertices[i0].x != -1.f && buf.vertices[i0].y != -1.f &&
                 buf.vertices[i2].x != -1.f && buf.vertices[i2].y != -1.f &&
                 buf.vertices[i3].x != -1.f && buf.vertices[i3].y != -1.f)
@@ -194,7 +194,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         const vec2& s = parent.size();
         const vec2& p = parent.position();
 
-        // convert to [-1, 1]
+        // Convert to [-1, 1]
         vertex.x = 2.f * (vertex.x * s.x + p.x) - 1.f;
         vertex.y = 2.f * ((1.f - vertex.y) * s.y + p.y) - 1.f;
 

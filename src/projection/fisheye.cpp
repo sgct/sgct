@@ -80,7 +80,7 @@ FisheyeProjection::~FisheyeProjection() {
 }
 
 void FisheyeProjection::update(const vec2& size) const {
-    // do the cropping in the fragment shader and not by changing the vbo
+    // Do the cropping in the fragment shader and not by changing the vbo
 
     const float cropAspect =
         ((1.f - 2.f * _cropBottom) + (1.f - 2.f * _cropTop)) /
@@ -123,7 +123,7 @@ void FisheyeProjection::render(const BaseViewport& viewport,
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // if for some reson the active texture has been reset
+    // If for some reson the active texture has been reset
     glBindTextureUnit(0, _textures.cubeMapColor);
 
     if (Engine::instance().settings().useDepthTexture) {
@@ -191,7 +191,7 @@ void FisheyeProjection::renderCubemap(FrustumMode frustumMode) const {
 
         renderCubeFace(vp, idx, mode);
 
-        // re-calculate depth values from a cube to spherical model
+        // Recalculate depth values from a cube to spherical model
         if (Engine::instance().settings().useDepthTexture) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
@@ -263,10 +263,10 @@ void FisheyeProjection::setFOV(float angle) {
 }
 
 void FisheyeProjection::setCropFactors(float left, float right, float bottom, float top) {
-    _cropLeft = glm::clamp(left, 0.f, 1.f);
-    _cropRight = glm::clamp(right, 0.f, 1.f);
-    _cropBottom = glm::clamp(bottom, 0.f, 1.f);
-    _cropTop = glm::clamp(top, 0.f, 1.f);
+    _cropLeft = std::clamp(left, 0.f, 1.f);
+    _cropRight = std::clamp(right, 0.f, 1.f);
+    _cropBottom = std::clamp(bottom, 0.f, 1.f);
+    _cropTop = std::clamp(top, 0.f, 1.f);
 }
 
 void FisheyeProjection::setOffset(vec3 offset) const {
@@ -310,10 +310,10 @@ void FisheyeProjection::initVBO() {
 }
 
 void FisheyeProjection::initViewports() {
-    // radius is needed to calculate the distance to all view planes
+    // Radius is needed to calculate the distance to all view planes
     const float radius = _diameter / 2.f;
 
-    // setup base viewport that will be rotated to create the other cubemap views
+    // Setup base viewport that will be rotated to create the other cubemap views
     // +Z face
     const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
@@ -325,12 +325,13 @@ void FisheyeProjection::initViewports() {
     const float topFaceLimit = 2.f * glm::degrees(std::acos(1.f / std::sqrt(3.f)));
 
 
-    // four faces doesn't cover more than 180 degrees
+    // Four faces doesn't cover more than 180 degrees
     if (_fov > 180.f && _fov <= fiveFaceLimit) {
         _method = FisheyeMethod::FiveFaceCube;
     }
 
-    float cropLevel = 0.5f; // how much of the side faces that are used
+    // How much of the side faces that are used
+    float cropLevel = 0.5f;
     float projectionOffset = 0.f;
     if (_method == FisheyeMethod::FiveFaceCube &&
         _fov >= topFaceLimit && _fov <= fiveFaceLimit)
@@ -580,7 +581,7 @@ void FisheyeProjection::initViewports() {
 
 void FisheyeProjection::initShaders() {
     if (_isStereo || _preferedMonoFrustumMode != FrustumMode::Mono) {
-        // if any frustum mode other than Mono (or stereo)
+        // If any frustum mode other than Mono (or stereo)
         _isOffAxis = true;
     }
 
@@ -594,12 +595,12 @@ void FisheyeProjection::initShaders() {
                                   bool useNormal_, bool usePosition_) -> uint16_t
         {
             // Injective mapping from <bool, bool, bool, bool.> to uint8_t
-                uint8_t value = 0;
-                value |= useOffAxis_ ? 0b0000 : 0b0001;
-                value |= useDepth_ ? 0b0000 : 0b0010;
-                value |= useNormal_ ? 0b0000 : 0b0100;
-                value |= usePosition_ ? 0b0000 : 0b1000;
-                return value;
+            uint8_t value = 0;
+            value |= useOffAxis_ ? 0b0000 : 0b0001;
+            value |= useDepth_ ? 0b0000 : 0b0010;
+            value |= useNormal_ ? 0b0000 : 0b0100;
+            value |= usePosition_ ? 0b0000 : 0b1000;
+            return value;
         };
 
         switch (tuple(isOffAxis, useDepth, useNormal, usePosition)) {
@@ -665,7 +666,7 @@ void FisheyeProjection::initShaders() {
         _shader.addFragmentShader(shaders_fisheye::RotationFourFaceCubeFun);
     }
     else {
-        // five or six face
+        // Five or six face
         _shader.addFragmentShader(shaders_fisheye::RotationFiveSixFaceCubeFun);
     }
 

@@ -50,7 +50,7 @@ void ShaderManager::addShaderProgram(std::string name, std::string_view vertexSr
         );
     }
 
-    // If shader don't exist, create it and add to container
+    // If the shader doen't exist, create it and add to container
     ShaderProgram sp = ShaderProgram(std::move(name));
     sp.addVertexShader(vertexSrc);
     sp.addFragmentShader(fragmentSrc);

@@ -54,7 +54,7 @@ namespace {
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
             lineWidth += ffd.distToNextChar;
         }
-        // add last char width
+        // Add last char width
         const char c = line.c_str()[line.length() - 1];
         const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
         lineWidth += ffd.size.x;

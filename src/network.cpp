@@ -72,7 +72,7 @@ namespace {
                 attempts++;
             }
             else {
-                // capture error
+                // Capture error
                 iResult = tmpRes;
                 break;
             }
@@ -86,9 +86,9 @@ namespace {
     void setOptions(SGCT_SOCKET socket, sgct::Network::ConnectionType connectionType) {
         constexpr int TrueFlag = 1;
 
-        // insert no delay, disable nagle's algorithm
+        // Insert no delay, disable nagle's algorithm
         const int delayRes = setsockopt(
-            socket,       // socket affected
+            socket,        // socket affected
             IPPROTO_TCP,   // set option at TCP level
             TCP_NODELAY,   // name of option
             reinterpret_cast<const char*>(&TrueFlag), // the cast is historical cruft
@@ -102,7 +102,7 @@ namespace {
             );
         }
 
-        // set timeout
+        // Set timeout
         constexpr int Timeout = 0; // infinite
         setsockopt(
             socket,
@@ -124,7 +124,7 @@ namespace {
         }
 
         if (connectionType != sgct::Network::ConnectionType::SyncConnection) {
-            // set on all connections types, cluster nodes sends data several times per
+            // Set on all connections types, cluster nodes sends data several times per
             // second so there is no need so send alive packages
             const int iResult = setsockopt(
                 socket,
@@ -257,7 +257,8 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
             else {
                 Log::Debug(std::format("Connect error code: {}", SGCT_ERRNO));
             }
-            std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
+            // Wait for next attempt
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
 
@@ -281,7 +282,7 @@ void Network::connectionHandler() {
                     _commThread = nullptr;
                 }
 
-                // start a new connection enabling the client to reconnect
+                // Start a new connection enabling the client to reconnect
                 _commThread = std::make_unique<std::thread>([this]() {
                     try {
                         communicationHandler();
@@ -292,7 +293,7 @@ void Network::connectionHandler() {
                 });
             }
 
-            // wait for signal until next iteration in loop
+            // Wait for signal until next iteration in loop
             if (!_shouldTerminate) {
                 std::unique_lock lk(_connectionMutex);
                 _startConnectionCond.wait(lk);
@@ -382,16 +383,16 @@ bool Network::isUpdated() const {
     bool state = false;
     if (_isServer) {
         state = ClusterManager::instance().firmFrameLockSyncStatus() ?
-            // master sends first -> so on reply they should be equal
+            // Master sends first -> so on reply they should be equal
             (_currentRecvFrame == _currentSendFrame) :
-            // don't check if loose sync
+            // Don't check if loose sync
             true;
     }
     else {
         state = ClusterManager::instance().firmFrameLockSyncStatus() ?
-            // clients receive first and then send so the prev should be equal to the send
+            // Clients receive first and then send so the prev should be equal to the send
             (_previousRecvFrame == _currentSendFrame) :
-            // if loose sync just check if updated
+            // If loose sync just check if updated
             _isUpdated.load();
     }
 
@@ -450,7 +451,7 @@ void Network::setRecvFrame(int i) {
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
                            uint32_t& currSize)
 {
-    // only grow
+    // Only grow
     if (reqSize <= currSize) {
         return;
     }
@@ -482,7 +483,7 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
                 );
             }
 
-            // resize buffer if needed
+            // Resize buffer if needed
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
             updateBuffer(
                 _uncompressBuffer,
@@ -508,12 +509,12 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
     if (iResult == static_cast<int>(HeaderSize)) {
         _headerId = header[0];
         if (_headerId == DataId) {
-            // parse the package _id
+            // Parse the package _id
             std::memcpy(&packageId, header + 1, sizeof(packageId));
             std::memcpy(&dataSize, header + 5, sizeof(dataSize));
             std::memcpy(&uncompressedDataSize, header + 9, sizeof(uncompressedDataSize));
 
-            // resize buffer if needed
+            // Resize buffer if needed
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
             updateBuffer(
                 _uncompressBuffer,
@@ -538,7 +539,7 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
 int Network::readExternalMessage() {
     long iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
 
-    // if read fails try for x attempts
+    // If read fails try for x attempts
     int attempts = 1;
 #ifdef WIN32
     while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
@@ -560,7 +561,7 @@ void Network::communicationHandler() {
         return;
     }
 
-    // listen for client if server
+    // Listen for client if server
     if (_isServer) {
         Log::Info(
             std::format("Waiting for client {} to connect on port {}", _id, _port)
@@ -598,7 +599,7 @@ void Network::communicationHandler() {
         _updateCallback(*this);
     }
 
-    // init buffers
+    // Init buffers
     std::array<char, HeaderSize> RecvHeader = {};
     std::memset(RecvHeader.data(), DefaultId, HeaderSize);
 
@@ -611,7 +612,7 @@ void Network::communicationHandler() {
     // Receive data until the server closes the connection
     int iResult = 0;
     do {
-        // resize buffer request
+        // Resize buffer request
         if (type() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
             Log::Info(std::format(
                 "Re-sizing buffer {} -> {}", _bufferSize, _requestedSize.load()
@@ -645,7 +646,7 @@ void Network::communicationHandler() {
             iResult = readExternalMessage();
         }
 
-        // handle failed receive
+        // Handle failed receive
         if (iResult == 0) {
             setConnectedStatus(false);
             Log::Info(std::format("TCP connection {} closed", _id));
@@ -659,7 +660,7 @@ void Network::communicationHandler() {
         }
 
         if (type() == ConnectionType::SyncConnection) {
-            // handle sync disconnect
+            // Handle sync disconnect
             if (isDisconnectPackage(RecvHeader.data())) {
                 setConnectedStatus(false);
 
@@ -672,7 +673,7 @@ void Network::communicationHandler() {
                 Log::Info(std::format("Client {} terminated connection", _id));
                 break;
             }
-            // handle sync communication
+            // Handle sync communication
             if (_headerId == DataId && decoderCallback) {
                 if (dataSize > 0) {
                     decoderCallback(_recvBuffer.data(), dataSize);
@@ -685,7 +686,7 @@ void Network::communicationHandler() {
                 NetworkManager::cond.notify_all();
             }
         }
-        // handle data transfer communication
+        // Handle data transfer communication
         else if (type() == ConnectionType::DataTransfer) {
             // Disconnect if requested
             if (isDisconnectPackage(RecvHeader.data())) {
@@ -697,7 +698,7 @@ void Network::communicationHandler() {
                 if (_headerId == DataId && _packageDecoderCallback && dataSize > 0) {
                     _packageDecoderCallback(_recvBuffer.data(), dataSize, packageId, _id);
 
-                    // send acknowledge
+                    // Send acknowledge
                     uint32_t pLength = 0;
                     std::array<char, HeaderSize> sendBuffer = {};
                     sendBuffer[0] = Ack;
@@ -766,11 +767,11 @@ void Network::closeNetwork(bool forced) {
     _acknowledgeCallback = nullptr;
     _packageDecoderCallback = nullptr;
 
-    // release conditions
+    // Release conditions
     NetworkManager::cond.notify_all();
     _startConnectionCond.notify_all();
 
-    // blocking sockets -> cannot wait for thread so just kill it brutally
+    // Blocking sockets -> cannot wait for thread so just kill it brutally
 
     if (_commThread && !forced) {
         _commThread->join();
@@ -806,7 +807,7 @@ void Network::initShutdown() {
     _isConnected = false;
     _shouldTerminate = true;
 
-    // wake up the connection handler thread (in order to finish)
+    // Wake up the connection handler thread (in order to finish)
     if (_isServer) {
         _startConnectionCond.notify_all();
     }

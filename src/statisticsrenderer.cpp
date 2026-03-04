@@ -239,7 +239,7 @@ void StatisticsRenderer::update() {
         std::fill(hValues.begin(), hValues.end(), 0);
 
         for (const double d : sValues) {
-            // convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
+            // Convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
             const double dp = d / scale;
             const int dpScaled = static_cast<int>(dp * Histogram::Bins);
             const int bin = std::clamp(dpScaled, 0, Histogram::Bins - 1);
@@ -353,7 +353,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         glBindVertexArray(_lines.staticDraw.vao);
 
-        // draw background (1024x1024 canvas)
+        // Draw background (1024x1024 canvas)
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticBackground.x);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -361,30 +361,30 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticGrid.x);
         glDrawArrays(GL_LINES, 4, _lines.staticDraw.nLines * 2);
 
-        // zero line, 60hz & 30hz
+        // Zero line, 60hz & 30hz
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticFrequency.x);
         glDrawArrays(GL_LINES, 4 + _lines.staticDraw.nLines * 2, 6);
 
         glBindVertexArray(_lines.dynamicDraw.vao);
 
-        // frametime
+        // Frametime
         constexpr int StatsLength = Engine::Statistics::HistoryLength;
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorFrameTime.x);
         glDrawArrays(GL_LINE_STRIP, 0 * StatsLength, StatsLength);
 
-        // drawtime
+        // Drawtime
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorDrawTime.x);
         glDrawArrays(GL_LINE_STRIP, 1 * StatsLength, StatsLength);
 
-        // synctime
+        // Synctime
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorSyncTime.x);
         glDrawArrays(GL_LINE_STRIP, 2 * StatsLength, StatsLength);
 
-        // looptimemin
+        // Looptimemin
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorLoopTimeMin.x);
         glDrawArrays(GL_LINE_STRIP, 3 * StatsLength, StatsLength);
 
-        // looptimemax
+        // Looptimemax
         glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorLoopTimeMax.x);
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 

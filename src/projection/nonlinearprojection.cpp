@@ -124,7 +124,7 @@ void NonLinearProjection::initTextures(unsigned int internalFormat) {
         ));
 
         if (_useDepthTransformation) {
-            // generate swap textures
+            // Generate swap textures
             generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32);
             Log::Debug(std::format(
                 "{}x{} depth swap map texture (id: {}) generated",
@@ -278,7 +278,7 @@ void NonLinearProjection::attachTextures(int face) const {
 }
 
 void NonLinearProjection::blitCubeFace(int face) const {
-    // copy AA-buffer to "regular"/non-AA buffer
+    // Copy AA-buffer to "regular"/non-AA buffer
     _cubeMapFbo->bindBlit();
     attachTextures(face);
     _cubeMapFbo->blit();
@@ -322,7 +322,7 @@ void NonLinearProjection::renderCubeFace(const BaseViewport& vp, int idx,
     Engine::instance().drawFunction()(renderData);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    // blit MSAA fbo to texture
+    // Blit MSAA fbo to texture
     if (_cubeMapFbo->isMultiSampled()) {
         blitCubeFace(idx);
     }

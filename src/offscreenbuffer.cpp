@@ -64,8 +64,8 @@ OffScreenBuffer::~OffScreenBuffer() {
 }
 
 void OffScreenBuffer::createFBO(int width, int height, int samples) {
-    // @TODO (abock, 2019-11-15)  When calling this function initially with checking
-    // FBO mode enabled, the bind functions further down will trigger missing attachment
+    // @TODO (abock, 2019-11-15)  When calling this function initially with checking FBO
+    // mode enabled, the bind functions further down will trigger missing attachment
     // warnings due to the fact that SGCT handles the creation of the FBO and attachments
     // separately.  This should be fixed properly, but that is going to be a problem for
     // later as it doesn't impact the rendering.  All FBOs will be complete before we
@@ -77,7 +77,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     _size = ivec2{ width, height };
     _isMultiSampled = samples > 1;
 
-    // create a multisampled buffer
+    // Create a multisampled buffer
     if (_isMultiSampled) {
         GLint maxSamples = 0;
         glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
@@ -88,18 +88,18 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
         Log::Debug(std::format("Max samples supported: {}", maxSamples));
 
-        // generate the multisample buffer
+        // Generate the multisample buffer
         glCreateFramebuffers(1, &_multiSampledFrameBuffer);
 
-        // generate render buffer for intermediate diffuse color storage
+        // Generate render buffer for intermediate diffuse color storage
         glCreateRenderbuffers(1, &_colorBuffer);
 
-        // generate render buffer for intermediate normal storage
+        // Generate render buffer for intermediate normal storage
         if (Engine::instance().settings().useNormalTexture) {
             glCreateRenderbuffers(1, &_normalBuffer);
         }
 
-        // generate render buffer for intermediate position storage
+        // Generate render buffer for intermediate position storage
         if (Engine::instance().settings().usePositionTexture) {
             glCreateRenderbuffers(1, &_positionBuffer);
         }

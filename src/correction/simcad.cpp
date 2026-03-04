@@ -46,7 +46,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
 
     // During projector alignment of 33x33 matrix is used to define geometry correction.
     // The corrections are stored in the warp file. This explains why this file only
-    // contains zero's when no warp is applied.
+    // contains zero's when no warp is applied
 
     Buffer buf;
 
@@ -121,7 +121,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     const size_t nCols = static_cast<unsigned int>(nColumnsf);
     const size_t nRows = static_cast<unsigned int>(nRowsf);
 
-    // init to max intensity (opaque white)
+    // Init to max intensity (opaque white)
     Buffer::Vertex vertex;
     vertex.r = 1.f;
     vertex.g = 1.f;
@@ -131,7 +131,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     size_t i = 0;
     for (size_t r = 0; r < nRows; r++) {
         for (size_t c = 0; c < nCols; c++) {
-            // vertex-mapping
+            // Vertex-mapping
             const float u = (static_cast<float>(c) / (nCols - 1.f));
 
             // (abock, 2019-09-01);  Not sure why we are inverting the y coordinate for
@@ -142,11 +142,11 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
             const float x = u + xcorrections[i];
             const float y = v - ycorrections[i];
 
-            // convert to [-1, 1]
+            // Convert to [-1, 1]
             vertex.x = 2.f * (x * size.x + pos.x) - 1.f;
             vertex.y = 2.f * (y * size.y + pos.y) - 1.f;
 
-            // scale to viewport coordinates
+            // Scale to viewport coordinates
             vertex.s = u * size.x + pos.x;
             vertex.t = v * size.y + pos.y;
 
@@ -159,14 +159,14 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     buf.indices.reserve(4 * nRows * nCols);
     for (size_t r = 0; r < nRows - 1; r++) {
         if ((r % 2) == 0) {
-            // even rows
+            // Even rows
             for (size_t c = 0; c < nCols; c++) {
                 buf.indices.push_back(static_cast<unsigned int>(c + r * nCols));
                 buf.indices.push_back(static_cast<unsigned int>(c + (r + 1) * nCols));
             }
         }
         else {
-            // odd rows
+            // Odd rows
             for (size_t c = nCols - 1; c > 0; c--) {
                 buf.indices.push_back(static_cast<unsigned int>(c + (r + 1) * nCols));
                 buf.indices.push_back(static_cast<unsigned int>(c - 1 + r * nCols));

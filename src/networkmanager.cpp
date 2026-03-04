@@ -57,10 +57,10 @@ namespace {
         buffer[0] = sgct::Network::DataId;
         std::memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
 
-        // set uncompressed size to DefaultId since compression is not used
+        // Set uncompressed size to DefaultId since compression is not used
         std::memset(buffer.data() + 9, sgct::Network::DefaultId, sizeof(int));
 
-        // add data to buffer
+        // Add data to buffer
         std::memcpy(
             buffer.data() + sgct::Network::HeaderSize,
             data,
@@ -69,7 +69,6 @@ namespace {
 
         std::memcpy(buffer.data() + 5, &messageLength, sizeof(messageLength));
     }
-
 } // namespace
 
 namespace sgct {
@@ -125,7 +124,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         WSADATA wsaData;
         const int err = WSAStartup(version, &wsaData);
         if (err != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
-            // incorrect WinSock version
+            // Incorrect WinSock version
             WSACleanup();
             throw Err(5020, "Winsock 2.2 startup failed");
         }
@@ -137,7 +136,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     //
     // Get host info
     //
-    // get name & local IPs. retrieves the standard host name for the local computer
+    // Get name & local IPs. retrieves the standard host name for the local computer
     std::array<char, 256> Buffer = {};
     {
         ZoneScopedN("gethostname");
@@ -155,7 +154,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     }
 
     std::string hostName = Buffer.data();
-    // add hostname and adress in lower case
+    // Add hostname and adress in lower case
     std::transform(
         hostName.cbegin(),
         hostName.cend(),
@@ -205,7 +204,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         _localAddresses.push_back(std::move(dns));
     }
 
-    // add the loop-back
+    // Add the loop-back
     _localAddresses.emplace_back("127.0.0.1");
     _localAddresses.emplace_back("localhost");
 
@@ -221,12 +220,12 @@ NetworkManager::~NetworkManager() {
     _isRunning = false;
     cond.notify_all();
 
-    // signal to terminate
+    // Signal to terminate
     for (const std::unique_ptr<Network>& connection : _networkConnections) {
         connection->initShutdown();
     }
 
-    // wait for all nodes callbacks to run
+    // Wait for all nodes callbacks to run
     {
         // @TODO (abock, 2019-12-20) We can probably remove this waiting altogether. The
         // node callbacks are run synchronously with this function, and either way, what
@@ -278,11 +277,11 @@ void NetworkManager::initialize() {
         remoteAddress = cm.masterAddress();
     }
     else {
-        // local (not remote)
+        // Local (not remote)
         remoteAddress = "127.0.0.1";
     }
 
-    // if faking an address (running local) then add it to the search list
+    // If faking an address (running local) then add it to the search list
     if (_mode != NetworkMode::Remote) {
         _localAddresses.push_back(cm.thisNode().address());
     }
@@ -290,7 +289,7 @@ void NetworkManager::initialize() {
     // Add Cluster Functionality
     if (ClusterManager::instance().numberOfNodes() > 1) {
         ZoneScopedN("Create cluster connections");
-        // sanity check if port is used somewhere else
+        // Sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->port();
             if (port == cm.thisNode().syncPort() ||
@@ -306,14 +305,14 @@ void NetworkManager::initialize() {
             }
         }
 
-        // if client
+        // If client
         if (!_isServer) {
             addConnection(cm.thisNode().syncPort(), remoteAddress);
             _networkConnections.back()->setDecodeFunction(
                 std::bind_front(&SharedData::decode, SharedData::instance())
             );
 
-            // add data transfer connection
+            // Add data transfer connection
             if (cm.thisNode().dataTransferPort() > 0 && !remoteAddress.empty()) {
                 addConnection(
                     cm.thisNode().dataTransferPort(),
@@ -326,7 +325,7 @@ void NetworkManager::initialize() {
                     );
                 }
 
-                // acknowledge callback
+                // Acknowledge callback
                 if (_dataTransferAcknowledgeFn) {
                     _networkConnections.back()->setAcknowledgeFunction(
                         _dataTransferAcknowledgeFn
@@ -335,11 +334,11 @@ void NetworkManager::initialize() {
             }
         }
 
-        // add all connections from config file
+        // Add all connections from config file
         for (int i = 0; i < cm.numberOfNodes(); i++) {
             const Node& n = cm.node(i);
 
-            // don't add itself if server
+            // Don't add itself if server
             if (_isServer && !matchesAddress(n.address())) {
                 addConnection(n.syncPort(), remoteAddress);
 
@@ -351,7 +350,7 @@ void NetworkManager::initialize() {
                     }
                 );
 
-                // add data transfer connection
+                // Add data transfer connection
                 if (n.dataTransferPort() != 0 && !remoteAddress.empty()) {
                     addConnection(
                         n.dataTransferPort(),
@@ -364,7 +363,7 @@ void NetworkManager::initialize() {
                         );
                     }
 
-                    // acknowledge callback
+                    // Acknowledge callback
                     if (_dataTransferAcknowledgeFn) {
                         _networkConnections.back()->setAcknowledgeFunction(
                             _dataTransferAcknowledgeFn
@@ -409,7 +408,7 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) const
             const int currentSize =
                 SharedData::instance().dataSize() - static_cast<int>(Network::HeaderSize);
 
-            // iterate counter
+            // Iterate counter
             const int currentFrame = connection->iterateFrameCounter();
 
             unsigned char* dataBlock = SharedData::instance().dataBlock();
@@ -503,7 +502,7 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
     int totalNTransferConnections = static_cast<int>(_dataTransferConnections.size());
     mutex::DataSync.unlock();
 
-    // count connections
+    // Count connections
     for (const std::unique_ptr<Network>& conn : _networkConnections) {
         if (conn->isConnected()) {
             nConnections++;
@@ -532,7 +531,7 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
     _nActiveSyncConnections = nConnectedSync;
     _nActiveDataTransferConnections = nConnectedDataTransfer;
 
-    // if client disconnects then it cannot run anymore
+    // If client disconnects then it cannot run anymore
     if (_nActiveSyncConnections == 0 && !_isServer) {
         _isRunning = false;
     }
@@ -540,14 +539,14 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
 
     if (_isServer) {
         mutex::DataSync.lock();
-        // local copy (thread safe)
+        // Local copy (thread safe)
         const bool allNodesConnected =
             (nConnectedSync == totalNSyncConnections) &&
             (nConnectedDataTransfer == totalNTransferConnections);
         _allNodesConnected = allNodesConnected;
         mutex::DataSync.unlock();
 
-        // send cluster connected message to clients
+        // Send cluster connected message to clients
         if (allNodesConnected) {
             for (Network* syncConnection : _syncConnections) {
                 if (!syncConnection->isConnected()) {
@@ -568,7 +567,7 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
             }
         }
 
-        // wake up the connection handler thread on server
+        // Wake up the connection handler thread on server
         connection.startConnectionConditionVar().notify_all();
     }
 
@@ -578,7 +577,7 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
         }
     }
 
-    // signal done to caller
+    // Signal done to caller
     cond.notify_all();
 }
 
@@ -618,7 +617,7 @@ void NetworkManager::addConnection(int port, std::string address,
     net->setUpdateFunction([this](Network& c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
-    // must be initialized after binding
+    // Must be initialized after binding
     net->initialize();
     _networkConnections.push_back(std::move(net));
 

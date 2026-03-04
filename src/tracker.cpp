@@ -56,7 +56,7 @@ TrackingDevice* Tracker::deviceBySensorId(int id) const {
 void Tracker::setOrientation(quat q) {
     const std::unique_lock lock(mutex::Tracking);
 
-    // create inverse rotation matrix
+    // Create inverse rotation matrix
     glm::mat4 orientation = glm::inverse(glm::mat4_cast(glm::make_quat(&q.x)));
     std::memcpy(
         _orientation.values.data(),

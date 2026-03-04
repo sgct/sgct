@@ -34,12 +34,12 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
     const glm::vec3 upperLeft = glm::make_vec3(&proj.coordinateUpperLeft().x);
     const glm::vec3 upperRight = glm::make_vec3(&proj.coordinateUpperRight().x);
 
-    // calculate viewplane's internal coordinate system bases
+    // Calculate viewplane's internal coordinate system bases
     const glm::vec3 planeX = glm::normalize(upperRight - upperLeft);
     const glm::vec3 planeY = glm::normalize(upperLeft - lowerLeft);
     const glm::vec3 planeZ = glm::normalize(glm::cross(planeX, planeY));
 
-    // calculate plane rotation using Direction Cosine Matrix (DCM)
+    // Calculate plane rotation using Direction Cosine Matrix (DCM)
     const glm::mat3 dcm = glm::mat3(
         glm::dot(planeX, glm::vec3(1.f, 0.f, 0.f)),
         glm::dot(planeX, glm::vec3(0.f, 1.f, 0.f)),
@@ -54,14 +54,14 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
         glm::dot(planeZ, glm::vec3(0.f, 0.f, 1.f))
     );
 
-    // invert & transform
+    // Invert & transform
     const glm::mat3 invDcm = glm::inverse(dcm);
     const glm::vec3 viewPlaneLowerLeft = invDcm * lowerLeft;
     const glm::vec3 viewPlaneUpperRight = invDcm * upperRight;
     const glm::vec3 eyePos = invDcm * b;
 
     // nearFactor = near clipping plane / focus plane dist
-    const float nearF = std::fabs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
+    const float nearF = std::abs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
 
     _frustum.left = (viewPlaneLowerLeft.x - eyePos.x) * nearF;
     _frustum.right = (viewPlaneUpperRight.x - eyePos.x) * nearF;
@@ -73,7 +73,6 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
     glm::mat4 complete = glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(b + o));
     std::memcpy(_viewMatrix.values.data(), glm::value_ptr(complete), sizeof(sgct::mat4));
 
-    // calc frustum matrix
     glm::mat4 frustum = glm::frustum(
         _frustum.left,
         _frustum.right,

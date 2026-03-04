@@ -48,25 +48,25 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
         if (r) {
             auto [x, y, u, v, col, row] = r->values();
 
-            // init to max intensity (opaque white)
+            // Init to max intensity (opaque white)
             Buffer::Vertex vertex;
             vertex.r = 1.f;
             vertex.g = 1.f;
             vertex.b = 1.f;
             vertex.a = 1.f;
 
-            // find dimensions of meshdata
+            // Find dimensions of meshdata
             nCols = std::max(nCols, col);
             nRows = std::max(nRows, row);
 
             x = std::clamp(x, 0.f, 1.f);
             y = std::clamp(y, 0.f, 1.f);
 
-            // convert to [-1, 1]
+            // Convert to [-1, 1]
             vertex.x = 2.f * (pos.x + x * size.x) - 1.f;
 
-            // (abock, 2019-08-30); I'm not sure why the y inversion happens
-            // here. It seems like a mistake, but who knows
+            // (abock, 2019-08-30); I'm not sure why the y inversion happens here. It
+            // seems like a mistake, but who knows
             vertex.y = 2.f * (pos.y + (1.f - y) * size.y) - 1.f;
 
             // scale to viewport coordinates
@@ -91,7 +91,7 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
             //  x----x
             // 0      1
 
-            // add one to actually store the dimensions instead of the largest index
+            // Add one to actually store the dimensions instead of the largest index
             const unsigned int i0 = r * (nCols + 1)+ c;
             const unsigned int i1 = r * (nCols + 1) + (c + 1);
             const unsigned int i2 = (r + 1) * (nCols + 1) + (c + 1);

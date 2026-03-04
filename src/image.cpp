@@ -115,8 +115,8 @@ void Image::save(const std::filesystem::path& filename) {
         throw Err(9002, "Filename not set for saving image");
     }
 
-    // We use libPNG instead of stb as libPNG is faster and we care about how fast
-    // PNGs are written to disk in production
+    // We use libPNG instead of stb as libPNG is faster and we care about how fast PNGs
+    // are written to disk in production
     if (_data == nullptr) {
         throw Err(9006, "Missing image data to save PNG");
     }
@@ -133,7 +133,7 @@ void Image::save(const std::filesystem::path& filename) {
         throw Err(9008, std::format("Cannot create PNG file '{}'", f));
     }
 
-    // initialize stuff
+    // Initialize stuff
     png_structp png = png_create_write_struct(
         PNG_LIBPNG_VER_STRING,
         nullptr,
@@ -197,7 +197,7 @@ void Image::save(const std::filesystem::path& filename) {
     }
     png_write_info(png, info);
 
-    // swap big-endian to little endian
+    // Swap big-endian to little endian
     if (_bytesPerChannel == 2) {
         png_set_swap(png);
     }
@@ -265,7 +265,7 @@ void Image::allocateOrResizeData() {
     }
 
     if (_data && _dataSize != dataSize) {
-        // re-allocate if needed
+        // Reallocate if needed
         delete[] _data;
         _data = nullptr;
         _dataSize = 0;

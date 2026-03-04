@@ -417,9 +417,9 @@ void drop(const std::vector<std::string_view>& path) {
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
 
-    const bool foundJpg = tmpStr.find(".jpg") != std::string::npos;
-    const bool foundJpeg = tmpStr.find(".jpeg") != std::string::npos;
-    const bool foundPng = tmpStr.find(".png") != std::string::npos;
+    const bool foundJpg = tmpStr.contains(".jpg");
+    const bool foundJpeg = tmpStr.contains(".jpeg");
+    const bool foundPng = tmpStr.contains(".png");
     if (foundJpg || foundJpeg || foundPng) {
         imagePaths.push_back(std::string(path[0]));
         transfer = true;

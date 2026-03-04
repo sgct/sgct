@@ -66,7 +66,7 @@ namespace {
     std::function<void(double, double, Window*)> gMouseScrollCallback = nullptr;
     std::function<void(std::vector<std::string_view>)> gDropCallback = nullptr;
 
-    // For feedback: breaks a frame lock wait condition every time interval
+    // For feedback: Breaks a frame lock wait condition every time interval
     // (FrameLockTimeout) in order to print waiting message.
     void updateFrameLockLoop(void*) {
         bool run = true;
@@ -127,7 +127,6 @@ namespace {
 
         return res;
     }
-
 } // namespace
 
 double Engine::Statistics::dt() const {
@@ -178,7 +177,7 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
     // are calling out to client code that (rightly) assumes that the Engine has been
     // created and are calling Engine::instance from they registered callbacks. If this
     // client code is executed from the constructor, the _instance variable has not yet
-    // been set and will therefore cause the logic_error in the instance() function.
+    // been set and will therefore cause the logic_error in the instance() function
     _instance = new Engine(std::move(cluster), std::move(callbacks), arg);
     _instance->initialize();
 }
@@ -308,7 +307,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
 #endif // SGCT_HAS_VRPN
     int clusterId = -1;
-    // check in cluster configuration which it is
+    // Check in cluster configuration which it is
     if (netMode == NetworkManager::NetworkMode::Remote) {
         Log::Debug("Matching ip address to find node in configuration");
 
@@ -416,7 +415,7 @@ void Engine::initialize() {
         }
     }
 
-    // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
+    // Clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -429,7 +428,7 @@ void Engine::initialize() {
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::updateResolutions));
 
-    // if a single node, skip syncing
+    // If a single node, skip syncing
     if (ClusterManager::instance().numberOfNodes() == 1) {
         ClusterManager::instance().setUseIgnoreSync(true);
     }
@@ -554,14 +553,14 @@ void Engine::initialize() {
     text::FontManager::instance().addFont("SGCTFont", std::string(FontName));
 #endif // SGCT_HAS_TEXT
 
-    // init draw buffer resolution
+    // Init draw buffer resolution
     waitForAllWindowsInSwapGroupToOpen();
-    // init swap group if enabled
+    // Init swap group if enabled
     if (thisNode.isUsingSwapGroups()) {
         Window::initNvidiaSwapGroups();
     }
 
-    // init swap barrier is swap groups are active
+    // Init swap barrier is swap groups are active
     Window::setBarrier(true);
     Window::resetSwapGroupFrameNumber();
 
@@ -572,7 +571,7 @@ void Engine::initialize() {
     );
 
 #ifdef SGCT_HAS_VRPN
-    // start sampling tracking data
+    // Start sampling tracking data
     if (isMaster()) {
         TrackingManager::instance().startSampling();
     }
@@ -615,14 +614,14 @@ Engine::~Engine() {
         Log::Debug("Done");
     }
 
-    // de-init window and unbind swapgroups
+    // Deinit window and unbind swapgroups
     // There might not be any thisNode as its creation might have failed
     if (hasNode) {
         const std::vector<std::unique_ptr<Window>>& wins = cm.thisNode().windows();
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::closeWindow));
     }
 
-    // close TCP connections
+    // Close TCP connections
     Log::Debug("Destroying network manager");
     NetworkManager::destroy();
 
@@ -674,7 +673,7 @@ void Engine::frameLockPreStage() {
     NetworkManager& nm = NetworkManager::instance();
 
     const double ts = glfwGetTime();
-    // from server to clients
+    // From server to clients
     using P = std::pair<double, double>;
     std::optional<P> minMax = nm.sync(NetworkManager::SyncMode::SendDataToClients);
     if (minMax) {
@@ -685,12 +684,12 @@ void Engine::frameLockPreStage() {
         addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
     }
 
-    // run only on clients
+    // Run only on clients
     if (nm.isComputerServer() && !ClusterManager::instance().ignoreSync()) {
         return;
     }
 
-    // not server
+    // Not server
     const double t0 = glfwGetTime();
     while (nm.isRunning() && !nm.isSyncComplete()) {
         std::unique_lock lk(FrameSync);
@@ -700,7 +699,7 @@ void Engine::frameLockPreStage() {
             continue;
         }
 
-        // more than a second
+        // More than a second
         const Network& c = nm.syncConnection(0);
         if (_settings.printSyncMessage && !c.isUpdated()) {
             Log::Info(std::format(
@@ -722,7 +721,7 @@ void Engine::frameLockPreStage() {
     }
 
     // A this point all data needed for rendering a frame is received.
-    // Let's signal that back to the master/server.
+    // Let's signal that back to the master/server
     nm.sync(NetworkManager::SyncMode::Acknowledge);
     if (!nm.isComputerServer()) {
         addValue(_statistics.syncTimes, glfwGetTime() - t0);
@@ -733,7 +732,7 @@ void Engine::frameLockPostStage() {
     ZoneScoped;
 
     const NetworkManager& nm = NetworkManager::instance();
-    // post stage
+    // Post stage
     if (ClusterManager::instance().ignoreSync() || !nm.isComputerServer()) {
         return;
     }
@@ -746,7 +745,7 @@ void Engine::frameLockPostStage() {
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
         }
-        // more than a second
+        // More than a second
         for (int i = 0; i < nm.syncConnectionsCount(); i++) {
             if (_settings.printSyncMessage && !nm.connection(i).isUpdated()) {
                 Log::Info(std::format(
@@ -807,7 +806,7 @@ void Engine::exec() {
             SharedData::instance().encode();
         }
         else if (!NetworkManager::instance().isRunning()) {
-            // exit if not running
+            // Exit if not running
             Log::Error("Network disconnected. Exiting");
             break;
         }
@@ -851,13 +850,13 @@ void Engine::exec() {
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("Statistics Update");
-            // wait until the query results are available
+            // Wait until the query results are available
             GLint done = GL_FALSE;
             while (!done) {
                 glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
             }
 
-            // get the query results
+            // Get the query results
             GLuint64 timerStart = 0;
             glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
             GLuint64 timerEnd = 0;
@@ -869,7 +868,7 @@ void Engine::exec() {
             _statisticsRenderer->update();
         }
 
-        // master will wait for nodes render before swapping
+        // Master will wait for nodes render before swapping
         frameLockPostStage();
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : wins) {
@@ -904,7 +903,7 @@ void Engine::exec() {
             std::mem_fn(&Window::updateResolutions)
         );
 
-        // for all windows
+        // For all windows
         _frameCounter++;
         if (_shouldTakeScreenshot) {
             _shotCounter++;
@@ -931,7 +930,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     ClusterManager& cm = ClusterManager::instance();
     Node& thisNode = cm.thisNode();
 
-    // clear the buffers initially
+    // Clear the buffers initially
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
         ZoneScopedN("Clear Windows");
         window->makeOpenGLContextCurrent();
@@ -955,7 +954,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         return;
     }
 
-    // check if swapgroups are supported
+    // Check if swapgroups are supported
 #ifdef WIN32
     const bool hasSwapGroup = glfwExtensionSupported("WGL_NV_swap_group") == GLFW_TRUE;
     Log::Info(

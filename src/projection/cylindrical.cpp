@@ -132,10 +132,10 @@ void CylindricalProjection::initVBO() {
 
     glCreateBuffers(1, &_vbo);
     constexpr std::array<Vertex, 4> v = {
-        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
+        Vertex { -1.f, -1.f, -1.f, 0.f, 0.f },
+        Vertex { -1.f,  1.f, -1.f, 0.f, 1.f },
+        Vertex {  1.f, -1.f, -1.f, 1.f, 0.f },
+        Vertex {  1.f,  1.f, -1.f, 1.f, 1.f }
     };
     glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
 
@@ -152,7 +152,7 @@ void CylindricalProjection::initVBO() {
 }
 
 void CylindricalProjection::initViewports() {
-    // setup base viewport that will be rotated to create the other cubemap views
+    // Setup base viewport that will be rotated to create the other cubemap views
     // +Z face
     const glm::vec4 lowerLeftBase(-_radius, -_radius, _radius, 1.f);
     const glm::vec4 upperLeftBase(-_radius, _radius, _radius, 1.f);

@@ -208,9 +208,8 @@ void CubemapProjection::render(const BaseViewport& viewport,
             // We are using a negative line stride to correct for the y-axis flip going
             // from OpenGL to DirectX. So our start point has to be the beginning of the
             // *last* line of the image as NDI then steps backwards through the image to
-            // send it to the receiver.
-            // So we start at data() (=0), move to the end (+size) and then backtrack one
-            // line (- -line_stride = +line_stride)
+            // send it to the receiver. So we start at data() (=0), move to the end
+            // (+size) and then backtrack one line (- -line_stride = +line_stride)
             _cubeFaces[i].ndi.videoFrame.p_data = reinterpret_cast<uint8_t*>(
                 _cubeFaces[i].ndi.currentVideoBuffer->data() +
                 _cubeFaces[i].ndi.currentVideoBuffer->size() +
@@ -348,10 +347,10 @@ void CubemapProjection::initVBO() {
 
     glCreateBuffers(1, &_vbo);
     constexpr std::array<Vertex, 4> v = {
-        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
+        Vertex { -1.f, -1.f, -1.f, 0.f, 0.f },
+        Vertex { -1.f,  1.f, -1.f, 0.f, 1.f },
+        Vertex {  1.f, -1.f, -1.f, 1.f, 0.f },
+        Vertex {  1.f,  1.f, -1.f, 1.f, 1.f }
     };
     glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
 
@@ -368,10 +367,10 @@ void CubemapProjection::initVBO() {
 }
 
 void CubemapProjection::initViewports() {
-    // distance is needed to calculate the distance to all view planes
+    // Distance is needed to calculate the distance to all view planes
     constexpr float Distance = 1.f;
 
-    // setup base viewport that will be rotated to create the other cubemap views
+    // Setup base viewport that will be rotated to create the other cubemap views
     // +Z face
     const glm::vec4 lowerLeftBase = glm::vec4(-Distance, -Distance, Distance, 1.f);
     const glm::vec4 upperLeftBase = glm::vec4(-Distance, Distance, Distance, 1.f);
@@ -393,7 +392,7 @@ void CubemapProjection::initViewports() {
         glm::vec3(0.f, 0.f, 1.f)
     );
 
-    // right
+    // Right
     {
         glm::vec4 upperRight = upperRightBase;
         upperRight.x = Distance;
@@ -413,7 +412,7 @@ void CubemapProjection::initViewports() {
         );
     }
 
-    // left
+    // Left
     {
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.x = -Distance;
@@ -435,7 +434,7 @@ void CubemapProjection::initViewports() {
         );
     }
 
-    // bottom
+    // Bottom
     {
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.y = -Distance;
@@ -455,7 +454,7 @@ void CubemapProjection::initViewports() {
         );
     }
 
-    // top
+    // Top
     {
         glm::vec4 upperLeft = upperLeftBase;
         upperLeft.y = Distance;
@@ -479,7 +478,7 @@ void CubemapProjection::initViewports() {
         );
     }
 
-    // front
+    // Front
     {
         const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
@@ -491,7 +490,7 @@ void CubemapProjection::initViewports() {
         );
     }
 
-    // back
+    // Back
     {
         const glm::mat4 r = glm::rotate(
             rollRot,

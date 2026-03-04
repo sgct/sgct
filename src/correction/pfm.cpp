@@ -130,7 +130,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
                 vertex.x = 2.f * vertex.x - 1.f;
                 vertex.y = 2.f * vertex.y - 1.f;
 
-                // scale to viewport coordinates
+                // Scale to viewport coordinates
                 if (textureRenderMode) {
                     vertex.s = x + pos.x;
                     vertex.t = y + pos.y;
@@ -150,14 +150,14 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         // Make a triangle strip index list
         for (unsigned int r = 0; r < nRows - 1; r++) {
             if ((r & 1) == 0) {
-                // even rows
+                // Even rows
                 for (unsigned int c = 0; c < nCols; c++) {
                     buf.indices.push_back(c + r * nCols);
                     buf.indices.push_back(c + (r + 1) * nCols);
                 }
             }
             else {
-                // odd rows
+                // Odd rows
                 for (unsigned int c = nCols - 1; c > 0; c--) {
                     buf.indices.push_back(c + (r + 1) * nCols);
                     buf.indices.push_back(c - 1 + r * nCols);

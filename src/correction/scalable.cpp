@@ -426,8 +426,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
 
 
     if (data.perspective.hasFov) {
-        // pitch, yaw, roll.  degrees -> radians
-        // if we don't have a direction, all these values will be 0 anyway
+        // Pitch, yaw, roll:  degrees -> radians
+        // If we don't have a direction, all these values will be 0 anyway
         const glm::quat q = glm::quat(glm::vec3(
             glm::radians(data.perspective.direction.pitch),
             glm::radians(data.perspective.direction.yaw),
@@ -483,9 +483,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         v.g = vertex.intensity / 255.f;
         v.b = vertex.intensity / 255.f;
         v.a = 1.f;
-        //v.s = (1.f - vertex.s) * parent.size().x + parent.position().x;
         v.s = (1.f - vertex.t) * parent.size().x + parent.position().x;
-        //v.t = (1.f - vertex.t) * parent.size().x + parent.position().x;
         v.t = (1.f - vertex.s) * parent.size().x + parent.position().x;
 
         buf.vertices.push_back(v);

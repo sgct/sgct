@@ -23,12 +23,12 @@ namespace {
         unsigned int tex = 0;
         glCreateTextures(GL_TEXTURE_2D, 1, &tex);
 
-        const auto [type, internalFormat] = [](int c) -> std::pair<GLenum, GLenum> {
+        const auto [type, internalFormat] = [](int c) {
             switch (c) {
-                case 1: return { GL_RED, GL_R8 };
-                case 2: return { GL_RG, GL_RG8 };
-                case 3: return { GL_BGR, GL_RGB8 };
-                case 4: return { GL_BGRA, GL_RGBA8 };
+                case 1: return std::pair(GL_RED, GL_R8);
+                case 2: return std::pair(GL_RG, GL_RG8);
+                case 3: return std::pair(GL_BGR, GL_RGB8);
+                case 4: return std::pair(GL_BGRA, GL_RGBA8);
                 default: throw std::logic_error("Unhandled case label");
             }
         }(img.channels());
@@ -108,12 +108,12 @@ unsigned int TextureManager::loadTexture(const std::filesystem::path& filename,
                                          bool interpolate, float anisotropicFilterSize,
                                          int mipmapLevels)
 {
-    // load image
+    // Load image
     Image img;
     img.load(filename);
 
     if (img.data() == nullptr) {
-        // image data not valid
+        // Image data not valid
         return 0;
     }
 

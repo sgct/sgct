@@ -170,7 +170,7 @@ void SphericalMirrorProjection::renderCubemap(FrustumMode frustumMode) const {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         if (_cubeMapFbo->isMultiSampled()) {
-            // blit MSAA fbo to texture
+            // Blit MSAA fbo to texture
             _cubeMapFbo->bindBlit();
             _cubeMapFbo->attachColorTexture(t, GL_COLOR_ATTACHMENT0);
             _cubeMapFbo->blit();
@@ -219,16 +219,16 @@ void SphericalMirrorProjection::initVBO() {
 }
 
 void SphericalMirrorProjection::initViewports() {
-    // radius is needed to calculate the distance to all view planes
+    // Radius is needed to calculate the distance to all view planes
     const float radius = _diameter / 2.f;
 
-    // setup base viewport that will be rotated to create the other cubemap views
+    // Setup base viewport that will be rotated to create the other cubemap views
     // +Z face
     const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
-    // tilt
+    // Tilt
     const glm::mat4 tiltMat = glm::rotate(
         glm::mat4(1.f),
         glm::radians(45.f - _tilt),
@@ -252,7 +252,7 @@ void SphericalMirrorProjection::initViewports() {
         );
     }
 
-    // left
+    // Left
     {
         const glm::mat4 r = glm::rotate(
             tiltMat,
@@ -269,10 +269,10 @@ void SphericalMirrorProjection::initViewports() {
         );
     }
 
-    // bottom
+    // Bottom
     _subViewports.bottom.setEnabled(false);
 
-    // top
+    // Top
     {
         const glm::mat4 r = glm::rotate(
             tiltMat,
@@ -289,7 +289,7 @@ void SphericalMirrorProjection::initViewports() {
         );
     }
 
-    // front
+    // Front
     {
         const glm::vec3 ll = glm::vec3(tiltMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(tiltMat * upperLeftBase);
@@ -301,13 +301,13 @@ void SphericalMirrorProjection::initViewports() {
         );
     }
 
-    // back
+    // Back
     _subViewports.back.setEnabled(false);
 }
 
 void SphericalMirrorProjection::initShaders() {
     if (_isStereo || _preferedMonoFrustumMode != FrustumMode::Mono) {
-        // if any frustum mode other than Mono (or stereo)
+        // If any frustum mode other than Mono (or stereo)
         Log::Warning("Stereo not supported in spherical projection");
     }
 

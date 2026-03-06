@@ -43,17 +43,17 @@ public:
     const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /**
-     * \return the address of this node
+     * \return The address of this node
      */
     const std::string& address() const;
 
     /**
-     * \return the sync port of this node
+     * \return The sync port of this node
      */
     int syncPort() const;
 
     /**
-     * \return the data transfer port of this node
+     * \return The data transfer port of this node
      */
     int dataTransferPort() const;
 

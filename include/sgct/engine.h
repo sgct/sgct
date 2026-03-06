@@ -109,12 +109,12 @@ public:
         double avgDt() const;
 
         /**
-         * \return the minimum frame time (delta time) in the averaging window (seconds)
+         * \return The minimum frame time (delta time) in the averaging window (seconds)
          */
         double minDt() const;
 
         /**
-         * \return the maximum frame time (delta time) in the averaging window (seconds)
+         * \return The maximum frame time (delta time) in the averaging window (seconds)
          */
         double maxDt() const;
     };

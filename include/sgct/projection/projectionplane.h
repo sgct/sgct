@@ -24,17 +24,17 @@ public:
     void offset(const vec3& p);
 
     /**
-     * \return coordinates for the lower left projection plane corner
+     * \return Coordinates for the lower left projection plane corner
      */
     const vec3& coordinateLowerLeft() const;
 
     /**
-     * \return coordinates for the upper left projection plane corner
+     * \return Coordinates for the upper left projection plane corner
      */
     const vec3& coordinateUpperLeft() const;
 
     /**
-     * \return coordinates for the upper right projection plane corner
+     * \return Coordinates for the upper right projection plane corner
      */
     const vec3& coordinateUpperRight() const;
 

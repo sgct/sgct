@@ -71,7 +71,7 @@ public:
     virtual void setUser(User& user);
 
     /**
-     * \return the resolution of the cubemap
+     * \return The resolution of the cubemap
      */
     ivec2 cubemapResolution() const;
 

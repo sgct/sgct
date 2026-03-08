@@ -122,7 +122,7 @@ public:
 
     /**
      * \return Get the scale value (relation between pixel and point size). Normally this
-     *         value is 1.f but 2.f on some retina computers.
+     *         value is 1.f but 2.f on some retina computers
      */
     vec2 scale() const;
 
@@ -346,7 +346,7 @@ private:
      *
      * \param prevWindow The source window whose content should be copied into the
      *        \p window
-     * \param viewport The viewport of the window that should be compied
+     * \param viewport The viewport of the window that should be copied
      * \param mode The frustum that should be used to copy the window contents
      *
      * \pre The \p prevWindow and \p window must be different Window objects

@@ -52,7 +52,7 @@ public:
 
     /**
      * \param port The network port (TCP)
-     * \param address The hostname, IPv4 address or ip6 address
+     * \param address The hostname, IPv4 address or IPv6 address
      * \param isServer Indicates if this connection is a server or client
      * \param t The type of connection
      */

@@ -54,6 +54,7 @@ public:
      * Will create and add a vertex shader to the program.
      *
      * \param src The shader source string
+     *
      * \throw std::runtime_error If the adding of the shaders failed
      */
     void addVertexShader(std::string_view src);
@@ -62,6 +63,7 @@ public:
      * Will create and add a fragment shader to the program.
      *
      * \param src The shader source string
+     *
      * \throw std::runtime_error If the adding of the shaders failed
      */
     void addFragmentShader(std::string_view src);

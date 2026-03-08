@@ -46,6 +46,7 @@ public:
      * \param name Unique name of the shader
      * \param vertexSrc The vertex shader source code
      * \param fragmentSrc The fragment shader source code
+     *
      * \throw std::runtime_error If there was an error creating the shader program
      */
     void addShaderProgram(std::string name, std::string_view vertexSrc,

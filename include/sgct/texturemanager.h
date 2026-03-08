@@ -49,7 +49,7 @@ public:
      * \param anisotropicFilterSize The filter size that is used for the anisotropic
      *        filtering. If this value is 1.f, only bilinear filtering is used
      * \param mipmapLevels The number of mipmap levels that will be generated, setting
-              this value to 1 or less disables mipmaps
+     *        this value to 1 or less disables mipmaps
      * \return The OpenGL name for the texture that was loaded
      */
     unsigned int loadTexture(const Image& img, bool interpolate = true,

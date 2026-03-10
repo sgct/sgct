@@ -470,15 +470,14 @@ namespace sgct {
 
 /**
  * Reads a JSON configuration file from the provided \p filename. If the loading fails an
- * exception is raised, otherwise a valid #Cluster object is returned.
+ * exception is raised, otherwise a valid Cluster object is returned.
  */
 SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(
     const std::filesystem::path& filename);
 
 /**
  * Reads a JSON-formatted configuration direction from the provided \p configuration. If
- * the loading fails an exception is raised, otherwise a valid #Cluster object is
- * returned.
+ * the loading fails an exception is raised, otherwise a valid Cluster object is returned.
  */
 SGCT_EXPORT [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 

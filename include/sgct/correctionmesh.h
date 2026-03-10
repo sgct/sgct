@@ -32,6 +32,9 @@ public:
      * \param parent The pointer to parent viewport
      * \param needsMaskGeometry If `true`, a separate geometry to applying blend masks is
      *        loaded
+     * \param textureRenderMode Only used if the loaded mesh is a `pfm` mesh. If `true`
+     *        a single mesh for one eye is loaded from the file. If `false`, two meshes,
+     *        one for the left and one for the right eye are loaded
      *
      * \throw std::runtime_error if mesh was not loaded successfully
      */

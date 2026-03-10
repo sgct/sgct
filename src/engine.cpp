@@ -351,8 +351,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 void Engine::initialize() {
     ZoneScoped;
 
-    ZoneScoped;
-
     {
         int major = 0;
         int minor = 0;

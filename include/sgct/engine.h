@@ -165,12 +165,10 @@ public:
             /// The prefix to be used for all screenshots
             std::string prefix;
 
-            /**
-             * Information about the screenshot limits. If there is no screenshot limit,
-             * this function returns `std::nullopt`. Otherwise the first component is the
-             * index of the first screenshot that will be rendered. The second component
-             * is the index of the last screenshot that will not be rendered anymore.
-             */
+            /// Information about the screenshot limits. If there is no screenshot limit,
+            /// this function returns `std::nullopt`. Otherwise the first component is the
+            /// index of the first screenshot that will be rendered. The second component
+            /// is the index of the last screenshot that will not be rendered anymore.
             std::optional<std::pair<uint64_t, uint64_t>> limits;
         } capture;
     };
@@ -181,8 +179,8 @@ public:
      */
     struct SGCT_EXPORT Callbacks {
         /// This function is called before the window is created (before OpenGL context is
-        /// created). At this stage the configuration file has been read and network
-        /// is initialized.
+        /// created). At this stage the configuration file has been read and network is
+        /// initialized
         void (*preWindow)() = nullptr;
 
         /// This function is called once before the starting the render loop and after
@@ -190,22 +188,21 @@ public:
         /// the shared context between all created windows
         void (*initOpenGL)(GLFWwindow*) = nullptr;
 
-        /// This function is called before the synchronization stage.
+        /// This function is called before the synchronization stage
         void (*preSync)() = nullptr;
 
-        /// This function is called once per frame after sync but before draw stage.
+        /// This function is called once per frame after sync but before draw stage
         void (*postSyncPreDraw)() = nullptr;
 
-        /// This function draws the scene and could be called several times per frame
-        /// as it's called once per viewport and once per eye if stereoscopy is used.
+        /// This function draws the scene and could be called several times per frame as
+        /// it's called once per viewport and once per eye if stereoscopy is used
         void (*draw)(const RenderData&) = nullptr;
 
         /// This function is be called after overlays and post effects has been drawn and
-        /// can used to render text and HUDs that will not be filtered or antialiased.
+        /// can used to render text and HUDs that will not be filtered or antialiased
         void (*draw2D)(const RenderData&) = nullptr;
 
-        /// This function is called after the draw stage but before the OpenGL buffer
-        /// swap.
+        /// This function is called after the draw stage but before the OpenGL buffer swap
         void (*postDraw)() = nullptr;
 
         /// This is called before all SGCT components will be destroyed. The same shared
@@ -213,44 +210,44 @@ public:
         void (*cleanup)() = nullptr;
 
         /// This function is called to encode all shared data that is sent to the
-        /// connected nodes in a clustered setup.
+        /// connected nodes in a clustered setup
         std::vector<std::byte> (*encode)() = nullptr;
 
-        /// This function is called by decode all shared data sent to us from the master
-        /// The parameter is the block of data that contains the data to be decoded.
+        /// This function is called by decode all shared data sent to us from the master.
+        /// The parameter is the block of data that contains the data to be decoded
         void (*decode)(const std::vector<std::byte>&) = nullptr;
 
-        /// This function is called when a TCP message is received.
+        /// This function is called when a TCP message is received
         void (*externalDecode)(const char*, int) = nullptr;
 
-        /// This function is called when the connection status changes.
+        /// This function is called when the connection status changes
         void (*externalStatus)(bool) = nullptr;
 
-        /// This function is called when a TCP message is received.
+        /// This function is called when a TCP message is received
         void (*dataTransferDecode)(void*, int, int, int) = nullptr;
 
-        /// This function is called when the connection status changes.
+        /// This function is called when the connection status changes
         void (*dataTransferStatus)(bool, int) = nullptr;
 
-        /// This function is called when data is successfully sent.
+        /// This function is called when data is successfully sent
         void (*dataTransferAcknowledge)(int, int) = nullptr;
 
-        /// This function sets the keyboard callback (GLFW wrapper) for all windows.
+        /// This function sets the keyboard callback (GLFW wrapper) for all windows
         void (*keyboard)(Key, Modifier, Action, int, Window*) = nullptr;
 
-        /// All windows are connected to this callback.
+        /// All windows are connected to this callback
         void (*character)(unsigned int, int, Window*) = nullptr;
 
-        /// This function sets the mouse button callback (GLFW wrapper) for all windows.
+        /// This function sets the mouse button callback (GLFW wrapper) for all windows
         void (*mouseButton)(MouseButton, Modifier, Action, Window*) = nullptr;
 
-        /// All windows are connected to this callback.
+        /// All windows are connected to this callback
         void (*mousePos)(double, double, Window*) = nullptr;
 
-        /// All windows are connected to this callback.
+        /// All windows are connected to this callback
         void (*mouseScroll)(double, double, Window*) = nullptr;
 
-        /// Drop files to any window. All windows are connected to this callback.
+        /// Drop files to any window. All windows are connected to this callback
         void (*drop)(const std::vector<std::string_view>&) = nullptr;
     };
 

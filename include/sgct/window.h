@@ -43,7 +43,9 @@ namespace config { struct Window; }
 
 class SGCT_EXPORT Window {
 public:
-    /// Different stereo modes used for rendering.
+    /**
+     * Different stereo modes used for rendering.
+     */
     enum class StereoMode : uint8_t {
         NoStereo = 0,
         Active,

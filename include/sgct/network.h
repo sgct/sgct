@@ -128,7 +128,6 @@ private:
         uint32_t& uncompressedDataSize);
     int readExternalMessage();
 
-    /// function to decode messages
     void communicationHandler();
     void connectionHandler();
 

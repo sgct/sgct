@@ -3998,7 +3998,7 @@ TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "size": { "x": 640, "y": 480 },
+          "size": { "x": 1, "y": 1 },
           "scalablemesh": "abc"
         }
       ]
@@ -4044,7 +4044,7 @@ TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
       "port": 1,
       "windows": [
         {
-          "size": { "x": 640, "y": 480 },
+          "size": { "x": 1, "y": 1 },
           "scalablemesh": "def"
         }
       ]

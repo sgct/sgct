@@ -35,11 +35,11 @@ class Font;
  * OpenGL context):
  *
  * ```cpp
- * //Add Verdana size 14 to the FontManager using the system font path
+ * // Add Verdana size 14 to the FontManager using the system font path
  * if (!sgct::text::FontManager::instance().addFont("Verdana", "verdana.ttf"))
  *    sgct::text::FontManager::instance().getFont("Verdana", 14);
  *
- * //Add Special font from local path
+ * // Add Special font from local path
  * if (!sgct::text::FontManager::instance().addFont(
  *       "Special",
  *       "Special.ttf",

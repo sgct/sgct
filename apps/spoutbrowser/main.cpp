@@ -62,11 +62,9 @@ namespace {
     float winAspect = float(windowSize.x) / float(windowSize.y);
     if (texAspect > winAspect) {
       texCoords.y = texCoords.y / (winAspect / texAspect);
-      //texCoords.y = clamp(texCoords.y, 0.0, 1.0);
     }
     else if (texAspect < winAspect) {
       texCoords.x = texCoords.x / (texAspect / winAspect);
-      //texCoords.x = clamp(texCoords.x, 0.0, 1.0);
     }
     out_data.texCoords = texCoords;
   })";

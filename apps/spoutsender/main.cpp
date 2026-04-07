@@ -149,7 +149,7 @@ void preWindowInit() {
     std::string baseName = "SGCT_Window";
 
     const std::vector<std::unique_ptr<Window>>& win = Engine::instance().windows();
-    for (int i = 0; i < win.size(); i++) {
+    for (size_t i = 0; i < win.size(); i++) {
         if (win[i]->isStereo()) {
             senderNames.push_back(baseName + std::to_string(i) + "_Left");
             windowData.push_back(std::pair(i, true));

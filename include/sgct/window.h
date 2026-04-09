@@ -383,7 +383,7 @@ private:
     bool _isIconified = false;
     StereoMode _stereoMode;
     std::optional<ivec2> _windowPos;
-    std::optional<ivec2> _windowSize;
+    ivec2 _windowSize;
     ivec2 _framebufferRes;
 
     std::optional<ivec2> _pendingWindowSize;

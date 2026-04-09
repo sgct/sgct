@@ -366,7 +366,7 @@ struct SGCT_EXPORT Window {
     };
 
     std::optional<ivec2> pos;
-    ivec2 size = ivec2{ 1, 1 };
+    std::optional<ivec2> size;
     std::optional<ivec2> resolution;
     std::vector<Viewport> viewports;
     int8_t id = 0;

@@ -176,6 +176,24 @@ namespace {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
+
+    sgct::ivec2 bakeSize(std::optional<sgct::ivec2> size, int monitorIndex) {
+        if (size.has_value()) {
+            return *size;
+        }
+
+        constexpr float ScaleFactor = 2.f / 3.f;
+
+        int count;
+        GLFWmonitor** monitors = glfwGetMonitors(&count);
+        monitorIndex = std::clamp(monitorIndex, 0, count - 1);
+
+        const GLFWvidmode* mode = glfwGetVideoMode(monitors[monitorIndex]);
+        return sgct::ivec2(
+            static_cast<int>(mode->width * ScaleFactor),
+            static_cast<int>(mode->height * ScaleFactor)
+        );
+    }
 } // namespace
 
 namespace sgct {
@@ -407,9 +425,9 @@ Window::Window(const config::Window& window)
     , _isVisible(!window.isHidden.value_or(false))
     , _stereoMode(convert(window.stereo.value_or(config::Window::StereoMode::NoStereo)))
     , _windowPos(window.pos)
-    , _windowSize(window.size)
-    , _framebufferRes(window.size)
-    , _aspectRatio(static_cast<float>(window.size.x) / static_cast<float>(window.size.y))
+    , _windowSize(bakeSize(window.size, _monitorIndex))
+    , _framebufferRes(bakeSize(window.size, _monitorIndex))
+    , _aspectRatio(static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y))
 #ifdef SGCT_HAS_SPOUT
     , _spoutEnabled(window.spout.has_value() && window.spout->enabled)
     , _spoutName(window.spout ? window.spout->name.value_or("") : "")
@@ -451,7 +469,7 @@ Window::Window(const config::Window& window)
             Log::Error("Error creating NDI sender");
         }
 
-        ivec2 res = window.resolution.value_or(window.size);
+        ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
         _videoFrame.xres = res.x;
         _videoFrame.yres = res.y;
         _videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
@@ -532,9 +550,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         }
 
         const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
-        if (!_windowSize) {
-            _windowSize = ivec2{ currentMode->width, currentMode->height };
-        }
+        _windowSize = ivec2{ currentMode->width, currentMode->height };
 
         glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
@@ -543,10 +559,9 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     {
         ZoneScopedN("glfwCreateWindow");
-        assert(_windowSize);
         _windowHandle = glfwCreateWindow(
-            _windowSize->x,
-            _windowSize->y,
+            _windowSize.x,
+            _windowSize.y,
             "SGCT",
             mon,
             share
@@ -577,8 +592,8 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwGetFramebufferSize(_windowHandle, &bufferSize[0], &bufferSize[1]);
     }
 
-    _scale.x = static_cast<float>(bufferSize.x) / static_cast<float>(_windowSize->x);
-    _scale.y = static_cast<float>(bufferSize.y) / static_cast<float>(_windowSize->y);
+    _scale.x = static_cast<float>(bufferSize.x) / static_cast<float>(_windowSize.x);
+    _scale.y = static_cast<float>(bufferSize.y) / static_cast<float>(_windowSize.y);
     if (!_useFixResolution) {
         _framebufferRes.x = bufferSize.x;
         _framebufferRes.y = bufferSize.y;
@@ -782,7 +797,7 @@ void Window::initialize() {
 
     const ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
-        *_windowSize :
+        _windowSize :
         framebufferResolution();
 
     if (_screenCaptureLeftOrMono) {
@@ -862,7 +877,7 @@ void Window::updateResolutions() {
         _windowSize = *_pendingWindowSize;
         _windowResChanged = true;
         float ratio =
-            static_cast<float>(_windowSize->x) / static_cast<float>(_windowSize->y);
+            static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y);
 
         // Set field of view of each of this window's viewports to match new aspect ratio,
         // adjusting only the horizontal (x) values
@@ -875,30 +890,29 @@ void Window::updateResolutions() {
         _aspectRatio = ratio;
 
         // Redraw window
-        glfwSetWindowSize(_windowHandle, _windowSize->x, _windowSize->y);
+        glfwSetWindowSize(_windowHandle, _windowSize.x, _windowSize.y);
 
         Log::Debug(std::format(
-            "Resolution changed to {}x{} in window {}",
-            _windowSize->x, _windowSize->y, _id
+            "Resolution changed to {}x{} in window {}", _windowSize.x, _windowSize.y, _id
         ));
         _pendingWindowSize = std::nullopt;
 
 #ifdef SGCT_HAS_NDI
         if (!_useFixResolution) {
-            _videoFrame.xres = _windowSize->x;
-            _videoFrame.yres = _windowSize->y;
+            _videoFrame.xres = _windowSize.x;
+            _videoFrame.yres = _windowSize.y;
             _videoFrame.picture_aspect_ratio =
-                static_cast<float>(_windowSize->x) / static_cast<float>(_windowSize->y);
+                static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y);
             // We have a negative stride to account for the fact that OpenGL textures have
             // their y-axis flipped compared to DirectX textures
-            _videoFrame.line_stride_in_bytes = -_windowSize->x * 4;
+            _videoFrame.line_stride_in_bytes = -_windowSize.x * 4;
 
             // We need to send an "empty" frame as otherwise NDI might be in the middle of
             // sending out one of the buffers that we are resizing. This extra call will
             // force a synchronization
             NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
-            _videoBufferPing.resize(_windowSize->x * _windowSize->y * 4);
-            _videoBufferPong.resize(_windowSize->x * _windowSize->y * 4);
+            _videoBufferPing.resize(_windowSize.x * _windowSize.y * 4);
+            _videoBufferPong.resize(_windowSize.x * _windowSize.y * 4);
 
         }
 #endif // SGCT_HAS_NDI
@@ -928,7 +942,7 @@ void Window::update() {
 
     const ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
-        *_windowSize :
+        _windowSize :
         framebufferResolution();
     if (_screenCaptureLeftOrMono) {
         _screenCaptureLeftOrMono->resize(res);
@@ -1026,8 +1040,8 @@ void Window::renderFBOTexture() {
         FrustumMode::Mono;
 
     const ivec2 size = ivec2{
-        static_cast<int>(std::ceil(scale().x * _windowSize->x)),
-        static_cast<int>(std::ceil(scale().y * _windowSize->y))
+        static_cast<int>(std::ceil(scale().x * _windowSize.x)),
+        static_cast<int>(std::ceil(scale().y * _windowSize.y))
     };
 
     glViewport(0, 0, size.x, size.y);
@@ -1268,8 +1282,7 @@ float Window::aspectRatio() const {
 }
 
 ivec2 Window::windowSize() const {
-    assert(_windowSize);
-    return *_windowSize;
+    return _windowSize;
 }
 
 GLFWwindow* Window::windowHandle() const {

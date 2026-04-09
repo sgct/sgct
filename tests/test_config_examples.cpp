@@ -44,8 +44,8 @@ TEST_CASE("Load Example: 3DTV", "[parse]") {
     CHECK(*w.isFullScreen == true);
     REQUIRE(w.stereo.has_value());
     CHECK(*w.stereo == Window::StereoMode::SideBySide);
-    CHECK(w.size.x == 1920);
-    CHECK(w.size.y == 1080);
+    CHECK(w.size->x == 1920);
+    CHECK(w.size->y == 1080);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -293,8 +293,8 @@ TEST_CASE("Load Example: Kinect", "[parse]") {
     CHECK(*w.msaa == 4);
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 960);
-    CHECK(w.size.y == 540);
+    CHECK(w.size->x == 960);
+    CHECK(w.size->y == 540);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -347,8 +347,8 @@ TEST_CASE("Load Example: Multi Window", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 0);
         CHECK(w.pos->y == 30);
-        CHECK(w.size.x == 960);
-        CHECK(w.size.y == 540);
+        CHECK(w.size->x == 960);
+        CHECK(w.size->y == 540);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -381,8 +381,8 @@ TEST_CASE("Load Example: Multi Window", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 0);
         CHECK(w.pos->y == 570);
-        CHECK(w.size.x == 480);
-        CHECK(w.size.y == 540);
+        CHECK(w.size->x == 480);
+        CHECK(w.size->y == 540);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -415,8 +415,8 @@ TEST_CASE("Load Example: Multi Window", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 480);
         CHECK(w.pos->y == 570);
-        CHECK(w.size.x == 480);
-        CHECK(w.size.y == 270);
+        CHECK(w.size->x == 480);
+        CHECK(w.size->y == 270);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -449,8 +449,8 @@ TEST_CASE("Load Example: Multi Window", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 480);
         CHECK(w.pos->y == 840);
-        CHECK(w.size.x == 480);
-        CHECK(w.size.y == 270);
+        CHECK(w.size->x == 480);
+        CHECK(w.size->y == 270);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -483,8 +483,8 @@ TEST_CASE("Load Example: Multi Window", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 1000);
         CHECK(w.pos->y == 30);
-        CHECK(w.size.x == 960);
-        CHECK(w.size.y == 1080);
+        CHECK(w.size->x == 960);
+        CHECK(w.size->y == 1080);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -535,8 +535,8 @@ TEST_CASE("Load Example: Single Cylindrical", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 720);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 720);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -578,8 +578,8 @@ TEST_CASE("Load Example: Single Equirectangular", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 720);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 720);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -624,8 +624,8 @@ TEST_CASE("Load Example: Single Fisheye FXAA", "[parse]") {
     CHECK(*w.useFxaa == true);
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 512);
-    CHECK(w.size.y == 512);
+    CHECK(w.size->x == 512);
+    CHECK(w.size->y == 512);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -676,8 +676,8 @@ TEST_CASE("Load Example: Single Fisheye", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 512);
-    CHECK(w.size.y == 512);
+    CHECK(w.size->x == 512);
+    CHECK(w.size->y == 512);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -733,8 +733,8 @@ TEST_CASE("Load Example: Single SBS Stereo", "[parse]") {
     REQUIRE(w.pos.has_value());
     CHECK(w.pos->x == 200);
     CHECK(w.pos->y == 300);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 360);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 360);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -789,8 +789,8 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
     REQUIRE(w.pos.has_value());
     CHECK(w.pos->x == 0);
     CHECK(w.pos->y == 0);
-    CHECK(w.size.x == 768);
-    CHECK(w.size.y == 810);
+    CHECK(w.size->x == 768);
+    CHECK(w.size->y == 810);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -857,8 +857,8 @@ TEST_CASE("Load Example: Single Two Win 3D", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 10);
         CHECK(w.pos->y == 100);
-        CHECK(w.size.x == 640);
-        CHECK(w.size.y == 480);
+        CHECK(w.size->x == 640);
+        CHECK(w.size->y == 480);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -897,8 +897,8 @@ TEST_CASE("Load Example: Single Two Win 3D", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 640);
         CHECK(w.pos->y == 100);
-        CHECK(w.size.x == 640);
-        CHECK(w.size.y == 480);
+        CHECK(w.size->x == 640);
+        CHECK(w.size->y == 480);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -956,8 +956,8 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 10);
         CHECK(w.pos->y == 100);
-        CHECK(w.size.x == 640);
-        CHECK(w.size.y == 480);
+        CHECK(w.size->x == 640);
+        CHECK(w.size->y == 480);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -993,8 +993,8 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 640);
         CHECK(w.pos->y == 100);
-        CHECK(w.size.x == 640);
-        CHECK(w.size.y == 480);
+        CHECK(w.size->x == 640);
+        CHECK(w.size->y == 480);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -1044,8 +1044,8 @@ TEST_CASE("Load Example: Single", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 720);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 720);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -1107,8 +1107,8 @@ TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
     REQUIRE(w.pos.has_value());
     CHECK(w.pos->x == 0);
     CHECK(w.pos->y == 100);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 720);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 720);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -1173,8 +1173,8 @@ TEST_CASE("Load Example: Spherical Mirror", "[parse]") {
     REQUIRE(w.pos.has_value());
     CHECK(w.pos->x == 0);
     CHECK(w.pos->y == 100);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 720);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 720);
     REQUIRE(w.resolution.has_value());
     CHECK(w.resolution->x == 2048);
     CHECK(w.resolution->y == 2048);
@@ -1253,8 +1253,8 @@ TEST_CASE("Load Example: Spout Output Cubemap", "[parse]") {
     CHECK(*w.stereo == Window::StereoMode::NoStereo);
     REQUIRE(w.msaa.has_value());
     CHECK(*w.msaa == 4);
-    CHECK(w.size.x == 1024);
-    CHECK(w.size.y == 1024);
+    CHECK(w.size->x == 1024);
+    CHECK(w.size->y == 1024);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];
@@ -1310,8 +1310,8 @@ TEST_CASE("Load Example: Spout Output Equirectangular", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 1280);
-    CHECK(w.size.y == 720);
+    CHECK(w.size->x == 1280);
+    CHECK(w.size->y == 720);
     REQUIRE(w.spout.has_value());
     CHECK(w.spout->enabled);
     REQUIRE(w.spout->name.has_value());
@@ -1357,8 +1357,8 @@ TEST_CASE("Load Example: Spout Output Fisheye", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    CHECK(w.size.x == 512);
-    CHECK(w.size.y == 512);
+    CHECK(w.size->x == 512);
+    CHECK(w.size->y == 512);
     REQUIRE(w.spout);
     CHECK(w.spout->enabled);
     REQUIRE(w.spout->name.has_value());
@@ -1417,8 +1417,8 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 0);
         CHECK(w.pos->y == 300);
-        CHECK(w.size.x == 640);
-        CHECK(w.size.y == 360);
+        CHECK(w.size->x == 640);
+        CHECK(w.size->y == 360);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -1455,8 +1455,8 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         REQUIRE(w.pos.has_value());
         CHECK(w.pos->x == 640);
         CHECK(w.pos->y == 300);
-        CHECK(w.size.x == 640);
-        CHECK(w.size.y == 360);
+        CHECK(w.size->x == 640);
+        CHECK(w.size->y == 360);
 
         REQUIRE(w.viewports.size() == 1);
         const Viewport& v = w.viewports[0];
@@ -1509,8 +1509,8 @@ TEST_CASE("Load Example: TextureMappedProjection", "[parse]") {
     CHECK(*w.isFullScreen == false);
     REQUIRE(w.isDecorated.has_value());
     CHECK(*w.isDecorated == false);
-    CHECK(w.size.x == 768);
-    CHECK(w.size.y == 810);
+    CHECK(w.size->x == 768);
+    CHECK(w.size->y == 810);
 
     REQUIRE(w.viewports.size() == 1);
     const Viewport& v = w.viewports[0];

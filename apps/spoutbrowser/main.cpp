@@ -176,7 +176,7 @@ void draw(const RenderData& data) {
         glGetUniformLocation(prog.id(), "texSize"),
         senders[currentSender].width, senders[currentSender].height
     );
-    ivec2 res = data.window.windowResolution();
+    ivec2 res = data.window.windowSize();
     glProgramUniform2i(
         prog.id(),
         glGetUniformLocation(prog.id(), "windowSize"),

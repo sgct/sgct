@@ -134,9 +134,9 @@ public:
     float aspectRatio() const;
 
     /**
-     * \return Get the window resolution
+     * \return Get the window size
      */
-    ivec2 windowResolution() const;
+    ivec2 windowSize() const;
 
     /**
      * \return The pointer to GLFW window
@@ -383,10 +383,10 @@ private:
     bool _isIconified = false;
     StereoMode _stereoMode;
     std::optional<ivec2> _windowPos;
-    std::optional<ivec2> _windowRes;
+    std::optional<ivec2> _windowSize;
     ivec2 _framebufferRes;
 
-    std::optional<ivec2> _pendingWindowRes;
+    std::optional<ivec2> _pendingWindowSize;
     bool _windowResChanged = false;
     bool _hasFocus = false;
     bool _useFixResolution = false;

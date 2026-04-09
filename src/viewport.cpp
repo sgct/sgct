@@ -112,7 +112,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
             _nonLinearProjection =
                 std::make_unique<SphericalMirrorProjection>(p, _parent, *_user);
         },
-        [this]([[maybe_unused]] const config::CubemapProjection& p) {
+        [this](const config::CubemapProjection& p) {
             _nonLinearProjection =
                 std::make_unique<CubemapProjection>(p, _parent, *_user);
         },

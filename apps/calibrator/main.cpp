@@ -510,9 +510,9 @@ void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     if (showId) {
         const float w =
-            static_cast<float>(data.window.windowResolution().x) * data.viewport.size().x;
+            static_cast<float>(data.window.windowSize().x) * data.viewport.size().x;
         const float h =
-            static_cast<float>(data.window.windowResolution().y) * data.viewport.size().y;
+            static_cast<float>(data.window.windowSize().y) * data.viewport.size().y;
 
         const float offset = w / 2.f - w / 7.f;
 

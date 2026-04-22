@@ -184,6 +184,7 @@ namespace {
         }
 
         constexpr float ScaleFactor = 2.f / 3.f;
+        constexpr float AspectRatio = 1920.f / 1080.f;
 
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
@@ -192,7 +193,7 @@ namespace {
         const GLFWvidmode* mode = glfwGetVideoMode(monitors[monitorIndex]);
         return sgct::ivec2(
             static_cast<int>(mode->width * ScaleFactor),
-            static_cast<int>(mode->height * ScaleFactor)
+            static_cast<int>((mode->width / AspectRatio) * ScaleFactor)
         );
     }
 } // namespace

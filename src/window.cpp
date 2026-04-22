@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstring>
 #include <functional>
 #include <stdexcept>
 #include <tuple>
@@ -429,8 +430,10 @@ Window::Window(const config::Window& window)
     , _framebufferRes(bakeSize(window.size, _monitorIndex))
     , _aspectRatio(static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y))
 #ifdef SGCT_HAS_SPOUT
-    , _spoutEnabled(window.spout.has_value() && window.spout->enabled)
-    , _spoutName(window.spout ? window.spout->name.value_or("") : "")
+    , _spout {
+        .enabled = window.spout.has_value() && window.spout->enabled,
+        .name = window.spout ? window.spout->name.value_or("") : ""
+    }
 #endif // SGCT_HAS_SPOUT
     , _internalColorFormat(colorBitDepthToColorFormat(
         window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
@@ -453,38 +456,35 @@ Window::Window(const config::Window& window)
 
 #ifdef SGCT_HAS_NDI
     if (window.ndi && window.ndi->enabled) {
-        _ndiName = window.ndi->name.value_or(_ndiName);
-        _ndiGroups = window.ndi->groups.value_or(_ndiGroups);
+        _ndi.name = window.ndi->name.value_or(_ndi.name);
+        _ndi.groups = window.ndi->groups.value_or(_ndi.groups);
 
         NDIlib_send_create_t createDesc;
-        if (!_ndiName.empty()) {
-            createDesc.p_ndi_name = _ndiName.c_str();
+        if (!_ndi.name.empty()) {
+            createDesc.p_ndi_name = _ndi.name.c_str();
         }
-        if (!_ndiGroups.empty()) {
-            createDesc.p_groups = _ndiGroups.c_str();
+        if (!_ndi.groups.empty()) {
+            createDesc.p_groups = _ndi.groups.c_str();
         }
 
-        _ndiHandle = NDIlib_send_create(&createDesc);
-        if (!_ndiHandle) {
+        _ndi.handle = NDIlib_send_create(&createDesc);
+        if (!_ndi.handle) {
             Log::Error("Error creating NDI sender");
         }
 
         ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
-        _videoFrame.xres = res.x;
-        _videoFrame.yres = res.y;
-        _videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
+        _ndi.videoFrame.xres = res.x;
+        _ndi.videoFrame.yres = res.y;
+        _ndi.videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
         // We have a negative stride to account for the fact that OpenGL textures have
         // their y-axis flipped compared to DirectX textures
-        _videoFrame.line_stride_in_bytes = -res.x * 4;
-        _videoFrame.frame_rate_N = 60000; // 60 fps
-        _videoFrame.frame_rate_D = 1000;  // 60 fps
-        _videoFrame.picture_aspect_ratio =
+        _ndi.videoFrame.line_stride_in_bytes = -res.x * 4;
+        _ndi.videoFrame.frame_rate_N = 60000; // 60 fps
+        _ndi.videoFrame.frame_rate_D = 1000;  // 60 fps
+        _ndi.videoFrame.picture_aspect_ratio =
             static_cast<float>(res.x) / static_cast<float>(res.y);
-        _videoFrame.frame_format_type = NDIlib_frame_format_type_progressive;
-        _videoFrame.timecode = 0;
-
-        _videoBufferPing.resize(res.x * res.y * 4);
-        _videoBufferPong.resize(res.x * res.y * 4);
+        _ndi.videoFrame.frame_format_type = NDIlib_frame_format_type_progressive;
+        _ndi.videoFrame.timecode = 0;
     }
 #endif // SGCT_HAS_NDI
 
@@ -719,19 +719,19 @@ void Window::closeWindow() {
 #endif // SGCT_HAS_SCALABLE
 
 #ifdef SGCT_HAS_SPOUT
-    if (_spoutHandle) {
-        _spoutHandle->ReleaseSender();
-        _spoutHandle->Release();
+    if (_spout.handle) {
+        _spout.handle->ReleaseSender();
+        _spout.handle->Release();
     }
 #endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_NDI
-    if (_ndiHandle) {
+    if (_ndi.handle) {
         // One of the two buffers might be still in flight so we have to flush the
         // pipeline before we can destroy the video or we might risk NDI accessing dead
         // memory and crashing
-        NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
-        NDIlib_send_destroy(_ndiHandle);
+        NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
+        NDIlib_send_destroy(_ndi.handle);
     }
 #endif // SGCT_HAS_NDI
 
@@ -747,6 +747,10 @@ void Window::closeWindow() {
         _finalFBO = nullptr;
         destroyFBOs();
     }
+
+    #ifdef SGCT_HAS_NDI
+        glDeleteBuffers(3, _ndi.pingPongPbo);
+    #endif // SGCT_HAS_NDI
 
     Log::Info(std::format("Deleting VBOs for window {}", _id));
     glDeleteBuffers(1, &_vbo);
@@ -811,23 +815,33 @@ void Window::initialize() {
     loadShaders();
 
 #ifdef SGCT_HAS_SPOUT
-    if (_spoutEnabled) {
-        _spoutName = _spoutName.empty() ? "OpenSpace" : _spoutName;
+    if (_spout.enabled) {
+        _spout.name = _spout.name.empty() ? "OpenSpace" : _spout.name;
 
-        _spoutHandle = GetSpout();
+        _spout.handle = GetSpout();
         bool success = false;
-        if (_spoutHandle) {
-            success = _spoutHandle->CreateSender(
-                _spoutName.c_str(),
+        if (_spout.handle) {
+            success = _spout.handle->CreateSender(
+                _spout.name.c_str(),
                 _framebufferRes.x,
                 _framebufferRes.y
             );
         }
         if (!success) {
-            Log::Error(std::format("Error creating SPOUT handle for {}", _spoutName));
+            Log::Error(std::format("Error creating SPOUT handle for {}", _spout.name));
         }
     }
 #endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+    if (_ndi.handle) {
+        const GLsizeiptr bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
+        glCreateBuffers(3, _ndi.pingPongPbo);
+        glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
+        glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
+        glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
+    }
+#endif // SGCT_HAS_NDI
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         const vec2 viewportSize = vec2{
@@ -898,22 +912,24 @@ void Window::updateResolutions() {
         _pendingWindowSize = std::nullopt;
 
 #ifdef SGCT_HAS_NDI
-        if (!_useFixResolution) {
-            _videoFrame.xres = _windowSize.x;
-            _videoFrame.yres = _windowSize.y;
-            _videoFrame.picture_aspect_ratio =
+        if (!_useFixResolution && _ndi.handle) {
+            _ndi.videoFrame.xres = _windowSize.x;
+            _ndi.videoFrame.yres = _windowSize.y;
+            _ndi.videoFrame.picture_aspect_ratio =
                 static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y);
             // We have a negative stride to account for the fact that OpenGL textures have
             // their y-axis flipped compared to DirectX textures
-            _videoFrame.line_stride_in_bytes = -_windowSize.x * 4;
+            _ndi.videoFrame.line_stride_in_bytes = -_windowSize.x * 4;
 
             // We need to send an "empty" frame as otherwise NDI might be in the middle of
             // sending out one of the buffers that we are resizing. This extra call will
             // force a synchronization
-            NDIlib_send_send_video_async_v2(_ndiHandle, nullptr);
-            _videoBufferPing.resize(_windowSize.x * _windowSize.y * 4);
-            _videoBufferPong.resize(_windowSize.x * _windowSize.y * 4);
-
+            NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
+            const int bufferSize = _windowSize.x * _windowSize.y * 4;
+            glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
+            glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
+            glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
+            _ndi.currentFrame = 0;
         }
 #endif // SGCT_HAS_NDI
     }
@@ -1130,72 +1146,114 @@ void Window::renderFBOTexture() {
     glDisable(GL_BLEND);
 
 #ifdef SGCT_HAS_SPOUT
-    if (_spoutHandle) {
-        // Share the window via Spout
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
-        glCopyTexImage2D(
-            GL_TEXTURE_2D,
+    if (_spout.handle) {
+        // Copy the current backbuffer content into the leftEye texture so that SPOUT
+        // shares the final composited (warped) output
+        glCopyTextureSubImage2D(
+            _frameBufferTextures.leftEye,
             0,
-            _internalColorFormat,
+            0,
+            0,
             0,
             0,
             _framebufferRes.x,
-            _framebufferRes.y,
-            0
+            _framebufferRes.y
         );
 
-        const bool s = _spoutHandle->SendTexture(
+        const bool s = _spout.handle->SendTexture(
             _frameBufferTextures.leftEye,
             static_cast<GLuint>(GL_TEXTURE_2D),
             _framebufferRes.x,
             _framebufferRes.y
         );
         if (!s) {
-            Log::Error(std::format("Error sending Spout texture for '{}'", _spoutName));
+            Log::Error(std::format("Error sending Spout texture for '{}'", _spout.name));
         }
     }
 #endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_NDI
-    if (_ndiHandle) {
-        // Download the texture data from the GPU
-        glBindTexture(GL_TEXTURE_2D, _frameBufferTextures.leftEye);
-        glCopyTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            0,
-            0,
-            _framebufferRes.x,
-            _framebufferRes.y,
-            0
-        );
-        glGetTexImage(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            _currentVideoBuffer->data()
-        );
+    if (_ndi.handle) {
+        // The big picture for the NDI streaming is as follows: We are using a
+        // triple-buffered approach so that we don't have to block the main rendering
+        // thread when transferring the rendered texture into CPU memory. This introduces
+        // a two-frame latency into the system, but that is an acceptable trade-off.
+        // We are using triple-buffering to mitigate two bottlenecks; 1. the transfer of
+        // the texture data from GPU to the CPU and 2. the NDI video transfer. If we only
+        // would use a double-buffer here, we would need to make a memcpy of the
+        // downloaded data as NDI takes ownership while transferring
+        // In each frame we are triggering a PBO transfer of the rendered image to the
+        // CPU, mapping the PBO into host memory + trigger the NDI frame transfer, and
+        // then unmap the mapped memory again
 
-        assert(_videoFrame.xres == _framebufferRes.x);
-        assert(_videoFrame.yres == _framebufferRes.y);
-        // We are using a negative line stride to correct for the y-axis flip going from
-        // OpenGL to DirectX.  So our start point has to be the beginning of the *last*
-        // line of the image as NDI then steps backwards through the image to send it to
-        // the receiver. So we start at data() (=0), move to the end (+size) and then
-        // backtrack one line (- -line_stride = +line_stride)
-        _videoFrame.p_data = reinterpret_cast<uint8_t*>(
-            _currentVideoBuffer->data() + _currentVideoBuffer->size() +
-            _videoFrame.line_stride_in_bytes
-        );
+        ZoneScopedN("NDI");
+        TracyGpuZone("NDI");
 
-        NDIlib_send_send_video_async_v2(_ndiHandle, &_videoFrame);
-        // Switch the current buffer
-        _currentVideoBuffer =
-            _currentVideoBuffer == &_videoBufferPing ?
-            &_videoBufferPong :
-            &_videoBufferPing;
+        assert(_ndi.videoFrame.xres == _framebufferRes.x);
+        assert(_ndi.videoFrame.yres == _framebufferRes.y);
+
+        // Triple-buffered async PBO readback:
+        // readIndex: CPU maps last frame's PBO and uses the mapped memory
+        // writeIndex: GPU writes this frame's texture into this PBO (non-blocking)
+        // unmap: Unmap the last frames readIndex
+        const int writeIndex = _ndi.currentFrame % 3;
+        const int readIndex = (_ndi.currentFrame - 1) % 3;
+        const int unmapIndex = (_ndi.currentFrame - 2) % 3;
+
+        // Start async GPU->PBO transfer for this frame
+        {
+            ZoneScopedN("PBO Readback");
+            TracyGpuZone("PBO Readback");
+
+            const GLsizei bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, _ndi.pingPongPbo[writeIndex]);
+
+            glGetTextureImage(
+                _frameBufferTextures.leftEye,
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                bufferSize,
+                nullptr
+            );
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        }
+
+        // Map last frame's PBO (GPU has had a full frame to complete the transfer)
+        if (_ndi.currentFrame >= 1) [[likely]] {
+            ZoneScopedN("PBO Map and Send");
+            TracyGpuZone("PBO Map and Send");
+
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, _ndi.pingPongPbo[readIndex]);
+            void* src = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+            // We are using a negative line stride to correct for the y-axis flip going
+            // from OpenGL to DirectX.  So our start point has to be the beginning of the
+            // *last* line of the image as NDI then steps backwards through the image to
+            // send it to the receiver. So we start at data() (=0), move to the end
+            // (+size) and then backtrack one line (- -line_stride = +line_stride)
+            const GLsizei bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
+            _ndi.videoFrame.p_data = reinterpret_cast<uint8_t*>(src) + bufferSize +
+                _ndi.videoFrame.line_stride_in_bytes;
+
+            {
+                ZoneScopedN("NDI Send");
+                NDIlib_send_send_video_async_v2(_ndi.handle, &_ndi.videoFrame);
+            }
+        }
+
+        // Unbind the previous frame's PBO
+        if (_ndi.currentFrame >= 2) [[likely]] {
+            ZoneScopedN("PBO Unbind");
+            TracyGpuZone("PBO Unbind");
+
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, _ndi.pingPongPbo[unmapIndex]);
+            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        }
+
+        _ndi.currentFrame++;
     }
 #endif // SGCT_HAS_NDI
 }

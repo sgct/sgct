@@ -28,6 +28,8 @@
 
 #ifdef SGCT_HAS_NDI
 #include <Processing.NDI.Lib.h>
+#include <Processing.NDI.Send.h>
+#include <Processing.NDI.Structs.h>
 #endif // SGCT_HAS_NDI
 
 struct GLFWwindow;
@@ -397,19 +399,22 @@ private:
     vec2 _scale = vec2{ 0.f, 0.f };
 
 #ifdef SGCT_HAS_SPOUT
-    bool _spoutEnabled;
-    std::string _spoutName;
-    SPOUTHANDLE _spoutHandle = nullptr;
+    struct {
+        bool enabled;
+        std::string name;
+        SPOUTHANDLE handle = nullptr;
+    } _spout;
 #endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_NDI
-    NDIlib_send_instance_t _ndiHandle = nullptr;
-    NDIlib_video_frame_v2_t _videoFrame;
-    std::string _ndiName;
-    std::string _ndiGroups;
-    std::vector<std::byte> _videoBufferPing;
-    std::vector<std::byte> _videoBufferPong;
-    std::vector<std::byte>* _currentVideoBuffer = &_videoBufferPing;
+    struct {
+        NDIlib_send_instance_t handle = nullptr;
+        NDIlib_video_frame_v2_t videoFrame;
+        std::string name;
+        std::string groups;
+        unsigned int pingPongPbo[3] = { 0, 0, 0 };
+        int currentFrame = 0;
+    } _ndi;
 #endif // SGCT_HAS_NDI
 
     const unsigned int _internalColorFormat;

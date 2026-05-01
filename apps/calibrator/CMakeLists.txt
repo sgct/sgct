@@ -14,12 +14,12 @@ target_link_libraries(calibrator PRIVATE sgct::sgct glm::glm)
 add_custom_command(
   TARGET calibrator POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-0.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-1.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-2.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-3.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-4.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-5.png"
+    "${SGCT_EXAMPLE_SHARED_RESOURCES}/test-pattern-0.png"
+    "${SGCT_EXAMPLE_SHARED_RESOURCES}/test-pattern-1.png"
+    "${SGCT_EXAMPLE_SHARED_RESOURCES}/test-pattern-2.png"
+    "${SGCT_EXAMPLE_SHARED_RESOURCES}/test-pattern-3.png"
+    "${SGCT_EXAMPLE_SHARED_RESOURCES}/test-pattern-4.png"
+    "${SGCT_EXAMPLE_SHARED_RESOURCES}/test-pattern-5.png"
 
     $<TARGET_FILE_DIR:calibrator>
 )

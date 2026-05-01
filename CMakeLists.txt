@@ -6,11 +6,10 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
-cmake_policy(VERSION 3.25)
-enable_testing()
+cmake_minimum_required(VERSION 4.0)
 
-project(sgct VERSION 4.0.0)
+project(sgct VERSION 4.0.0 LANGUAGES CXX)
+enable_testing()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -76,7 +75,7 @@ option(SGCT_INSTALL "Install SGCT library" OFF)
 option(SGCT_BUILD_TESTS "Build SGCT tests" ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # add dummy uninstall target to avoid it beeing added by dependencies

@@ -15,7 +15,7 @@ add_custom_command(
   TARGET datatransfer POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+  "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png"
 
   $<TARGET_FILE_DIR:datatransfer>
 )

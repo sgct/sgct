@@ -7,7 +7,7 @@
 ##########################################################################################
 
 function (set_compile_options target)
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/common-compile-settings")
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/common-compile-settings")
   include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/common-compile-settings/common-compile-settings.cmake)
   set_compile_settings(${target})
 

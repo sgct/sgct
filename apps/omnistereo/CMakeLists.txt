@@ -17,7 +17,7 @@ add_custom_command(
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/test.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/turnmap.jpg"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+  "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png"
 
   $<TARGET_FILE_DIR:omnistereo>
 )

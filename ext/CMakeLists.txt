@@ -9,12 +9,8 @@
 if (SGCT_BUILD_TESTS)
   if (SGCT_DEP_INCLUDE_CATCH2)
     add_subdirectory(catch2)
-    # Catch2 by default compiles with C++14, which leads to some linker errors:
-    # https://github.com/catchorg/Catch2/issues/2046
-    # Switching to cxx_std_23 triggers a bug in Clang17
-    # https://github.com/llvm/llvm-project/issues/61415
-    target_compile_features(Catch2 PUBLIC cxx_std_20)
-    target_compile_features(Catch2WithMain PUBLIC cxx_std_20)
+    target_compile_features(Catch2 PUBLIC cxx_std_23)
+    target_compile_features(Catch2WithMain PUBLIC cxx_std_23)
     set_property(TARGET Catch2 PROPERTY FOLDER "External")
     set_property(TARGET Catch2WithMain PROPERTY FOLDER "External")
     sgct_register_package(Catch2 Catch2::Catch2)
@@ -139,7 +135,7 @@ else ()
 endif ()
 
 if (SGCT_DEP_INCLUDE_TINYXML)
-  set(BUILD_TESTING OFF)
+  set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
   set(tinyxml2_INSTALL_PKGCONFIG OFF CACHE BOOL "" FORCE)
   add_subdirectory(tinyxml)
   set_target_properties(tinyxml2 PROPERTIES FOLDER "External")
@@ -233,9 +229,6 @@ if (SGCT_DEP_INCLUDE_JSON_VALIDATOR)
   else ()
     target_compile_options(nlohmann_json_schema_validator PRIVATE "-w")
   endif ()
-
-#elseif (TARGET nlohmann_json_schema_validator)
-  #sgct_register_package(nlohmann_json_schema_validator nlohmann_json_schema_validator::nlohmann_json_schema_validator)
 else ()
   find_package(nlohmann_json_schema_validator REQUIRED)
 endif ()
@@ -246,4 +239,4 @@ endif ()
 
 if (WIN32 AND SGCT_NDI_SUPPORT)
   add_subdirectory(ndi SYSTEM)
-endif (WIN32 AND SGCT_NDI_SUPPORT)
+endif ()

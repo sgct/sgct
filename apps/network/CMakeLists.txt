@@ -14,7 +14,7 @@ target_link_libraries(network PRIVATE sgct::sgct glm::glm)
 add_custom_command(
   TARGET network POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+  "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png"
 
   $<TARGET_FILE_DIR:network>
 )

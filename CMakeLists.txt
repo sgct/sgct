@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 4.0)
 
-project(sgct VERSION 4.0.0 LANGUAGES CXX)
+project(sgct VERSION 4.0.0 LANGUAGES C CXX)
 enable_testing()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)

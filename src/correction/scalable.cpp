@@ -406,7 +406,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             sep = rest.find(' ');
             if (sep == std::string_view::npos) {
                 Log::Warning(std::format(
-                    "Illegal formatting of vertex in scalable mesh file '{}' in line {}", path, line
+                    "Illegal formatting of vertex in scalable mesh file '{}' in line {}",
+                    path, line
                 ));
             }
             const std::string_view t = rest.substr(0, sep);

@@ -2061,11 +2061,12 @@ config::Cluster readJsonConfig(std::string_view configuration) {
 }
 
 config::Cluster defaultCluster() {
+    // FOV values based on 16:9 aspect ratio given by the default window size of 1280x720
     config::PlanarProjection::FOV fov = {
-        .down = -(90.f / (16.f / 9.f)) / 2.f,
-        .left = -90.f / 2.f,
-        .right = 90.f / 2.f,
-        .up = (90.f / (16.f / 9.f)) / 2.f
+        .down = -50.534f / 2.f,
+        .left = -80.f / 2.f,
+        .right = 80.f / 2.f,
+        .up = 50.534f / 2.f
     };
     config::PlanarProjection proj = {
         .fov = fov

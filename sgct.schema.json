@@ -123,6 +123,61 @@
       "description": "Determines the pixel resolution of the cube map faces that are reprojected to create the fisheye rendering. The higher resolution these cube map faces have, the better quality the resulting fisheye rendering, but at the expense of increased rendering times."
     },
 
+    "fov": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "hfov": {
+              "type": "number",
+              "minimum": 0.0,
+              "title": "Horizontal Field-of-view",
+              "description": "The angle (in degrees) covered by the camera in the horizontal direction. This is a symmetric frustum around the center and provides the same result as providing the `left` and `right` values with the half-angle."
+            },
+            "vfov": {
+              "type": "number",
+              "minimum": 0.0,
+              "title": "Vertical Field-of-view",
+              "description": "The angle (in degrees) covered by the camera in the vertical direction. This is a symmetric frustum around the center and provides the same result as providing the `up` and `down` values with the half-angle."
+            }
+          },
+          "required": [ "hfov", "vfov" ],
+          "additionalProperties": false,
+          "title": "hFov / vFov"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "number",
+              "title": "Left",
+              "description": "The angle (in degrees) that is covered by the camera between the central point and the left border of the viewport. The `left` and `right` angles added together are the vertical field of view of the viewport."
+            },
+            "right": {
+              "type": "number",
+              "title": "Right",
+              "description": "The angle (in degrees) that is covered by the camera between the central point and the right border of the viewport. The `left` and `right` angles added together are the vertical field of view of the viewport."
+            },
+            "down": {
+              "type": "number",
+              "title": "Down",
+              "description": "The angle (in degrees) that is covered by the camera between the central point and the bottom border of the viewport. The `down` and `up` angles added together are the vertical field of view of the viewport."
+            },
+            "up": {
+              "type": "number",
+              "title": "Up",
+              "description": "The angle (in degrees) that is covered by the camera between the central point and the top border of the viewport. The `down` and `up` angles added together are the vertical field of view of the viewport."
+            }
+          },
+          "required": [ "left", "right", "down", "up" ],
+          "additionalProperties": false,
+          "title": "left+right / down+up"
+        }
+      ],
+      "title": "Camera Field-of-View",
+      "description": "This element describes the field of view used the camera in this planar projection."
+    },
+
     "spout": {
       "type": "object",
       "properties": {
@@ -399,58 +454,8 @@
           "description": "Defines the type of this projection."
         },
         "fov": {
-          "oneOf": [
-            {
-              "type": "object",
-              "properties": {
-                "hfov": {
-                  "type": "number",
-                  "minimum": 0.0,
-                  "title": "Horizontal Field-of-view",
-                  "description": "The angle (in degrees) covered by the camera in the horizontal direction. This is a symmetric frustum around the center and provides the same result as providing the `left` and `right` values with the half-angle."
-                },
-                "vfov": {
-                  "type": "number",
-                  "minimum": 0.0,
-                  "title": "Vertical Field-of-view",
-                  "description": "The angle (in degrees) covered by the camera in the vertical direction. This is a symmetric frustum around the center and provides the same result as providing the `up` and `down` values with the half-angle."
-                }
-              },
-              "required": [ "hfov", "vfov" ],
-              "additionalProperties": false,
-              "title": "hFov / vFov"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "left": {
-                  "type": "number",
-                  "title": "Left",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the left border of the viewport. The `left` and `right` angles added together are the vertical field of view of the viewport."
-                },
-                "right": {
-                  "type": "number",
-                  "title": "Right",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the right border of the viewport. The `left` and `right` angles added together are the vertical field of view of the viewport."
-                },
-                "down": {
-                  "type": "number",
-                  "title": "Down",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the bottom border of the viewport. The `down` and `up` angles added together are the vertical field of view of the viewport."
-                },
-                "up": {
-                  "type": "number",
-                  "title": "Up",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the top border of the viewport. The `down` and `up` angles added together are the vertical field of view of the viewport."
-                }
-              },
-              "required": [ "left", "right", "down", "up" ],
-              "additionalProperties": false,
-              "title": "left+right / down+up"
-            }
-          ],
-          "title": "Camera Field-of-View",
-          "description": "This object describes the field of view used the camera in this projection. The angles for the field of view can be provided in two ways. Either by providing the `up`, `down`, `left`, and `right` angles, which enables asymmetric frustums, or alternatively providing horizontal (`hfov`) and vertical (`vfov`) angles for symmetric frustums."
+          "$ref": "#/$defs/fov",
+          "title": "Camera Field-of-View"
         },
         "distance": {
           "type": "number",
@@ -577,58 +582,8 @@
           "description": "Defines the type of this projection."
         },
         "fov": {
-          "oneOf": [
-            {
-              "type": "object",
-              "properties": {
-                "hfov": {
-                  "type": "number",
-                  "minimum": 0.0,
-                  "title": "Horizontal Field-of-view",
-                  "description": "The angle (in degrees) covered by the camera in the horizontal direction. This is a symmetric frustum around the center and provides the same result as providing the `left` and `right` values with the half-angle."
-                },
-                "vfov": {
-                  "type": "number",
-                  "minimum": 0.0,
-                  "title": "Vertical Field-of-view",
-                  "description": "The angle (in degrees) covered by the camera in the vertical direction. This is a symmetric frustum around the center and provides the same result as providing the `up` and `down` values with the half-angle."
-                }
-              },
-              "required": [ "hfov", "vfov" ],
-              "additionalProperties": false,
-              "title": "hFov / vFov"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "left": {
-                  "type": "number",
-                  "title": "Left",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the left border of the viewport. The `left` and `right` angles added together are the vertical field of view of the viewport."
-                },
-                "right": {
-                  "type": "number",
-                  "title": "Right",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the right border of the viewport. The `left` and `right` angles added together are the vertical field of view of the viewport."
-                },
-                "down": {
-                  "type": "number",
-                  "title": "Down",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the bottom border of the viewport. The `down` and `up` angles added together are the vertical field of view of the viewport."
-                },
-                "up": {
-                  "type": "number",
-                  "title": "Up",
-                  "description": "The angle (in degrees) that is covered by the camera between the central point and the top border of the viewport. The `down` and `up` angles added together are the vertical field of view of the viewport."
-                }
-              },
-              "required": [ "left", "right", "down", "up" ],
-              "additionalProperties": false,
-              "title": "left+right / down+up"
-            }
-          ],
-          "title": "Camera Field-of-View",
-          "description": "This element describes the field of view used the camera in this planar projection."
+          "$ref": "#/$defs/fov",
+          "title": "Camera Field-of-View"
         },
         "distance": {
           "type": "number",

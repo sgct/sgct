@@ -149,7 +149,7 @@ public:
         /// before aborting
         float syncTimeout = 60.f;
 
-        struct SS{
+        struct SS {
             /// The location where the screenshots are being saved
             std::filesystem::path capturePath;
 

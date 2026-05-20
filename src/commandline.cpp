@@ -67,7 +67,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--number-capture-threads" && arg.size() > (i + 1)) {
-            config.nCaptureThreads = std::stoi(arg[i + 1]);
+            config.nCaptureThreads = std::max(std::stoi(arg[i + 1]), 1);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "--screenshot-path") {

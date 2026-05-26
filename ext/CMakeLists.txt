@@ -169,9 +169,8 @@ if (SGCT_DEP_INCLUDE_VRPN AND SGCT_VRPN_SUPPORT)
   sgct_register_package(vrpn vrpn)
 endif ()
 
-if (SGCT_DEP_INCLUDE_OPENVR AND SGCT_OPENVR_SUPPORT)
-  add_library(openvr INTERFACE)
-  sgct_register_package(openvr openvr)
+if (SGCT_DEP_INCLUDE_OPENXR AND SGCT_OPENXR_SUPPORT)
+  find_package(OpenXR CONFIG REQUIRED)
 endif ()
 
 if (WIN32 AND SGCT_SPOUT_SUPPORT)

@@ -267,6 +267,12 @@ void validateWindow(const Window& w) {
     }
 #endif // SGCT_HAS_SCALABLE
 
+#ifndef SGCT_HAS_OPENXR
+    if (w.openxr.has_value() && w.openxr->enabled) {
+        throw Err(1005, "Tried to enable OpenXR without SGCT OpenXR support");
+    }
+#endif // SGCT_HAS_OPENXR
+
     for (const Viewport& vp : w.viewports) {
         validateViewport(vp);
     }
@@ -1615,6 +1621,10 @@ static void from_json(const nlohmann::json& j, Window::NDI& n) {
     parseValue(j, "groups", n.groups);
 }
 
+static void from_json(const nlohmann::json& j, Window::OpenXR& o) {
+    parseValue(j, "enabled", o.enabled);
+}
+
 static void from_json(const nlohmann::json& j, Window& w) {
     std::optional<int8_t> id;
     parseValue(j, "id", id);
@@ -1666,6 +1676,17 @@ static void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "spout", w.spout);
     parseValue(j, "ndi", w.ndi);
+    if (auto it = j.find("openxr"); it != j.end()) {
+        if (it->is_boolean()) {
+            w.openxr = Window::OpenXR{ .enabled = it->get<bool>() };
+        }
+        else {
+            w.openxr = it->get<Window::OpenXR>();
+        }
+    }
+    else {
+        w.openxr = std::nullopt;
+    }
 
     parseValue(j, "pos", w.pos);
     parseValue(j, "size", w.size);
@@ -1679,6 +1700,10 @@ static void to_json(nlohmann::json& j, const Window::Spout& n) {
     if (n.name) {
         j["name"] = *n.name;
     }
+}
+
+static void to_json(nlohmann::json& j, const Window::OpenXR& o) {
+    j["enabled"] = o.enabled;
 }
 
 static void to_json(nlohmann::json& j, const Window::NDI& n) {
@@ -1813,6 +1838,10 @@ static void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.ndi.has_value()) {
         j["ndi"] = *w.ndi;
+    }
+
+    if (w.openxr.has_value()) {
+        j["openxr"] = *w.openxr;
     }
 
     if (w.pos.has_value()) {

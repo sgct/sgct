@@ -73,7 +73,7 @@ SGCT uses and acknowledges the following external libraries:
  - [GLFW](ttps://www.glfw.org)
  - [GLM](http://glm.g-truc.net)
  - [libpng](http://www.libpng.org)
- - [OpenVR](https://github.com/ValveSoftware/openvr)
+ - [OpenXR](https://github.com/KhronosGroup/OpenXR-SDK)
  - [Spout](https://github.com/box/spout)
  - [stb_image](https://github.com/let-def/stb_image)
  - [TinyXML](https:/github.com/leethomason/tinyxml2)

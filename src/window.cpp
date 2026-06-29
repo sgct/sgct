@@ -19,11 +19,13 @@
 #include <sgct/math.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
+#include <sgct/openxr.h>
 #include <sgct/profiling.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/statisticsrenderer.h>
 #include <glad/glad.h>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -195,6 +197,94 @@ namespace {
             static_cast<int>(mode->width * ScaleFactor),
             static_cast<int>((mode->width / AspectRatio) * ScaleFactor)
         );
+    }
+
+    sgct::mat4 convert(const glm::mat4& matrix) {
+        sgct::mat4 result;
+        std::memcpy(result.values.data(), glm::value_ptr(matrix), sizeof(float[16]));
+        return result;
+    }
+
+    sgct::mat4 viewMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
+                         sgct::FrustumMode frustum)
+    {
+#ifdef SGCT_HAS_OPENXR
+        if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
+            return convert(
+                sgct::openxr::eyeToHeadTransform(frustum) * sgct::openxr::poseMatrix()
+            );
+        }
+#endif // SGCT_HAS_OPENXR
+        return viewport.projection(frustum).viewMatrix();
+    }
+
+    sgct::mat4 projectionMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
+                               sgct::FrustumMode frustum)
+    {
+#ifdef SGCT_HAS_OPENXR
+        if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
+            return convert(sgct::openxr::eyeProjectionMatrix(
+                frustum,
+                sgct::Engine::instance().nearClipPlane(),
+                sgct::Engine::instance().farClipPlane()
+            ));
+        }
+#endif // SGCT_HAS_OPENXR
+        return viewport.projection(frustum).projectionMatrix();
+    }
+
+    sgct::mat4 viewProjectionMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
+                                   sgct::FrustumMode frustum)
+    {
+#ifdef SGCT_HAS_OPENXR
+        if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
+            return convert(sgct::openxr::currentViewProjectionMatrix(frustum));
+        }
+#endif // SGCT_HAS_OPENXR
+        return viewport.projection(frustum).viewProjectionMatrix();
+    }
+
+    sgct::ivec2 renderBufferSize(const sgct::Window& window, sgct::FrustumMode) {
+        return window.framebufferResolution();
+    }
+
+#ifdef SGCT_HAS_OPENXR
+    sgct::ivec2 openXRFramebufferResolution(const sgct::Window& window) {
+        if (!window.isOpenXREnabled() || !sgct::openxr::isHMDActive()) {
+            return window.framebufferResolution();
+        }
+
+        const sgct::ivec2 left = sgct::openxr::eyeResolution(sgct::FrustumMode::StereoLeft);
+        const sgct::ivec2 right = sgct::openxr::eyeResolution(sgct::FrustumMode::StereoRight);
+        const int eyeWidth = std::max(left.x, right.x);
+        const int eyeHeight = std::max(left.y, right.y);
+        if (eyeWidth == 0 || eyeHeight == 0) {
+            return window.framebufferResolution();
+        }
+
+        switch (window.stereoMode()) {
+            case sgct::Window::StereoMode::SideBySide:
+            case sgct::Window::StereoMode::SideBySideInverted:
+                return sgct::ivec2{ eyeWidth * 2, eyeHeight };
+            case sgct::Window::StereoMode::TopBottom:
+            case sgct::Window::StereoMode::TopBottomInverted:
+                return sgct::ivec2{ eyeWidth, eyeHeight * 2 };
+            case sgct::Window::StereoMode::NoStereo:
+                return left;
+            default:
+                return sgct::ivec2{ eyeWidth, eyeHeight };
+        }
+    }
+#endif // SGCT_HAS_OPENXR
+
+    sgct::vec2 viewportRenderSize(const sgct::Window& window, const sgct::Viewport& viewport,
+                                  sgct::FrustumMode frustum)
+    {
+        const sgct::ivec2 res = renderBufferSize(window, frustum);
+        return sgct::vec2{
+            res.x * viewport.size().x,
+            res.y * viewport.size().y
+        };
     }
 } // namespace
 
@@ -424,6 +514,7 @@ Window::Window(const config::Window& window)
     , _mirrorX(window.mirrorX.value_or(false))
     , _mirrorY(window.mirrorY.value_or(false))
     , _noError(window.noError.value_or(false))
+    , _useOpenXR(window.openxr.has_value() && window.openxr->enabled)
     , _isVisible(!window.isHidden.value_or(false))
     , _stereoMode(convert(window.stereo.value_or(config::Window::StereoMode::NoStereo)))
     , _windowPos(window.pos)
@@ -845,12 +936,8 @@ void Window::initialize() {
 #endif // SGCT_HAS_NDI
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        const vec2 viewportSize = vec2{
-            _framebufferRes.x * vp->size().x,
-            _framebufferRes.y * vp->size().y
-        };
         vp->initialize(
-            viewportSize,
+            viewportRenderSize(*this, *vp, vp->eye()),
             _stereoMode != StereoMode::NoStereo,
             _internalColorFormat,
             _nAASamples
@@ -887,6 +974,24 @@ void Window::initializeContextSpecific() {
 
 void Window::updateResolutions() {
     ZoneScoped;
+
+#ifdef SGCT_HAS_OPENXR
+    if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
+        const ivec2 resolution = openXRFramebufferResolution(*this);
+        if (resolution != _framebufferRes) {
+            _framebufferRes = resolution;
+            _windowResChanged = true;
+            _useFixResolution = true;
+            Log::Info(std::format(
+                "OpenXR framebuffer resolution changed to {}x{} for window {}",
+                _framebufferRes.x,
+                _framebufferRes.y,
+                _id
+            ));
+            _pendingFramebufferRes = std::nullopt;
+        }
+    }
+#endif // SGCT_HAS_OPENXR
 
     if (_pendingWindowSize) {
         _windowSize = *_pendingWindowSize;
@@ -971,11 +1076,7 @@ void Window::update() {
     // Resize non linear projection buffers
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         if (vp->hasSubViewports()) {
-            const vec2 viewport = vec2{
-                _framebufferRes.x * vp->size().x,
-                _framebufferRes.y * vp->size().y
-            };
-            vp->nonLinearProjection()->update(viewport);
+            vp->nonLinearProjection()->update(viewportRenderSize(*this, *vp, vp->eye()));
         }
     }
 }
@@ -1332,6 +1433,10 @@ bool Window::shouldTakeScreenshot() const {
     return _takeScreenshot;
 }
 
+bool Window::isOpenXREnabled() const {
+    return _useOpenXR;
+}
+
 vec2 Window::scale() const {
     return _scale;
 }
@@ -1575,8 +1680,13 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 }
 
 void Window::resizeFBOs() {
-    if (_useFixResolution) {
-        return;
+    bool updateFBO = !_useFixResolution;
+
+    if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
+        const ivec2 resolution = openXRFramebufferResolution(*this);
+        if (resolution != _framebufferRes) {
+            updateFBO = true;
+        }
     }
 
     makeSharedContextCurrent();
@@ -1693,11 +1803,11 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
                         *vp,
                         frustum,
                         ClusterManager::instance().sceneTransform(),
-                        vp->projection(frustum).viewMatrix(),
-                        vp->projection(frustum).projectionMatrix(),
-                        vp->projection(frustum).viewProjectionMatrix() *
+                        viewMatrix(*this, *vp, frustum),
+                        projectionMatrix(*this, *vp, frustum),
+                        viewProjectionMatrix(*this, *vp, frustum) *
                             ClusterManager::instance().sceneTransform(),
-                        framebufferResolution()
+                        renderBufferSize(*this, frustum)
                     };
                     Engine::instance().drawFunction()(renderData);
                 }
@@ -1843,11 +1953,11 @@ void Window::render2D(FrustumMode frustum) const {
                 *vp,
                 frustum,
                 ClusterManager::instance().sceneTransform(),
-                vp->projection(frustum).viewMatrix(),
-                vp->projection(frustum).projectionMatrix(),
-                vp->projection(frustum).viewProjectionMatrix() *
+                viewMatrix(*this, *vp, frustum),
+                projectionMatrix(*this, *vp, frustum),
+                viewProjectionMatrix(*this, *vp, frustum) *
                     ClusterManager::instance().sceneTransform(),
-                framebufferResolution()
+                renderBufferSize(*this, frustum)
             };
             Engine::instance().draw2DFunction()(renderData);
         }

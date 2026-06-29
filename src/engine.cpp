@@ -16,6 +16,9 @@
 #include <sgct/network.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
+#ifdef SGCT_HAS_OPENXR
+#include <sgct/openxr.h>
+#endif // SGCT_HAS_OPENXR
 #include <sgct/profiling.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -31,6 +34,7 @@
 #include <numeric>
 #include <mutex>
 #include <stdexcept>
+#include <ranges>
 
 #ifdef WIN32
 #include <glad/glad_wgl.h>
@@ -83,6 +87,11 @@ namespace {
     void addValue(std::array<double, Engine::Statistics::HistoryLength>& a, double v) {
         std::rotate(std::rbegin(a), std::rbegin(a) + 1, std::rend(a));
         a[0] = v;
+    }
+
+    Window* openXRWindow(const std::vector<std::unique_ptr<Window>>& windows) {
+        auto it = std::ranges::find_if(windows, std::mem_fn(&Window::isOpenXREnabled));
+        return it != windows.end() ? it->get() : nullptr;
     }
 
     Engine::Settings createSettings(config::Cluster cluster, const Configuration& config)
@@ -542,6 +551,12 @@ void Engine::initialize() {
 
     updateFrustums();
 
+#ifdef SGCT_HAS_OPENXR
+    if (openXRWindow(wins)) {
+        openxr::initialize(nearClipPlane(), farClipPlane());
+    }
+#endif // SGCT_HAS_OPENXR
+
 #ifdef SGCT_HAS_TEXT
 #ifdef WIN32
     constexpr std::string_view FontName = "verdanab.ttf";
@@ -618,6 +633,13 @@ Engine::~Engine() {
         const std::vector<std::unique_ptr<Window>>& wins = cm.thisNode().windows();
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::closeWindow));
     }
+
+#ifdef SGCT_HAS_OPENXR
+    if (openxr::isHMDActive()) {
+        Log::Debug("Shutting down OpenXR");
+        openxr::shutdown();
+    }
+#endif // SGCT_HAS_OPENXR
 
     // Close TCP connections
     Log::Debug("Destroying network manager");
@@ -818,6 +840,13 @@ void Engine::exec() {
             _postSyncPreDrawFn();
         }
 
+#ifdef SGCT_HAS_OPENXR
+        if (openXRWindow(wins)) {
+            ZoneScopedN("[SGCT] OpenXR Update Poses");
+            openxr::updatePoses();
+        }
+#endif // SGCT_HAS_OPENXR
+
         {
             ZoneScopedN("Statistics update");
             const double startFrameTime = glfwGetTime();
@@ -845,6 +874,13 @@ void Engine::exec() {
             ZoneScopedN("[SGCT] PostDraw");
             _postDrawFn();
         }
+
+#ifdef SGCT_HAS_OPENXR
+        if (Window* window = openXRWindow(wins)) {
+            ZoneScopedN("[SGCT] OpenXR Submit");
+            openxr::copyWindowToHMD(window);
+        }
+#endif // SGCT_HAS_OPENXR
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("Statistics Update");

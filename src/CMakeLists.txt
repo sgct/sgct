@@ -96,7 +96,7 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirror.h
 
-    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/openvr.h>
+    $<$<BOOL:${SGCT_OPENXR_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/openxr.h>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h>
 
   PRIVATE
@@ -146,7 +146,7 @@ target_sources(
     projection/projectionplane.cpp
     projection/sphericalmirror.cpp
 
-    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr.cpp>
+    $<$<BOOL:${SGCT_OPENXR_SUPPORT}>:openxr.cpp>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:trackingmanager.cpp>
 )
 
@@ -193,8 +193,18 @@ endif ()
 if (SGCT_FREETYPE_SUPPORT)
   find_package(Freetype REQUIRED)
 endif ()
-if (SGCT_OPENVR_SUPPORT)
-  find_package(openvr REQUIRED)
+if (SGCT_OPENXR_SUPPORT)
+  find_package(OpenXR CONFIG REQUIRED)
+  if (WIN32)
+    find_package(Vulkan)
+    if (Vulkan_FOUND)
+      target_compile_definitions(sgct PRIVATE SGCT_HAS_OPENXR_VULKAN_FALLBACK)
+      set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION "${Vulkan_LIBRARY}")
+      set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION_RELEASE "${Vulkan_LIBRARY}")
+    else ()
+      message(WARNING "Vulkan SDK was not found; SGCT OpenXR Vulkan fallback will be disabled")
+    endif ()
+  endif ()
 endif ()
 if (SGCT_VRPN_SUPPORT)
   find_package(vrpn REQUIRED)
@@ -206,7 +216,7 @@ target_link_libraries(sgct
     glfw
     OpenGL::GL
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
-    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
+    $<$<BOOL:${SGCT_OPENXR_SUPPORT}>:OpenXR::openxr_loader>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:spout>
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
   PRIVATE
@@ -222,12 +232,13 @@ target_link_libraries(sgct
     $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:scalable>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:ndi>
+    $<$<AND:$<BOOL:${SGCT_OPENXR_SUPPORT}>,$<BOOL:${WIN32}>,$<BOOL:${Vulkan_FOUND}>>:Vulkan::Vulkan>
 )
 
 target_compile_definitions(sgct
   PUBLIC
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
-    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>
+    $<$<BOOL:${SGCT_OPENXR_SUPPORT}>:SGCT_HAS_OPENXR>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
     $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE

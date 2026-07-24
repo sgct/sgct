@@ -422,7 +422,7 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) const
         }
 
         if (hasFoundConnection) {
-            return std::make_pair(minTime, maxTime);
+            return std::pair(minTime, maxTime);
         }
     }
     else if (sm == SyncMode::Acknowledge) {

@@ -1681,13 +1681,14 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 
 void Window::resizeFBOs() {
     bool updateFBO = !_useFixResolution;
-
+#ifdef SGCT_HAS_OPENXR
     if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
         const ivec2 resolution = openXRFramebufferResolution(*this);
         if (resolution != _framebufferRes) {
             updateFBO = true;
         }
     }
+#endif
 
     makeSharedContextCurrent();
     destroyFBOs();

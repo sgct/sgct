@@ -44,7 +44,9 @@ endif ()
 
 find_package(glm REQUIRED)
 find_package(Catch2 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(nlohmann_json_schema_validator REQUIRED)
 
-target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::nlohmann_json_schema_validator glm::glm)
+target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator glm::glm)
 
 add_test(NAME SGCTTest COMMAND SGCTTest)

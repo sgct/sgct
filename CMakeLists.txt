@@ -8,60 +8,56 @@
 
 cmake_minimum_required(VERSION 4.0)
 
+# The options gating optional dependencies have to be declared before the first project()
+# call: that is when vcpkg's toolchain file runs and reads VCPKG_MANIFEST_FEATURES.
+option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)
+option(SGCT_OPENXR_SUPPORT "SGCT OpenXR support" OFF)
+option(SGCT_VRPN_SUPPORT "SGCT VRPN support" OFF)
+option(SGCT_TRACY_SUPPORT "Build SGCT with Tracy" OFF)
+
+# WIN32 is only set by project(), so the host has to stand in for it here
+if (CMAKE_HOST_WIN32)
+  option(SGCT_SPOUT_SUPPORT "SGCT Spout support" ON)
+  option(SGCT_NDI_SUPPORT "SGCT NDI Support" ON)
+  option(SGCT_SCALABLE_SUPPORT "SGCT Scalable SDK support" ON)
+endif ()
+
+# Tracy's own switch is honoured so that a surrounding project can turn on profiling globally
+if (TRACY_ENABLE)
+  set(SGCT_TRACY_SUPPORT ON CACHE BOOL "" FORCE)
+endif ()
+
+if (SGCT_FREETYPE_SUPPORT)
+  list(APPEND VCPKG_MANIFEST_FEATURES "freetype")
+endif ()
+if (SGCT_OPENXR_SUPPORT)
+  list(APPEND VCPKG_MANIFEST_FEATURES "openxr")
+endif ()
+if (SGCT_SPOUT_SUPPORT)
+  list(APPEND VCPKG_MANIFEST_FEATURES "spout2")
+endif ()
+if (SGCT_TRACY_SUPPORT)
+  list(APPEND VCPKG_MANIFEST_FEATURES "tracy")
+endif ()
+# SGCT_VRPN_SUPPORT has no counterpart here as vcpkg carries no VRPN port; VRPN stays
+# vendored in ext/vrpn
+
 project(sgct VERSION 4.0.0 LANGUAGES C CXX)
 enable_testing()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-
-include(support/cmake/register_package.cmake)
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
-file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/pkg)
-list(APPEND CMAKE_MODULE_PATH
-  ${PROJECT_SOURCE_DIR}/support/cmake/modules
-  ${CMAKE_BINARY_DIR}/pkg
-)
 
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 
-option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)
-option(SGCT_OPENXR_SUPPORT "SGCT OpenXR support" OFF)
-option(SGCT_VRPN_SUPPORT "SGCT VRPN support" OFF)
-option(SGCT_TRACY_SUPPORT "Build SGCT with Tracy" OFF)
 option(SGCT_MEMORY_PROFILING "Override new and delete for memory profiling in Tracy" OFF)
-
-if (WIN32)
-  option(SGCT_SPOUT_SUPPORT "SGCT Spout support" ON)
-  option(SGCT_NDI_SUPPORT "SGCT NDI Support" ON)
-endif ()
-
-# Exceptions for external libraries
-option(SGCT_DEP_INCLUDE_CATCH2 "Include Catch2 library" ON)
-option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)
-option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)
-option(SGCT_DEP_INCLUDE_GLAD "Include GLAD library" ON)
-option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)
-option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
-option(SGCT_DEP_INCLUDE_JSON "Include JSON library" ON)
-option(SGCT_DEP_INCLUDE_JSON_VALIDATOR "Include JSON-Validator library" ON)
-option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
-option(SGCT_DEP_INCLUDE_OPENXR "Include OpenXR loader library" OFF)
-option(SGCT_DEP_INCLUDE_SCN "Include SCN library" ON)
-option(SGCT_DEP_INCLUDE_STB "Include STB library" ON)
-option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
-option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" OFF)
-option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" OFF)
-option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
-
-if (WIN32)
-  option(SGCT_DEP_INCLUDE_SCALABLE "Include Scalable SDK" ON)
-endif ()
 
 if (WIN32)
   option(SGCT_ENABLE_EDIT_CONTINUE "Enable Edit&Continue" ON)
 
-  if (TRACY_ENABLE AND SGCT_ENABLE_EDIT_CONTINUE)
+  if (SGCT_TRACY_SUPPORT AND SGCT_ENABLE_EDIT_CONTINUE)
     message(WARNING "Tracy does not support compiling with Edit&Continue, so we have to disable that feature")
     set(SGCT_ENABLE_EDIT_CONTINUE OFF CACHE BOOL "" FORCE)
   endif ()

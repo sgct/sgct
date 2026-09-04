@@ -1,42 +1,61 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "sgct",
-  "version-string" : "3.0.0",
-  "homepage" : "https://github.com/sgct/sgct/",
-  "license": "BSD-3-Clause",
-  "dependencies" : 
-  [
-    "catch2",
-    "fmt",
-    "glfw3",
-    "glm",
-    "libpng",
-    "minizip",
-    "nlohmann-json",
-    "scnlib",
-    "stb",
-    "tinyxml2",
-    "zlib",
-    {
-       "name": "glad",
-       "features" : ["wgl", "loader", "extensions"]
-    }
+  "version": "4.0.0",
+  "description": [
+    "Simple Graphics Cluster Toolkit.",
+    "The dependency list itself lives in support/vcpkg/ports/sgct-deps/vcpkg.json so that standalone builds and projects embedding the SGCT sources share one source of truth. Every feature here only forwards to the matching sgct-deps feature."
   ],
-  "features" : {
-    "freetype" : {
-      "description": "Build SGCT with Freetype support", 
-      "dependencies": ["freetype"]
+  "homepage": "https://github.com/sgct/sgct/",
+  "license": "BSD-3-Clause",
+  "builtin-baseline": "04a9d8e5212d01ee1dd9478eadd9caade4f8b0d4",
+  "dependencies": [
+    "sgct-deps"
+  ],
+  "features": {
+    "freetype": {
+      "description": "Build SGCT with Freetype support",
+      "dependencies": [
+        {
+          "name": "sgct-deps",
+          "features": [
+            "freetype"
+          ]
+        }
+      ]
     },
-     "openxr" : {
-      "description": "Build SGCT with OpenXR support", 
-      "dependencies": ["openxr-loader"]
+    "openxr": {
+      "description": "Build SGCT with OpenXR support",
+      "dependencies": [
+        {
+          "name": "sgct-deps",
+          "features": [
+            "openxr"
+          ]
+        }
+      ]
     },
-     "spout2" : {
-      "description": "Build SGCT with Spout2 support", 
-      "dependencies": ["spout2"]
+    "spout2": {
+      "description": "Build SGCT with Spout2 support",
+      "dependencies": [
+        {
+          "name": "sgct-deps",
+          "features": [
+            "spout2"
+          ]
+        }
+      ]
     },
-    "tracy": { 
-      "description": "Enable Tracy profiling support", 
-      "dependencies": ["tracy"]
+    "tracy": {
+      "description": "Enable Tracy profiling support",
+      "dependencies": [
+        {
+          "name": "sgct-deps",
+          "features": [
+            "tracy"
+          ]
+        }
+      ]
     }
   }
 }

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "sgct-deps",
+  "version": "4.0.0",
+  "description": [
+    "Metapackage carrying the dependency closure of the SGCT library.",
+    "This port installs no files of its own. It exists so that a project embedding the SGCT sources via add_subdirectory only has to name 'sgct-deps' in its own manifest; vcpkg then resolves the actual dependencies transitively from here. This file is the single source of truth for the SGCT dependency list: the SGCT root vcpkg.json forwards to it as well."
+  ],
+  "homepage": "https://github.com/sgct/sgct/",
+  "license": "BSD-3-Clause",
+  "dependencies": [
+    "catch2",
+    "fmt",
+    "glfw3",
+    "glm",
+    "json-schema-validator",
+    "libpng",
+    "minizip",
+    "nlohmann-json",
+    "scnlib",
+    "stb",
+    "tinyxml2",
+    "zlib",
+    {
+      "name": "glad",
+      "features": [
+        "extensions",
+        "loader"
+      ]
+    },
+    {
+      "name": "glad",
+      "features": [
+        "wgl"
+      ],
+      "platform": "windows"
+    }
+  ],
+  "features": {
+    "freetype": {
+      "description": "Build SGCT with Freetype support",
+      "dependencies": [
+        "freetype"
+      ]
+    },
+    "openxr": {
+      "description": "Build SGCT with OpenXR support",
+      "dependencies": [
+        "openxr-loader"
+      ]
+    },
+    "spout2": {
+      "description": "Build SGCT with Spout2 support",
+      "dependencies": [
+        {
+          "name": "spout2",
+          "platform": "windows"
+        }
+      ]
+    },
+    "tracy": {
+      "description": "Enable Tracy profiling support",
+      "dependencies": [
+        "tracy"
+      ]
+    }
+  }
+}

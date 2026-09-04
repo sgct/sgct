@@ -173,12 +173,12 @@ target_precompile_headers(sgct PRIVATE
   <vector>
 )
 
-target_include_directories(sgct PRIVATE "../../ext/json-schema-validator/src")
-
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(minizip REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(nlohmann_json_schema_validator REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PNG REQUIRED)
 find_package(scn REQUIRED)
@@ -193,7 +193,11 @@ endif ()
 if (SGCT_FREETYPE_SUPPORT)
   find_package(Freetype REQUIRED)
 endif ()
+if (SGCT_SPOUT_SUPPORT)
+  find_package(Spout2 CONFIG REQUIRED)
+endif ()
 if (SGCT_OPENXR_SUPPORT)
+  find_package(OpenXR REQUIRED)
   if (WIN32)
     find_package(Vulkan)
     if (Vulkan_FOUND)
@@ -214,21 +218,21 @@ target_link_libraries(sgct
     glad::glad
     glfw
     OpenGL::GL
-    $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
+    $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:Freetype::Freetype>
     $<$<BOOL:${SGCT_OPENXR_SUPPORT}>:OpenXR::openxr_loader>
-    $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:spout>
+    $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:Spout2::SpoutLibrary>
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
   PRIVATE
     ZLIB::ZLIB
-    minizip::minizip
+    $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
     glm::glm
     PNG::PNG
     scn::scn
     sgct::stb
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
-    nlohmann_json_schema_validator::nlohmann_json_schema_validator
-    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:scalable>
+    nlohmann_json_schema_validator::validator
+    $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:scalable>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:ndi>
     $<$<AND:$<BOOL:${SGCT_OPENXR_SUPPORT}>,$<BOOL:${WIN32}>,$<BOOL:${Vulkan_FOUND}>>:Vulkan::Vulkan>
@@ -241,7 +245,7 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
     $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE
-    $<$<BOOL:${SGCT_DEP_INCLUDE_SCALABLE}>:SGCT_HAS_SCALABLE>
+    $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:SGCT_HAS_SCALABLE>
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:SGCT_HAS_VRPN>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:SGCT_HAS_NDI>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
@@ -272,8 +276,13 @@ if (SGCT_INSTALL)
     NAMESPACE sgct::
     DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
   )
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/sgctConfig.cmake
+    @ONLY
+  )
   install(
-      FILES ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake
+      FILES ${CMAKE_CURRENT_BINARY_DIR}/sgctConfig.cmake
       DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
   )
 endif ()

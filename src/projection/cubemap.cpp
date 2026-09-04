@@ -23,7 +23,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif // NOMINMAX
-#include <SpoutLibrary.h>
+#include <SpoutLibrary/SpoutLibrary.h>
 #endif // SGCT_HAS_SPOUT
 #include <sgct/config.h>
 #include <sgct/window.h>

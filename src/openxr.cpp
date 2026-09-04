@@ -1154,7 +1154,7 @@ namespace {
                     imageCount,
                     { XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR }
                 );
-                XrResult res = xrEnumerateSwapchainImages(
+                XrResult r = xrEnumerateSwapchainImages(
                     swapchain.handle,
                     imageCount,
                     &imageCount,
@@ -1162,7 +1162,7 @@ namespace {
                         swapchain.vulkanImages.data()
                     )
                 );
-                if (!succeeded(res, "Enumerate Vulkan swapchain images")) {
+                if (!succeeded(r, "Enumerate Vulkan swapchain images")) {
                     return false;
                 }
             }

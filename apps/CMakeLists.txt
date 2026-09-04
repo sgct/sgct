@@ -10,7 +10,6 @@ set(SGCT_EXAMPLE_SHARED_RESOURCES "${PROJECT_SOURCE_DIR}/apps/SharedResources")
 
 option(SGCT_EXAMPLES_FFMPEG "Build FFMPEG examples" OFF)
 option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)
-option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
 option(SGCT_EXAMPLES_STITCHER "Build Stitcher examples" OFF)
 
 add_subdirectory(calibrator)

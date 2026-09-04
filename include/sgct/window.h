@@ -123,6 +123,7 @@ public:
     bool needsCompatibilityProfile() const;
 
     bool shouldTakeScreenshot() const;
+    bool isOpenXREnabled() const;
 
     /**
      * \return Get the scale value (relation between pixel and point size). Normally this
@@ -381,6 +382,7 @@ private:
     bool _mirrorX;
     bool _mirrorY;
     bool _noError;
+    bool _useOpenXR;
     bool _isVisible;
     bool _isIconified = false;
     StereoMode _stereoMode;

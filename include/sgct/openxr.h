@@ -6,47 +6,45 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__OPENVR__H__
-#define __SGCT__OPENVR__H__
+#ifndef __SGCT__OPENXR__H__
+#define __SGCT__OPENXR__H__
 
-#ifdef SGCT_HAS_OPENVR
+#ifdef SGCT_HAS_OPENXR
 
+#include <sgct/definitions.h>
 #include <sgct/sgctexports.h>
-#include <sgct/frustum.h>
 #include <glm/glm.hpp>
-#include <openvr.h>
-#include <string>
 
-class Window;
+namespace sgct { class Window; }
 
-namespace sgct::openvr {
-    /// Init OpenVR
+namespace sgct::openxr {
+    /// Initialize OpenXR using the current OpenGL context.
     SGCT_EXPORT void initialize(float nearClip, float farClip);
 
-    /// Shutdown OpenVR
+    /// Shutdown OpenXR and release runtime resources.
     SGCT_EXPORT void shutdown();
 
     SGCT_EXPORT bool isHMDActive();
 
+    SGCT_EXPORT ivec2 eyeResolution(FrustumMode eye);
+
+    /// Submit a side-by-side stereo SGCT window render target to the OpenXR runtime.
     SGCT_EXPORT void copyWindowToHMD(Window* win);
 
-    SGCT_EXPORT glm::mat4 currentViewProjectionMatrix(sgct::Frustum::Mode nEye);
+    SGCT_EXPORT glm::mat4 currentViewProjectionMatrix(FrustumMode eye);
 
-    // Updates pose matrices for all tracked OpenVR devices
+    /// Locate predicted headset and eye poses for the next frame.
     SGCT_EXPORT void updatePoses();
 
-    /// Updates matrices for both eyes of tracked HMD.
+    /// Updates projection matrices for both eyes.
     SGCT_EXPORT void updateHMDMatrices(float nearClip, float farClip);
 
-    SGCT_EXPORT std::string trackedDeviceString(vr::IVRSystem* pHmd,
-        vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop,
-        vr::TrackedPropertyError* peError = nullptr);
-    SGCT_EXPORT glm::mat4 eyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip);
-    SGCT_EXPORT glm::mat4 eyeToHeadTransform(vr::Hmd_Eye nEye);
+    SGCT_EXPORT glm::mat4 eyeProjectionMatrix(FrustumMode eye, float nearClip, float farClip);
+    SGCT_EXPORT glm::mat4 eyeToHeadTransform(FrustumMode eye);
 
     SGCT_EXPORT glm::mat4 poseMatrix();
     SGCT_EXPORT glm::quat inverseRotation(glm::mat4 poseMat);
-} // namespace sgct::openvr
+} // namespace sgct::openxr
 
-#endif // SGCT_HAS_OPENVR
-#endif // __SGCT__OPENVR__H__
+#endif // SGCT_HAS_OPENXR
+#endif // __SGCT__OPENXR__H__

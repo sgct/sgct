@@ -365,6 +365,12 @@ struct SGCT_EXPORT Window {
         bool operator==(const Scalable&) const noexcept = default;
     };
 
+    struct OpenXR {
+        bool enabled = true;
+
+        bool operator==(const OpenXR&) const noexcept = default;
+    };
+
     std::optional<ivec2> pos;
     std::optional<ivec2> size;
     std::optional<ivec2> resolution;
@@ -396,6 +402,7 @@ struct SGCT_EXPORT Window {
     std::optional<Spout> spout;
     std::optional<NDI> ndi;
     std::optional<Scalable> scalable;
+    std::optional<OpenXR> openxr;
 
     bool operator==(const Window&) const noexcept = default;
 };

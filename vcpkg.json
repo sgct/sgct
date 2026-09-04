@@ -26,9 +26,9 @@
       "description": "Build SGCT with Freetype support", 
       "dependencies": ["freetype"]
     },
-     "openvr" : {
-      "description": "Build SGCT with OpenVR support", 
-      "dependencies": ["openvr"]
+     "openxr" : {
+      "description": "Build SGCT with OpenXR support", 
+      "dependencies": ["openxr-loader"]
     },
      "spout2" : {
       "description": "Build SGCT with Spout2 support", 

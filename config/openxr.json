@@ -8,7 +8,9 @@
       "windows": [
         {
           "fullscreen": false,
-          "openxr": true,
+          "openxr": {
+            "enabled": true
+          },
           "stereo": "side_by_side",
           "size": { "x": 2560, "y": 720 },
           "viewports": [

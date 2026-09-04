@@ -170,7 +170,7 @@ if (SGCT_DEP_INCLUDE_VRPN AND SGCT_VRPN_SUPPORT)
 endif ()
 
 if (SGCT_DEP_INCLUDE_OPENXR AND SGCT_OPENXR_SUPPORT)
-  find_package(OpenXR CONFIG REQUIRED)
+  add_subdirectory(openxr)
 endif ()
 
 if (WIN32 AND SGCT_SPOUT_SUPPORT)

@@ -11,14 +11,14 @@
 #include <sgct/openxr.h>
 
 #include <sgct/log.h>
-#include <sgct/window.h>
 #include <sgct/opengl.h>
+#include <sgct/window.h>
 
 #define XR_USE_GRAPHICS_API_OPENGL
 #ifdef SGCT_HAS_OPENXR_VULKAN_FALLBACK
 #define XR_USE_GRAPHICS_API_VULKAN
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
-#if defined(WIN32)
+#ifdef WIN32
 #define XR_USE_PLATFORM_WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -41,15 +41,15 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
 #include <format>
 #include <limits>
 #include <optional>
 #include <string_view>
 #include <vector>
 
-#if defined(WIN32)
+#ifdef WIN32
 #include <glad/glad_wgl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -59,6 +59,8 @@
 #endif // WIN32
 
 namespace {
+    using namespace sgct;
+
     constexpr uint32_t EyeCount = 2;
 
     enum class GraphicsBackend {
@@ -94,10 +96,12 @@ namespace {
     std::array<XrCompositionLayerProjectionView, EyeCount> projectionViews;
     std::array<Swapchain, EyeCount> swapchains;
     std::array<glm::mat4, EyeCount> eyeProjectionMatrices = {
-        glm::mat4(1.f), glm::mat4(1.f)
+        glm::mat4(1.f),
+        glm::mat4(1.f)
     };
     std::array<glm::mat4, EyeCount> eyeToHeadMatrices = {
-        glm::mat4(1.f), glm::mat4(1.f)
+        glm::mat4(1.f),
+        glm::mat4(1.f)
     };
 
 #ifdef SGCT_HAS_OPENXR_VULKAN_FALLBACK
@@ -129,7 +133,7 @@ namespace {
         if (instance != XR_NULL_HANDLE) {
             xrResultToString(instance, result, buffer);
         }
-        sgct::Log::Error(std::format("OpenXR {} failed: {}", action, buffer));
+        Log::Error(std::format("OpenXR error: {}. {}", action, buffer));
         return false;
     }
 
@@ -140,22 +144,24 @@ namespace {
         areViewsValid = false;
     }
 
-    void endFrame(const XrCompositionLayerBaseHeader* const* layers, uint32_t layerCount) {
+    void endFrame(const XrCompositionLayerBaseHeader** layers, uint32_t layerCount) {
         if (!isFrameBegun) {
             return;
         }
 
-        XrFrameEndInfo endInfo = { XR_TYPE_FRAME_END_INFO };
-        endInfo.displayTime = predictedDisplayTime;
-        endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-        endInfo.layerCount = layerCount;
-        endInfo.layers = layers;
-        succeeded(xrEndFrame(session, &endInfo), "end frame");
+        const XrFrameEndInfo endInfo = {
+            .type = XR_TYPE_FRAME_END_INFO,
+            .displayTime = predictedDisplayTime,
+            .environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE,
+            .layerCount = layerCount,
+            .layers = layers
+        };
+        succeeded(xrEndFrame(session, &endInfo), "End frame");
         resetFrameState();
     }
 
-    uint32_t eyeIndex(sgct::FrustumMode eye) {
-        return eye == sgct::FrustumMode::StereoRight ? 1 : 0;
+    uint32_t eyeIndex(FrustumMode eye) {
+        return eye == FrustumMode::StereoRight ? 1 : 0;
     }
 
     glm::mat4 projectionMatrix(const XrFovf& fov, float nearClip, float farClip) {
@@ -193,27 +199,26 @@ namespace {
     }
 
     bool hasExtension(std::string_view extension) {
-        uint32_t count = 0;
-        if (!succeeded(xrEnumerateInstanceExtensionProperties(nullptr, 0, &count, nullptr),
-            "enumerate extensions"))
-        {
+        uint32_t n = 0;
+
+        XrResult res = xrEnumerateInstanceExtensionProperties(nullptr, 0, &n, nullptr);
+        if (!succeeded(res, "Enumerate extensions")) {
             return false;
         }
 
-        std::vector<XrExtensionProperties> extensions(count, { XR_TYPE_EXTENSION_PROPERTIES });
-        if (!succeeded(xrEnumerateInstanceExtensionProperties(
-            nullptr,
-            count,
-            &count,
-            extensions.data()
-        ), "enumerate extensions"))
-        {
+        std::vector<XrExtensionProperties> exts(n, { XR_TYPE_EXTENSION_PROPERTIES });
+        res = xrEnumerateInstanceExtensionProperties(nullptr, n, &n, exts.data());
+        if (!succeeded(res, "Enumerate extensions")) {
             return false;
         }
 
-        return std::ranges::any_of(extensions, [extension](const XrExtensionProperties& e) {
-            return extension == e.extensionName;
-        });
+        return std::any_of(
+            exts.begin(),
+            exts.end(),
+            [extension](const XrExtensionProperties& e) {
+                return extension == e.extensionName;
+            }
+        );
     }
 
 #ifdef SGCT_HAS_OPENXR_VULKAN_FALLBACK
@@ -221,28 +226,27 @@ namespace {
         if (result == VK_SUCCESS) {
             return true;
         }
-        sgct::Log::Error(std::format("Vulkan {} failed: {}", action, static_cast<int>(result)));
+        Log::Error(std::format("Vulkan {} failed: {}", action, static_cast<int>(result)));
         return false;
     }
 
     template <typename T>
     bool loadOpenXRFunction(const char* name, T& function) {
         PFN_xrVoidFunction proc = nullptr;
-        if (!succeeded(xrGetInstanceProcAddr(instance, name, &proc),
-            std::format("get {} function", name)))
-        {
-            return false;
+        const XrResult res = xrGetInstanceProcAddr(instance, name, &proc);
+        const bool success = succeeded(res, std::format("Get {} function", name));
+        if (success) {
+            function = reinterpret_cast<T>(proc);
         }
-        function = reinterpret_cast<T>(proc);
-        return true;
+        return success;
     }
 
     uint32_t findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties) {
-        VkPhysicalDeviceMemoryProperties memoryProperties = {};
-        vkGetPhysicalDeviceMemoryProperties(vulkan.physicalDevice, &memoryProperties);
-        for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        VkPhysicalDeviceMemoryProperties memoryProps = {};
+        vkGetPhysicalDeviceMemoryProperties(vulkan.physicalDevice, &memoryProps);
+        for (uint32_t i = 0; i < memoryProps.memoryTypeCount; i++) {
             if ((typeBits & (1 << i)) != 0 &&
-                (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+                (memoryProps.memoryTypes[i].propertyFlags & properties) == properties)
             {
                 return i;
             }
@@ -283,7 +287,9 @@ namespace {
     }
 
     void cleanupFailedVulkanStagingBuffer() {
-        if (vulkan.stagingBuffer == VK_NULL_HANDLE || vulkan.stagingMemory == VK_NULL_HANDLE) {
+        if (vulkan.stagingBuffer == VK_NULL_HANDLE ||
+            vulkan.stagingMemory == VK_NULL_HANDLE)
+        {
             destroyVulkanStagingBuffer();
         }
     }
@@ -295,13 +301,19 @@ namespace {
 
         destroyVulkanStagingBuffer();
 
-        VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        bufferInfo.size = size;
-        bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        if (!succeeded(vkCreateBuffer(vulkan.device, &bufferInfo, nullptr, &vulkan.stagingBuffer),
-            "create staging buffer"))
-        {
+        const VkBufferCreateInfo bufferInfo = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = size,
+            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+        };
+        VkResult res = vkCreateBuffer(
+            vulkan.device,
+            &bufferInfo,
+            nullptr,
+            &vulkan.stagingBuffer
+        );
+        if (!succeeded(res, "Create staging buffer")) {
             return false;
         }
 
@@ -312,23 +324,34 @@ namespace {
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
         if (memoryTypeIndex == std::numeric_limits<uint32_t>::max()) {
-            sgct::Log::Error("Vulkan could not find host-visible memory for OpenXR staging");
+            Log::Error("Vulkan could not find host-visible memory for OpenXR staging");
             cleanupFailedVulkanStagingBuffer();
             return false;
         }
 
-        VkMemoryAllocateInfo allocateInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-        allocateInfo.allocationSize = requirements.size;
-        allocateInfo.memoryTypeIndex = memoryTypeIndex;
-        if (!succeeded(vkAllocateMemory(vulkan.device, &allocateInfo, nullptr, &vulkan.stagingMemory),
-            "allocate staging memory"))
-        {
+        const VkMemoryAllocateInfo allocateInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = requirements.size,
+            .memoryTypeIndex = memoryTypeIndex
+        };
+        res = vkAllocateMemory(
+            vulkan.device,
+            &allocateInfo,
+            nullptr,
+            &vulkan.stagingMemory
+        );
+        if (!succeeded(res, "Allocate staging memory")) {
             cleanupFailedVulkanStagingBuffer();
             return false;
         }
-        if (!succeeded(vkBindBufferMemory(vulkan.device, vulkan.stagingBuffer, vulkan.stagingMemory, 0),
-            "bind staging memory"))
-        {
+
+        res = vkBindBufferMemory(
+            vulkan.device,
+            vulkan.stagingBuffer,
+            vulkan.stagingMemory,
+            0
+        );
+        if (!succeeded(res, "Bind staging memory")) {
             cleanupFailedVulkanStagingBuffer();
             return false;
         }
@@ -338,42 +361,49 @@ namespace {
     }
 
     bool submitVulkanImageUpload(VkImage image, int32_t width, int32_t height) {
-        VkCommandBufferAllocateInfo allocateInfo = {
-            VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
+        const VkCommandBufferAllocateInfo allocateInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool = vulkan.commandPool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1
         };
-        allocateInfo.commandPool = vulkan.commandPool;
-        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocateInfo.commandBufferCount = 1;
-
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-        if (!succeeded(vkAllocateCommandBuffers(vulkan.device, &allocateInfo, &commandBuffer),
-            "allocate upload command buffer"))
-        {
+        VkResult res = vkAllocateCommandBuffers(
+            vulkan.device,
+            &allocateInfo,
+            &commandBuffer
+        );
+        if (!succeeded(res, "Allocate upload command buffer")) {
             return false;
         }
 
-        VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        if (!succeeded(vkBeginCommandBuffer(commandBuffer, &beginInfo),
-            "begin upload command buffer"))
-        {
+        const VkCommandBufferBeginInfo beginInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+        };
+        res = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        if (!succeeded(res, "Begin upload command buffer")) {
             vkFreeCommandBuffers(vulkan.device, vulkan.commandPool, 1, &commandBuffer);
             return false;
         }
 
-        VkImageMemoryBarrier toTransfer = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-        toTransfer.srcAccessMask = 0;
-        toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        toTransfer.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        toTransfer.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        toTransfer.image = image;
-        toTransfer.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        toTransfer.subresourceRange.baseMipLevel = 0;
-        toTransfer.subresourceRange.levelCount = 1;
-        toTransfer.subresourceRange.baseArrayLayer = 0;
-        toTransfer.subresourceRange.layerCount = 1;
+        const VkImageMemoryBarrier toTransfer = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange  {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
         vkCmdPipelineBarrier(
             commandBuffer,
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -387,19 +417,22 @@ namespace {
             &toTransfer
         );
 
-        VkBufferImageCopy copyRegion = {};
-        copyRegion.bufferOffset = 0;
-        copyRegion.bufferRowLength = 0;
-        copyRegion.bufferImageHeight = 0;
-        copyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        copyRegion.imageSubresource.mipLevel = 0;
-        copyRegion.imageSubresource.baseArrayLayer = 0;
-        copyRegion.imageSubresource.layerCount = 1;
-        copyRegion.imageOffset = { 0, 0, 0 };
-        copyRegion.imageExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height),
-            1
+        const VkBufferImageCopy copyRegion = {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            },
+            .imageOffset = { 0, 0, 0 },
+            .imageExtent = {
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(height),
+                1
+            }
         };
         vkCmdCopyBufferToImage(
             commandBuffer,
@@ -410,15 +443,17 @@ namespace {
             &copyRegion
         );
 
-        VkImageMemoryBarrier toShaderRead = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-        toShaderRead.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        toShaderRead.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        toShaderRead.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        toShaderRead.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        toShaderRead.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        toShaderRead.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        toShaderRead.image = image;
-        toShaderRead.subresourceRange = toTransfer.subresourceRange;
+        const VkImageMemoryBarrier toShaderRead = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = toTransfer.subresourceRange
+        };
         vkCmdPipelineBarrier(
             commandBuffer,
             VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -432,27 +467,27 @@ namespace {
             &toShaderRead
         );
 
-        if (!succeeded(vkEndCommandBuffer(commandBuffer), "end upload command buffer")) {
+        res = vkEndCommandBuffer(commandBuffer);
+        if (!succeeded(res, "End upload command buffer")) {
             vkFreeCommandBuffers(vulkan.device, vulkan.commandPool, 1, &commandBuffer);
             return false;
         }
 
-        VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-        const bool result = succeeded(vkQueueSubmit(vulkan.queue, 1, &submitInfo, VK_NULL_HANDLE),
-            "submit upload command buffer") &&
-            succeeded(vkQueueWaitIdle(vulkan.queue), "wait for upload queue");
+        VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer
+        };
+        res = vkQueueSubmit(vulkan.queue, 1, &submitInfo, VK_NULL_HANDLE);
+        VkResult res2 = vkQueueWaitIdle(vulkan.queue);
+        const bool result = succeeded(res, "Submit upload command buffer") &&
+            succeeded(res2, "Wait for upload queue");
         vkFreeCommandBuffers(vulkan.device, vulkan.commandPool, 1, &commandBuffer);
         return result;
     }
 
-    bool copyOpenGLFramebufferToVulkanImage(
-        const sgct::Window& window,
-        uint32_t index,
-        VkImage image,
-        int32_t width,
-        int32_t height)
+    bool copyOpenGLFramebufferToVulkanImage(const Window& window, uint32_t index,
+                                            VkImage image, int32_t width, int32_t height)
     {
         const VkDeviceSize imageSize = static_cast<VkDeviceSize>(width) * height * 4;
         if (!createVulkanStagingBuffer(imageSize)) {
@@ -469,7 +504,17 @@ namespace {
         glBindTexture(GL_TEXTURE_2D, resolveTexture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA8,
+            width,
+            height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            nullptr
+        );
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFramebuffer);
         glFramebufferTexture2D(
             GL_DRAW_FRAMEBUFFER,
@@ -481,7 +526,7 @@ namespace {
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
-        const sgct::ivec2 dim = window.framebufferResolution();
+        const ivec2 dim = window.framebufferResolution();
         const auto attachSourceTexture = [](GLuint texture) {
             glFramebufferTexture2D(
                 GL_READ_FRAMEBUFFER,
@@ -491,7 +536,9 @@ namespace {
                 0
             );
         };
-        const auto blitSourceRect = [width, height](int x, int y, int srcWidth, int srcHeight) {
+        const auto blitSourceRect = [width, height](int x, int y, int srcWidth,
+                                                    int srcHeight)
+        {
             glBlitFramebuffer(
                 x,
                 y,
@@ -506,18 +553,18 @@ namespace {
             );
         };
 
-        const sgct::FrustumMode eye = index == 0 ?
-            sgct::FrustumMode::StereoLeft :
-            sgct::FrustumMode::StereoRight;
+        const FrustumMode eye = index == 0 ?
+            FrustumMode::StereoLeft :
+            FrustumMode::StereoRight;
         bool copiedViewport = false;
-        attachSourceTexture(window.frameBufferTextureEye(sgct::Eye::MonoOrLeft));
-        for (const std::unique_ptr<sgct::Viewport>& viewport : window.viewports()) {
+        attachSourceTexture(window.frameBufferTextureEye(Eye::MonoOrLeft));
+        for (const std::unique_ptr<Viewport>& viewport : window.viewports()) {
             if (!viewport->isEnabled() || viewport->eye() != eye) {
                 continue;
             }
 
-            const sgct::vec2& position = viewport->position();
-            const sgct::vec2& size = viewport->size();
+            const vec2& position = viewport->position();
+            const vec2& size = viewport->size();
             blitSourceRect(
                 static_cast<int>(position.x * dim.x),
                 static_cast<int>(position.y * dim.y),
@@ -528,16 +575,17 @@ namespace {
         }
 
         if (!copiedViewport &&
-            (window.stereoMode() == sgct::Window::StereoMode::SideBySide ||
-             window.stereoMode() == sgct::Window::StereoMode::SideBySideInverted))
+            (window.stereoMode() == Window::StereoMode::SideBySide ||
+             window.stereoMode() == Window::StereoMode::SideBySideInverted))
         {
-            for (const std::unique_ptr<sgct::Viewport>& viewport : window.viewports()) {
-                if (!viewport->isEnabled() || viewport->eye() != sgct::FrustumMode::Mono) {
+            for (const std::unique_ptr<Viewport>& viewport : window.viewports()) {
+                if (!viewport->isEnabled() || viewport->eye() != FrustumMode::Mono)
+                {
                     continue;
                 }
 
-                const sgct::vec2& position = viewport->position();
-                const sgct::vec2& size = viewport->size();
+                const vec2& position = viewport->position();
+                const vec2& size = viewport->size();
                 const int srcX = static_cast<int>(position.x * dim.x);
                 const int srcY = static_cast<int>(position.y * dim.y);
                 const int srcWidth = static_cast<int>(size.x * dim.x);
@@ -545,15 +593,16 @@ namespace {
                 const int eyeWidth = srcWidth / 2;
                 const bool useLeftHalf =
                     (index == 0) ==
-                    (window.stereoMode() == sgct::Window::StereoMode::SideBySide);
-                blitSourceRect(srcX + (useLeftHalf ? 0 : eyeWidth), srcY, eyeWidth, srcHeight);
+                    (window.stereoMode() == Window::StereoMode::SideBySide);
+                const int s = srcX + (useLeftHalf ? 0 : eyeWidth);
+                blitSourceRect(s, srcY, eyeWidth, srcHeight);
                 copiedViewport = true;
             }
         }
 
         if (!copiedViewport) {
             attachSourceTexture(window.frameBufferTextureEye(
-                index == 0 ? sgct::Eye::MonoOrLeft : sgct::Eye::Right
+                index == 0 ? Eye::MonoOrLeft : Eye::Right
             ));
             blitSourceRect(0, 0, dim.x, dim.y);
         }
@@ -562,9 +611,15 @@ namespace {
         glReadBuffer(GL_COLOR_ATTACHMENT0);
         void* data = nullptr;
         bool copied = false;
-        if (succeeded(vkMapMemory(vulkan.device, vulkan.stagingMemory, 0, imageSize, 0, &data),
-            "map staging memory"))
-        {
+        VkResult res = vkMapMemory(
+            vulkan.device,
+            vulkan.stagingMemory,
+            0,
+            imageSize,
+            0,
+            &data
+        );
+        if (succeeded(res, "Map staging memory")) {
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
             vkUnmapMemory(vulkan.device, vulkan.stagingMemory);
@@ -599,24 +654,34 @@ namespace {
 
     bool createInstance(const char* extensionName) {
         if (!hasExtension(extensionName)) {
-            sgct::Log::Error(std::format(
-                "OpenXR runtime does not support {}",
-                extensionName
-            ));
+            Log::Error(std::format("OpenXR runtime does not support {}", extensionName));
             return false;
         }
 
         const char* extensions[] = { extensionName };
-        XrInstanceCreateInfo createInfo = { XR_TYPE_INSTANCE_CREATE_INFO };
-        std::strncpy(createInfo.applicationInfo.applicationName, "SGCT", XR_MAX_APPLICATION_NAME_SIZE - 1);
-        createInfo.applicationInfo.applicationVersion = 1;
-        std::strncpy(createInfo.applicationInfo.engineName, "SGCT", XR_MAX_ENGINE_NAME_SIZE - 1);
-        createInfo.applicationInfo.engineVersion = 1;
-        createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(std::size(extensions));
-        createInfo.enabledExtensionNames = extensions;
+        XrInstanceCreateInfo createInfo = {
+            .type = XR_TYPE_INSTANCE_CREATE_INFO,
+            .applicationInfo = {
+                .applicationVersion = 1,
+                .engineVersion = 1,
+                .apiVersion = XR_MAKE_VERSION(1, 0, 0)
+            },
+            .enabledExtensionCount = static_cast<uint32_t>(std::size(extensions)),
+            .enabledExtensionNames = extensions
+        };
+        std::strncpy(
+            createInfo.applicationInfo.applicationName,
+            "SGCT",
+            XR_MAX_APPLICATION_NAME_SIZE - 1
+        );
+        std::strncpy(
+            createInfo.applicationInfo.engineName,
+            "SGCT",
+            XR_MAX_ENGINE_NAME_SIZE - 1
+        );
 
-        return succeeded(xrCreateInstance(&createInfo, &instance), "create instance");
+        const XrResult res = xrCreateInstance(&createInfo, &instance);
+        return succeeded(res, "Create instance");
     }
 
     void destroyInstanceOnly() {
@@ -628,57 +693,66 @@ namespace {
     }
 
     bool createSystem() {
-        XrSystemGetInfo systemInfo = { XR_TYPE_SYSTEM_GET_INFO };
-        systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
-        if (!succeeded(xrGetSystem(instance, &systemInfo, &systemId), "get HMD system")) {
+        XrSystemGetInfo systemInfo = {
+            .type = XR_TYPE_SYSTEM_GET_INFO,
+            .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
+        };
+        const XrResult res = xrGetSystem(instance, &systemInfo, &systemId);
+        if (!succeeded(res, "Get HMD system")) {
             return false;
         }
 
-        XrSystemProperties properties = { XR_TYPE_SYSTEM_PROPERTIES };
-        if (succeeded(xrGetSystemProperties(instance, systemId, &properties), "get system properties")) {
-            sgct::Log::Info(std::format("OpenXR system: {}", properties.systemName));
+        XrSystemProperties properties = {
+            .type = XR_TYPE_SYSTEM_PROPERTIES
+        };
+        XrResult res2 = xrGetSystemProperties(instance, systemId, &properties);
+        if (succeeded(res2, "Get system properties")) {
+            Log::Info(std::format("OpenXR system: {}", properties.systemName));
         }
         return true;
     }
 
     bool createOpenGLSession() {
-#if defined(WIN32)
+#ifdef WIN32
         XrGraphicsRequirementsOpenGLKHR requirements = {
-            XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR
+            .type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR
         };
         PFN_xrGetOpenGLGraphicsRequirementsKHR getOpenGLGraphicsRequirements = nullptr;
-        if (!succeeded(xrGetInstanceProcAddr(
+        XrResult res = xrGetInstanceProcAddr(
             instance,
             "xrGetOpenGLGraphicsRequirementsKHR",
             reinterpret_cast<PFN_xrVoidFunction*>(&getOpenGLGraphicsRequirements)
-        ), "get OpenGL requirements function"))
-        {
+        );
+        if (!succeeded(res, "Get OpenGL requirements function")) {
             return false;
         }
-        if (!succeeded(getOpenGLGraphicsRequirements(instance, systemId, &requirements),
-            "get OpenGL requirements"))
-        {
+
+        res = getOpenGLGraphicsRequirements(instance, systemId, &requirements);
+        if (!succeeded(res, "Get OpenGL requirements")) {
             return false;
         }
 
         GLFWwindow* glfwWindow = glfwGetCurrentContext();
         if (!glfwWindow) {
-            sgct::Log::Error("OpenXR requires a current GLFW OpenGL context before initialization");
+            Log::Error("OpenXR requires a current GLFW OpenGL context");
             return false;
         }
 
-        XrGraphicsBindingOpenGLWin32KHR graphicsBinding = {
-            XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR
+        const XrGraphicsBindingOpenGLWin32KHR graphicsBinding = {
+            .type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR,
+            .hDC = GetDC(glfwGetWin32Window(glfwWindow)),
+            .hGLRC = glfwGetWGLContext(glfwWindow)
         };
-        graphicsBinding.hDC = GetDC(glfwGetWin32Window(glfwWindow));
-        graphicsBinding.hGLRC = glfwGetWGLContext(glfwWindow);
 
-        XrSessionCreateInfo createInfo = { XR_TYPE_SESSION_CREATE_INFO };
-        createInfo.next = &graphicsBinding;
-        createInfo.systemId = systemId;
-        return succeeded(xrCreateSession(instance, &createInfo, &session), "create session");
+        const XrSessionCreateInfo createInfo = {
+            .type = XR_TYPE_SESSION_CREATE_INFO,
+            .next = &graphicsBinding,
+            .systemId = systemId
+        };
+        res = xrCreateSession(instance, &createInfo, &session);
+        return succeeded(res, "Create session");
 #else // ^^^^ WIN32 // !WIN32 vvvv
-        sgct::Log::Error("OpenXR OpenGL support is currently implemented for Windows only");
+        Log::Error("OpenXR OpenGL support is currently implemented for Windows only");
         return false;
 #endif // WIN32
     }
@@ -698,97 +772,121 @@ namespace {
         }
 
         XrGraphicsRequirementsVulkan2KHR requirements = {
-            XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR
+            .type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR
         };
-        if (!succeeded(getRequirements(instance, systemId, &requirements),
-            "get Vulkan requirements"))
-        {
+        XrResult res = getRequirements(instance, systemId, &requirements);
+        if (!succeeded(res, "Get Vulkan requirements")) {
             return false;
         }
 
-        VkApplicationInfo applicationInfo = { VK_STRUCTURE_TYPE_APPLICATION_INFO };
-        applicationInfo.pApplicationName = "SGCT";
-        applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        applicationInfo.pEngineName = "SGCT";
-        applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        applicationInfo.apiVersion = VK_API_VERSION_1_0;
+        VkApplicationInfo applicationInfo = {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName = "SGCT",
+            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+            .pEngineName = "SGCT",
+            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+            .apiVersion = VK_API_VERSION_1_0
+        };
 
-        VkInstanceCreateInfo instanceInfo = { VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
-        instanceInfo.pApplicationInfo = &applicationInfo;
+        VkInstanceCreateInfo instanceInfo = {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pApplicationInfo = &applicationInfo
+        };
 
         XrVulkanInstanceCreateInfoKHR xrInstanceInfo = {
-            XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR
+            .type = XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR,
+            .systemId = systemId,
+            .pfnGetInstanceProcAddr = vkGetInstanceProcAddr,
+            .vulkanCreateInfo = &instanceInfo
         };
-        xrInstanceInfo.systemId = systemId;
-        xrInstanceInfo.pfnGetInstanceProcAddr = vkGetInstanceProcAddr;
-        xrInstanceInfo.vulkanCreateInfo = &instanceInfo;
 
         VkResult vkResult = VK_SUCCESS;
-        if (!succeeded(createInstanceKHR(instance, &xrInstanceInfo, &vulkan.instance, &vkResult),
-            "create Vulkan instance through OpenXR") ||
-            !succeeded(vkResult, "create Vulkan instance"))
+        createInstanceKHR(instance, &xrInstanceInfo, &vulkan.instance, &vkResult);
+        if (!succeeded(vkResult, "Create Vulkan instance through OpenXR") ||
+            !succeeded(vkResult, "Create Vulkan instance"))
         {
             return false;
         }
 
         XrVulkanGraphicsDeviceGetInfoKHR deviceGetInfo = {
-            XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR
+            .type = XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR,
+            .systemId = systemId,
+            .vulkanInstance = vulkan.instance
         };
-        deviceGetInfo.systemId = systemId;
-        deviceGetInfo.vulkanInstance = vulkan.instance;
-        if (!succeeded(getGraphicsDevice(instance, &deviceGetInfo, &vulkan.physicalDevice),
-            "get Vulkan graphics device"))
-        {
+        res = getGraphicsDevice(instance, &deviceGetInfo, &vulkan.physicalDevice);
+        if (!succeeded(res, "Get Vulkan graphics device")) {
             return false;
         }
 
         uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(vulkan.physicalDevice, &queueFamilyCount, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties(
+            vulkan.physicalDevice,
+            &queueFamilyCount,
+            nullptr
+        );
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(
             vulkan.physicalDevice,
             &queueFamilyCount,
             queueFamilies.data()
         );
-        const auto queueIt = std::ranges::find_if(queueFamilies,
+        const auto queueIt = std::find_if(
+            queueFamilies.begin(),
+            queueFamilies.end(),
             [](const VkQueueFamilyProperties& family) {
                 return (family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0;
-            });
+            }
+        );
         if (queueIt == queueFamilies.end()) {
-            sgct::Log::Error("Vulkan OpenXR fallback could not find a graphics queue family");
+            Log::Error("Vulkan OpenXR fallback could not find a graphics queue family");
             return false;
         }
-        vulkan.queueFamilyIndex = static_cast<uint32_t>(std::distance(queueFamilies.begin(), queueIt));
+        vulkan.queueFamilyIndex = static_cast<uint32_t>(
+            std::distance(queueFamilies.begin(), queueIt)
+        );
 
         constexpr float QueuePriority = 1.f;
-        VkDeviceQueueCreateInfo queueInfo = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-        queueInfo.queueFamilyIndex = vulkan.queueFamilyIndex;
-        queueInfo.queueCount = 1;
-        queueInfo.pQueuePriorities = &QueuePriority;
+        const VkDeviceQueueCreateInfo queueInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueFamilyIndex = vulkan.queueFamilyIndex,
+            .queueCount = 1,
+            .pQueuePriorities = &QueuePriority
+        };
 
-        VkDeviceCreateInfo deviceInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-        deviceInfo.queueCreateInfoCount = 1;
-        deviceInfo.pQueueCreateInfos = &queueInfo;
+        const VkDeviceCreateInfo deviceInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .queueCreateInfoCount = 1,
+            .pQueueCreateInfos = &queueInfo
+        };
 
-        XrVulkanDeviceCreateInfoKHR xrDeviceInfo = { XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR };
-        xrDeviceInfo.systemId = systemId;
-        xrDeviceInfo.pfnGetInstanceProcAddr = vkGetInstanceProcAddr;
-        xrDeviceInfo.vulkanPhysicalDevice = vulkan.physicalDevice;
-        xrDeviceInfo.vulkanCreateInfo = &deviceInfo;
+        const XrVulkanDeviceCreateInfoKHR xrDeviceInfo = {
+            .type = XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR,
+            .systemId = systemId,
+            .pfnGetInstanceProcAddr = vkGetInstanceProcAddr,
+            .vulkanPhysicalDevice = vulkan.physicalDevice,
+            .vulkanCreateInfo = &deviceInfo
+        };
 
-        if (!succeeded(createDeviceKHR(instance, &xrDeviceInfo, &vulkan.device, &vkResult),
-            "create Vulkan device through OpenXR") ||
-            !succeeded(vkResult, "create Vulkan device"))
+        XrResult r = createDeviceKHR(instance, &xrDeviceInfo, &vulkan.device, &vkResult);
+        if (!succeeded(r, "Create Vulkan device through OpenXR") ||
+            !succeeded(vkResult, "Create Vulkan device"))
         {
             return false;
         }
         vkGetDeviceQueue(vulkan.device, vulkan.queueFamilyIndex, 0, &vulkan.queue);
 
-        VkCommandPoolCreateInfo poolInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = vulkan.queueFamilyIndex;
-        return succeeded(vkCreateCommandPool(vulkan.device, &poolInfo, nullptr, &vulkan.commandPool),
-            "create command pool");
+        VkCommandPoolCreateInfo poolInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = vulkan.queueFamilyIndex
+        };
+        vkResult = vkCreateCommandPool(
+            vulkan.device,
+            &poolInfo,
+            nullptr,
+            &vulkan.commandPool
+        );
+        return succeeded(res,"Create command pool");
     }
 
     bool createVulkanSession() {
@@ -796,19 +894,22 @@ namespace {
             return false;
         }
 
-        XrGraphicsBindingVulkan2KHR graphicsBinding = {
-            XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR
+        const XrGraphicsBindingVulkan2KHR graphicsBinding = {
+            .type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR,
+            .instance = vulkan.instance,
+            .physicalDevice = vulkan.physicalDevice,
+            .device = vulkan.device,
+            .queueFamilyIndex = vulkan.queueFamilyIndex,
+            .queueIndex = 0
         };
-        graphicsBinding.instance = vulkan.instance;
-        graphicsBinding.physicalDevice = vulkan.physicalDevice;
-        graphicsBinding.device = vulkan.device;
-        graphicsBinding.queueFamilyIndex = vulkan.queueFamilyIndex;
-        graphicsBinding.queueIndex = 0;
 
-        XrSessionCreateInfo createInfo = { XR_TYPE_SESSION_CREATE_INFO };
-        createInfo.next = &graphicsBinding;
-        createInfo.systemId = systemId;
-        return succeeded(xrCreateSession(instance, &createInfo, &session), "create Vulkan session");
+        const XrSessionCreateInfo createInfo = {
+            .type = XR_TYPE_SESSION_CREATE_INFO,
+            .next = &graphicsBinding,
+            .systemId = systemId
+        };
+        XrResult res = xrCreateSession(instance, &createInfo, &session);
+        return succeeded(res, "Create Vulkan session");
     }
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
 
@@ -854,90 +955,107 @@ namespace {
     }
 
     bool createSpace() {
-        XrReferenceSpaceCreateInfo createInfo = { XR_TYPE_REFERENCE_SPACE_CREATE_INFO };
-        createInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-        createInfo.poseInReferenceSpace.orientation.w = 1.f;
-        return succeeded(xrCreateReferenceSpace(session, &createInfo, &appSpace),
-            "create local space");
+        const XrReferenceSpaceCreateInfo createInfo = {
+            .type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO,
+            .referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL,
+            .poseInReferenceSpace = {
+                .orientation = {
+                    .w = 1.f
+                }
+            }
+        };
+        XrResult res = xrCreateReferenceSpace(session, &createInfo, &appSpace);
+        return succeeded(res, "Create local space");
     }
 
     bool waitForRunningSession() {
-        XrEventDataBuffer event = { XR_TYPE_EVENT_DATA_BUFFER };
+        XrEventDataBuffer event = {
+            .type = XR_TYPE_EVENT_DATA_BUFFER
+        };
         while (xrPollEvent(instance, &event) == XR_SUCCESS) {
-            if (event.type == XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED) {
-                const XrEventDataSessionStateChanged& state =
-                    *reinterpret_cast<XrEventDataSessionStateChanged*>(&event);
-                if (state.state == XR_SESSION_STATE_READY) {
-                    XrSessionBeginInfo beginInfo = { XR_TYPE_SESSION_BEGIN_INFO };
-                    beginInfo.primaryViewConfigurationType =
-                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-                    if (!succeeded(xrBeginSession(session, &beginInfo), "begin session")) {
-                        return false;
-                    }
-                    isSessionRunning = true;
-                }
-                else if (state.state == XR_SESSION_STATE_STOPPING) {
-                    xrEndSession(session);
-                    isSessionRunning = false;
-                }
+            if (event.type != XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED) {
+                event = {
+                    .type = XR_TYPE_EVENT_DATA_BUFFER
+                };
+                continue;
             }
-            event = { XR_TYPE_EVENT_DATA_BUFFER };
+
+            const XrEventDataSessionStateChanged& state =
+                *reinterpret_cast<XrEventDataSessionStateChanged*>(&event);
+            if (state.state == XR_SESSION_STATE_READY) {
+                const XrSessionBeginInfo beginInfo = {
+                    .type = XR_TYPE_SESSION_BEGIN_INFO,
+                    .primaryViewConfigurationType =
+                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
+                };
+                XrResult res = xrBeginSession(session, &beginInfo);
+                if (!succeeded(res, "Begin session")) {
+                    return false;
+                }
+                isSessionRunning = true;
+            }
+            else if (state.state == XR_SESSION_STATE_STOPPING) {
+                xrEndSession(session);
+                isSessionRunning = false;
+            }
+            event = {
+                .type = XR_TYPE_EVENT_DATA_BUFFER
+            };
         }
         return true;
     }
 
     bool enumerateViewConfiguration() {
         uint32_t viewCount = 0;
-        if (!succeeded(xrEnumerateViewConfigurationViews(
+        XrResult res = xrEnumerateViewConfigurationViews(
             instance,
             systemId,
             XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
             0,
             &viewCount,
             nullptr
-        ), "enumerate view configuration count"))
-        {
+        );
+        if (!succeeded(res, "Enumerate view configuration count")) {
             return false;
         }
         if (viewCount != EyeCount) {
-            sgct::Log::Error(std::format(
+            Log::Error(std::format(
                 "OpenXR expected {} stereo views, runtime reported {}",
-                EyeCount,
-                viewCount
+                EyeCount, viewCount
             ));
             return false;
         }
 
         configurationViews = {
-            XrViewConfigurationView{ XR_TYPE_VIEW_CONFIGURATION_VIEW },
-            XrViewConfigurationView{ XR_TYPE_VIEW_CONFIGURATION_VIEW }
+            XrViewConfigurationView{ .type = XR_TYPE_VIEW_CONFIGURATION_VIEW },
+            XrViewConfigurationView{ .type = XR_TYPE_VIEW_CONFIGURATION_VIEW }
         };
-        return succeeded(xrEnumerateViewConfigurationViews(
+        res = xrEnumerateViewConfigurationViews(
             instance,
             systemId,
             XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
             EyeCount,
             &viewCount,
             configurationViews.data()
-        ), "enumerate view configuration");
+        );
+        return succeeded(res, "Enumerate view configuration");
     }
 
     int64_t chooseSwapchainFormat() {
         uint32_t formatCount = 0;
-        if (!succeeded(xrEnumerateSwapchainFormats(session, 0, &formatCount, nullptr),
-            "enumerate swapchain format count"))
-        {
+        XrResult res = xrEnumerateSwapchainFormats(session, 0, &formatCount, nullptr);
+        if (!succeeded(res, "Enumerate swapchain format count")) {
             return 0;
         }
 
         std::vector<int64_t> formats(formatCount);
-        if (!succeeded(xrEnumerateSwapchainFormats(
+        res = xrEnumerateSwapchainFormats(
             session,
             formatCount,
             &formatCount,
             formats.data()
-        ), "enumerate swapchain formats"))
-        {
+        );
+        if (!succeeded(res, "Enumerate swapchain formats")) {
             return 0;
         }
 
@@ -949,7 +1067,8 @@ namespace {
                 GL_RGBA16
             };
             for (int64_t preferredFormat : PreferredFormats) {
-                if (std::ranges::find(formats, preferredFormat) != formats.end()) {
+                auto it = std::find(formats.begin(), formats.end(), preferredFormat);
+                if (it != formats.end()) {
                     return preferredFormat;
                 }
             }
@@ -963,7 +1082,8 @@ namespace {
                 VK_FORMAT_B8G8R8A8_UNORM
             };
             for (int64_t preferredFormat : PreferredFormats) {
-                if (std::ranges::find(formats, preferredFormat) != formats.end()) {
+                auto it = std::find(formats.begin(), formats.end(), preferredFormat);
+                if (it != formats.end()) {
                     return preferredFormat;
                 }
             }
@@ -979,7 +1099,7 @@ namespace {
 
         const int64_t format = chooseSwapchainFormat();
         if (format == 0) {
-            sgct::Log::Error("OpenXR runtime did not report a usable swapchain format");
+            Log::Error("OpenXR runtime did not report a usable swapchain format");
             return false;
         }
 
@@ -989,41 +1109,40 @@ namespace {
             swapchain.width = static_cast<int32_t>(view.recommendedImageRectWidth);
             swapchain.height = static_cast<int32_t>(view.recommendedImageRectHeight);
 
-            XrSwapchainCreateInfo createInfo = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
-            createInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT |
-                XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT;
-            createInfo.format = format;
-            createInfo.sampleCount = view.recommendedSwapchainSampleCount;
-            createInfo.width = view.recommendedImageRectWidth;
-            createInfo.height = view.recommendedImageRectHeight;
-            createInfo.faceCount = 1;
-            createInfo.arraySize = 1;
-            createInfo.mipCount = 1;
-            if (!succeeded(xrCreateSwapchain(session, &createInfo, &swapchain.handle),
-                "create swapchain"))
-            {
+            const XrSwapchainCreateInfo createInfo = {
+                .type = XR_TYPE_SWAPCHAIN_CREATE_INFO,
+                .usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT |
+                    XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT,
+                .format = format,
+                .sampleCount = view.recommendedSwapchainSampleCount,
+                .width = view.recommendedImageRectWidth,
+                .height = view.recommendedImageRectHeight,
+                .faceCount = 1,
+                .arraySize = 1,
+                .mipCount = 1
+            };
+            XrResult res = xrCreateSwapchain(session, &createInfo, &swapchain.handle);
+            if (!succeeded(res, "Create swapchain")) {
                 return false;
             }
 
             uint32_t imageCount = 0;
-            if (!succeeded(xrEnumerateSwapchainImages(
-                swapchain.handle,
-                0,
-                &imageCount,
-                nullptr
-            ), "enumerate swapchain image count"))
-            {
+            res = xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr);
+            if (!succeeded(res, "Enumerate swapchain image count")) {
                 return false;
             }
             if (graphicsBackend == GraphicsBackend::OpenGL) {
-                swapchain.images.assign(imageCount, { XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR });
-                if (!succeeded(xrEnumerateSwapchainImages(
+                swapchain.images.assign(
+                    imageCount,
+                    { .type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR }
+                );
+                const XrResult r = xrEnumerateSwapchainImages(
                     swapchain.handle,
                     imageCount,
                     &imageCount,
                     reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchain.images.data())
-                ), "enumerate OpenGL swapchain images"))
-                {
+                );
+                if (!succeeded(r, "Enumerate OpenGL swapchain images")) {
                     return false;
                 }
 
@@ -1031,49 +1150,58 @@ namespace {
             }
 #ifdef SGCT_HAS_OPENXR_VULKAN_FALLBACK
             else {
-                swapchain.vulkanImages.assign(imageCount, { XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR });
-                if (!succeeded(xrEnumerateSwapchainImages(
+                swapchain.vulkanImages.assign(
+                    imageCount,
+                    { XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR }
+                );
+                XrResult res = xrEnumerateSwapchainImages(
                     swapchain.handle,
                     imageCount,
                     &imageCount,
-                    reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchain.vulkanImages.data())
-                ), "enumerate Vulkan swapchain images"))
-                {
+                    reinterpret_cast<XrSwapchainImageBaseHeader*>(
+                        swapchain.vulkanImages.data()
+                    )
+                );
+                if (!succeeded(res, "Enumerate Vulkan swapchain images")) {
                     return false;
                 }
             }
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
         }
 
-        sgct::Log::Info(std::format(
+        Log::Info(std::format(
             "OpenXR render dimensions per eye: {} x {} ({})",
-            swapchains[0].width,
-            swapchains[0].height,
+            swapchains[0].width, swapchains[0].height,
             graphicsBackend == GraphicsBackend::OpenGL ? "OpenGL" : "Vulkan"
         ));
         return true;
     }
 
-    bool blitEye(const sgct::Window& window, uint32_t index)
-    {
+    bool blitEye(const Window& window, uint32_t index) {
         Swapchain& swapchain = swapchains[index];
-        const sgct::FrustumMode eye = index == 0 ?
-            sgct::FrustumMode::StereoLeft :
-            sgct::FrustumMode::StereoRight;
+        const FrustumMode eye = index == 0 ?
+            FrustumMode::StereoLeft :
+            FrustumMode::StereoRight;
 
-        XrSwapchainImageAcquireInfo acquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+        XrSwapchainImageAcquireInfo acquireInfo = {
+            .type = XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO
+        };
         uint32_t imageIndex = 0;
-        if (!succeeded(xrAcquireSwapchainImage(swapchain.handle, &acquireInfo, &imageIndex),
-            "acquire swapchain image"))
-        {
+        XrResult res = xrAcquireSwapchainImage(
+            swapchain.handle,
+            &acquireInfo,
+            &imageIndex
+        );
+        if (!succeeded(res, "Acquire swapchain image")) {
             return false;
         }
 
-        XrSwapchainImageWaitInfo waitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
-        waitInfo.timeout = XR_INFINITE_DURATION;
-        if (!succeeded(xrWaitSwapchainImage(swapchain.handle, &waitInfo),
-            "wait swapchain image"))
-        {
+        const XrSwapchainImageWaitInfo waitInfo = {
+            .type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO,
+            .timeout = XR_INFINITE_DURATION
+        };
+        res = xrWaitSwapchainImage(swapchain.handle, &waitInfo);
+        if (!succeeded(res, "Wait swapchain image")) {
             return false;
         }
 
@@ -1092,7 +1220,7 @@ namespace {
         glGenFramebuffers(1, &readFramebuffer);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
 
-        const sgct::ivec2 dim = window.framebufferResolution();
+        const ivec2 dim = window.framebufferResolution();
         const auto attachSourceTexture = [](GLuint texture) {
             glFramebufferTexture2D(
                 GL_READ_FRAMEBUFFER,
@@ -1104,7 +1232,7 @@ namespace {
         };
 
         bool copiedViewport = false;
-        attachSourceTexture(window.frameBufferTextureEye(sgct::Eye::MonoOrLeft));
+        attachSourceTexture(window.frameBufferTextureEye(Eye::MonoOrLeft));
         const auto blitSourceRect = [&swapchain](int x, int y, int width, int height) {
             glBlitFramebuffer(
                 x,
@@ -1120,13 +1248,13 @@ namespace {
             );
         };
 
-        for (const std::unique_ptr<sgct::Viewport>& viewport : window.viewports()) {
+        for (const std::unique_ptr<Viewport>& viewport : window.viewports()) {
             if (!viewport->isEnabled() || viewport->eye() != eye) {
                 continue;
             }
 
-            const sgct::vec2& position = viewport->position();
-            const sgct::vec2& size = viewport->size();
+            const vec2& position = viewport->position();
+            const vec2& size = viewport->size();
             const int srcX = static_cast<int>(position.x * dim.x);
             const int srcY = static_cast<int>(position.y * dim.y);
             const int srcWidth = static_cast<int>(size.x * dim.x);
@@ -1137,16 +1265,16 @@ namespace {
         }
 
         if (!copiedViewport &&
-            (window.stereoMode() == sgct::Window::StereoMode::SideBySide ||
-             window.stereoMode() == sgct::Window::StereoMode::SideBySideInverted))
+            (window.stereoMode() == Window::StereoMode::SideBySide ||
+             window.stereoMode() == Window::StereoMode::SideBySideInverted))
         {
-            for (const std::unique_ptr<sgct::Viewport>& viewport : window.viewports()) {
-                if (!viewport->isEnabled() || viewport->eye() != sgct::FrustumMode::Mono) {
+            for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
+                if (!vp->isEnabled() || vp->eye() != FrustumMode::Mono) {
                     continue;
                 }
 
-                const sgct::vec2& position = viewport->position();
-                const sgct::vec2& size = viewport->size();
+                const vec2& position = vp->position();
+                const vec2& size = vp->size();
                 const int srcX = static_cast<int>(position.x * dim.x);
                 const int srcY = static_cast<int>(position.y * dim.y);
                 const int srcWidth = static_cast<int>(size.x * dim.x);
@@ -1154,17 +1282,18 @@ namespace {
                 const int eyeWidth = srcWidth / 2;
                 const bool useLeftHalf =
                     (index == 0) ==
-                    (window.stereoMode() == sgct::Window::StereoMode::SideBySide);
+                    (window.stereoMode() == Window::StereoMode::SideBySide);
 
-                blitSourceRect(srcX + (useLeftHalf ? 0 : eyeWidth), srcY, eyeWidth, srcHeight);
+                const int s = srcX + (useLeftHalf ? 0 : eyeWidth);
+                blitSourceRect(s, srcY, eyeWidth, srcHeight);
                 copiedViewport = true;
             }
         }
 
         if (!copiedViewport) {
-            attachSourceTexture(window.frameBufferTextureEye(
-                index == 0 ? sgct::Eye::MonoOrLeft : sgct::Eye::Right
-            ));
+            attachSourceTexture(
+                window.frameBufferTextureEye(index == 0 ? Eye::MonoOrLeft : Eye::Right)
+            );
             glBlitFramebuffer(
                 0,
                 0,
@@ -1183,32 +1312,41 @@ namespace {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-        XrSwapchainImageReleaseInfo releaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-        return succeeded(xrReleaseSwapchainImage(swapchain.handle, &releaseInfo),
-            "release swapchain image");
+        XrSwapchainImageReleaseInfo releaseInfo = {
+            .type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO
+        };
+        const XrResult res2 = xrReleaseSwapchainImage(swapchain.handle, &releaseInfo);
+        return succeeded(res2, "Release swapchain image");
     }
 
 #ifdef SGCT_HAS_OPENXR_VULKAN_FALLBACK
-    bool copyEyeVulkan(const sgct::Window& window, uint32_t index)
-    {
+    bool copyEyeVulkan(const Window& window, uint32_t index) {
         Swapchain& swapchain = swapchains[index];
 
-        XrSwapchainImageAcquireInfo acquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+        const XrSwapchainImageAcquireInfo acquireInfo = {
+            .type = XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO
+        };
         uint32_t imageIndex = 0;
-        if (!succeeded(xrAcquireSwapchainImage(swapchain.handle, &acquireInfo, &imageIndex),
-            "acquire Vulkan swapchain image"))
-        {
+        XrResult res = xrAcquireSwapchainImage(
+            swapchain.handle,
+            &acquireInfo,
+            &imageIndex
+        );
+        if (!succeeded(res, "Acquire Vulkan swapchain image")) {
             return false;
         }
 
-        XrSwapchainImageWaitInfo waitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
-        waitInfo.timeout = XR_INFINITE_DURATION;
-        if (!succeeded(xrWaitSwapchainImage(swapchain.handle, &waitInfo),
-            "wait Vulkan swapchain image"))
-        {
-            XrSwapchainImageReleaseInfo releaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-            succeeded(xrReleaseSwapchainImage(swapchain.handle, &releaseInfo),
-                "release unwaited Vulkan swapchain image");
+        XrSwapchainImageWaitInfo waitInfo = {
+            .type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO,
+            .timeout = XR_INFINITE_DURATION
+        };
+        res = xrWaitSwapchainImage(swapchain.handle, &waitInfo);
+        if (!succeeded(res, "Wait Vulkan swapchain image")) {
+            XrSwapchainImageReleaseInfo releaseInfo = {
+                .type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO
+            };
+            XrResult r = xrReleaseSwapchainImage(swapchain.handle, &releaseInfo);
+            succeeded(r, "Release unwaited Vulkan swapchain image");
             return false;
         }
 
@@ -1220,14 +1358,16 @@ namespace {
             swapchain.height
         );
 
-        XrSwapchainImageReleaseInfo releaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-        const bool released = succeeded(xrReleaseSwapchainImage(swapchain.handle, &releaseInfo),
-            "release Vulkan swapchain image");
+        XrSwapchainImageReleaseInfo releaseInfo = {
+            .type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO
+        };
+        res = xrReleaseSwapchainImage(swapchain.handle, &releaseInfo);
+        const bool released = succeeded(res, "Release Vulkan swapchain image");
         return copied && released;
     }
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
 
-    bool copyEye(const sgct::Window& window, uint32_t index) {
+    bool copyEye(const Window& window, uint32_t index) {
         if (graphicsBackend == GraphicsBackend::OpenGL) {
             return blitEye(window, index);
         }
@@ -1243,7 +1383,7 @@ namespace sgct::openxr {
 
 void initialize(float nearClip, float farClip) {
     if (isOpenXRInitialized) {
-        sgct::Log::Info("OpenXR has already been initialized");
+        Log::Info("OpenXR has already been initialized");
         return;
     }
 
@@ -1253,20 +1393,19 @@ void initialize(float nearClip, float farClip) {
     bool backendInitialized = initializeBackend(GraphicsBackend::OpenGL);
 #ifdef SGCT_HAS_OPENXR_VULKAN_FALLBACK
     if (!backendInitialized) {
-        sgct::Log::Info("OpenXR OpenGL initialization failed; trying Vulkan fallback");
+        Log::Info("OpenXR OpenGL initialization failed; trying Vulkan fallback");
         backendInitialized = initializeBackend(GraphicsBackend::Vulkan);
     }
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
 
-    if (!backendInitialized || !createSpace() || !enumerateViewConfiguration())
-    {
+    if (!backendInitialized || !createSpace() || !enumerateViewConfiguration()) {
         shutdown();
         return;
     }
 
     updateHMDMatrices(nearClip, farClip);
     isOpenXRInitialized = true;
-    sgct::Log::Info("OpenXR initialized");
+    Log::Info("OpenXR initialized");
 }
 
 void shutdown() {
@@ -1316,7 +1455,7 @@ ivec2 eyeResolution(FrustumMode eye) {
     }
 
     const XrViewConfigurationView& view = configurationViews[eyeIndex(eye)];
-    return ivec2{
+    return ivec2 {
         static_cast<int>(view.recommendedImageRectWidth),
         static_cast<int>(view.recommendedImageRectHeight)
     };
@@ -1347,19 +1486,26 @@ void copyWindowToHMD(Window* win) {
     }
 
     for (uint32_t i = 0; i < EyeCount; ++i) {
-        projectionViews[i] = { XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW };
-        projectionViews[i].pose = views[i].pose;
-        projectionViews[i].fov = views[i].fov;
-        projectionViews[i].subImage.swapchain = swapchains[i].handle;
-        projectionViews[i].subImage.imageRect.offset = { 0, 0 };
-        projectionViews[i].subImage.imageRect.extent = { swapchains[i].width, swapchains[i].height };
+        projectionViews[i] = {
+            .type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW,
+            .pose = views[i].pose,
+            .fov = views[i].fov,
+            .subImage = {
+                .swapchain = swapchains[i].handle,
+                .imageRect = {
+                    .offset = { 0, 0 },
+                    .extent = { swapchains[i].width, swapchains[i].height }
+                }
+            }
+        };
     }
 
-    XrCompositionLayerProjection projectionLayer = { XR_TYPE_COMPOSITION_LAYER_PROJECTION };
-    projectionLayer.space = appSpace;
-    projectionLayer.viewCount = EyeCount;
-    projectionLayer.views = projectionViews.data();
-
+    const XrCompositionLayerProjection projectionLayer = {
+        .type = XR_TYPE_COMPOSITION_LAYER_PROJECTION,
+        .space = appSpace,
+        .viewCount = EyeCount,
+        .views = projectionViews.data()
+    };
     const XrCompositionLayerBaseHeader* layers[] = {
         reinterpret_cast<const XrCompositionLayerBaseHeader*>(&projectionLayer)
     };
@@ -1379,16 +1525,20 @@ void updatePoses() {
         endFrame(nullptr, 0);
     }
 
-    XrFrameWaitInfo waitInfo = { XR_TYPE_FRAME_WAIT_INFO };
-    XrFrameState frameState = { XR_TYPE_FRAME_STATE };
-    if (!succeeded(xrWaitFrame(session, &waitInfo, &frameState), "wait frame")) {
+    XrFrameWaitInfo waitInfo = { .type = XR_TYPE_FRAME_WAIT_INFO };
+    XrFrameState frameState = { .type = XR_TYPE_FRAME_STATE };
+    XrResult res = xrWaitFrame(session, &waitInfo, &frameState);
+    if (!succeeded(res, "Wait frame")) {
         resetFrameState();
         return;
     }
     predictedDisplayTime = frameState.predictedDisplayTime;
 
-    XrFrameBeginInfo beginInfo = { XR_TYPE_FRAME_BEGIN_INFO };
-    if (!succeeded(xrBeginFrame(session, &beginInfo), "begin frame")) {
+    XrFrameBeginInfo beginInfo = {
+        .type = XR_TYPE_FRAME_BEGIN_INFO
+    };
+    res = xrBeginFrame(session, &beginInfo);
+    if (!succeeded(res, "Begin frame")) {
         resetFrameState();
         return;
     }
@@ -1401,23 +1551,28 @@ void updatePoses() {
         return;
     }
 
-    views = { XrView{ XR_TYPE_VIEW }, XrView{ XR_TYPE_VIEW } };
-    XrViewState viewState = { XR_TYPE_VIEW_STATE };
-    XrViewLocateInfo locateInfo = { XR_TYPE_VIEW_LOCATE_INFO };
-    locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-    locateInfo.displayTime = predictedDisplayTime;
-    locateInfo.space = appSpace;
+    views = {
+        XrView{ .type = XR_TYPE_VIEW },
+        XrView{ .type = XR_TYPE_VIEW }
+    };
+    XrViewState viewState = { .type = XR_TYPE_VIEW_STATE };
+    XrViewLocateInfo locateInfo = {
+        .type = XR_TYPE_VIEW_LOCATE_INFO,
+        .viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+        .displayTime = predictedDisplayTime,
+        .space = appSpace
+    };
 
     uint32_t viewCount = 0;
-    if (!succeeded(xrLocateViews(
+    res = xrLocateViews(
         session,
         &locateInfo,
         &viewState,
         EyeCount,
         &viewCount,
         views.data()
-    ), "locate views"))
-    {
+    );
+    if (!succeeded(res, "Locate views")) {
         endFrame(nullptr, 0);
         return;
     }
@@ -1425,8 +1580,7 @@ void updatePoses() {
     areViewsValid = viewCount == EyeCount &&
         (viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0 &&
         (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) != 0;
-    if (areViewsValid)
-    {
+    if (areViewsValid) {
         eyeToHeadMatrices[0] = glm::inverse(transformMatrix(views[0].pose));
         eyeToHeadMatrices[1] = glm::inverse(transformMatrix(views[1].pose));
         poseHMDMat = glm::mat4(1.f);
@@ -1442,11 +1596,15 @@ void updateHMDMatrices(float nearClip, float farClip) {
 
     for (uint32_t i = 0; i < EyeCount; ++i) {
         const XrViewConfigurationView& view = configurationViews[i];
-        views[i] = { XR_TYPE_VIEW };
-        views[i].fov.angleLeft = -std::atan(0.5f);
-        views[i].fov.angleRight = std::atan(0.5f);
-        views[i].fov.angleDown = -std::atan(0.5f);
-        views[i].fov.angleUp = std::atan(0.5f);
+        views[i] = {
+            .type = XR_TYPE_VIEW,
+            .fov = {
+                .angleLeft = -std::atan(0.5f),
+                .angleRight = std::atan(0.5f),
+                .angleUp = std::atan(0.5f),
+                .angleDown = -std::atan(0.5f)
+            }
+        };
 
         if (view.recommendedImageRectWidth > 0 && view.recommendedImageRectHeight > 0) {
             const float aspect = static_cast<float>(view.recommendedImageRectWidth) /
@@ -1456,8 +1614,16 @@ void updateHMDMatrices(float nearClip, float farClip) {
         }
     }
 
-    eyeProjectionMatrices[0] = eyeProjectionMatrix(FrustumMode::StereoLeft, nearClip, farClip);
-    eyeProjectionMatrices[1] = eyeProjectionMatrix(FrustumMode::StereoRight, nearClip, farClip);
+    eyeProjectionMatrices[0] = eyeProjectionMatrix(
+        FrustumMode::StereoLeft,
+        nearClip,
+        farClip
+    );
+    eyeProjectionMatrices[1] = eyeProjectionMatrix(
+        FrustumMode::StereoRight,
+        nearClip,
+        farClip
+    );
 }
 
 glm::mat4 eyeProjectionMatrix(FrustumMode eye, float nearClip, float farClip) {
@@ -1477,10 +1643,18 @@ glm::mat4 poseMatrix() {
 
 glm::quat inverseRotation(glm::mat4 matPose) {
     glm::quat q;
-    q.w = std::sqrt(std::max(0.f, 1.f + matPose[0][0] + matPose[1][1] + matPose[2][2])) / 2.f;
-    q.x = std::sqrt(std::max(0.f, 1.f + matPose[0][0] - matPose[1][1] - matPose[2][2])) / 2.f;
-    q.y = std::sqrt(std::max(0.f, 1.f - matPose[0][0] + matPose[1][1] - matPose[2][2])) / 2.f;
-    q.z = std::sqrt(std::max(0.f, 1.f - matPose[0][0] - matPose[1][1] + matPose[2][2])) / 2.f;
+    q.w = std::sqrt(
+        std::max(0.f, 1.f + matPose[0][0] + matPose[1][1] + matPose[2][2])
+    ) / 2.f;
+    q.x = std::sqrt(
+        std::max(0.f, 1.f + matPose[0][0] - matPose[1][1] - matPose[2][2])
+    ) / 2.f;
+    q.y = std::sqrt(
+        std::max(0.f, 1.f - matPose[0][0] + matPose[1][1] - matPose[2][2])
+    ) / 2.f;
+    q.z = std::sqrt(
+        std::max(0.f, 1.f - matPose[0][0] - matPose[1][1] + matPose[2][2])
+    ) / 2.f;
     q.x = std::copysign(q.x, matPose[2][1] - matPose[1][2]);
     q.y = std::copysign(q.y, matPose[0][2] - matPose[2][0]);
     q.z = std::copysign(q.z, matPose[1][0] - matPose[0][1]);

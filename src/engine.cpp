@@ -33,8 +33,8 @@
 #include <iterator>
 #include <numeric>
 #include <mutex>
-#include <stdexcept>
 #include <ranges>
+#include <stdexcept>
 
 #ifdef WIN32
 #include <glad/glad_wgl.h>

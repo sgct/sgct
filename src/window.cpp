@@ -206,7 +206,7 @@ namespace {
     }
 
     sgct::mat4 viewMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
-                         sgct::FrustumMode frustum)
+                          sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
@@ -218,8 +218,8 @@ namespace {
         return viewport.projection(frustum).viewMatrix();
     }
 
-    sgct::mat4 projectionMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
-                               sgct::FrustumMode frustum)
+    sgct::mat4 projectionMatrix(const sgct::Window& window,
+                                const sgct::Viewport& viewport, sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
@@ -233,8 +233,9 @@ namespace {
         return viewport.projection(frustum).projectionMatrix();
     }
 
-    sgct::mat4 viewProjectionMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
-                                   sgct::FrustumMode frustum)
+    sgct::mat4 viewProjectionMatrix(const sgct::Window& window,
+                                    const sgct::Viewport& viewport,
+                                    sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
@@ -254,8 +255,12 @@ namespace {
             return window.framebufferResolution();
         }
 
-        const sgct::ivec2 left = sgct::openxr::eyeResolution(sgct::FrustumMode::StereoLeft);
-        const sgct::ivec2 right = sgct::openxr::eyeResolution(sgct::FrustumMode::StereoRight);
+        const sgct::ivec2 left = sgct::openxr::eyeResolution(
+            sgct::FrustumMode::StereoLeft
+        );
+        const sgct::ivec2 right = sgct::openxr::eyeResolution(
+            sgct::FrustumMode::StereoRight
+        );
         const int eyeWidth = std::max(left.x, right.x);
         const int eyeHeight = std::max(left.y, right.y);
         if (eyeWidth == 0 || eyeHeight == 0) {
@@ -277,7 +282,8 @@ namespace {
     }
 #endif // SGCT_HAS_OPENXR
 
-    sgct::vec2 viewportRenderSize(const sgct::Window& window, const sgct::Viewport& viewport,
+    sgct::vec2 viewportRenderSize(const sgct::Window& window,
+                                  const sgct::Viewport& viewport,
                                   sgct::FrustumMode frustum)
     {
         const sgct::ivec2 res = renderBufferSize(window, frustum);
@@ -984,9 +990,7 @@ void Window::updateResolutions() {
             _useFixResolution = true;
             Log::Info(std::format(
                 "OpenXR framebuffer resolution changed to {}x{} for window {}",
-                _framebufferRes.x,
-                _framebufferRes.y,
-                _id
+                _framebufferRes.x, _framebufferRes.y, _id
             ));
             _pendingFramebufferRes = std::nullopt;
         }

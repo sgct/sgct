@@ -1676,13 +1676,8 @@ static void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "spout", w.spout);
     parseValue(j, "ndi", w.ndi);
-    if (auto it = j.find("openxr"); it != j.end()) {
-        if (it->is_boolean()) {
-            w.openxr = Window::OpenXR{ .enabled = it->get<bool>() };
-        }
-        else {
-            w.openxr = it->get<Window::OpenXR>();
-        }
+    if (auto it = j.find("openxr");  it != j.end()) {
+        w.openxr = it->get<Window::OpenXR>();
     }
     else {
         w.openxr = std::nullopt;

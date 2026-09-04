@@ -93,6 +93,8 @@ ClusterManager::ClusterManager(const config::Cluster& cluster, int clusterID)
     }
 }
 
+ClusterManager::~ClusterManager() = default;
+
 const Node& ClusterManager::node(int index) const {
     return *_nodes[index];
 }

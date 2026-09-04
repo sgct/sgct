@@ -83,7 +83,7 @@ public:
     static unsigned int swapGroupFrameNumber();
 
     Window(const config::Window& window);
-    ~Window() = default;
+    ~Window();
 
     /**
      * This function is used to open the window.

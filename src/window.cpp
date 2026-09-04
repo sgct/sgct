@@ -598,6 +598,8 @@ Window::Window(const config::Window& window)
     }
 }
 
+Window::~Window() = default;
+
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     ZoneScoped;
 

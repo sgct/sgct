@@ -34,4 +34,23 @@ if (NOT TARGET sgct_stb)
   target_include_directories(sgct_stb SYSTEM INTERFACE ${Stb_INCLUDE_DIR})
 endif ()
 
+# This file is installed into <prefix>/@CMAKE_INSTALL_DATADIR@/sgct
+get_filename_component(_sgct_prefix "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+
+if (NOT "@SGCT_SCALABLE_IMPLIB@" STREQUAL "" AND NOT TARGET scalable)
+  add_library(scalable SHARED IMPORTED GLOBAL)
+  set_target_properties(scalable PROPERTIES
+    IMPORTED_IMPLIB "${_sgct_prefix}/@CMAKE_INSTALL_LIBDIR@/@SGCT_SCALABLE_IMPLIB@"
+    IMPORTED_LOCATION "${_sgct_prefix}/@CMAKE_INSTALL_BINDIR@/@SGCT_SCALABLE_LIBRARY@"
+  )
+endif ()
+
+if (NOT "@SGCT_NDI_IMPLIB@" STREQUAL "" AND NOT TARGET ndi)
+  add_library(ndi SHARED IMPORTED GLOBAL)
+  set_target_properties(ndi PROPERTIES
+    IMPORTED_IMPLIB "${_sgct_prefix}/@CMAKE_INSTALL_LIBDIR@/@SGCT_NDI_IMPLIB@"
+    IMPORTED_LOCATION "${_sgct_prefix}/@CMAKE_INSTALL_BINDIR@/@SGCT_NDI_LIBRARY@"
+  )
+endif ()
+
 include("${CMAKE_CURRENT_LIST_DIR}/sgctTargets.cmake")

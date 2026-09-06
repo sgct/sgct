@@ -62,6 +62,13 @@ private:
     TrackingManager() = default;
     ~TrackingManager();
 
+    // Declared explicitly as dllexport would otherwise instantiate an implicit copy
+    // constructor that cannot copy the vector of unique_ptr trackers
+    TrackingManager(const TrackingManager&) = delete;
+    TrackingManager(TrackingManager&&) = delete;
+    TrackingManager& operator=(const TrackingManager&) = delete;
+    TrackingManager& operator=(TrackingManager&&) = delete;
+
     Tracker* tracker(std::string_view name) const;
 
     void addDeviceToCurrentTracker(std::string name);

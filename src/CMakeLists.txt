@@ -264,12 +264,39 @@ endif ()
 
 if (SGCT_INSTALL)
   include(GNUInstallDirs)
+
+  # Linking compile_settings PRIVATE leaves a $<LINK_ONLY:> entry in the interface of the
+  # static library. It only carries warning flags and has nothing to link, so strip it
+  # instead of exporting a target that consumers would have to recreate.
+  get_target_property(interface_libs sgct INTERFACE_LINK_LIBRARIES)
+  list(REMOVE_ITEM interface_libs "$<LINK_ONLY:compile_settings>")
+  set_property(TARGET sgct PROPERTY INTERFACE_LINK_LIBRARIES "${interface_libs}")
+
+  # The exported sgct target refers to these proprietary SDKs by target name, so their
+  # binaries have to ship along and sgctConfig.cmake has to recreate the imported targets
+  foreach (sdk IN ITEMS scalable ndi)
+    if (TARGET ${sdk})
+      string(TOUPPER ${sdk} sdk_var)
+      get_target_property(sdk_implib ${sdk} IMPORTED_IMPLIB)
+      get_target_property(sdk_library ${sdk} IMPORTED_LOCATION)
+      cmake_path(GET sdk_implib FILENAME SGCT_${sdk_var}_IMPLIB)
+      cmake_path(GET sdk_library FILENAME SGCT_${sdk_var}_LIBRARY)
+      install(FILES ${sdk_implib} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      install(FILES ${sdk_library} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif ()
+  endforeach ()
+
   install(TARGETS sgct EXPORT sgctTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
+  if (TARGET vrpn)
+    install(TARGETS vrpn EXPORT sgctTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+  endif ()
   install(
     EXPORT sgctTargets
     FILE sgctTargets.cmake

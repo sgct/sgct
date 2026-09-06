@@ -18,8 +18,10 @@ option(SGCT_TRACY_SUPPORT "Build SGCT with Tracy" OFF)
 # WIN32 is only set by project(), so the host has to stand in for it here
 if (CMAKE_HOST_WIN32)
   option(SGCT_SPOUT_SUPPORT "SGCT Spout support" ON)
-  option(SGCT_NDI_SUPPORT "SGCT NDI Support" ON)
-  option(SGCT_SCALABLE_SUPPORT "SGCT Scalable SDK support" ON)
+  # The NDI and Scalable SDKs are proprietary and cannot be redistributed, so they are
+  # opt-in and off by default
+  option(SGCT_NDI_SUPPORT "SGCT NDI Support" OFF)
+  option(SGCT_SCALABLE_SUPPORT "SGCT Scalable SDK support" OFF)
 endif ()
 
 # Tracy's own switch is honoured so that a surrounding project can turn on profiling globally
@@ -47,8 +49,6 @@ enable_testing()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 

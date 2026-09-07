@@ -1,8 +1,8 @@
 {
   "version": 6,
   "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 25,
+    "major": 4,
+    "minor": 0,
     "patch": 0
   },
   "configurePresets": [
@@ -13,12 +13,9 @@
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
     },
     {
-      "name": "windows",
+      "name": "windows-base",
+      "hidden": true,
       "inherits": "vcpkg",
-      "displayName": "Windows x64",
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
-      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -26,18 +23,59 @@
       }
     },
     {
-      "name": "linux",
+      "name": "windows",
+      "inherits": "windows-base",
+      "displayName": "Windows x64",
+      "description": "Multi-config build against the dynamic vcpkg triplet",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "windows-static",
+      "inherits": "windows-base",
+      "displayName": "Windows x64 (static dependencies)",
+      "description": "Links the dependencies statically so that a static libsgct needs no accompanying DLLs",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
       "inherits": "vcpkg",
-      "displayName": "Linux x64",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
       },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux",
+      "inherits": "linux-base",
+      "displayName": "Linux x64 RelWithDebInfo",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "inherits": "linux-base",
+      "displayName": "Linux x64 Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-release",
+      "inherits": "linux-base",
+      "displayName": "Linux x64 Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],
@@ -48,25 +86,79 @@
       "configuration": "RelWithDebInfo"
     },
     {
+      "name": "windows-debug",
+      "configurePreset": "windows",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-static",
+      "configurePreset": "windows-static",
+      "configuration": "RelWithDebInfo"
+    },
+    {
       "name": "linux",
       "configurePreset": "linux"
+    },
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
     }
   ],
   "testPresets": [
     {
-      "name": "windows",
-      "configurePreset": "windows",
-      "configuration": "RelWithDebInfo",
+      "name": "output-on-failure",
+      "hidden": true,
       "output": {
         "outputOnFailure": true
       }
     },
     {
+      "name": "windows",
+      "inherits": "output-on-failure",
+      "configurePreset": "windows",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "windows-debug",
+      "inherits": "output-on-failure",
+      "configurePreset": "windows",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-release",
+      "inherits": "output-on-failure",
+      "configurePreset": "windows",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-static",
+      "inherits": "output-on-failure",
+      "configurePreset": "windows-static",
+      "configuration": "RelWithDebInfo"
+    },
+    {
       "name": "linux",
-      "configurePreset": "linux",
-      "output": {
-        "outputOnFailure": true
-      }
+      "inherits": "output-on-failure",
+      "configurePreset": "linux"
+    },
+    {
+      "name": "linux-debug",
+      "inherits": "output-on-failure",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "inherits": "output-on-failure",
+      "configurePreset": "linux-release"
     }
   ]
 }

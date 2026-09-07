@@ -14,11 +14,8 @@ get_filename_component(SOURCE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOL
 vcpkg_check_features(
   OUT_FEATURE_OPTIONS FEATURE_OPTIONS
   FEATURES
-    freetype SGCT_FREETYPE_SUPPORT
     ndi      SGCT_NDI_SUPPORT
-    openxr   SGCT_OPENXR_SUPPORT
     scalable SGCT_SCALABLE_SUPPORT
-    spout2   SGCT_SPOUT_SUPPORT
     tracy    SGCT_TRACY_SUPPORT
 )
 
@@ -26,17 +23,18 @@ vcpkg_cmake_configure(
   SOURCE_PATH "${SOURCE_PATH}"
   OPTIONS
     ${FEATURE_OPTIONS}
-    -DSGCT_INSTALL=ON
-    -DSGCT_BUILD_TESTS=OFF
-    -DSGCT_EXAMPLES=OFF
     # /ZI is a developer convenience that would otherwise be baked into the shipped library
     -DSGCT_ENABLE_EDIT_CONTINUE=OFF
-    -DSGCT_VRPN_SUPPORT=OFF
 )
 
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(PACKAGE_NAME sgct CONFIG_PATH share/sgct)
+vcpkg_fixup_pkgconfig()
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+file(REMOVE_RECURSE
+  "${CURRENT_PACKAGES_DIR}/debug/include"
+  "${CURRENT_PACKAGES_DIR}/debug/share"
+)
 
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.md")

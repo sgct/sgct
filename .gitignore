@@ -1,10 +1,23 @@
 **/.DS_Store
 *.csproj
-build
-include/sgct/version.h
-obj
-Doxyfile
+
+# Build directories and generated artifacts
+bin/
+build/
 build-vs2017/
-support/config-converter/node_modules
-doc
-bin/*
+obj/
+out/
+
+# vcpkg manifest-mode install tree, created next to the manifest or inside the build dir
+vcpkg_installed/
+
+# Editor and tooling caches
+.cache/
+.vs/
+CMakeUserPresets.json
+
+# Generated documentation
+doc/
+Doxyfile
+
+support/config-converter/node_modules/

@@ -8,16 +8,17 @@
   ],
   "homepage": "https://github.com/sgct/sgct/",
   "license": "BSD-3-Clause",
-  "builtin-baseline": "04a9d8e5212d01ee1dd9478eadd9caade4f8b0d4",
+  "supports": "!(osx | uwp | android)",
   "dependencies": [
     "catch2",
-    "fmt",
+    "freetype",
     "glfw3",
     "glm",
     "json-schema-validator",
     "libpng",
     "minizip",
     "nlohmann-json",
+    "openxr-loader",
     "scnlib",
     "stb",
     "tinyxml2",
@@ -35,29 +36,20 @@
         "wgl"
       ],
       "platform": "windows"
+    },
+    {
+      "name": "spout2",
+      "platform": "windows"
     }
   ],
   "features": {
-    "freetype": {
-      "description": "Build SGCT with Freetype support",
-      "dependencies": [
-        "freetype"
-      ]
+    "ndi": {
+      "description": "Build SGCT with NDI support. Proprietary SDK, the resulting package cannot be redistributed",
+      "supports": "windows"
     },
-    "openxr": {
-      "description": "Build SGCT with OpenXR support",
-      "dependencies": [
-        "openxr-loader"
-      ]
-    },
-    "spout2": {
-      "description": "Build SGCT with Spout2 support",
-      "dependencies": [
-        {
-          "name": "spout2",
-          "platform": "windows"
-        }
-      ]
+    "scalable": {
+      "description": "Build SGCT with Scalable SDK support. Proprietary SDK, the resulting package cannot be redistributed",
+      "supports": "windows"
     },
     "tracy": {
       "description": "Enable Tracy profiling support",

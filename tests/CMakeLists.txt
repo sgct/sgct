@@ -35,6 +35,11 @@ target_sources(
 
 target_compile_features(SGCTTest PRIVATE cxx_std_23)
 target_compile_definitions(SGCTTest PUBLIC BASE_PATH="${PROJECT_SOURCE_DIR}")
+# sgct defines this PRIVATEly, but it changes what readJsonConfig accepts
+target_compile_definitions(SGCTTest
+  PRIVATE
+    $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:SGCT_HAS_SCALABLE>
+)
 
 if (MSVC)
   target_compile_options(SGCTTest PRIVATE "/Od" "/bigobj")

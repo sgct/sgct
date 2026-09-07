@@ -25,13 +25,65 @@ Please note that in this nomenclature, even if an application is running only on
 1. [Doxygen-generated documentation](http://webstaff.itn.liu.se/~alebo68/sgct/doxygen/html/)
 
 # Tutorials
-For tutorials on how to use SGCT, look at the `src/apps` folder for a large amount of examples.  These can be compiled by enabling the `SGCT_EXAMPLES` CMake option.
+For tutorials on how to use SGCT, look at the `apps` folder for a large amount of examples.
+
+# Building
+SGCT resolves its dependencies through [vcpkg](https://vcpkg.io) in manifest mode, so the only prerequisites are a C++23 compiler, CMake 4.0 or newer, and a vcpkg checkout.
+
+1. Point `VCPKG_ROOT` at your vcpkg checkout:
+   ```
+   # Windows (PowerShell)
+   $env:VCPKG_ROOT = "C:\path\to\vcpkg"
+
+   # Linux
+   export VCPKG_ROOT=/path/to/vcpkg
+   ```
+1. Clone the repository and initialise the one remaining submodule:
+   ```
+   git clone https://github.com/sgct/sgct.git
+   cd sgct
+   git submodule update --init
+   ```
+1. Configure, build, and test through the provided CMake presets.  The first configure downloads and builds the dependencies, which takes a while; subsequent runs are served from vcpkg's binary cache.
+   ```
+   cmake --preset windows
+   cmake --build --preset windows
+   ctest --preset windows
+   ```
+
+Use `linux` instead of `windows` on Linux.  The presets also offer `windows-debug`, `windows-release`, `linux-debug`, and `linux-release`, plus `windows-static` for linking the dependencies statically.
+
+## Build options
+Freetype text rendering, OpenXR, and (on Windows) Spout are always enabled.  The remaining switches are:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `BUILD_SHARED_LIBS` | `OFF` | Build SGCT as a shared library |
+| `SGCT_TRACY_SUPPORT` | `OFF` | Enable [Tracy](https://github.com/wolfpld/tracy) profiling |
+| `SGCT_MEMORY_PROFILING` | `OFF` | Override `new`/`delete` for Tracy memory profiling; requires `SGCT_TRACY_SUPPORT` |
+| `SGCT_NDI_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
+| `SGCT_SCALABLE_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
+| `SGCT_ENABLE_EDIT_CONTINUE` | `ON` | Windows only. Compile with `/ZI` |
+| `SGCT_ENABLE_STATIC_ANALYZER` | `OFF` | Unix only. Compile with `-fanalyzer` |
+
+## Consuming SGCT
+A vcpkg port lives in `support/vcpkg/ports/sgct`.  Register it as an overlay from your own project's `vcpkg-configuration.json`:
+```json
+{
+  "overlay-ports": [ "path/to/sgct/support/vcpkg/ports" ]
+}
+```
+and then link against it:
+```cmake
+find_package(sgct CONFIG REQUIRED)
+target_link_libraries(myapp PRIVATE sgct::sgct)
+```
 
 # License
 SGCT is licensed under the [3-clause BSD license](https://choosealicense.com/licenses/bsd-3-clause/)
 
 ```
-Copyright (c) 2012-2020
+Copyright (c) 2012-2026
 Miroslav Andel, Linköping University
 Alexander Bock, Linköping University
 
@@ -66,17 +118,21 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 For any questions or further information about the SGCT project, please contact [alexander.bock@liu.se](mailto:alexander.bock@liu.se) or [erik.sunden@liu.se](mailto:erik.sunden@liu.se).
 
 ## External libraries
-SGCT uses and acknowledges the following external libraries:
+SGCT links against the following external libraries, all of which are provided by vcpkg:
 
- - [FreeType](http://www.freetype.org)
+ - [Catch2](https://github.com/catchorg/Catch2) (tests only)
+ - [FreeType](https://www.freetype.org)
  - [GLAD](https://github.com/Dav1dde/glad)
- - [GLFW](ttps://www.glfw.org)
- - [GLM](http://glm.g-truc.net)
+ - [GLFW](https://www.glfw.org)
+ - [GLM](https://github.com/g-truc/glm)
+ - [json-schema-validator](https://github.com/pboettch/json-schema-validator)
  - [libpng](http://www.libpng.org)
+ - [minizip](https://github.com/madler/zlib/tree/master/contrib/minizip)
+ - [nlohmann/json](https://github.com/nlohmann/json)
  - [OpenXR](https://github.com/KhronosGroup/OpenXR-SDK)
- - [Spout](https://github.com/box/spout)
- - [stb_image](https://github.com/let-def/stb_image)
- - [TinyXML](https:/github.com/leethomason/tinyxml2)
- - [Tracy](https://github.com/nette/tracy)
- - [VRPN](https://github.com/vrpn/vrpn)
+ - [scnlib](https://github.com/eliaskosunen/scnlib)
+ - [Spout2](https://github.com/leadedge/Spout2) (Windows only)
+ - [stb_image](https://github.com/nothings/stb)
+ - [TinyXML-2](https://github.com/leethomason/tinyxml2)
+ - [Tracy](https://github.com/wolfpld/tracy) (optional)
  - [zlib](https://www.zlib.net)

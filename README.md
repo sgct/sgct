@@ -59,12 +59,15 @@ Freetype text rendering, OpenXR, and (on Windows) Spout are always enabled.  The
 | Option | Default | Description |
 | --- | --- | --- |
 | `BUILD_SHARED_LIBS` | `OFF` | Build SGCT as a shared library |
+| `SGCT_BUILD_TESTS` | `ON` when SGCT is the top-level project, otherwise `OFF` | Build the unit tests (pulls in Catch2) |
 | `SGCT_TRACY_SUPPORT` | `OFF` | Enable [Tracy](https://github.com/wolfpld/tracy) profiling |
 | `SGCT_MEMORY_PROFILING` | `OFF` | Override `new`/`delete` for Tracy memory profiling; requires `SGCT_TRACY_SUPPORT` |
 | `SGCT_NDI_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
 | `SGCT_SCALABLE_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
 | `SGCT_ENABLE_EDIT_CONTINUE` | `ON` | Windows only. Compile with `/ZI` |
 | `SGCT_ENABLE_STATIC_ANALYZER` | `OFF` | Unix only. Compile with `-fanalyzer` |
+
+`SGCT_BUILD_TESTS`, `SGCT_TRACY_SUPPORT`, `SGCT_NDI_SUPPORT`, and `SGCT_SCALABLE_SUPPORT` each add or drop a vcpkg dependency.  vcpkg only reads that list on the configure that first creates the build directory, so after changing one of these delete `build/<preset>/vcpkg_installed` (or the whole `build/<preset>` directory) and configure again.
 
 ## Consuming SGCT
 A vcpkg port lives in `support/vcpkg/ports/sgct`.  Register it as an overlay from your own project's `vcpkg-configuration.json`:
@@ -132,6 +135,7 @@ SGCT links against the following external libraries, all of which are provided b
  - [OpenXR](https://github.com/KhronosGroup/OpenXR-SDK)
  - [scnlib](https://github.com/eliaskosunen/scnlib)
  - [Spout2](https://github.com/leadedge/Spout2) (Windows only)
+ - [Vulkan](https://github.com/KhronosGroup/Vulkan-Loader) (Windows only; OpenXR Vulkan fallback)
  - [stb_image](https://github.com/nothings/stb)
  - [TinyXML-2](https://github.com/leethomason/tinyxml2)
  - [Tracy](https://github.com/wolfpld/tracy) (optional)

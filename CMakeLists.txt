@@ -10,7 +10,21 @@ cmake_minimum_required(VERSION 4.0)
 
 # The options gating optional dependencies have to be declared before the first project()
 # call: that is when vcpkg's toolchain file runs and reads VCPKG_MANIFEST_FEATURES.
+#
+# vcpkg only reads VCPKG_MANIFEST_FEATURES on the configure that first creates the build
+# directory. Changing any of the options below afterwards will not add or remove the
+# corresponding dependency: delete build/<preset>/vcpkg_installed (or the whole build
+# directory) and configure again.
 option(SGCT_TRACY_SUPPORT "Build SGCT with Tracy" OFF)
+
+# The tests pull in Catch2, which is of no use to a project that consumes SGCT. Build them
+# by default only when SGCT is the top-level project. project() has not run yet, so
+# PROJECT_IS_TOP_LEVEL is not available and the directory comparison has to stand in.
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  option(SGCT_BUILD_TESTS "Build the SGCT unit tests" ON)
+else ()
+  option(SGCT_BUILD_TESTS "Build the SGCT unit tests" OFF)
+endif ()
 
 # WIN32 is only set by project(), so the host has to stand in for it here
 if (CMAKE_HOST_WIN32)
@@ -34,9 +48,11 @@ endif ()
 if (SGCT_TRACY_SUPPORT)
   list(APPEND VCPKG_MANIFEST_FEATURES "tracy")
 endif ()
+if (SGCT_BUILD_TESTS)
+  list(APPEND VCPKG_MANIFEST_FEATURES "tests")
+endif ()
 
 project(sgct VERSION 4.0.0 LANGUAGES C CXX)
-enable_testing()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -69,4 +85,7 @@ endif ()
 
 add_subdirectory(ext SYSTEM)
 add_subdirectory(src)
-add_subdirectory(tests)
+if (SGCT_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif ()

@@ -5,13 +5,12 @@
   "description": [
     "Simple Graphics Cluster Toolkit.",
     "The scalable and ndi features wrap proprietary SDKs whose licenses do not permit redistribution. They are off by default and a package built with them must not be handed to third parties.",
-    "The dependency list has to stay in sync with the manifest at the root of the SGCT repository."
+    "The dependency list has to stay in sync with the manifest at the root of the SGCT repository, except that this port does not build the unit tests and therefore omits Catch2."
   ],
   "homepage": "https://github.com/sgct/sgct/",
   "license": "BSD-3-Clause",
   "supports": "!(osx | uwp | android)",
   "dependencies": [
-    "catch2",
     "freetype",
     "glfw3",
     "glm",
@@ -40,6 +39,10 @@
     },
     {
       "name": "spout2",
+      "platform": "windows"
+    },
+    {
+      "name": "vulkan",
       "platform": "windows"
     },
     {

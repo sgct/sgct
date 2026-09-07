@@ -17,6 +17,8 @@ find_dependency(ZLIB)
 
 if (WIN32)
   find_dependency(Spout2 CONFIG)
+  # Linked PRIVATE, but sgct is usually a static library, so it stays in the interface
+  find_dependency(Vulkan)
 else ()
   # Linked PRIVATE, but sgct is usually a static library, so they stay in the interface
   find_dependency(Threads)

@@ -194,14 +194,12 @@ endif ()
 if (WIN32)
   find_package(Spout2 CONFIG REQUIRED)
 
-  find_package(Vulkan)
-  if (Vulkan_FOUND)
-    target_compile_definitions(sgct PRIVATE SGCT_HAS_OPENXR_VULKAN_FALLBACK)
-    set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION "${Vulkan_LIBRARY}")
-    set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION_RELEASE "${Vulkan_LIBRARY}")
-  else ()
-    message(WARNING "Vulkan SDK was not found; SGCT OpenXR Vulkan fallback will be disabled")
-  endif ()
+  # The vulkan port pulls in vulkan-headers and vulkan-loader, so Vulkan is always present
+  # on Windows and the OpenXR Vulkan fallback is always compiled in
+  find_package(Vulkan REQUIRED)
+  target_compile_definitions(sgct PRIVATE SGCT_HAS_OPENXR_VULKAN_FALLBACK)
+  set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION "${Vulkan_LIBRARY}")
+  set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION_RELEASE "${Vulkan_LIBRARY}")
 endif ()
 
 if (SGCT_TRACY_SUPPORT)
@@ -232,7 +230,7 @@ target_link_libraries(sgct
     nlohmann_json_schema_validator::validator
     $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:scalable>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:ndi>
-    $<$<AND:$<BOOL:${WIN32}>,$<BOOL:${Vulkan_FOUND}>>:Vulkan::Vulkan>
+    $<$<BOOL:${WIN32}>:Vulkan::Vulkan>
 )
 
 target_compile_definitions(sgct

@@ -4,13 +4,21 @@
   "version": "4.0.0",
   "description": [
     "Simple Graphics Cluster Toolkit.",
-    "This manifest is used when building SGCT standalone from this checkout. The port under support/vcpkg/ports/sgct declares the same dependencies for consumers, so keep the two lists in sync when adding or removing one."
+    "This manifest is used when building SGCT standalone from this checkout. The port under support/vcpkg/ports/sgct declares the same runtime dependencies for consumers, so keep the two lists in sync when adding or removing one. The only intentional difference is the tests feature (Catch2), which the port never builds."
   ],
   "homepage": "https://github.com/sgct/sgct/",
   "license": "BSD-3-Clause",
   "supports": "!(osx | uwp | android)",
+  "vcpkg-configuration": {
+    "default-registry": {
+      "kind": "builtin",
+      "baseline": "04a9d8e5212d01ee1dd9478eadd9caade4f8b0d4"
+    },
+    "overlay-ports": [
+      "./support/vcpkg/ports"
+    ]
+  },
   "dependencies": [
-    "catch2",
     "freetype",
     "glfw3",
     "glm",
@@ -40,9 +48,19 @@
     {
       "name": "spout2",
       "platform": "windows"
+    },
+    {
+      "name": "vulkan",
+      "platform": "windows"
     }
   ],
   "features": {
+    "tests": {
+      "description": "Build the unit tests. Enabled automatically when SGCT is the top-level CMake project",
+      "dependencies": [
+        "catch2"
+      ]
+    },
     "ndi": {
       "description": "Build SGCT with NDI support. Proprietary SDK, the resulting package cannot be redistributed",
       "supports": "windows"

@@ -23,13 +23,15 @@ vcpkg_cmake_configure(
   SOURCE_PATH "${SOURCE_PATH}"
   OPTIONS
     ${FEATURE_OPTIONS}
+    # The tests only exercise this checkout and pull in Catch2, which a consumer does not want
+    -DSGCT_BUILD_TESTS=OFF
     # /ZI is a developer convenience that would otherwise be baked into the shipped library
     -DSGCT_ENABLE_EDIT_CONTINUE=OFF
 )
 
 vcpkg_cmake_install()
-vcpkg_cmake_config_fixup(PACKAGE_NAME sgct CONFIG_PATH share/sgct)
-vcpkg_fixup_pkgconfig()
+vcpkg_cmake_config_fixup(CONFIG_PATH share/sgct)
+vcpkg_copy_pdbs()
 
 file(REMOVE_RECURSE
   "${CURRENT_PACKAGES_DIR}/debug/include"

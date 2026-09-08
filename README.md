@@ -25,7 +25,8 @@ Please note that in this nomenclature, even if an application is running only on
 1. [Doxygen-generated documentation](http://webstaff.itn.liu.se/~alebo68/sgct/doxygen/html/)
 
 # Tutorials
-For tutorials on how to use SGCT, look at the `apps` folder for a large amount of examples.
+See the [Getting started](https://sgct.github.io/getting-started.html) guide for a walk
+through of a minimal SGCT application.
 
 # Building
 SGCT resolves its dependencies through [vcpkg](https://vcpkg.io) in manifest mode, so the only prerequisites are a C++23 compiler, CMake 4.0 or newer, and a vcpkg checkout.
@@ -81,6 +82,19 @@ and then link against it:
 find_package(sgct CONFIG REQUIRED)
 target_link_libraries(myapp PRIVATE sgct::sgct)
 ```
+
+## Upgrading from SGCT 3.x
+Version 4.0 changes how SGCT is built and consumed:
+
+ - All third-party libraries are now resolved through vcpkg. The bundled `ext/` submodules
+   and vendored source have been removed, along with the `SGCT_DEP_INCLUDE_*` CMake
+   options that toggled them. A vcpkg checkout is now a hard build requirement.
+ - OpenVR support has been replaced by OpenXR, which is always compiled in. The
+   `SGCT_OPENVR_SUPPORT` option and the `additional_includes/openvr` headers are gone.
+ - Dependencies are pulled in with `find_package(... CONFIG)` rather than
+   `add_subdirectory`, so a project vendoring SGCT via `add_subdirectory` must supply the
+   vcpkg toolchain and the corresponding ports itself; consuming the overlay port with
+   `find_package(sgct)` (see above) is the supported path.
 
 # License
 SGCT is licensed under the [3-clause BSD license](https://choosealicense.com/licenses/bsd-3-clause/)

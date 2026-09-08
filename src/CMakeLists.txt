@@ -16,6 +16,10 @@ set_compile_options(sgct)
 # otherwise leave a dangling $<LINK_ONLY:compile_settings> in the exported interface
 set_property(TARGET sgct PROPERTY LINK_LIBRARIES "$<BUILD_INTERFACE:compile_settings>")
 set_property(TARGET sgct PROPERTY INTERFACE_LINK_LIBRARIES "")
+# compile_settings also carried the language-standard requirement; keep that part in the
+# exported interface so that a find_package(sgct) consumer compiles the public headers
+# (defaulted comparison operators, std::format, ...) with the right standard
+target_compile_features(sgct PUBLIC cxx_std_23)
 generate_export_header(sgct
   EXPORT_FILE_NAME include/sgct/sgctexports.h
 )

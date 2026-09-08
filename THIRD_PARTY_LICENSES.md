@@ -259,6 +259,15 @@ appreciated.
 
 
 
+## minizip
+https://github.com/madler/zlib/tree/master/contrib/minizip
+
+
+minizip is part of the zlib distribution and is distributed under the zlib license
+reproduced in the zlib section below.
+
+
+
 ## OpenXR Loader
 https://github.com/KhronosGroup/OpenXR-SDK
 
@@ -403,6 +412,25 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+## Vulkan-Headers / Vulkan-Loader
+https://github.com/KhronosGroup/Vulkan-Loader
+(Windows only; used for the OpenXR Vulkan fallback)
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 
 

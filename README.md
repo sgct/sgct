@@ -83,6 +83,10 @@ find_package(sgct CONFIG REQUIRED)
 target_link_libraries(myapp PRIVATE sgct::sgct)
 ```
 
+The port declares the same runtime dependencies as the root `vcpkg.json`; the two are kept in sync by `support/vcpkg/check-manifest-sync.cmake`, which runs as part of the test suite.
+
+The port declares the same runtime dependencies as the root `vcpkg.json`; the two are kept in sync by `support/vcpkg/check-manifest-sync.cmake`, which runs as part of the test suite.
+
 ## Upgrading from SGCT 3.x
 Version 4.0 changes how SGCT is built and consumed:
 

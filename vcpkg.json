@@ -4,7 +4,7 @@
   "version": "4.0.0",
   "description": [
     "Simple Graphics Cluster Toolkit.",
-    "This manifest is used when building SGCT standalone from this checkout. The port under support/vcpkg/ports/sgct declares the same runtime dependencies for consumers, so keep the two lists in sync when adding or removing one. The only intentional difference is the tests feature (Catch2), which the port never builds."
+    "This manifest is used when building SGCT standalone from this checkout. The port under support/vcpkg/ports/sgct declares the same runtime dependencies for consumers; support/vcpkg/check-manifest-sync.cmake verifies that the two lists stay in sync. The intentional differences are the tests feature (Catch2), which the port never builds, and the vcpkg-cmake host tools, which the port needs explicitly."
   ],
   "homepage": "https://github.com/sgct/sgct/",
   "license": "BSD-3-Clause",

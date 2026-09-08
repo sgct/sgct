@@ -55,3 +55,8 @@ find_package(nlohmann_json_schema_validator REQUIRED)
 target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator glm::glm)
 
 add_test(NAME SGCTTest COMMAND SGCTTest)
+
+add_test(
+  NAME VcpkgManifestSync
+  COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/support/vcpkg/check-manifest-sync.cmake
+)

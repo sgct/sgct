@@ -11,6 +11,7 @@
   "license": "BSD-3-Clause",
   "supports": "!(osx | uwp | android)",
   "dependencies": [
+    "common-compile-settings",
     "freetype",
     "glfw3",
     "glm",

@@ -38,11 +38,10 @@ SGCT resolves its dependencies through [vcpkg](https://vcpkg.io) in manifest mod
    # Linux
    export VCPKG_ROOT=/path/to/vcpkg
    ```
-1. Clone the repository and initialise the one remaining submodule:
+1. Clone the repository:
    ```
    git clone https://github.com/sgct/sgct.git
    cd sgct
-   git submodule update --init
    ```
 1. Configure, build, and test through the provided CMake presets.  The first configure downloads and builds the dependencies, which takes a while; subsequent runs are served from vcpkg's binary cache.
    ```

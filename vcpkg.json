@@ -20,6 +20,7 @@
   },
   "dependencies": [
     "catch2",
+    "common-compile-settings",
     "freetype",
     "glfw3",
     "glm",

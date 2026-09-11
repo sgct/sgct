@@ -5,21 +5,6 @@
 
 def checkoutGit() {
   checkout scm;
-
-  // support/cmake/common-compile-settings is the only remaining submodule; every other
-  // dependency now comes from vcpkg
-  if (isUnix()) {
-    sh(
-      script: "git submodule update --init",
-      label: "Init submodules"
-    )
-  }
-  else {
-    bat(
-      script: "git submodule update --init",
-      label: "Init submodules"
-    )
-  }
 }
 
 def buildWithPreset(preset) {

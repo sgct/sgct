@@ -25,8 +25,6 @@ class SGCT_EXPORT Node {
 public:
     Node(const config::Node& node, bool initializeWindows);
 
-    // Declared explicitly as dllexport would otherwise instantiate an implicit copy
-    // constructor that cannot copy the vector of unique_ptr windows
     Node(const Node&) = delete;
     Node(Node&&) = default;
     Node& operator=(const Node&) = delete;

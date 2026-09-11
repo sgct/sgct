@@ -93,8 +93,6 @@ public:
      */
     ~FontManager();
 
-    // Declared explicitly as dllexport would otherwise instantiate an implicit copy
-    // constructor that cannot copy the map of unique_ptr fonts
     FontManager(const FontManager&) = delete;
     FontManager(FontManager&&) = delete;
     FontManager& operator=(const FontManager&) = delete;

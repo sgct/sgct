@@ -12,13 +12,6 @@ include(GenerateExportHeader)
 add_library(sgct)
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
-# set_compile_options links the interface-only compile_settings target PRIVATE, which would
-# otherwise leave a dangling $<LINK_ONLY:compile_settings> in the exported interface
-set_property(TARGET sgct PROPERTY LINK_LIBRARIES "$<BUILD_INTERFACE:compile_settings>")
-set_property(TARGET sgct PROPERTY INTERFACE_LINK_LIBRARIES "")
-# compile_settings also carried the language-standard requirement; keep that part in the
-# exported interface so that a find_package(sgct) consumer compiles the public headers
-# (defaulted comparison operators, std::format, ...) with the right standard
 target_compile_features(sgct PUBLIC cxx_std_23)
 generate_export_header(sgct
   EXPORT_FILE_NAME include/sgct/sgctexports.h
@@ -198,12 +191,8 @@ endif ()
 if (WIN32)
   find_package(Spout2 CONFIG REQUIRED)
 
-  # The vulkan port pulls in vulkan-headers and vulkan-loader, so Vulkan is always present
-  # on Windows and the OpenXR Vulkan fallback is always compiled in
   find_package(Vulkan REQUIRED)
   target_compile_definitions(sgct PRIVATE SGCT_HAS_OPENXR_VULKAN_FALLBACK)
-  set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION "${Vulkan_LIBRARY}")
-  set_property(TARGET Vulkan::Vulkan PROPERTY IMPORTED_LOCATION_RELEASE "${Vulkan_LIBRARY}")
 endif ()
 
 if (SGCT_TRACY_SUPPORT)
@@ -222,8 +211,6 @@ target_link_libraries(sgct
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
   PRIVATE
     ZLIB::ZLIB
-    # Spelling prescribed by the minizip port's own usage file: the target name differs
-    # between the shared and static builds of that port
     $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
     glm::glm
     PNG::PNG
@@ -290,10 +277,11 @@ if (PROJECT_IS_TOP_LEVEL)
     NAMESPACE sgct::
     DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
   )
-  configure_file(
+  configure_package_config_file(
     ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/sgctConfig.cmake
-    @ONLY
+    INSTALL_DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
+    PATH_VARS CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_BINDIR
   )
   write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/sgctConfigVersion.cmake

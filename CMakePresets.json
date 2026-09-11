@@ -30,6 +30,11 @@
       }
     },
     {
+      "name": "makefiles",
+      "hidden": true,
+      "generator": "Unix Makefiles"
+    },
+    {
       "name": "windows",
       "hidden": true,
       "condition": {
@@ -87,6 +92,22 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "linux-makefiles-debug",
+      "displayName": "Linux Makefiles Debug",
+      "inherits": [ "vcpkg", "build", "linux", "makefiles" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-makefiles-release",
+      "displayName": "Linux Makefiles Release",
+      "inherits": [ "vcpkg", "build", "linux", "makefiles" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
@@ -95,6 +116,11 @@
       "displayName": "Windows MSVC (Debug)",
       "configurePreset": "windows-msvc",
       "configuration": "Debug"
+    },
+    {
+      "$comment": "Defining it to keep the same name as the configuration preset",
+      "name": "windows-msvc",
+      "inherits": "windows-msvc-debug"
     },
     {
       "name": "windows-msvc-relwithdebinfo",
@@ -111,6 +137,16 @@
       "name": "windows-ninja-release",
       "displayName": "Windows Ninja (Release)",
       "configurePreset": "windows-ninja-release"
+    },
+    {
+      "name": "linux-makefiles-debug",
+      "displayName": "Linux Makefiles (Debug)",
+      "configurePreset": "linux-makefiles-debug"
+    },
+    {
+      "name": "linux-makefiles-release",
+      "displayName": "Linux Makefiles (Release)",
+      "configurePreset": "linux-makefiles-release"
     },
     {
       "name": "linux-ninja-debug",
@@ -133,6 +169,11 @@
       }
     },
     {
+      "$comment": "Defining it to keep the same name as the configuration preset",
+      "name": "windows-msvc",
+      "inherits": "windows-msvc-debug"
+    },
+    {
       "name": "windows-msvc-relwithdebinfo",
       "configurePreset": "windows-msvc",
       "configuration": "RelWithDebInfo",
@@ -150,6 +191,20 @@
     {
       "name": "windows-ninja-release",
       "configurePreset": "windows-ninja-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-makefiles-debug",
+      "configurePreset": "linux-makefiles-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-makefiles-release",
+      "configurePreset": "linux-makefiles-release",
       "output": {
         "outputOnFailure": true
       }

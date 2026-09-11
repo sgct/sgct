@@ -53,14 +53,14 @@ linux_gcc: {
         checkout scm;
       }
       stage('linux-gcc/build') {
-        buildWithPreset('linux');
+        buildWithPreset('linux-makefiles-debug');
         recordIssues(
           id: 'linux-gcc',
           tool: gcc()
         )
       }
       stage('linux-gcc/test') {
-        runUnitTests('linux')
+        runUnitTests('linux-makefiles-debug')
       }
       cleanWs()
     } // node('linux-gcc')
@@ -74,14 +74,14 @@ linux_clang: {
         checkout scm;
       }
       stage('linux-clang/build') {
-        buildWithPreset('linux');
+        buildWithPreset('linux-makefiles-debug');
         recordIssues(
           id: 'linux-clang',
           tool: clang()
         )
       }
       stage('linux-clang/test') {
-        runUnitTests('linux')
+        runUnitTests('linux-makefiles-debug')
       }
       cleanWs()
     } // node('linux-clang')
@@ -95,14 +95,14 @@ windows_msvc: {
         checkout scm;
       }
       stage('windows-msvc/build') {
-        buildWithPreset('windows');
+        buildWithPreset('windows-msvc');
         recordIssues(
-          id: 'windows-msbuild-msvc',
+          id: 'windows-msvc',
           tool: msBuild()
         )
       }
       stage('windows-msvc/test') {
-        runUnitTests('windows')
+        runUnitTests('windows-msvc')
       }
       cleanWs()
     } // node('windows')

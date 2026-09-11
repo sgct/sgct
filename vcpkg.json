@@ -4,9 +4,9 @@
   "version": "4.0.0",
   "description": [
     "Simple Graphics Cluster Toolkit.",
-    "This manifest is used when building SGCT standalone from this checkout. The port under support/vcpkg/ports/sgct declares the same runtime dependencies for consumers; support/vcpkg/check-manifest-sync.cmake verifies that the two lists stay in sync. The intentional differences are the tests feature (Catch2), which the port never builds, and the vcpkg-cmake host tools, which the port needs explicitly."
+    "This manifest is used when building SGCT standalone from this checkout. The port under support/vcpkg/ports/sgct declares the same runtime dependencies for consumers; support/vcpkg/check-manifest-sync.cmake verifies that the two lists stay in sync. The intentional differences are Catch2 and Tracy, which are only used by the unit tests and SGCT_TRACY_SUPPORT that the port never builds, and the vcpkg-cmake host tools, which the port needs explicitly."
   ],
-  "homepage": "https://github.com/sgct/sgct/",
+  "homepage": "https://github.com/SGCT/SGCT/",
   "license": "BSD-3-Clause",
   "supports": "!(osx | uwp | android)",
   "vcpkg-configuration": {
@@ -19,6 +19,7 @@
     ]
   },
   "dependencies": [
+    "catch2",
     "freetype",
     "glfw3",
     "glm",
@@ -30,6 +31,7 @@
     "scnlib",
     "stb",
     "tinyxml2",
+    "tracy",
     "zlib",
     {
       "name": "glad",
@@ -55,12 +57,6 @@
     }
   ],
   "features": {
-    "tests": {
-      "description": "Build the unit tests. Enabled automatically when SGCT is the top-level CMake project",
-      "dependencies": [
-        "catch2"
-      ]
-    },
     "ndi": {
       "description": "Build SGCT with NDI support. Proprietary SDK, the resulting package cannot be redistributed",
       "supports": "windows"
@@ -68,12 +64,6 @@
     "scalable": {
       "description": "Build SGCT with Scalable SDK support. Proprietary SDK, the resulting package cannot be redistributed",
       "supports": "windows"
-    },
-    "tracy": {
-      "description": "Enable Tracy profiling support",
-      "dependencies": [
-        "tracy"
-      ]
     }
   }
 }

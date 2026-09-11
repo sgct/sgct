@@ -16,8 +16,8 @@
 # Intentional differences (a mismatch in these is allowed, anything else is an error):
 #   - the port additionally depends on the vcpkg-cmake / vcpkg-cmake-config host tools,
 #     which the standalone manifest gets from vcpkg itself
-#   - the port never builds the unit tests, so it omits the `tests` feature and its Catch2
-#     dependency
+#   - the port never builds the unit tests or Tracy support, so it omits their Catch2 and
+#     Tracy dependencies
 #
 # Run with:  cmake -P support/vcpkg/check-manifest-sync.cmake
 
@@ -29,8 +29,8 @@ set(PORT "${CMAKE_CURRENT_LIST_DIR}/ports/sgct/vcpkg.json")
 
 # Dependencies that are allowed to appear only in the port
 set(PORT_ONLY_DEPENDENCIES "vcpkg-cmake" "vcpkg-cmake-config")
-# Features that are allowed to appear only in the manifest
-set(MANIFEST_ONLY_FEATURES "tests")
+# Dependencies that are allowed to appear only in the manifest
+set(MANIFEST_ONLY_DEPENDENCIES "catch2" "tracy")
 
 function (flatten_dependencies outVar dependencies)
   set(result "")
@@ -120,6 +120,7 @@ string(JSON manifestDependencies GET "${manifestJson}" "dependencies")
 string(JSON portDependencies GET "${portJson}" "dependencies")
 flatten_dependencies(manifestDeps "${manifestDependencies}")
 flatten_dependencies(portDeps "${portDependencies}")
+drop_dependencies(manifestDeps "${manifestDeps}" "${MANIFEST_ONLY_DEPENDENCIES}")
 drop_dependencies(portDeps "${portDeps}" "${PORT_ONLY_DEPENDENCIES}")
 if (NOT manifestDeps STREQUAL portDeps)
   list(APPEND errors "  dependencies\n    vcpkg.json:  ${manifestDeps}\n    port:        ${portDeps}")
@@ -129,9 +130,6 @@ string(JSON manifestFeatures GET "${manifestJson}" "features")
 string(JSON portFeatures GET "${portJson}" "features")
 feature_names(manifestFeatureNames "${manifestFeatures}")
 feature_names(portFeatureNames "${portFeatures}")
-if (manifestFeatureNames)
-  list(REMOVE_ITEM manifestFeatureNames ${MANIFEST_ONLY_FEATURES})
-endif ()
 if (NOT manifestFeatureNames STREQUAL portFeatureNames)
   list(APPEND errors "  feature names\n    vcpkg.json:  ${manifestFeatureNames}\n    port:        ${portFeatureNames}")
 else ()

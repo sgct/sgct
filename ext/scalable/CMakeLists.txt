@@ -9,7 +9,7 @@
 # This is an SGCT-specific library to interface with Scalable and does not represent the
 # full capabilities of this great library. The files contained in this folder are only
 # provided to build applications that directly depend on SGCT.
-# To access the full ScalableSDK, contact sales@scalabledisplay.com
+# To get access to the full ScalableSDK, contact sales@scalabledisplay.com
 
 add_library(scalable SHARED IMPORTED GLOBAL)
 

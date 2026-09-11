@@ -6,7 +6,6 @@
 [![GitHub Releases](https://img.shields.io/github/release/SGCT/sgct.svg)](https://github.com/SGCT/sgct/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SGCT/sgct/total)](https://github.com/SGCT/sgct/releases)
 
-
 SGCT is a free cross-platform C++ library for developing OpenGL applications that are synchronized across a cluster of image generating computers (IGs).  SGCT is designed to be as simple as possible to use for the developer and targets the use in immersive real-time applications.  SGCT supports a number of output formats, such as virtual reality (VR), planetarium/dome geometries, fisheye projections, and other types of projections.  In all cases, the client code only needs to render its scene using the projection matrices provided by SGCT and the compositing is then handled internally.  SGCT also supports a variety of stereoscopic formats such as active quad buffers, passive side-by-side, passive over-and-under, checkerboard/DLP/pixel interlaced, and different kinds of anaglyphic stereoscopy.  SGCT applications are scalable and use an XML configuration file format in which all IGs and their properties are specified.  With this approach, there is no need for recompilation of an application for different immersive environments and  applications extend naturally to a server-client clustered architecture without recompilation either.
 
 # Terminology
@@ -55,12 +54,11 @@ SGCT resolves its dependencies through [vcpkg](https://vcpkg.io) in manifest mod
 Use `linux` instead of `windows` on Linux.  The presets also offer `windows-debug`, `windows-release`, `linux-debug`, and `linux-release`, plus `windows-static` for linking the dependencies statically.
 
 ## Build options
-Freetype text rendering, OpenXR, and (on Windows) Spout are always enabled.  The remaining switches are:
-
 | Option | Default | Description |
 | --- | --- | --- |
 | `BUILD_SHARED_LIBS` | `OFF` | Build SGCT as a shared library |
-| `SGCT_BUILD_TESTS` | `ON` when SGCT is the top-level project, otherwise `OFF` | Build the unit tests (pulls in Catch2) |
+| `SGCT_BUILD_TESTS` | `ON` when SGCT is the top-level project, otherwise `OFF` | Build the unit tests |
+| `SGCT_BUILD_CALIBRATOR` | `ON` | Build the `calibrator` application that renders a test pattern for projector calibration |
 | `SGCT_TRACY_SUPPORT` | `OFF` | Enable [Tracy](https://github.com/wolfpld/tracy) profiling |
 | `SGCT_MEMORY_PROFILING` | `OFF` | Override `new`/`delete` for Tracy memory profiling; requires `SGCT_TRACY_SUPPORT` |
 | `SGCT_NDI_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
@@ -68,7 +66,8 @@ Freetype text rendering, OpenXR, and (on Windows) Spout are always enabled.  The
 | `SGCT_ENABLE_EDIT_CONTINUE` | `ON` | Windows only. Compile with `/ZI` |
 | `SGCT_ENABLE_STATIC_ANALYZER` | `OFF` | Unix only. Compile with `-fanalyzer` |
 
-`SGCT_BUILD_TESTS`, `SGCT_TRACY_SUPPORT`, `SGCT_NDI_SUPPORT`, and `SGCT_SCALABLE_SUPPORT` each add or drop a vcpkg dependency.  vcpkg only reads that list on the configure that first creates the build directory, so after changing one of these delete `build/<preset>/vcpkg_installed` (or the whole `build/<preset>` directory) and configure again.
+Catch2 and Tracy are regular dependencies in `vcpkg.json`, so these options can be switched on an existing build directory without touching vcpkg.  A project that includes SGCT through `add_subdirectory` can override `SGCT_BUILD_TESTS`, `SGCT_BUILD_CALIBRATOR`, and `SGCT_TRACY_SUPPORT` by setting the variable before the `add_subdirectory` call.
+
 
 ## Consuming SGCT
 A vcpkg port lives in `support/vcpkg/ports/sgct`.  Register it as an overlay from your own project's `vcpkg-configuration.json`:
@@ -82,8 +81,6 @@ and then link against it:
 find_package(sgct CONFIG REQUIRED)
 target_link_libraries(myapp PRIVATE sgct::sgct)
 ```
-
-The port declares the same runtime dependencies as the root `vcpkg.json`; the two are kept in sync by `support/vcpkg/check-manifest-sync.cmake`, which runs as part of the test suite.
 
 The port declares the same runtime dependencies as the root `vcpkg.json`; the two are kept in sync by `support/vcpkg/check-manifest-sync.cmake`, which runs as part of the test suite.
 

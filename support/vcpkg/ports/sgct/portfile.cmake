@@ -16,7 +16,6 @@ vcpkg_check_features(
   FEATURES
     ndi      SGCT_NDI_SUPPORT
     scalable SGCT_SCALABLE_SUPPORT
-    tracy    SGCT_TRACY_SUPPORT
 )
 
 vcpkg_cmake_configure(
@@ -25,6 +24,8 @@ vcpkg_cmake_configure(
     ${FEATURE_OPTIONS}
     # The tests only exercise this checkout and pull in Catch2, which a consumer does not want
     -DSGCT_BUILD_TESTS=OFF
+    # The calibrator is not installed, so building it would only cost time
+    -DSGCT_BUILD_CALIBRATOR=OFF
     # /ZI is a developer convenience that would otherwise be baked into the shipped library
     -DSGCT_ENABLE_EDIT_CONTINUE=OFF
 )

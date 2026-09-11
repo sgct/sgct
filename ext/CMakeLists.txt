@@ -6,9 +6,6 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-# Everything SGCT depends on comes from vcpkg, except for the Scalable and NDI SDKs, which
-# are proprietary and cannot be redistributed.
-
 if (WIN32 AND SGCT_SCALABLE_SUPPORT)
   add_subdirectory(scalable SYSTEM)
 endif ()

@@ -1,12 +1,3 @@
-// The build relies on vcpkg in manifest mode. Each agent needs VCPKG_ROOT pointing at a
-// vcpkg checkout; vcpkg's default binary cache lives outside the workspace and therefore
-// survives cleanWs(). Set VCPKG_BINARY_SOURCES on the agent to share a cache between
-// machines.
-
-def checkoutGit() {
-  checkout scm;
-}
-
 def buildWithPreset(preset) {
   def script = """
   cmake --preset ${preset}
@@ -37,7 +28,7 @@ parallel tools: {
   node('tools') {
     stage('tools/scm') {
       deleteDir();
-      checkoutGit();
+      checkout scm;
     }
     stage('tools/cppcheck/run') {
       sh(
@@ -59,7 +50,7 @@ linux_gcc: {
     node('linux-gcc') {
       stage('linux-gcc/scm') {
         deleteDir();
-        checkoutGit();
+        checkout scm;
       }
       stage('linux-gcc/build') {
         buildWithPreset('linux');
@@ -80,7 +71,7 @@ linux_clang: {
     node('linux-clang') {
       stage('linux-clang/scm') {
         deleteDir();
-        checkoutGit();
+        checkout scm;
       }
       stage('linux-clang/build') {
         buildWithPreset('linux');
@@ -101,7 +92,7 @@ windows_msvc: {
     node('windows') {
       stage('windows-msvc/scm') {
         deleteDir();
-        checkoutGit();
+        checkout scm;
       }
       stage('windows-msvc/build') {
         buildWithPreset('windows');

@@ -13,16 +13,15 @@ add_library(sgct)
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 target_compile_features(sgct PUBLIC cxx_std_23)
-generate_export_header(sgct
-  EXPORT_FILE_NAME include/sgct/sgctexports.h
-)
+generate_export_header(sgct EXPORT_FILE_NAME include/sgct/sgctexports.h)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h @ONLY
 )
 
-target_include_directories(sgct
+target_include_directories(
+  sgct
   PUBLIC $<INSTALL_INTERFACE:include>
 )
 
@@ -184,7 +183,7 @@ find_package(ZLIB REQUIRED)
 # stb is header-only and ships no imported target, so wrap it in one
 if (NOT TARGET sgct_stb)
   add_library(sgct_stb INTERFACE IMPORTED)
-  add_library(sgct::stb ALIAS sgct_stb)
+  add_library(unofficial::stb ALIAS sgct_stb)
   target_include_directories(sgct_stb SYSTEM INTERFACE ${Stb_INCLUDE_DIR})
 endif ()
 
@@ -192,7 +191,6 @@ if (WIN32)
   find_package(Spout2 CONFIG REQUIRED)
 
   find_package(Vulkan REQUIRED)
-  target_compile_definitions(sgct PRIVATE SGCT_HAS_OPENXR_VULKAN_FALLBACK)
 endif ()
 
 if (SGCT_TRACY_SUPPORT)
@@ -215,7 +213,7 @@ target_link_libraries(sgct
     glm::glm
     PNG::PNG
     scn::scn
-    sgct::stb
+    unofficial::stb
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
     nlohmann_json_schema_validator::validator
@@ -234,6 +232,7 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:SGCT_HAS_SCALABLE>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:SGCT_HAS_NDI>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
+    $<$<BOOL:${WIN32}>:SGCT_HAS_OPENXR_VULKAN_FALLBACK>
 )
 
 if (WIN32)

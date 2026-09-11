@@ -35,8 +35,8 @@ target_sources(
 
 target_compile_features(SGCTTest PRIVATE cxx_std_23)
 target_compile_definitions(SGCTTest PUBLIC BASE_PATH="${PROJECT_SOURCE_DIR}")
-# sgct defines this PRIVATEly, but it changes what readJsonConfig accepts
-target_compile_definitions(SGCTTest
+target_compile_definitions(
+  SGCTTest
   PRIVATE
     $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:SGCT_HAS_SCALABLE>
 )
@@ -52,7 +52,15 @@ find_package(Catch2 REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nlohmann_json_schema_validator REQUIRED)
 
-target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator glm::glm)
+target_link_libraries(
+  SGCTTest
+  PRIVATE
+    sgct::sgct
+    Catch2::Catch2WithMain
+    nlohmann_json::nlohmann_json
+    nlohmann_json_schema_validator::validator
+    glm::glm
+)
 
 add_test(NAME SGCTTest COMMAND SGCTTest)
 

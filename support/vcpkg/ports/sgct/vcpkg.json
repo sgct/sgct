@@ -4,7 +4,7 @@
   "version": "4.0.0",
   "description": [
     "Simple Graphics Cluster Toolkit.",
-    "The scalable and ndi features wrap proprietary SDKs whose licenses do not permit redistribution. They are off by default and a package built with them must not be handed to third parties.",
+    "The scalable and NDI features wrap proprietary SDKs whose licenses do not permit redistribution. They are off by default and a package built with them must not be handed to third parties.",
     "The dependency list is kept in sync with the manifest at the root of the SGCT repository by support/vcpkg/check-manifest-sync.cmake, except that this port builds neither the unit tests nor Tracy support and therefore omits Catch2 and Tracy, and it depends on the vcpkg-cmake host tools explicitly."
   ],
   "homepage": "https://github.com/SGCT/SGCT/",

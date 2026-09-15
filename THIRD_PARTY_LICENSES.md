@@ -1,8 +1,5 @@
 # External licenses
-SGCT does not vendor any third-party source. Its dependencies are resolved through vcpkg
-and linked, so the licenses below apply to libraries that end up in a binary built from
-SGCT rather than to code kept in this repository. The authoritative copy of each license
-is installed by vcpkg under `<vcpkg-installed>/share/<port>/copyright`.
+The authoritative copy of each license is installed by vcpkg under `<vcpkg-installed>/share/<port>/copyright`.
 
 The optional NDI and Scalable SDKs are proprietary, are not covered here, and a build that
 enables them must not be redistributed.

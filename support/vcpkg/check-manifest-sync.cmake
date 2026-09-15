@@ -8,10 +8,9 @@
 
 # Verifies that the `sgct` overlay port under support/vcpkg/ports declares the same
 # runtime dependencies and optional features as the root vcpkg.json. A superproject that
-# adds SGCT through add_subdirectory (such as OpenSpace) cannot use SGCT's manifest, since
-# vcpkg only reads the manifest of the top-level project, and instead depends on the port,
-# so the two lists have to stay identical apart from the intentional differences listed
-# below.
+# adds SGCT through add_subdirectory cannot use SGCT's manifest, since vcpkg only reads
+# the manifest of the top-level project, and instead depends on the port, so the two lists
+# have to stay identical apart from the intentional differences listed below.
 #
 # Intentional differences (a mismatch in these is allowed, anything else is an error):
 #   - the port additionally depends on the vcpkg-cmake / vcpkg-cmake-config host tools,

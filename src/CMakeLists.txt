@@ -176,16 +176,9 @@ find_package(OpenGL REQUIRED)
 find_package(OpenXR CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(scn CONFIG REQUIRED)
-find_package(Stb REQUIRED)
+find_package(stbimage CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
-
-# stb is header-only and ships no imported target, so wrap it in one
-if (NOT TARGET sgct_stb)
-  add_library(sgct_stb INTERFACE IMPORTED)
-  add_library(unofficial::stb ALIAS sgct_stb)
-  target_include_directories(sgct_stb SYSTEM INTERFACE ${Stb_INCLUDE_DIR})
-endif ()
 
 if (WIN32)
   find_package(Spout2 CONFIG REQUIRED)
@@ -213,7 +206,7 @@ target_link_libraries(sgct
     glm::glm
     PNG::PNG
     scn::scn
-    unofficial::stb
+    unofficial::stbimage::stbimage
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
     nlohmann_json_schema_validator::validator

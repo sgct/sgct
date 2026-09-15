@@ -206,7 +206,7 @@ target_link_libraries(sgct
     glm::glm
     PNG::PNG
     scn::scn
-    unofficial::stbimage::stbimage
+    $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,unofficial::stbimage::stbimage-impl,unofficial::stbimage::stbimage>
     tinyxml2::tinyxml2
     nlohmann_json::nlohmann_json
     nlohmann_json_schema_validator::validator

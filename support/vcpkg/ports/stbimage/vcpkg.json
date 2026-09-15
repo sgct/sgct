@@ -4,8 +4,7 @@
   "version-date": "2026-09-15",
   "port-version": 1,
   "description": [
-    "A single compiled instantiation of stb_image and stb_image_write, shared by Ghoul and SGCT so that linking both into the same program does not produce a duplicate-symbol/ODR conflict. See https://github.com/sgct/stbimage for details.",
-    "This port fetches the pinned commit directly from GitHub via vcpkg_from_github rather than resolving a local checkout. Ghoul and the OpenSpace superproject instead consume this same repository as a git submodule at ext/stbimage; see their own vcpkg.json for why."
+    "A single compiled instantiation of stb_image and stb_image_write, shared by Ghoul and SGCT so that linking both into the same program does not produce a duplicate-symbol/ODR conflict. See https://github.com/sgct/stbimage for details."
   ],
   "homepage": "https://github.com/sgct/stbimage",
   "license": "MIT",

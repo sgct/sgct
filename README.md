@@ -40,9 +40,9 @@ SGCT resolves its dependencies through [vcpkg](https://vcpkg.io) in manifest mod
    ```
 1. Configure, build, and test through the provided CMake presets.  The first configure downloads and builds the dependencies, which takes a while; subsequent runs are served from vcpkg's binary cache.
    ```
-   cmake --preset windows
-   cmake --build --preset windows
-   ctest --preset windows
+   cmake --preset windows-msvc
+   cmake --build --preset windows-msvc
+   ctest --preset windows-msvc
    ```
 
 ### Build options

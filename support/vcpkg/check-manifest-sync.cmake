@@ -67,7 +67,17 @@ function (flatten_dependencies outVar dependencies)
         set(defaults "ON")
       endif ()
 
-      list(APPEND result "${name}[${featureText}](default-features=${defaults})")
+      string(JSON host ERROR_VARIABLE hostError GET "${entry}" "host")
+      if (NOT hostError STREQUAL "NOTFOUND")
+        set(host "OFF")
+      endif ()
+
+      string(JSON platform ERROR_VARIABLE platformError GET "${entry}" "platform")
+      if (NOT platformError STREQUAL "NOTFOUND")
+        set(platform "")
+      endif ()
+
+      list(APPEND result "${name}[${featureText}](default-features=${defaults})(host=${host})(platform=${platform})")
     endforeach ()
   endif ()
 

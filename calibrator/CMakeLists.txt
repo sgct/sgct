@@ -11,9 +11,7 @@ set_compile_options(calibrator)
 find_package(stbimage CONFIG REQUIRED)
 find_package(glm REQUIRED)
 
-# calibrator produces a final link (not just a static library), so it needs the compiled
-# stbimage implementation, not just the declarations sgct::sgct already carries.
-target_link_libraries(calibrator PRIVATE sgct::sgct glm::glm unofficial::stbimage::stbimage-impl)
+target_link_libraries(calibrator PRIVATE sgct::sgct glm::glm unofficial::stbimage::stbimage-read-impl)
 
 add_custom_command(
   TARGET calibrator

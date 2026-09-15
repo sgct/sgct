@@ -24,9 +24,6 @@
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
-#ifdef SGCT_HAS_VRPN
-#include <sgct/trackingmanager.h>
-#endif // SGCT_HAS_VRPN
 #include <sgct/version.h>
 #include <chrono>
 #include <iostream>
@@ -310,11 +307,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         std::move(callbacks.dataTransferStatus),
         std::move(callbacks.dataTransferAcknowledge)
     );
-#ifdef SGCT_HAS_VRPN
-    for (const config::Tracker& tracker : cluster.trackers) {
-        TrackingManager::instance().applyTracker(tracker);
-    }
-#endif // SGCT_HAS_VRPN
     int clusterId = -1;
     // Check in cluster configuration which it is
     if (netMode == NetworkManager::NetworkMode::Remote) {
@@ -582,13 +574,6 @@ void Engine::initialize() {
         wins.cend(),
         std::mem_fn(&Window::initializeContextSpecific)
     );
-
-#ifdef SGCT_HAS_VRPN
-    // Start sampling tracking data
-    if (isMaster()) {
-        TrackingManager::instance().startSampling();
-    }
-#endif // SGCT_HAS_VRPN
 }
 
 Engine::~Engine() {
@@ -804,12 +789,6 @@ void Engine::exec() {
     while (!_shouldTerminate && !thisNode.closeAllWindows() &&
            NetworkManager::instance().isRunning()) [[unlikely]]
     {
-#ifdef SGCT_HAS_VRPN
-        if (isMaster()) {
-            TrackingManager::instance().updateTrackingDevices();
-        }
-#endif // SGCT_HAS_VRPN
-
         {
             ZoneScopedN("GLFW Poll Events");
             glfwPollEvents();

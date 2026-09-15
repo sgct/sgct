@@ -93,6 +93,11 @@ public:
      */
     ~FontManager();
 
+    FontManager(const FontManager&) = delete;
+    FontManager(FontManager&&) = delete;
+    FontManager& operator=(const FontManager&) = delete;
+    FontManager& operator=(FontManager&&) = delete;
+
     /**
      * Adds a font file to the manager.
      *

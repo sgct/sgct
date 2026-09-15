@@ -1,20 +1,18 @@
 # SGCT - Simple Graphics Cluster Toolkit
-
 ![Build Status](http://dev.openspaceproject.com/buildStatus/icon?job=SGCT%2Fsgct%2Fmaster&style=flat-square)
 [![GitHub Issues](https://img.shields.io/github/issues/SGCT/sgct.svg)](https://github.com/SGCT/sgct/issues)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/SGCT/sgct.svg)](http://isitmaintained.com/project/SGCT/sgct "Average time to resolve an issue")
 [![GitHub Releases](https://img.shields.io/github/release/SGCT/sgct.svg)](https://github.com/SGCT/sgct/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SGCT/sgct/total)](https://github.com/SGCT/sgct/releases)
 
-
 SGCT is a free cross-platform C++ library for developing OpenGL applications that are synchronized across a cluster of image generating computers (IGs).  SGCT is designed to be as simple as possible to use for the developer and targets the use in immersive real-time applications.  SGCT supports a number of output formats, such as virtual reality (VR), planetarium/dome geometries, fisheye projections, and other types of projections.  In all cases, the client code only needs to render its scene using the projection matrices provided by SGCT and the compositing is then handled internally.  SGCT also supports a variety of stereoscopic formats such as active quad buffers, passive side-by-side, passive over-and-under, checkerboard/DLP/pixel interlaced, and different kinds of anaglyphic stereoscopy.  SGCT applications are scalable and use an XML configuration file format in which all IGs and their properties are specified.  With this approach, there is no need for recompilation of an application for different immersive environments and  applications extend naturally to a server-client clustered architecture without recompilation either.
 
-# Terminology
+## Terminology
 We use the following terminology to talk about the way how SGCT works.  There is a single *Cluster* that consists of 1 or more *Node*s with each node usually corresponding to a single computer.  Each *Node* contains 1 or more *Window*s with each *Window* containing 1 or more *Viewport*s.  Some viewport types, such as Fisheye projections, can contain multiple *Subviewport*s, which are created automatically.  One the *Node*s in the *Cluster* is designated as the *server*, where as the other *Nodes* are *client*s.  The general dataflow in SGCT applications is from the *server* to the *clients*, and **not** vice versa.
 
 Please note that in this nomenclature, even if an application is running only on a single machine, it is still considered a cluster, but only consisting of 1 node that also acts as the server for 0 clients.  As there are no clients, it does not have an impact on the performance, however.  Furthermore, usually there is a 1-to-1 mapping between Nodes and computers, but that does not have to be the case as a single computer can host an arbitrary(*-ish*) number of nodes.
 
-# Index
+## Index
 1. [Documentation](https://sgct.github.io/)
 1. [Features](https://sgct.github.io/features.html)
 1. [How it works](https://sgct.github.io/how-it-works.html)
@@ -24,14 +22,65 @@ Please note that in this nomenclature, even if an application is running only on
 1. [Error codes](https://sgct.github.io/errors.html)
 1. [Doxygen-generated documentation](http://webstaff.itn.liu.se/~alebo68/sgct/doxygen/html/)
 
-# Tutorials
-For tutorials on how to use SGCT, look at the `src/apps` folder for a large amount of examples.  These can be compiled by enabling the `SGCT_EXAMPLES` CMake option.
+## Building
+SGCT resolves its dependencies through [vcpkg](https://vcpkg.io) in manifest mode, so the only prerequisites are a C++23 compiler, CMake 4.0 or newer, and a vcpkg checkout.
 
-# License
+1. Point `VCPKG_ROOT` at your vcpkg checkout:
+   ```
+   # Windows (PowerShell)
+   $env:VCPKG_ROOT = "C:\path\to\vcpkg"
+
+   # Linux
+   export VCPKG_ROOT=/path/to/vcpkg
+   ```
+1. Clone the repository:
+   ```
+   git clone https://github.com/sgct/sgct.git
+   cd sgct
+   ```
+1. Configure, build, and test through the provided CMake presets.  The first configure downloads and builds the dependencies, which takes a while; subsequent runs are served from vcpkg's binary cache.
+   ```
+   cmake --preset windows-msvc
+   cmake --build --preset windows-msvc
+   ctest --preset windows-msvc
+   ```
+
+### Build options
+| Option | Default | Description |
+| --- | --- | --- |
+| `BUILD_SHARED_LIBS` | `OFF` | Build SGCT as a shared library |
+| `SGCT_BUILD_TESTS` | `ON` when SGCT is the top-level project, otherwise `OFF` | Build the unit tests |
+| `SGCT_BUILD_CALIBRATOR` | `ON` | Build the `calibrator` application that renders a test pattern for projector calibration |
+| `SGCT_TRACY_SUPPORT` | `OFF` | Enable [Tracy](https://github.com/wolfpld/tracy) profiling |
+| `SGCT_MEMORY_PROFILING` | `OFF` | Override `new`/`delete` for Tracy memory profiling; requires `SGCT_TRACY_SUPPORT` |
+| `SGCT_NDI_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
+| `SGCT_SCALABLE_SUPPORT` | `OFF` | Windows only. Proprietary SDK, the result must not be redistributed |
+| `SGCT_ENABLE_EDIT_CONTINUE` | `ON` | Windows only. Compile with `/ZI` |
+| `SGCT_ENABLE_STATIC_ANALYZER` | `OFF` | Unix only. Compile with `-fanalyzer` |
+
+A project that includes SGCT through `add_subdirectory` can override `SGCT_BUILD_TESTS`, `SGCT_BUILD_CALIBRATOR`, and `SGCT_TRACY_SUPPORT` by setting the variable before the `add_subdirectory` call.
+
+### Consuming SGCT
+A vcpkg port lives in `support/vcpkg/ports/sgct`.  Register it as an overlay from your own project's `vcpkg-configuration.json`:
+
+```json
+{
+  "overlay-ports": [ "path/to/sgct/support/vcpkg/ports" ]
+}
+```
+
+and then link against it:
+
+```cmake
+find_package(sgct CONFIG REQUIRED)
+target_link_libraries(myapp PRIVATE sgct::sgct)
+```
+
+## License
 SGCT is licensed under the [3-clause BSD license](https://choosealicense.com/licenses/bsd-3-clause/)
 
 ```
-Copyright (c) 2012-2020
+Copyright (c) 2012-2026
 Miroslav Andel, Linköping University
 Alexander Bock, Linköping University
 
@@ -65,18 +114,23 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 For any questions or further information about the SGCT project, please contact [alexander.bock@liu.se](mailto:alexander.bock@liu.se) or [erik.sunden@liu.se](mailto:erik.sunden@liu.se).
 
-## External libraries
-SGCT uses and acknowledges the following external libraries:
+### External libraries
+SGCT links against the following external libraries, all of which are provided by vcpkg:
 
- - [FreeType](http://www.freetype.org)
- - [GLAD](https://github.com/Dav1dde/glad)
- - [GLFW](ttps://www.glfw.org)
- - [GLM](http://glm.g-truc.net)
- - [libpng](http://www.libpng.org)
- - [OpenXR](https://github.com/KhronosGroup/OpenXR-SDK)
- - [Spout](https://github.com/box/spout)
- - [stb_image](https://github.com/let-def/stb_image)
- - [TinyXML](https:/github.com/leethomason/tinyxml2)
- - [Tracy](https://github.com/nette/tracy)
- - [VRPN](https://github.com/vrpn/vrpn)
- - [zlib](https://www.zlib.net)
+- [Catch2](https://github.com/catchorg/Catch2) (tests only)
+- [FreeType](https://www.freetype.org)
+- [GLAD](https://github.com/Dav1dde/glad)
+- [GLFW](https://www.glfw.org)
+- [GLM](https://github.com/g-truc/glm)
+- [json-schema-validator](https://github.com/pboettch/json-schema-validator)
+- [libpng](http://www.libpng.org)
+- [minizip](https://github.com/madler/zlib/tree/master/contrib/minizip)
+- [nlohmann/json](https://github.com/nlohmann/json)
+- [OpenXR](https://github.com/KhronosGroup/OpenXR-SDK)
+- [scnlib](https://github.com/eliaskosunen/scnlib)
+- [Spout2](https://github.com/leadedge/Spout2) (Windows only)
+- [Vulkan](https://github.com/KhronosGroup/Vulkan-Loader) (Windows only; OpenXR Vulkan fallback)
+- [stb_image](https://github.com/nothings/stb) (via the `stbimage` overlay port, which compiles the implementation once so it can be shared with Ghoul without duplicate-symbol conflicts)
+- [TinyXML-2](https://github.com/leethomason/tinyxml2)
+- [Tracy](https://github.com/wolfpld/tracy) (optional)
+- [zlib](https://www.zlib.net)

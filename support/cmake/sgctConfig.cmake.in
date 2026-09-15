@@ -1,0 +1,51 @@
+@PACKAGE_INIT@
+
+if (NOT "@SGCT_SCALABLE_IMPLIB@" STREQUAL "" AND NOT TARGET scalable)
+  add_library(scalable SHARED IMPORTED GLOBAL)
+  set_target_properties(scalable PROPERTIES
+    IMPORTED_IMPLIB "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@SGCT_SCALABLE_IMPLIB@"
+    IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_BINDIR@/@SGCT_SCALABLE_LIBRARY@"
+  )
+endif ()
+
+if (NOT "@SGCT_NDI_IMPLIB@" STREQUAL "" AND NOT TARGET ndi)
+  add_library(ndi SHARED IMPORTED GLOBAL)
+  set_target_properties(ndi PROPERTIES
+    IMPORTED_IMPLIB "@PACKAGE_CMAKE_INSTALL_LIBDIR@/@SGCT_NDI_IMPLIB@"
+    IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_BINDIR@/@SGCT_NDI_LIBRARY@"
+  )
+endif ()
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(Freetype)
+find_dependency(glad CONFIG)
+find_dependency(glfw3 CONFIG)
+find_dependency(glm CONFIG)
+find_dependency(minizip CONFIG)
+find_dependency(nlohmann_json CONFIG)
+find_dependency(nlohmann_json_schema_validator CONFIG)
+find_dependency(OpenGL)
+find_dependency(OpenXR CONFIG)
+find_dependency(PNG)
+find_dependency(scn CONFIG)
+find_dependency(stbimage CONFIG)
+find_dependency(tinyxml2 CONFIG)
+find_dependency(ZLIB)
+
+if (WIN32)
+  find_dependency(Spout2 CONFIG)
+  find_dependency(Vulkan)
+else ()
+  find_dependency(Threads)
+  find_dependency(X11)
+endif ()
+
+# Quoted so that an option left undefined on this platform evaluates to false
+if ("@SGCT_TRACY_SUPPORT@")
+  find_dependency(Threads)
+  find_dependency(Tracy CONFIG)
+endif ()
+
+include("${CMAKE_CURRENT_LIST_DIR}/sgctTargets.cmake")
+check_required_components(sgct)

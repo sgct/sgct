@@ -3987,6 +3987,9 @@ TEST_CASE("Load: Window/Resolution", "[parse]") {
 }
 
 TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
+#ifndef SGCT_HAS_SCALABLE
+    SKIP("Loading a Scalable mesh requires SGCT built with SGCT_SCALABLE_SUPPORT");
+#else
     {
         constexpr std::string_view String = R"(
 {
@@ -4078,6 +4081,7 @@ TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
     }
+#endif // SGCT_HAS_SCALABLE
 }
 
 TEST_CASE("Load: Window/Full", "[parse]") {

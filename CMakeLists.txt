@@ -62,3 +62,67 @@ if (SGCT_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif ()
+# CPack configuration for package generation
+if (PROJECT_IS_TOP_LEVEL)
+  # CPack configuration variables
+  set(CPACK_PACKAGE_NAME "sgct")
+  set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Simple Graphics Cluster Toolkit")
+  set(CPACK_PACKAGE_VENDOR "SGCT")
+  set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/SGCT/SGCT")
+  set(CPACK_PACKAGE_LICENSE "BSD-3-Clause")
+  set(CPACK_PACKAGE_FILE_NAME "sgct-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "sgct")
+  set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+  set(CPACK_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install-root")
+  set(CPACK_PACKAGE_CONTACT "SGCT Development Team <alexander.bock@liu.se>")
+
+  # For multi-config generators (MSVC), set the install configuration BEFORE CPack
+  # This is required because MSVC uses RelWithDebInfo, not Release
+  if (MSVC)
+    set(CMAKE_INSTALL_CONFIG_NAME "RelWithDebInfo" CACHE STRING "Install configuration" FORCE)
+    # For Visual Studio multi-config generators, specify the config name in CPACK_INSTALL_CMAKE_PROJECTS
+    # and use CPACK_INSTALLED_DIRECTORIES to tell CPack where the installed files are.
+    set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR};sgct;RelWithDebInfo;/")
+    set(CPACK_INSTALLED_DIRECTORIES "${CMAKE_BINARY_DIR}/install-root;/")
+  else ()
+    # For single-config generators, use the default install mechanism
+    set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR};sgct;ALL;/")
+  endif ()
+
+  # Platform-specific generators
+  if (WIN32)
+    set(CPACK_GENERATOR "ZIP" "NSIS")
+    set(CPACK_NSIS_PACKAGE_NAME "SGCT ${PROJECT_VERSION}")
+    set(CPACK_NSIS_CONTACT "alexander.bock@liu.se")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/SGCT/SGCT")
+    set(CPACK_NSIS_DISPLAY_NAME "SGCT ${PROJECT_VERSION}")
+    set(_NSIS_FINISHPAGE_RUN "\$INSTDIR\\\\bin\\\\calibrator.exe")
+    set(CPACK_NSIS_DEFINES "
+      !define MUI_STARTMENUPAGE_DEFAULTFOLDER SGCT
+      !define MUI_FINISHPAGE_RUN ${_NSIS_FINISHPAGE_RUN}
+    ")
+  elseif (UNIX)
+    set(CPACK_GENERATOR "ZIP" "TGZ" "DEB" "RPM")
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+    set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+  endif ()
+
+  set(CPACK_SOURCE_GENERATOR "ZIP")
+  set(CPACK_SOURCE_IGNORE_FILES
+    "\\\\."
+    "\\\\.gitignore"
+    "\\\\.gitattributes"
+    "/build/"
+    "/\\.vs/"
+    "\\\\.swp$"
+    "\\\\(build\\\\)"
+  )
+
+  include(CPack)
+endif ()
+
+
+
+
+

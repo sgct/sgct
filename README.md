@@ -76,6 +76,12 @@ find_package(sgct CONFIG REQUIRED)
 target_link_libraries(myapp PRIVATE sgct::sgct)
 ```
 
+## Packaging
+
+SGCT can be packaged for easy distribution using CMake's CPack module. See
+[CPACK_README.md](CPACK_README.md) for details on generating installers and
+packages for Windows and Linux.
+
 ## License
 SGCT is licensed under the [3-clause BSD license](https://choosealicense.com/licenses/bsd-3-clause/)
 

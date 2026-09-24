@@ -1,58 +1,34 @@
-def checkoutGit() {
-  def url = 'https://github.com/sgct/SGCT';
-  def branch = env.BRANCH_NAME
-
-  checkout scm;
+def buildWithPreset(preset) {
+  def script = """
+  cmake --preset ${preset}
+  cmake --build --preset ${preset} --parallel 4
+  """
 
   if (isUnix()) {
-    sh(
-      script: "git submodule update --init",
-      label: "Init submodules"
-    )
+    sh(script: script, label: "Configure and build (${preset})")
   }
   else {
-    bat(
-      script: "git submodule update --init",
-      label: "Init submodules"
-    )
+    bat(script: script, label: "Configure and build (${preset})")
   }
 }
 
-def cmakeOptions() {
-  return "-DSGCT_EXAMPLES=ON";
-}
+def runUnitTests(preset) {
+  def script = "ctest --preset ${preset} --output-junit test_results.xml"
 
-def runUnitTests(bin) {
   if (isUnix()) {
-    sh(
-      script: "${bin}",
-      label: 'Run unit test to console'
-    )
-
-    sh(
-      script: "${bin} --reporter junit --out test_results.xml",
-      label: 'Run unit test to reporter'
-    )
+    sh(script: script, label: "Run unit tests (${preset})")
   }
   else {
-    bat(
-      script: "${bin}",
-      label: 'Run unit test to console'
-    )
-
-    bat(
-      script: "${bin} --reporter junit --out test_results.xml",
-      label: 'Run unit test reporter'
-    )
+    bat(script: script, label: "Run unit tests (${preset})")
   }
-  junit([testResults: 'test_results.xml'])
+  junit([testResults: "build/${preset}/test_results.xml"])
 }
 
 parallel tools: {
   node('tools') {
     stage('tools/scm') {
       deleteDir();
-      checkoutGit();
+      checkout scm;
     }
     stage('tools/cppcheck/run') {
       sh(
@@ -69,104 +45,46 @@ parallel tools: {
     cleanWs()
   } // node('tools')
 },
-linux_gcc_make: {
+linux_gcc: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
     node('linux-gcc') {
-      stage('linux-gcc-make/scm') {
+      stage('linux-gcc/scm') {
         deleteDir();
-        checkoutGit();
+        checkout scm;
       }
-      stage('linux-gcc-make/build') {
-        cmakeBuild([
-          buildDir: 'build-make',
-          generator: 'Unix Makefiles',
-          installation: "InSearchPath",
-          cmakeArgs: cmakeOptions(),
-          steps: [[ args: "-- -j4", withCmake: true ]]
-        ])
+      stage('linux-gcc/build') {
+        buildWithPreset('linux-makefiles-debug');
         recordIssues(
-          id: 'linux-gcc-make',
+          id: 'linux-gcc',
           tool: gcc()
         )
       }
-      stage('linux-gcc-make/test') {
-        runUnitTests('bin/SGCTTest')
+      stage('linux-gcc/test') {
+        runUnitTests('linux-makefiles-debug')
       }
       cleanWs()
-    } // node('linux' && 'gcc')
+    } // node('linux-gcc')
   }
 },
-linux_gcc_ninja: {
-  if (env.USE_BUILD_OS_LINUX == 'true') {
-    node('linux-gcc') {
-      stage('linux-gcc-ninja/scm') {
-        deleteDir();
-        checkoutGit();
-      }
-      stage('linux-gcc-ninja/build') {
-        cmakeBuild([
-          buildDir: 'build-ninja',
-          generator: 'Ninja',
-          installation: "InSearchPath",
-          cmakeArgs: cmakeOptions(),
-          steps: [[ args: "-- -j4", withCmake: true ]]
-        ])
-      }
-      stage('linux-gcc-ninja/test') {
-        runUnitTests('bin/SGCTTest')
-      }
-      cleanWs()
-    } // node('linux' && 'gcc')
-  }
-},
-linux_clang_make: {
+linux_clang: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
     node('linux-clang') {
-      stage('linux-clang-make/scm') {
+      stage('linux-clang/scm') {
         deleteDir();
-        checkoutGit();
+        checkout scm;
       }
-      stage('linux-clang-make/build') {
-        cmakeBuild([
-          buildDir: 'build-make',
-          generator: 'Unix Makefiles',
-          installation: "InSearchPath",
-          cmakeArgs: cmakeOptions(),
-          steps: [[ args: "-- -j4", withCmake: true ]]
-        ])
+      stage('linux-clang/build') {
+        buildWithPreset('linux-makefiles-debug');
         recordIssues(
-          id: 'linux-clang-make',
+          id: 'linux-clang',
           tool: clang()
         )
       }
-      stage('linux-clang-make/test') {
-        runUnitTests('bin/SGCTTest')
+      stage('linux-clang/test') {
+        runUnitTests('linux-makefiles-debug')
       }
       cleanWs()
-    } // node('linux' && 'clang')
-  }
-},
-linux_clang_ninja: {
-  if (env.USE_BUILD_OS_LINUX == 'true') {
-    node('linux-clang') {
-      stage('linux-clang-ninja/scm') {
-        deleteDir();
-        checkoutGit();
-      }
-      stage('linux-clang-ninja/build') {
-        cmakeBuild([
-          buildDir: 'build-ninja',
-          generator: 'Ninja',
-          installation: "InSearchPath",
-          cmakeArgs: cmakeOptions(),
-          steps: [[ args: "-- -j4", withCmake: true ]]
-        ])
-      }
-      stage('linux-clang-ninja/test') {
-        runUnitTests('bin/SGCTTest')
-      }
-      cleanWs()
-    } // node('linux' && 'clang')
+    } // node('linux-clang')
   }
 },
 windows_msvc: {
@@ -174,49 +92,17 @@ windows_msvc: {
     node('windows') {
       stage('windows-msvc/scm') {
         deleteDir();
-        checkoutGit();
+        checkout scm;
       }
       stage('windows-msvc/build') {
-        cmakeBuild([
-          buildDir: 'build-msvc',
-          generator: 'Visual Studio 17 2022',
-          installation: "InSearchPath",
-          cmakeArgs: cmakeOptions(),
-          steps: [[ args: "-- /nologo /verbosity:minimal /m:4", withCmake: true ]]
-        ])
+        buildWithPreset('windows-msvc');
         recordIssues(
-          id: 'windows-msbuild-msvc',
+          id: 'windows-msvc',
           tool: msBuild()
         )
       }
       stage('windows-msvc/test') {
-        runUnitTests('bin\\Debug\\SGCTTest')
-      }
-      cleanWs()
-    } // node('windows')
-  }
-},
-windows_ninja: {
-  if (env.USE_BUILD_OS_WINDOWS == 'true') {
-    node('windows') {
-      stage('windows-ninja/scm') {
-        deleteDir();
-        checkoutGit();
-      }
-      stage('windows-ninja/build') {
-        bat(
-          script: """
-          call "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
-          if not exist build-ninja mkdir build-ninja
-          cd build-ninja
-          cmake -G Ninja ${cmakeOptions()} ..
-          cmake --build .  -- -j 4 all
-          """,
-          label: 'Generate build-scripts with cmake and execute them'
-        )
-      }
-      stage('windows-ninja/test') {
-        runUnitTests('bin\\SGCTTest')
+        runUnitTests('windows-msvc')
       }
       cleanWs()
     } // node('windows')

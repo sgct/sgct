@@ -46,7 +46,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif // NOMINMAX
-#include <SpoutLibrary.h>
+#include <SpoutLibrary/SpoutLibrary.h>
 #endif // SGCT_HAS_SPOUT
 
 #ifdef WIN32

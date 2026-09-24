@@ -14,7 +14,6 @@
 namespace sgct::mutex {
 
 inline std::mutex DataSync;
-inline std::mutex Tracking;
 
 } // namespace sgct::mutex
 

@@ -7,8 +7,8 @@
 ##########################################################################################
 
 # The user of the NDI SDK used under the open-source clause of the license by Vizrt NDI AB
-# NDI® is a registered trademark of Vizrt NDI AB
-# Check https://ndi.video/ for more information about NDI
+# NDI® is a registered trademark of Vizrt NDI AB. To get access to the NDI SDK, check
+# https://ndi.video/
 
 add_library(ndi SHARED IMPORTED GLOBAL)
 

@@ -25,6 +25,11 @@ class SGCT_EXPORT Node {
 public:
     Node(const config::Node& node, bool initializeWindows);
 
+    Node(const Node&) = delete;
+    Node(Node&&) = default;
+    Node& operator=(const Node&) = delete;
+    Node& operator=(Node&&) = delete;
+
     /**
      * Add a window to this node.
      */

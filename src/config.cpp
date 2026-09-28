@@ -40,7 +40,7 @@ namespace {
     template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
     template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-    // Taken from Ghoul::stringhelper
+    // Taken from OpenSpace::stringhelper
     std::vector<std::string> tokenizeString(const std::string& input, char separator) {
         size_t separatorPos = input.find(separator);
         if (separatorPos == std::string::npos) {

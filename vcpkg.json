@@ -4,8 +4,7 @@
   "version": "4.0.0",
   "description": [
     "Simple Graphics Cluster Toolkit.",
-    "This manifest is used when building SGCT standalone from this checkout. See the port under support/vcpkg/ports/sgct declaring the same runtime dependencies for consumers.",
-    "stbimage (compiled stb_image/stb_image_write implementation, shared with Ghoul to avoid duplicate-symbol/ODR problems when both are linked into the same program) lives in its own repository (https://github.com/sgct/stbimage). Ghoul and the OpenSpace superproject consume it as a git submodule, but SGCT instead builds it through the support/vcpkg/ports/stbimage overlay port, which fetches the same pinned commit directly from GitHub, so that SGCT keeps building from vcpkg alone with no extra submodule to initialize."
+    "This manifest is used when building SGCT standalone from this checkout. See the port under support/vcpkg/ports/sgct declaring the same runtime dependencies for consumers."
   ],
   "homepage": "https://github.com/SGCT/SGCT/",
   "license": "BSD-3-Clause",

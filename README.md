@@ -136,7 +136,7 @@ SGCT links against the following external libraries, all of which are provided b
 - [scnlib](https://github.com/eliaskosunen/scnlib)
 - [Spout2](https://github.com/leadedge/Spout2) (Windows only)
 - [Vulkan](https://github.com/KhronosGroup/Vulkan-Loader) (Windows only; OpenXR Vulkan fallback)
-- [stb_image](https://github.com/nothings/stb) (via the `stbimage` overlay port, which compiles the implementation once so it can be shared with Ghoul without duplicate-symbol conflicts)
+- [stb_image](https://github.com/nothings/stb)
 - [TinyXML-2](https://github.com/leethomason/tinyxml2)
 - [Tracy](https://github.com/wolfpld/tracy) (optional)
 - [zlib](https://www.zlib.net)

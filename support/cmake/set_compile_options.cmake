@@ -6,7 +6,7 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-find_package(common-compile-settings CONFIG REQUIRED)
+include(${CMAKE_CURRENT_LIST_DIR}/common-compile-settings.cmake)
 
 function (set_compile_options target)
   set_compile_settings(${target})

@@ -124,12 +124,6 @@ Parameters:
     Disable frame sync
 --notify <"error", "warning", "info", or "debug">
     Set the notify level used in the Log
---capture-jpg
-    Use jpg images for screen capture
---capture-tga
-    Use tga images for screen capture
---export-correction-meshes
-    Exports the correction warping meshes to OBJ files when loading them
 --screenshot-path
     Sets the file path for the screenshots location
 --screenshot-prefix

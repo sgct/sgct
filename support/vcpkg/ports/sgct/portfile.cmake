@@ -18,10 +18,19 @@ vcpkg_check_features(
     scalable SGCT_SCALABLE_SUPPORT
 )
 
+# Spout is x86-only. SGCT defaults the option the same way from CMAKE_SYSTEM_PROCESSOR,
+# but it is passed explicitly here so the port never depends on that detection succeeding
+if (VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+  set(SPOUT_OPTION -DSGCT_SPOUT_SUPPORT=OFF)
+else ()
+  set(SPOUT_OPTION -DSGCT_SPOUT_SUPPORT=ON)
+endif ()
+
 vcpkg_cmake_configure(
   SOURCE_PATH "${SOURCE_PATH}"
   OPTIONS
     ${FEATURE_OPTIONS}
+    ${SPOUT_OPTION}
     -DSGCT_BUILD_TESTS=OFF
     -DSGCT_BUILD_CALIBRATOR=OFF
     -DSGCT_ENABLE_EDIT_CONTINUE=OFF

@@ -31,8 +31,11 @@
     "scnlib",
     "stbimage",
     "tinyxml2",
-    "tracy",
     "zlib",
+    {
+      "name": "tracy",
+      "platform": "!(windows & arm)"
+    },
     {
       "name": "glad",
       "features": [
@@ -49,7 +52,7 @@
     },
     {
       "name": "spout2",
-      "platform": "windows"
+      "platform": "windows & !arm64"
     },
     {
       "name": "vulkan",

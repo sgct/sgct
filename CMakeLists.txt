@@ -30,6 +30,19 @@ if (SGCT_MEMORY_PROFILING AND NOT SGCT_TRACY_SUPPORT)
 endif ()
 
 if (WIN32)
+  # Spout's SDK is x86-only
+  if (DEFINED CMAKE_CXX_COMPILER_ARCHITECTURE_ID)
+    string(TOLOWER "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" sgct_target_arch)
+  else ()
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" sgct_target_arch)
+  endif ()
+  if (sgct_target_arch STREQUAL "arm64" OR sgct_target_arch STREQUAL "aarch64")
+    option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
+  else ()
+    option(SGCT_SPOUT_SUPPORT "SGCT Spout support" ON)
+  endif ()
+  unset(sgct_target_arch)
+
   # The NDI and Scalable SDKs are proprietary and cannot be redistributed, so they are
   # opt-in and off by default
   option(SGCT_NDI_SUPPORT "SGCT NDI Support" OFF)

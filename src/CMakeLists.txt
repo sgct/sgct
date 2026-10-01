@@ -181,7 +181,9 @@ find_package(tinyxml2 CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 
 if (WIN32)
-  find_package(Spout2 CONFIG REQUIRED)
+  if (SGCT_SPOUT_SUPPORT)
+    find_package(Spout2 CONFIG REQUIRED)
+  endif ()
 
   find_package(Vulkan REQUIRED)
 endif ()
@@ -198,7 +200,7 @@ target_link_libraries(sgct
     glfw
     OpenGL::GL
     OpenXR::openxr_loader
-    $<$<BOOL:${WIN32}>:Spout2::SpoutLibrary>
+    $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:Spout2::SpoutLibrary>
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
   PRIVATE
     ZLIB::ZLIB
@@ -219,7 +221,7 @@ target_compile_definitions(sgct
   PUBLIC
     SGCT_HAS_TEXT
     SGCT_HAS_OPENXR
-    $<$<BOOL:${WIN32}>:SGCT_HAS_SPOUT>
+    $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
     $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE
     $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:SGCT_HAS_SCALABLE>

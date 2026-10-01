@@ -34,7 +34,10 @@ find_dependency(tinyxml2 CONFIG)
 find_dependency(ZLIB)
 
 if (WIN32)
-  find_dependency(Spout2 CONFIG)
+  # Quoted so that an option left undefined on this platform evaluates to false
+  if ("@SGCT_SPOUT_SUPPORT@")
+    find_dependency(Spout2 CONFIG)
+  endif ()
   find_dependency(Vulkan)
 else ()
   find_dependency(Threads)

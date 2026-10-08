@@ -48,6 +48,13 @@ public:
     const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /**
+     * \return The view projection matrices of every enabled viewport in every window,
+     *         plus all enabled non-linear sub-viewport frustums. Stereo windows give both
+     *         the left and right eye matrices, otherwise only mono is returned
+     */
+    std::vector<glm::mat4> viewProjectionMatrices() const;
+
+    /**
      * \return The address of this node
      */
     const std::string& address() const;

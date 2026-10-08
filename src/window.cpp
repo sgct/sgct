@@ -31,6 +31,7 @@
 #include <cassert>
 #include <cstring>
 #include <functional>
+#include <span>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -758,7 +759,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
                 Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
                 width = std::max(width, 1);
                 height = std::max(height, 1);
-                
+
                 // In case this callback gets triggered from elsewhere than SGCT's
                 // `glfwPollEvents`, we want to make sure the actual resizing is deferred
                 // to the end of the frame. This can happen if some other library pulls
@@ -2134,6 +2135,37 @@ unsigned int Window::frameBufferTextureEye(Eye eye) const {
         case Eye::Right:      return _frameBufferTextures.rightEye;
         default:              throw std::logic_error("Missing case label");
     }
+}
+
+std::vector<glm::mat4> Window::viewProjectionMatrices() const {
+    static constexpr std::array<FrustumMode, 1> MonoModes = { FrustumMode::Mono };
+    static constexpr std::array<FrustumMode, 2> StereoModes = {
+        FrustumMode::StereoLeft,
+        FrustumMode::StereoRight
+    };
+
+    std::span<const FrustumMode> modes = MonoModes;
+    if (isStereo()) {
+        modes = StereoModes;
+    }
+
+    std::vector<glm::mat4> matrices;
+    for (const std::unique_ptr<Viewport>& viewport : _viewports) {
+        if (!viewport->isEnabled()) {
+            continue;
+        }
+        const NonLinearProjection* nlp = viewport->nonLinearProjection();
+        for (FrustumMode mode : modes) {
+            matrices.push_back(glm::make_mat4(
+                viewport->projection(mode).viewProjectionMatrix().values.data()
+            ));
+            if (nlp) {
+                const std::vector<glm::mat4> m = nlp->viewProjectionMatrices(mode);
+                matrices.insert(matrices.end(), m.begin(), m.end());
+            }
+        }
+    }
+    return matrices;
 }
 
 } // namespace sgct

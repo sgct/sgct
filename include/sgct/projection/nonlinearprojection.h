@@ -75,6 +75,11 @@ public:
      */
     ivec2 cubemapResolution() const;
 
+    /**
+     * \return The view projection matrices of all enabled sub-viewports
+     */
+    std::vector<glm::mat4> viewProjectionMatrices(FrustumMode mode) const;
+
 protected:
     virtual void initTextures(unsigned int internalFormat);
     virtual void initFBO(unsigned int internalFormat, int nSamples);

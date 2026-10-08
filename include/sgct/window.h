@@ -16,6 +16,7 @@
 #include <sgct/screencapture.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
+#include <glm/glm.hpp>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -301,6 +302,12 @@ public:
 
     // @TODO: Remove this
     unsigned int frameBufferTextureEye(Eye eye) const;
+
+    /**
+     * \return The list of all view projection matrices for this Window's viewports
+     */
+    std::vector<glm::mat4> viewProjectionMatrices() const;
+
 
 private:
     enum class TextureType { Color, Depth, Normal, Position };

@@ -17,6 +17,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <cmath>
 
 namespace sgct {
@@ -77,6 +78,29 @@ void NonLinearProjection::updateFrustums(FrustumMode mode, float nearClip, float
     if (_subViewports.back.isEnabled()) {
         _subViewports.back.calculateNonLinearFrustum(mode, nearClip, farClip);
     }
+}
+
+std::vector<glm::mat4> NonLinearProjection::viewProjectionMatrices(FrustumMode mode) const
+{
+    std::vector<glm::mat4> res;
+    res.reserve(6);
+    const std::array<const BaseViewport*, 6> viewports = {
+        &_subViewports.right,
+        &_subViewports.left,
+        &_subViewports.bottom,
+        &_subViewports.top,
+        &_subViewports.front,
+        &_subViewports.back
+    };
+
+    for (const BaseViewport* vp : viewports) {
+        if (vp->isEnabled()) {
+            res.push_back(
+                glm::make_mat4(vp->projection(mode).viewProjectionMatrix().values.data())
+            );
+        }
+    }
+    return res;
 }
 
 void NonLinearProjection::setCubemapResolution(int resolution) {

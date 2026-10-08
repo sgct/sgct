@@ -56,6 +56,15 @@ const std::vector<std::unique_ptr<Window>>& Node::windows() const {
     return _windows;
 }
 
+std::vector<glm::mat4> Node::viewProjectionMatrices() const {
+    std::vector<glm::mat4> result;
+    for (const std::unique_ptr<Window>& window : _windows) {
+        const std::vector<glm::mat4> m = window->viewProjectionMatrices();
+        result.insert(result.end(), m.begin(), m.end());
+    }
+    return result;
+}
+
 bool Node::closeAllWindows() {
     for (std::unique_ptr<Window>& window : _windows) {
         if (glfwWindowShouldClose(window->windowHandle())) {

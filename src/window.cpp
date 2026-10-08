@@ -2156,12 +2156,14 @@ std::vector<glm::mat4> Window::viewProjectionMatrices() const {
         }
         const NonLinearProjection* nlp = viewport->nonLinearProjection();
         for (FrustumMode mode : modes) {
-            matrices.push_back(glm::make_mat4(
-                viewport->projection(mode).viewProjectionMatrix().values.data()
-            ));
             if (nlp) {
                 const std::vector<glm::mat4> m = nlp->viewProjectionMatrices(mode);
                 matrices.insert(matrices.end(), m.begin(), m.end());
+            }
+            else {
+            matrices.push_back(glm::make_mat4(
+                viewport->projection(mode).viewProjectionMatrix().values.data()
+            ));
             }
         }
     }

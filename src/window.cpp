@@ -1681,27 +1681,33 @@ bool Window::useRightEyeTexture() const {
 void Window::renderViewports(FrustumMode frustum, Eye eye) const {
     ZoneScoped;
 
+    // With FXAA the scene is rendered into the intermediate texture and the FXAA pass
+    // then resolves it into the eye texture
+    const unsigned int sceneTexture =
+        _useFXAA ? _frameBufferTextures.intermediate : frameBufferTextureEye(eye);
+
     _finalFBO->bind();
-    if (_finalFBO->isMultiSampled()) {
-        return;
-    }
+    if (!_finalFBO->isMultiSampled()) {
+        // Update attachments
+        _finalFBO->attachColorTexture(sceneTexture, GL_COLOR_ATTACHMENT0);
 
-    // Update attachments
-    _finalFBO->attachColorTexture(frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
+        if (Engine::instance().settings().useDepthTexture) {
+            _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
+        }
 
-    if (Engine::instance().settings().useDepthTexture) {
-        _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
-    }
+        if (Engine::instance().settings().useNormalTexture) {
+            _finalFBO->attachColorTexture(
+                _frameBufferTextures.normals,
+                GL_COLOR_ATTACHMENT1
+            );
+        }
 
-    if (Engine::instance().settings().useNormalTexture) {
-        _finalFBO->attachColorTexture(_frameBufferTextures.normals, GL_COLOR_ATTACHMENT1);
-    }
-
-    if (Engine::instance().settings().usePositionTexture) {
-        _finalFBO->attachColorTexture(
-            _frameBufferTextures.positions,
-            GL_COLOR_ATTACHMENT2
-        );
+        if (Engine::instance().settings().usePositionTexture) {
+            _finalFBO->attachColorTexture(
+                _frameBufferTextures.positions,
+                GL_COLOR_ATTACHMENT2
+            );
+        }
     }
 
     const Window::StereoMode sm = stereoMode();
@@ -1814,10 +1820,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
             _finalFBO->bindBlit();
 
             // update attachments
-            _finalFBO->attachColorTexture(
-                frameBufferTextureEye(eye),
-                GL_COLOR_ATTACHMENT0
-            );
+            _finalFBO->attachColorTexture(sceneTexture, GL_COLOR_ATTACHMENT0);
 
             if (Engine::instance().settings().useDepthTexture) {
                 _finalFBO->attachDepthTexture(_frameBufferTextures.depth);

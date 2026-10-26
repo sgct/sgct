@@ -432,7 +432,7 @@ constexpr std::string_view FXAAFrag = R"(
 
   in Data {
     vec2 texCoords;
-    vec2 texcoordsOffset[4];
+    vec2 texCoordsOffset[4];
   } in_data;
 
   out vec4 out_color;
@@ -442,10 +442,10 @@ constexpr std::string_view FXAAFrag = R"(
   uniform sampler2D tex;
 
   void main() {
-    vec3 rgbNW = textureLod(tex, in_data.texcoordsOffset[0], 0.0).rgb;
-    vec3 rgbNE = textureLod(tex, in_data.texcoordsOffset[1], 0.0).rgb;
-    vec3 rgbSW = textureLod(tex, in_data.texcoordsOffset[2], 0.0).rgb;
-    vec3 rgbSE = textureLod(tex, in_data.texcoordsOffset[3], 0.0).rgb;
+    vec3 rgbNW = textureLod(tex, in_data.texCoordsOffset[0], 0.0).rgb;
+    vec3 rgbNE = textureLod(tex, in_data.texCoordsOffset[1], 0.0).rgb;
+    vec3 rgbSW = textureLod(tex, in_data.texCoordsOffset[2], 0.0).rgb;
+    vec3 rgbSE = textureLod(tex, in_data.texCoordsOffset[3], 0.0).rgb;
     vec3 rgbM  = textureLod(tex, in_data.texCoords, 0.0).rgb;
 
     const vec3 Luma = vec3(0.299, 0.587, 0.114);

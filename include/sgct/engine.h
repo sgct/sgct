@@ -130,7 +130,7 @@ public:
         ///    0 = vertical sync off
         ///    1 = wait for vertical sync
         ///    2..inf = wait for every n-th vertical sync
-        int8_t swapInterval = 1;
+        int8_t swapInterval = 0;
 
         /// If this is true, a log message is printed to the console while a client is
         /// waiting for the master to connect or while the master is waiting for one or

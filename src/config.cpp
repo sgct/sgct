@@ -1159,7 +1159,7 @@ static void from_json(const nlohmann::json& j, FisheyeProjection& p) {
         p.interpolation = parseInterpolation(interpolation);
     }
     parseValue(j, "diameter", p.diameter);
-    parseValue(j, "tilt", p.tilt);
+    parseValue(j, "orientation", p.orientation);
 
     if (auto it = j.find("crop");  it != j.end()) {
         FisheyeProjection::Crop crop;
@@ -1216,8 +1216,8 @@ static void to_json(nlohmann::json& j, const FisheyeProjection& p) {
         j["diameter"] = *p.diameter;
     }
 
-    if (p.tilt.has_value()) {
-        j["tilt"] = *p.tilt;
+    if (p.orientation.has_value()) {
+        j["orientation"] = *p.orientation;
     }
 
     if (p.crop.has_value()) {
@@ -2032,6 +2032,75 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 
 } // namespace sgct::config
 
+namespace {
+    constexpr int CurrentConfigVersion = 2;
+
+    // Version 1 -> 2: FisheyeProjection 'tilt' was replaced by 'orientation'
+    void upgradeConfigV1ToV2(nlohmann::json& j) {
+        auto nodes = j.find("nodes");
+        if (nodes == j.end() || !nodes->is_array()) {
+            return;
+        }
+        for (nlohmann::json& node : *nodes) {
+            auto windows = node.find("windows");
+            if (windows == node.end() || !windows->is_array()) {
+                continue;
+            }
+            for (nlohmann::json& window : *windows) {
+                auto viewports = window.find("viewports");
+                if (viewports == window.end() || !viewports->is_array()) {
+                    continue;
+                }
+                for (nlohmann::json& viewport : *viewports) {
+                    auto proj = viewport.find("projection");
+                    if (proj == viewport.end() || !proj->is_object() ||
+                        proj->value("type", "") != "FisheyeProjection")
+                    {
+                        continue;
+                    }
+                    auto tilt = proj->find("tilt");
+                    // Leave invalid values in place so that they are reported later
+                    if (tilt == proj->end() || !tilt->is_number()) {
+                        continue;
+                    }
+                    nlohmann::json orientation = nlohmann::json::object();
+                    orientation["pitch"] = -tilt->get<float>();
+                    orientation["yaw"] = 0.f;
+                    orientation["roll"] = 0.f;
+                    proj->erase(tilt);
+                    (*proj)["orientation"] = orientation;
+                }
+            }
+        }
+    }
+
+    void upgradeConfig(nlohmann::json& j) {
+        auto it = j.find("version");
+        if (it == j.end()) {
+            throw std::runtime_error("Missing 'version' information");
+        }
+        if (!it->is_number_integer()) {
+            throw Err(6090, "The 'version' must be an integer");
+        }
+
+        const int version = it->get<int>();
+        if (version < 1 || version > CurrentConfigVersion) {
+            throw Err(
+                6090,
+                std::format(
+                    "Unsupported configuration version {}. Supported versions are 1-{}",
+                    version, CurrentConfigVersion
+                )
+            );
+        }
+
+        if (version == 1) {
+            upgradeConfigV1ToV2(j);
+        }
+        j["version"] = CurrentConfigVersion;
+    }
+} // namespace
+
 namespace sgct {
 
 config::Cluster readConfig(const std::filesystem::path& filename) {
@@ -2072,11 +2141,7 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
 
 config::Cluster readJsonConfig(std::string_view configuration) {
     nlohmann::json j = nlohmann::json::parse(configuration);
-
-    auto it = j.find("version");
-    if (it == j.end()) {
-        throw std::runtime_error("Missing 'version' information");
-    }
+    upgradeConfig(j);
 
     config::Cluster cluster;
     from_json(j, cluster);
@@ -2132,7 +2197,7 @@ std::string serializeConfig(const config::Cluster& cluster,
                             std::optional<config::GeneratorVersion> genVersion)
 {
     nlohmann::json res;
-    res["version"] = 1;
+    res["version"] = CurrentConfigVersion;
     if (genVersion) {
         res["generator"] = genVersion.value();
     }
@@ -2180,6 +2245,7 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
 
     json config = json::parse(configuration);
     try {
+        upgradeConfig(config);
         validator.validate(config);
         return "";
     }

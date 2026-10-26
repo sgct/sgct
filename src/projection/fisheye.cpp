@@ -39,7 +39,7 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config,
                                      const Window& parent, User& user)
     : NonLinearProjection(parent)
     , _fov(config.fov.value_or(180.f))
-    , _tilt(config.tilt.value_or(0.f))
+    , _orientation(config.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }))
     , _diameter(config.diameter.value_or(14.8f))
     , _cropLeft(config.crop ? config.crop->left : 0.f)
     , _cropRight(config.crop ? config.crop->right : 0.f)
@@ -254,8 +254,8 @@ void FisheyeProjection::setDomeDiameter(float diameter) {
     _diameter = diameter;
 }
 
-void FisheyeProjection::setTilt(float angle) {
-    _tilt = angle;
+void FisheyeProjection::setOrientation(quat orientation) {
+    _orientation = std::move(orientation);
 }
 
 void FisheyeProjection::setFOV(float angle) {
@@ -351,15 +351,13 @@ void FisheyeProjection::initViewports() {
         projectionOffset = radius;
     }
 
-    const glm::mat4 tiltMat = glm::rotate(
-        glm::mat4(1.f),
-        glm::radians(90.f - _tilt),
-        glm::vec3(1.f, 0.f, 0.f)
-    );
+    const glm::mat4 baseRot =
+        glm::mat4_cast(glm::make_quat(&_orientation.x)) *
+        glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
 
     if (_method == FisheyeMethod::FiveFaceCube || _method == FisheyeMethod::SixFaceCube) {
         const glm::mat4 rollRot = glm::rotate(
-            tiltMat,
+            baseRot,
             glm::radians(45.f),
             glm::vec3(0.f, 0.f, 1.f)
         );
@@ -500,7 +498,7 @@ void FisheyeProjection::initViewports() {
     else {
         // FourFaceCube
         const glm::mat4 panRot = glm::rotate(
-            tiltMat,
+            baseRot,
             glm::radians(45.f),
             glm::vec3(0.f, 1.f, 0.f)
         );

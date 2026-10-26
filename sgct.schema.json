@@ -257,7 +257,7 @@
           "type": "string",
           "enum": [ "linear", "cubic" ]
         },
-        "tilt": { "type": "number" },
+        "orientation": { "$ref": "#/$defs/orientation" },
         "diameter": { "type": "number" },
         "crop": {
           "type": "object",
@@ -777,7 +777,7 @@
     "settings": { "$ref": "#/$defs/settings" },
     "generator": { "$ref": "#/$defs/generator" },
     "meta": { "$ref": "#/$defs/meta" },
-    "version": { "type": "integer" }
+    "version": { "type": "integer", "const": 2 }
   },
   "required": [ "masteraddress", "version" ],
   "additionalProperties": false

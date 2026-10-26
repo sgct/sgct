@@ -10,6 +10,7 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
+#include <sgct/error.h>
 #include <sgct/math.h>
 #include "schema.h"
 
@@ -228,6 +229,51 @@ TEST_CASE("Validate: Cluster/Version/Wrong Type", "[validate]") {
     //    std::runtime_error,
     //    Catch::Matchers::Message("")
     //);
+}
+
+TEST_CASE("Validate: Cluster/Version/Unsupported", "[validate]") {
+    constexpr std::string_view Config0 = R"(
+{
+  "version": 0,
+  "masteraddress": "localhost"
+}
+)";
+    CHECK_THROWS_AS(validate(Config0), ParsingError);
+    CHECK_THROWS_AS(readJsonConfig(Config0), sgct::Error);
+
+    constexpr std::string_view Config3 = R"(
+{
+  "version": 3,
+  "masteraddress": "localhost"
+}
+)";
+    CHECK_THROWS_AS(validate(Config3), ParsingError);
+    CHECK_THROWS_AS(readJsonConfig(Config3), sgct::Error);
+}
+
+TEST_CASE("Load: Cluster/Version/Supported", "[parse]") {
+    constexpr std::string_view Config1 = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost"
+}
+)";
+    CHECK_NOTHROW(validate(Config1));
+    CHECK_NOTHROW(readJsonConfig(Config1));
+
+    constexpr std::string_view Config2 = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost"
+}
+)";
+    CHECK_NOTHROW(validate(Config2));
+    CHECK_NOTHROW(readJsonConfig(Config2));
+}
+
+TEST_CASE("Load: Cluster/Version/Serialize", "[parse]") {
+    const std::string str = serializeConfig(Cluster{ .masterAddress = "localhost" });
+    CHECK(str.find(R"("version": 2)") != std::string::npos);
 }
 
 TEST_CASE("Validate: Cluster/Master Address/Missing", "[validate]") {

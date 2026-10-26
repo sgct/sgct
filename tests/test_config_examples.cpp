@@ -642,8 +642,7 @@ TEST_CASE("Load Example: Single Fisheye FXAA", "[parse]") {
     CHECK(*p.fov == 180.f);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 512);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -694,8 +693,7 @@ TEST_CASE("Load Example: Single Fisheye", "[parse]") {
     CHECK(*p.fov == 180.f);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 512);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -1201,8 +1199,7 @@ TEST_CASE("Load Example: Spherical Mirror", "[parse]") {
     CHECK(*p.fov == 180.f);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 2048);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -1379,8 +1376,7 @@ TEST_CASE("Load Example: Spout Output Fisheye", "[parse]") {
     CHECK(p.quality == 512);
     REQUIRE(p.fov.has_value());
     CHECK(p.fov == 180.f);
-    REQUIRE(p.tilt.has_value());
-    CHECK(p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);

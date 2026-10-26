@@ -57,12 +57,12 @@ public:
     void setDomeDiameter(float diameter);
 
     /**
-     * Set the fisheye/dome tilt angle used in the fisheye renderer. The tilt angle is
-     * from the horizontal.
+     * Set the orientation of the fisheye/dome used in the fisheye renderer. The identity
+     * orientation points the center of the fisheye straight up.
      *
-     * \param angle The tilt angle in degrees
+     * \param orientation The orientation of the fisheye
      */
-    void setTilt(float angle);
+    void setOrientation(quat orientation);
 
     /**
      * Set the fisheye/dome field-of-view angle used in the fisheye renderer.
@@ -106,7 +106,7 @@ private:
     void initShaders() override;
 
     float _fov;
-    float _tilt;
+    quat _orientation;
     float _diameter;
     float _cropLeft;
     float _cropRight;

@@ -11,10 +11,26 @@
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <cstring>
 #include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
+
+namespace {
+    sgct::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
+        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
+
+        sgct::quat res;
+        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
+        return res;
+    }
+} // namespace
 
 TEST_CASE("Load: FisheyeProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
@@ -1529,9 +1545,126 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
     }
 }
 
-TEST_CASE("Load: FisheyeProjection/Tilt", "[parse]") {
+TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "orientation": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .masterAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .windows = {
+                        Window {
+                            .size = ivec2{ 640, 480 },
+                            .viewports = {
+                                Viewport {
+                                    .projection = FisheyeProjection {
+                                        .orientation = quat{ 1.f, 2.f, 3.f, 4.f }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "orientation": { "pitch": 1.0, "yaw": 2.0, "roll": 3.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .masterAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .windows = {
+                        Window {
+                            .size = ivec2{ 640, 480 },
+                            .viewports = {
+                                Viewport {
+                                    .projection = FisheyeProjection {
+                                        .orientation = fromEuler(2.f, 1.f, 3.f)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+}
+
+TEST_CASE("Load: FisheyeProjection/Tilt (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1548,59 +1681,7 @@ TEST_CASE("Load: FisheyeProjection/Tilt", "[parse]") {
                 "type": "FisheyeProjection",
                 "tilt": 1.0
               }
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .size = ivec2{ 640, 480 },
-                            .viewports = {
-                                Viewport {
-                                    .projection = FisheyeProjection {
-                                        .tilt = 1.f
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "abc",
-      "port": 1,
-      "windows": [
-        {
-          "size": { "x": 640, "y": 480 },
-          "viewports": [
+            },
             {
               "projection": {
                 "type": "FisheyeProjection",
@@ -1615,36 +1696,40 @@ TEST_CASE("Load: FisheyeProjection/Tilt", "[parse]") {
 }
 )";
 
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .size = ivec2{ 640, 480 },
-                            .viewports = {
-                                Viewport {
-                                    .projection = FisheyeProjection {
-                                        .tilt = 2.f
-                                    }
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = ivec2{ 640, 480 },
+                        .viewports = {
+                            Viewport {
+                                .projection = FisheyeProjection {
+                                    .orientation = fromEuler(0.f, -1.f, 0.f)
+                                }
+                            },
+                            Viewport {
+                                .projection = FisheyeProjection {
+                                    .orientation = fromEuler(0.f, -2.f, 0.f)
                                 }
                             }
                         }
                     }
                 }
             }
-        };
+        }
+    };
 
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
 
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
+    const std::string str = serializeConfig(Object);
+    const config::Cluster output = readJsonConfig(str);
+    CHECK(output == Object);
 }
 
 TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
@@ -2378,7 +2463,7 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
 TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
+  "version": 2,
   "masteraddress": "localhost",
   "nodes": [
     {
@@ -2394,7 +2479,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                 "quality": "low",
                 "fov": 1.0,
                 "interpolation": "linear",
-                "tilt": 2.0,
+                "orientation": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 },
                 "diameter": 3.0,
                 "crop": {
                   "left": 4.0,
@@ -2432,7 +2517,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                                     .quality = 256,
                                     .interpolation =
                                         FisheyeProjection::Interpolation::Linear,
-                                    .tilt = 2.f,
+                                    .orientation = quat{ 1.f, 2.f, 3.f, 4.f },
                                     .diameter = 3.f,
                                     .crop = FisheyeProjection::Crop {
                                         .left = 4.f,
@@ -2645,6 +2730,96 @@ TEST_CASE("Validate: FisheyeProjection/Interpolation/Illegal Value", "[validate]
               "interpolation": "abc"
             }
           }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Orientation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "orientation": "abc"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Tilt (Version 1)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "tilt": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
+}
+
+TEST_CASE("Validate: FisheyeProjection/Tilt (Version 2)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "tilt": 1.0
+              }
+            }
+          ]
         }
       ]
     }

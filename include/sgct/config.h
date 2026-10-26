@@ -216,7 +216,7 @@ struct SGCT_EXPORT FisheyeProjection {
     std::optional<float> fov;
     std::optional<int> quality;
     std::optional<Interpolation> interpolation;
-    std::optional<float> tilt;
+    std::optional<quat> orientation;
     std::optional<float> diameter;
     std::optional<Crop> crop;
     std::optional<bool> keepAspectRatio;

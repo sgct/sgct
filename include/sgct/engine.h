@@ -164,6 +164,9 @@ public:
             /// The prefix to be used for all screenshots
             std::string prefix;
 
+            /// The number of bits per color channel in the saved screenshots (8 or 16)
+            int bitDepth = 8;
+
             /// Information about the screenshot limits. If there is no screenshot limit,
             /// this function returns `std::nullopt`. Otherwise the first component is the
             /// index of the first screenshot that will be rendered. The second component

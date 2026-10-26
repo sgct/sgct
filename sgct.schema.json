@@ -601,6 +601,10 @@
         "rangeend": {
           "type": "integer",
           "minimum": 1
+        },
+        "bitdepth": {
+          "type": "integer",
+          "enum": [ 8, 16 ]
         }
       },
       "additionalProperties": false

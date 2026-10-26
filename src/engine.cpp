@@ -129,6 +129,17 @@ namespace {
                     static_cast<uint64_t>(cluster.capture->range->last)
                 };
             }
+
+            if (cluster.capture->bitDepth) {
+                switch (*cluster.capture->bitDepth) {
+                    case config::Capture::BitDepth::Depth8:
+                        res.capture.bitDepth = 8;
+                        break;
+                    case config::Capture::BitDepth::Depth16:
+                        res.capture.bitDepth = 16;
+                        break;
+                }
+            }
         }
 
         return res;

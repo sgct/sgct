@@ -158,6 +158,62 @@ TEST_CASE("Load: Capture/ScreenShotRange", "[parse]") {
     }
 }
 
+TEST_CASE("Load: Capture/BitDepth", "[parse]") {
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "bitdepth": 8
+  }
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .masterAddress = "localhost",
+            .capture = Capture {
+                .bitDepth = Capture::BitDepth::Depth8
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "bitdepth": 16
+  }
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .masterAddress = "localhost",
+            .capture = Capture {
+                .bitDepth = Capture::BitDepth::Depth16
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+}
+
 
 
 
@@ -265,4 +321,68 @@ TEST_CASE("Validate: Capture/Range/Illegal Value", "[validate]") {
             "[ReadConfig] (6051): End of range must be greater than beginning of range"
         )
     );
+}
+
+TEST_CASE("Validate: Capture/BitDepth/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "bitdepth": "abc"
+  }
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Capture/BitDepth/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "bitdepth": 12
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "bitdepth": 32
+  }
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "capture": {
+    "bitdepth": 32
+  }
+}
+)";
+
+        CHECK_THROWS_MATCHES(
+            readJsonConfig(Config),
+            std::runtime_error,
+            Catch::Matchers::Message(
+                "[ReadConfig] (6052): Wrong capture bit depth value 32"
+            )
+        );
+    }
 }

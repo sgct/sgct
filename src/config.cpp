@@ -912,6 +912,19 @@ static void from_json(const nlohmann::json& j, Capture& c) {
     if (rangeBeg && rangeEnd && *rangeBeg > *rangeEnd) {
         throw Err(6051, "End of range must be greater than beginning of range");
     }
+
+    if (auto it = j.find("bitdepth");  it != j.end()) {
+        const int bitDepth = it->get<int>();
+        if (bitDepth == 8) {
+            c.bitDepth = Capture::BitDepth::Depth8;
+        }
+        else if (bitDepth == 16) {
+            c.bitDepth = Capture::BitDepth::Depth16;
+        }
+        else {
+            throw Err(6052, std::format("Wrong capture bit depth value {}", bitDepth));
+        }
+    }
 }
 
 static void to_json(nlohmann::json& j, const Capture& c) {
@@ -924,6 +937,17 @@ static void to_json(nlohmann::json& j, const Capture& c) {
     if (c.range.has_value()) {
         j["rangebegin"] = c.range->first;
         j["rangeend"] = c.range->last;
+    }
+
+    if (c.bitDepth.has_value()) {
+        switch (*c.bitDepth) {
+            case Capture::BitDepth::Depth8:
+                j["bitdepth"] = 8;
+                break;
+            case Capture::BitDepth::Depth16:
+                j["bitdepth"] = 16;
+                break;
+        }
     }
 }
 

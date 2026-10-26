@@ -114,36 +114,6 @@ namespace {
         }
     }
 
-    unsigned int colorBitDepthToDataType(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return GL_UNSIGNED_BYTE;
-            case CBD::Depth16:      return GL_UNSIGNED_SHORT;
-            case CBD::Depth16Float: return GL_HALF_FLOAT;
-            case CBD::Depth32Float: return GL_FLOAT;
-            case CBD::Depth16Int:   return GL_SHORT;
-            case CBD::Depth32Int:   return GL_INT;
-            case CBD::Depth16UInt:  return GL_UNSIGNED_SHORT;
-            case CBD::Depth32UInt:  return GL_UNSIGNED_INT;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    unsigned int colorBitDepthToBytesPerColor(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return 1;
-            case CBD::Depth16:      return 2;
-            case CBD::Depth16Float: return 2;
-            case CBD::Depth32Float: return 4;
-            case CBD::Depth16Int:   return 2;
-            case CBD::Depth32Int:   return 4;
-            case CBD::Depth16UInt:  return 2;
-            case CBD::Depth32UInt:  return 4;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
     enum class BufferMode { BackBufferBlack, RenderToTexture };
     void setAndClearBuffer(const sgct::Window& window, BufferMode buffer,
                            sgct::FrustumMode frustum)
@@ -521,12 +491,6 @@ Window::Window(const config::Window& window)
     , _internalColorFormat(colorBitDepthToColorFormat(
         window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
     ))
-    , _colorDataType(colorBitDepthToDataType(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
-    , _bytesPerColor(colorBitDepthToBytesPerColor(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
 {
     ZoneScoped;
 
@@ -703,9 +667,12 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
 
-    const bool captureBackBuffer = Engine::instance().settings().captureBackBuffer;
-    int bytesPerColor = captureBackBuffer ? 1 : _bytesPerColor;
-    unsigned int colorDataType = captureBackBuffer ? GL_UNSIGNED_BYTE : _colorDataType;
+    // OpenGL converts the framebuffer contents to the requested type on readback, so
+    // the screenshot bit depth is independent of the window's buffer format
+    const int bitDepth = Engine::instance().settings().capture.bitDepth;
+    const int bytesPerColor = bitDepth / 8;
+    const unsigned int colorDataType =
+        bitDepth == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
     if (!useRightEyeTexture()) {
         _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
             *this,

@@ -421,8 +421,6 @@ private:
 #endif // SGCT_HAS_NDI
 
     const unsigned int _internalColorFormat;
-    const unsigned int _colorDataType;
-    const int _bytesPerColor = 4;
 
     struct {
         unsigned int leftEye = 0;

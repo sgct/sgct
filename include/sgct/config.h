@@ -51,8 +51,11 @@ struct SGCT_EXPORT Capture {
         bool operator==(const ScreenShotRange&) const noexcept = default;
     };
 
+    enum class BitDepth { Depth8, Depth16 };
+
     std::optional<std::filesystem::path> path;
     std::optional<ScreenShotRange> range;
+    std::optional<BitDepth> bitDepth;
 
     bool operator==(const Capture&) const noexcept = default;
 };

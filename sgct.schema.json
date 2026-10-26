@@ -233,7 +233,8 @@
           "default": "EquirectangularProjection",
           "readOnly": true
         },
-        "quality": { "$ref": "#/$defs/projectionquality" }
+        "quality": { "$ref": "#/$defs/projectionquality" },
+        "orientation": { "$ref": "#/$defs/orientation" }
       },
       "required": [ "type" ],
       "additionalProperties": false

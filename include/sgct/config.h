@@ -194,6 +194,7 @@ SGCT_EXPORT void validateProjection(const CylindricalProjection& proj);
 
 struct SGCT_EXPORT EquirectangularProjection {
     std::optional<int> quality;
+    std::optional<quat> orientation;
 
     bool operator==(const EquirectangularProjection&) const noexcept = default;
 };

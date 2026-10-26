@@ -51,6 +51,7 @@ EquirectangularProjection::EquirectangularProjection(
                                                                      const Window& parent,
                                                                                User& user)
     : NonLinearProjection(parent)
+    , _orientation(config.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }))
 {
     setUser(user);
     setUseDepthTransformation(true);
@@ -111,6 +112,10 @@ void EquirectangularProjection::renderCubemap(FrustumMode frustumMode) const {
 
 void EquirectangularProjection::update(const vec2&) const {}
 
+void EquirectangularProjection::setOrientation(quat orientation) {
+    _orientation = std::move(orientation);
+}
+
 void EquirectangularProjection::initVBO() {
     struct Vertex {
         float x;
@@ -151,14 +156,12 @@ void EquirectangularProjection::initViewports() {
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
-    const glm::mat4 tiltMat = glm::rotate(
-        glm::mat4(1.f),
-        glm::radians(90.f),
-        glm::vec3(1.f, 0.f, 0.f)
-    );
+    const glm::mat4 baseRot =
+        glm::mat4_cast(glm::make_quat(&_orientation.x)) *
+        glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
 
     const glm::mat4 rollRot = glm::rotate(
-        tiltMat,
+        baseRot,
         glm::radians(45.f),
         glm::vec3(0.f, 0.f, 1.f)
     );

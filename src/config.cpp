@@ -1417,11 +1417,16 @@ static void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
+    parseValue(j, "orientation", p.orientation);
 }
 
 static void to_json(nlohmann::json& j, const EquirectangularProjection& p) {
     if (p.quality.has_value()) {
         j["quality"] = std::to_string(*p.quality);
+    }
+
+    if (p.orientation.has_value()) {
+        j["orientation"] = *p.orientation;
     }
 }
 

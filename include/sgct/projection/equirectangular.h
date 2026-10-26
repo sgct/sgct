@@ -34,11 +34,20 @@ public:
 
     void update(const vec2& size) const override;
 
+    /**
+     * Set the orientation of the equirectangular projection. The identity orientation
+     * corresponds to the default orientation of the projection.
+     *
+     * \param orientation The orientation of the projection
+     */
+    void setOrientation(quat orientation);
+
 private:
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
 
+    quat _orientation;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
     ShaderProgram _shader;

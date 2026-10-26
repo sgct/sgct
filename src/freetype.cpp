@@ -18,19 +18,14 @@
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <cstring>
 #include <sstream>
 #include <utility>
 
 namespace {
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {
-        const sgct::vec2 res = sgct::vec2{
-            static_cast<float>(win.windowSize().x),
-            static_cast<float>(win.windowSize().y)
-        };
-        const sgct::vec2 size = vp.size();
-        const sgct::vec2 scale = win.scale();
+        const glm::vec2 res = glm::vec2(win.windowSize());
+        const glm::vec2 size = vp.size();
+        const glm::vec2 scale = win.scale();
         return glm::ortho(0.f, size.x * res.x * scale.x, 0.f, size.y * res.y * scale.y);
     }
 
@@ -66,7 +61,7 @@ namespace {
 namespace sgct::text {
 
 void print(const Window& window, const BaseViewport& viewport, Font& font, Alignment mode,
-           float x, float y, const vec4& color, std::string text)
+           float x, float y, const glm::vec4& color, std::string text)
 {
     if (text.empty()) {
         return;
@@ -102,11 +97,10 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
                 orthoMatrix,
                 glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );
-            glm::mat4 scale = glm::scale(trans, glm::vec3(ffd.size.x, ffd.size.y, 1.f));
-            sgct::mat4 s;
-            std::memcpy(s.values.data(), glm::value_ptr(scale), sizeof(sgct::mat4));
+            const glm::mat4 scale =
+                glm::scale(trans, glm::vec3(ffd.size.x, ffd.size.y, 1.f));
 
-            FontManager::instance().bindShader(s, color, 0);
+            FontManager::instance().bindShader(scale, color, 0);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

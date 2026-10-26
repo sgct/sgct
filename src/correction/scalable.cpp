@@ -437,17 +437,17 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.perspective.fov.bottom,
             data.perspective.fov.left,
             data.perspective.fov.right,
-            quat(q.x, q.y, q.z, q.w)
+            q
         );
         Engine::instance().updateFrustums();
     }
     if (data.perspective.hasOffset) {
         parent.projectionPlane().offset(
-            vec3{
+            glm::vec3(
                 data.perspective.offset.x,
                 data.perspective.offset.y,
                 data.perspective.offset.z
-            }
+            )
         );
     }
     if (data.nVertices != static_cast<int>(data.vertices.size()) ||

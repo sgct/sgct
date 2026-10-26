@@ -45,8 +45,8 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     std::optional<float> elevation;
     std::optional<float> hFov;
     std::optional<float> vFov;
-    vec2 fovTweaks{ 1.f, 1.f };
-    vec2 uvTweaks{ 1.f, 1.f };
+    glm::vec2 fovTweaks = glm::vec2(1.f, 1.f);
+    glm::vec2 uvTweaks = glm::vec2(1.f, 1.f);
     bool areDimsSet = false;
 
     unsigned int sizeX = 0;
@@ -149,16 +149,10 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     rotQuat = glm::rotate(rotQuat, glm::radians(-*azimuth), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(*elevation), glm::vec3(1.f, 0.f, 0.f));
 
-    parent.user().setPos(vec3{ 0.f, 0.f, 0.f });
+    parent.user().setPos(glm::vec3(0.f, 0.f, 0.f));
     const float vHalf = *vFov / 2.f;
     const float hHalf = *hFov / 2.f;
-    parent.setViewPlaneCoordsUsingFOVs(
-        vHalf,
-        -vHalf,
-        -hHalf,
-        hHalf,
-        quat(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w)
-    );
+    parent.setViewPlaneCoordsUsingFOVs(vHalf, -vHalf, -hHalf, hHalf, rotQuat);
     Engine::instance().updateFrustums();
 
     for (unsigned int c = 0; c < (sizeX - 1); c++) {
@@ -191,8 +185,8 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     }
 
     for (Buffer::Vertex& vertex : buf.vertices) {
-        const vec2& s = parent.size();
-        const vec2& p = parent.position();
+        const glm::vec2& s = parent.size();
+        const glm::vec2& p = parent.position();
 
         // Convert to [-1, 1]
         vertex.x = 2.f * (vertex.x * s.x + p.x) - 1.f;

@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -45,7 +44,7 @@ TEST_CASE("Load: Window/Minimal", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 }
+                            .size = glm::ivec2(640, 480)
                         }
                     }
                 }
@@ -126,7 +125,7 @@ TEST_CASE("Load: Window/ID", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .id = 0
                         }
                     }
@@ -171,7 +170,7 @@ TEST_CASE("Load: Window/ID", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .id = 1
                         }
                     }
@@ -218,7 +217,7 @@ TEST_CASE("Load: Window/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .name = "abc"
                         }
                     }
@@ -263,7 +262,7 @@ TEST_CASE("Load: Window/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .name = "123"
                         }
                     }
@@ -310,7 +309,7 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .tags = {}
                         }
                     }
@@ -355,7 +354,7 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .tags = { "abc", "def" }
                         }
                     }
@@ -400,7 +399,7 @@ TEST_CASE("Load: Window/Tags", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .tags = { "123", "456" }
                         }
                     }
@@ -447,7 +446,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth8
                         }
                     }
@@ -492,7 +491,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth16
                         }
                     }
@@ -537,7 +536,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth16Float
                         }
                     }
@@ -582,7 +581,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth32Float
                         }
                     }
@@ -627,7 +626,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth16Int
                         }
                     }
@@ -672,7 +671,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth32Int
                         }
                     }
@@ -717,7 +716,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth16UInt
                         }
                     }
@@ -762,7 +761,7 @@ TEST_CASE("Load: Window/BufferBitDepth", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .bufferBitDepth = Window::ColorBitDepth::Depth32UInt
                         }
                     }
@@ -809,7 +808,7 @@ TEST_CASE("Load: Window/IsFullScreen", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isFullScreen = false
                         }
                     }
@@ -854,7 +853,7 @@ TEST_CASE("Load: Window/IsFullScreen", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isFullScreen = true
                         }
                     }
@@ -901,7 +900,7 @@ TEST_CASE("Load: Window/ShouldAutoIconify", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .shouldAutoiconify = false
                         }
                     }
@@ -946,7 +945,7 @@ TEST_CASE("Load: Window/ShouldAutoIconify", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .shouldAutoiconify = true
                         }
                     }
@@ -993,7 +992,7 @@ TEST_CASE("Load: Window/HideMouseCursor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .hideMouseCursor = false
                         }
                     }
@@ -1038,7 +1037,7 @@ TEST_CASE("Load: Window/HideMouseCursor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .hideMouseCursor = true
                         }
                     }
@@ -1085,7 +1084,7 @@ TEST_CASE("Load: Window/IsFloating", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isFloating = false
                         }
                     }
@@ -1130,7 +1129,7 @@ TEST_CASE("Load: Window/IsFloating", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isFloating = true
                         }
                     }
@@ -1177,7 +1176,7 @@ TEST_CASE("Load: Window/AlwaysRender", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .alwaysRender = false
                         }
                     }
@@ -1222,7 +1221,7 @@ TEST_CASE("Load: Window/AlwaysRender", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .alwaysRender = true
                         }
                     }
@@ -1269,7 +1268,7 @@ TEST_CASE("Load: Window/IsHidden", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isHidden = false
                         }
                     }
@@ -1314,7 +1313,7 @@ TEST_CASE("Load: Window/IsHidden", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isHidden = true
                         }
                     }
@@ -1361,7 +1360,7 @@ TEST_CASE("Load: Window/TakeScreenshot", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .takeScreenshot = false
                         }
                     }
@@ -1406,7 +1405,7 @@ TEST_CASE("Load: Window/TakeScreenshot", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .takeScreenshot = true
                         }
                     }
@@ -1453,7 +1452,7 @@ TEST_CASE("Load: Window/MSAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .msaa = 1
                         }
                     }
@@ -1498,7 +1497,7 @@ TEST_CASE("Load: Window/MSAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .msaa = 2
                         }
                     }
@@ -1545,7 +1544,7 @@ TEST_CASE("Load: Window/UseFXAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .useFxaa = false
                         }
                     }
@@ -1590,7 +1589,7 @@ TEST_CASE("Load: Window/UseFXAA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .useFxaa = true
                         }
                     }
@@ -1637,7 +1636,7 @@ TEST_CASE("Load: Window/IsDecorated", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isDecorated = false
                         }
                     }
@@ -1682,7 +1681,7 @@ TEST_CASE("Load: Window/IsDecorated", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isDecorated = true
                         }
                     }
@@ -1729,7 +1728,7 @@ TEST_CASE("Load: Window/IsResizable", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isResizable = false
                         }
                     }
@@ -1774,7 +1773,7 @@ TEST_CASE("Load: Window/IsResizable", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .isResizable = true
                         }
                     }
@@ -1821,7 +1820,7 @@ TEST_CASE("Load: Window/Draw2D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .draw2D = false
                         }
                     }
@@ -1866,7 +1865,7 @@ TEST_CASE("Load: Window/Draw2D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .draw2D = true
                         }
                     }
@@ -1913,7 +1912,7 @@ TEST_CASE("Load: Window/Draw3D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .draw3D = false
                         }
                     }
@@ -1958,7 +1957,7 @@ TEST_CASE("Load: Window/Draw3D", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .draw3D = true
                         }
                     }
@@ -2005,7 +2004,7 @@ TEST_CASE("Load: Window/NoError", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .noError = false
                         }
                     }
@@ -2050,7 +2049,7 @@ TEST_CASE("Load: Window/NoError", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .noError = true
                         }
                     }
@@ -2097,7 +2096,7 @@ TEST_CASE("Load: Window/BlitWindowId", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .blitWindowId = 1
                         }
                     }
@@ -2142,7 +2141,7 @@ TEST_CASE("Load: Window/BlitWindowId", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .blitWindowId = 2
                         }
                     }
@@ -2189,7 +2188,7 @@ TEST_CASE("Load: Window/MirrorX", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .mirrorX = false
                         }
                     }
@@ -2234,7 +2233,7 @@ TEST_CASE("Load: Window/MirrorX", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .mirrorX = true
                         }
                     }
@@ -2281,7 +2280,7 @@ TEST_CASE("Load: Window/MirrorY", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .mirrorY = false
                         }
                     }
@@ -2326,7 +2325,7 @@ TEST_CASE("Load: Window/MirrorY", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .mirrorY = true
                         }
                     }
@@ -2373,7 +2372,7 @@ TEST_CASE("Load: Window/Monitor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .monitor = 1
                         }
                     }
@@ -2418,7 +2417,7 @@ TEST_CASE("Load: Window/Monitor", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .monitor = 2
                         }
                     }
@@ -2465,7 +2464,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::NoStereo
                         }
                     }
@@ -2510,7 +2509,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::NoStereo
                         }
                     }
@@ -2555,7 +2554,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::Active
                         }
                     }
@@ -2600,7 +2599,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::Active
                         }
                     }
@@ -2645,7 +2644,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::Checkerboard
                         }
                     }
@@ -2690,7 +2689,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::CheckerboardInverted
                         }
                     }
@@ -2735,7 +2734,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::AnaglyphRedCyan
                         }
                     }
@@ -2780,7 +2779,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::AnaglyphAmberBlue
                         }
                     }
@@ -2825,7 +2824,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::AnaglyphRedCyanWimmer
                         }
                     }
@@ -2870,7 +2869,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::VerticalInterlaced
                         }
                     }
@@ -2915,7 +2914,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::VerticalInterlacedInverted
                         }
                     }
@@ -2960,7 +2959,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::Dummy
                         }
                     }
@@ -3005,7 +3004,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::Dummy
                         }
                     }
@@ -3050,7 +3049,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::SideBySide
                         }
                     }
@@ -3095,7 +3094,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::SideBySideInverted
                         }
                     }
@@ -3140,7 +3139,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::TopBottom
                         }
                     }
@@ -3185,7 +3184,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .stereo = Window::StereoMode::TopBottomInverted
                         }
                     }
@@ -3234,7 +3233,7 @@ TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .spout = Window::Spout {
                                 .enabled = false
                             }
@@ -3283,7 +3282,7 @@ TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .spout = Window::Spout {
                                 .enabled = true
                             }
@@ -3335,7 +3334,7 @@ TEST_CASE("Load: Window/Spout/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .spout = Window::Spout {
                                 .enabled = true,
                                 .name = "abc"
@@ -3386,7 +3385,7 @@ TEST_CASE("Load: Window/Spout/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .spout = Window::Spout {
                                 .enabled = true,
                                 .name = "123"
@@ -3438,7 +3437,7 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .ndi = Window::NDI {
                                 .enabled = false
                             }
@@ -3487,7 +3486,7 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .ndi = Window::NDI {
                                 .enabled = true
                             }
@@ -3539,7 +3538,7 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .name = "abc"
@@ -3590,7 +3589,7 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .name = "123"
@@ -3643,7 +3642,7 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .groups = "abc,def"
@@ -3694,7 +3693,7 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .ndi = Window::NDI {
                                 .enabled = true,
                                 .groups = "123,456"
@@ -3744,8 +3743,8 @@ TEST_CASE("Load: Window/Pos", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .pos = ivec2{ 1, 2 },
-                            .size = ivec2{ 640, 480 }
+                            .pos = glm::ivec2(1, 2),
+                            .size = glm::ivec2(640, 480)
                         }
                     }
                 }
@@ -3789,8 +3788,8 @@ TEST_CASE("Load: Window/Pos", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .pos = ivec2{ 3, 4 },
-                            .size = ivec2{ 640, 480 }
+                            .pos = glm::ivec2(3, 4),
+                            .size = glm::ivec2(640, 480)
                         }
                     }
                 }
@@ -3835,7 +3834,7 @@ TEST_CASE("Load: Window/Size", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 1, 2 }
+                            .size = glm::ivec2(1, 2)
                         }
                     }
                 }
@@ -3878,7 +3877,7 @@ TEST_CASE("Load: Window/Size", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 3, 4 }
+                            .size = glm::ivec2(3, 4)
                         }
                     }
                 }
@@ -3924,8 +3923,8 @@ TEST_CASE("Load: Window/Resolution", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
-                            .resolution = ivec2{ 1, 2 }
+                            .size = glm::ivec2(640, 480),
+                            .resolution = glm::ivec2(1, 2)
                         }
                     }
                 }
@@ -3969,8 +3968,8 @@ TEST_CASE("Load: Window/Resolution", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
-                            .resolution = ivec2{ 3, 4 }
+                            .size = glm::ivec2(640, 480),
+                            .resolution = glm::ivec2(3, 4)
                         }
                     }
                 }
@@ -4149,9 +4148,9 @@ TEST_CASE("Load: Window/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .pos = ivec2{ 1, 2 },
-                        .size = ivec2{ 640, 480 },
-                        .resolution = ivec2{ 1, 2 },
+                        .pos = glm::ivec2(1, 2),
+                        .size = glm::ivec2(640, 480),
+                        .resolution = glm::ivec2(1, 2),
                         .id = 0,
                         .name = "def",
                         .tags = { "ghi", "jkl" },

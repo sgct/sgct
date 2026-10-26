@@ -10,25 +10,19 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <cstring>
 #include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
 
 namespace {
-    sgct::quat fromEuler(float yaw, float pitch, float roll) {
-        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
-
-        sgct::quat res;
-        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
-        return res;
+    glm::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
+        return q;
     }
 } // namespace
 
@@ -74,7 +68,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -142,7 +136,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -213,7 +207,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -283,7 +277,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -353,7 +347,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -423,7 +417,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -493,7 +487,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -563,7 +557,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -633,7 +627,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -703,7 +697,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -773,7 +767,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -843,7 +837,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -913,7 +907,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -983,7 +977,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1053,7 +1047,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1123,7 +1117,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1193,7 +1187,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1263,7 +1257,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1333,7 +1327,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1403,7 +1397,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1473,7 +1467,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1543,7 +1537,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1613,7 +1607,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1684,7 +1678,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Orientation", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = SphericalMirrorProjection {
@@ -1755,7 +1749,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1825,7 +1819,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
@@ -1897,11 +1891,11 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 1.f, 2.f, 3.f, 4.f },
+                                        .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
                                             .bottom = "abc",
                                             .left = "def",
@@ -1967,11 +1961,11 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 5.f, 6.f, 7.f, 8.f },
+                                        .background = glm::vec4(5.f, 6.f, 7.f, 8.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
                                             .bottom = "123",
                                             .left = "456",
@@ -2039,11 +2033,11 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 1.f, 2.f, 3.f, 4.f },
+                                        .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
                                             .bottom = "abc",
                                             .left = "def",
@@ -2109,11 +2103,11 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 5.f, 6.f, 7.f, 8.f },
+                                        .background = glm::vec4(5.f, 6.f, 7.f, 8.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
                                             .bottom = "123",
                                             .left = "456",
@@ -2182,13 +2176,13 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = SphericalMirrorProjection {
                                     .quality = 256,
-                                    .orientation = quat{ 1.f, 2.f, 3.f, 4.f },
-                                    .background = vec4{ 1.f, 2.f, 3.f, 4.f },
+                                    .orientation = glm::quat(4.f, 1.f, 2.f, 3.f),
+                                    .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                     .mesh = SphericalMirrorProjection::Mesh {
                                         .bottom = "abc",
                                         .left = "def",

@@ -1062,13 +1062,13 @@ void Engine::setStatsGraphScale(float scale) {
     }
 }
 
-vec2 Engine::statsGraphOffset() const {
-    return _statisticsRenderer ? _statisticsRenderer->offset() : vec2(-1.f, -1.f);
+glm::vec2 Engine::statsGraphOffset() const {
+    return _statisticsRenderer ? _statisticsRenderer->offset() : glm::vec2(-1.f, -1.f);
 }
 
-void Engine::setStatsGraphOffset(vec2 offset) {
+void Engine::setStatsGraphOffset(glm::vec2 offset) {
     if (_statisticsRenderer) {
-        _statisticsRenderer->setOffset(offset);
+        _statisticsRenderer->setOffset(std::move(offset));
     }
 }
 

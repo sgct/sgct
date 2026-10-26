@@ -13,7 +13,8 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/shaderprogram.h>
-#include <sgct/math.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace sgct {
 
@@ -36,7 +37,7 @@ public:
     /**
      * Update projection when aspect ratio changes for the viewport.
      */
-    void update(const vec2& size) const override;
+    void update(const glm::vec2& size) const override;
 
     /**
      * Render the non-linear projection to currently bounded FBO.
@@ -62,7 +63,7 @@ public:
      *
      * \param orientation The orientation of the fisheye
      */
-    void setOrientation(quat orientation);
+    void setOrientation(glm::quat orientation);
 
     /**
      * Set the fisheye/dome field-of-view angle used in the fisheye renderer.
@@ -83,14 +84,14 @@ public:
      * Base of fisheye is the XY-plane. This function is normally used in fisheye stereo
      * rendering.
      */
-    void setOffset(vec3 offset) const;
+    void setOffset(glm::vec3 offset) const;
 
     /**
      * Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
      * Base of fisheye is the XY-plane. The base offset will be added to the offset
      * specified by setFisheyeOffset. These values are set from the configuration.
      */
-    void setBaseOffset(vec3 offset);
+    void setBaseOffset(glm::vec3 offset);
 
     /**
      * Ignore the framebuffer aspect ratio to allow non-circular fisheye. This is useful
@@ -106,7 +107,7 @@ private:
     void initShaders() override;
 
     float _fov;
-    quat _orientation;
+    glm::quat _orientation;
     float _diameter;
     float _cropLeft;
     float _cropRight;
@@ -117,9 +118,9 @@ private:
     bool _keepAspectRatio;
 
     mutable bool _isOffAxis = false;
-    mutable vec3 _offset = vec3{ 0.f, 0.f, 0.f };
-    vec3 _baseOffset = vec3{ 0.f, 0.f, 0.f };
-    mutable vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
+    mutable glm::vec3 _offset = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 _baseOffset = glm::vec3(0.f, 0.f, 0.f);
+    mutable glm::vec3 _totalOffset = glm::vec3(0.f, 0.f, 0.f);
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 

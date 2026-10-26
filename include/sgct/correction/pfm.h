@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <filesystem>
 
 namespace sgct::correction {
@@ -19,7 +19,7 @@ namespace sgct::correction {
 struct Buffer;
 
 SGCT_EXPORT Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
-    const vec2& pos, const vec2& size, bool textureRenderMode = false);
+    const glm::vec2& pos, const glm::vec2& size, bool textureRenderMode = false);
 
 } // namespace sgct::correction
 

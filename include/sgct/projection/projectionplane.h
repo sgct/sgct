@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 
 namespace sgct {
 
@@ -20,28 +20,28 @@ namespace sgct {
  */
 class SGCT_EXPORT ProjectionPlane {
 public:
-    void setCoordinates(vec3 lowerLeft, vec3 upperLeft, vec3 upperRight);
-    void offset(const vec3& p);
+    void setCoordinates(glm::vec3 lowerLeft, glm::vec3 upperLeft, glm::vec3 upperRight);
+    void offset(const glm::vec3& p);
 
     /**
      * \return Coordinates for the lower left projection plane corner
      */
-    const vec3& coordinateLowerLeft() const;
+    const glm::vec3& coordinateLowerLeft() const;
 
     /**
      * \return Coordinates for the upper left projection plane corner
      */
-    const vec3& coordinateUpperLeft() const;
+    const glm::vec3& coordinateUpperLeft() const;
 
     /**
      * \return Coordinates for the upper right projection plane corner
      */
-    const vec3& coordinateUpperRight() const;
+    const glm::vec3& coordinateUpperRight() const;
 
 private:
-    vec3 _lowerLeft = vec3{ -1.f, -1.f, -2.f };
-    vec3 _upperLeft = vec3{ -1.f, 1.f, -2.f };
-    vec3 _upperRight = vec3{ 1.f, 1.f, -2.f };
+    glm::vec3 _lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+    glm::vec3 _upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+    glm::vec3 _upperRight = glm::vec3(1.f, 1.f, -2.f);
 };
 
 } // namespace sgct

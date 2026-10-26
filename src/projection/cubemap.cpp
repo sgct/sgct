@@ -100,14 +100,14 @@ CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
     , _ndiName(config.ndi ? config.ndi->name.value_or("OpenSpace") : "OpenSpace")
     , _ndiGroups(config.ndi ? config.ndi->groups.value_or("") : "")
 #endif // SGCT_HAS_NDI
-    , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
+    , _rigOrientation(config.orientation.value_or(glm::vec3(0.f, 0.f, 0.f)))
 {
     setUser(user);
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
 
-    _clearColor = vec4(0.f, 0.f, 0.f, 1.f);
+    _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 }
 
 CubemapProjection::~CubemapProjection() {
@@ -139,7 +139,7 @@ CubemapProjection::~CubemapProjection() {
     _shader.deleteProgram();
 }
 
-void CubemapProjection::update(const vec2&) const {}
+void CubemapProjection::update(const glm::vec2&) const {}
 
 void CubemapProjection::render(const BaseViewport& viewport,
                                FrustumMode frustumMode) const
@@ -232,7 +232,7 @@ void CubemapProjection::render(const BaseViewport& viewport,
     }
 }
 
-void CubemapProjection::setSpoutRigOrientation(vec3 orientation) {
+void CubemapProjection::setSpoutRigOrientation(glm::vec3 orientation) {
     _rigOrientation = std::move(orientation);
 }
 
@@ -405,11 +405,7 @@ void CubemapProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRight);
-        _subViewports.right.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.right.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Left
@@ -427,11 +423,7 @@ void CubemapProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeft);
         const glm::vec3 ul = glm::vec3(r * upperLeft);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.left.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.left.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Bottom
@@ -447,11 +439,7 @@ void CubemapProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeft);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.bottom.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.bottom.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Top
@@ -461,7 +449,7 @@ void CubemapProjection::initViewports() {
         glm::vec4 upperRight = upperRightBase;
         upperRight.y = Distance;
 
-        _subViewports.top.setSize(vec2{ 1.f, 1.f });
+        _subViewports.top.setSize(glm::vec2(1.f, 1.f));
 
         const glm::mat4 r = glm::rotate(
             rollRot,
@@ -471,11 +459,7 @@ void CubemapProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeft);
         const glm::vec3 ur = glm::vec3(r * upperRight);
-        _subViewports.top.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.top.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Front
@@ -483,11 +467,7 @@ void CubemapProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
-        _subViewports.front.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.front.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Back
@@ -500,11 +480,7 @@ void CubemapProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.back.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.back.projectionPlane().setCoordinates(ll, ul, ur);
     }
 }
 

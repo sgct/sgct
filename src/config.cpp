@@ -197,7 +197,7 @@ void validateProjection(const FisheyeProjection& p) {
         throw Err(1065, "Diameter must be positive");
     }
     if (p.background) {
-        const vec4 b = *p.background;
+        const glm::vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Err(1066, "All background color components have to be positive");
         }
@@ -212,7 +212,7 @@ void validateProjection(const SphericalMirrorProjection& p) {
         throw Err(1071, "Quality setting only allows powers of two");
     }
     if (p.background) {
-        const vec4 b = *p.background;
+        const glm::vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Err(1072, "All background color components have to be positive");
         }
@@ -618,44 +618,45 @@ namespace {
 } // namespace
 
 
-namespace sgct {
+// The serialization functions have to live in the glm namespace to be found through ADL
+namespace glm {
 
-static void from_json(const nlohmann::json& j, sgct::ivec2& v) {
+static void from_json(const nlohmann::json& j, glm::ivec2& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
 }
 
-static void to_json(nlohmann::json& j, const sgct::ivec2& v) {
+static void to_json(nlohmann::json& j, const glm::ivec2& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
 }
 
-static void from_json(const nlohmann::json& j, sgct::vec2& v) {
+static void from_json(const nlohmann::json& j, glm::vec2& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
 }
 
-static void to_json(nlohmann::json& j, const sgct::vec2& v) {
+static void to_json(nlohmann::json& j, const glm::vec2& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
 }
 
-static void from_json(const nlohmann::json& j, sgct::vec3& v) {
+static void from_json(const nlohmann::json& j, glm::vec3& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
     j.at("z").get_to(v.z);
 }
 
-static void to_json(nlohmann::json& j, const sgct::vec3& v) {
+static void to_json(nlohmann::json& j, const glm::vec3& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
     j["z"] = v.z;
 }
 
-static void from_json(const nlohmann::json& j, sgct::vec4& v) {
+static void from_json(const nlohmann::json& j, glm::vec4& v) {
     auto itX = j.find("x");
     auto itY = j.find("y");
     auto itZ = j.find("z");
@@ -685,7 +686,7 @@ static void from_json(const nlohmann::json& j, sgct::vec4& v) {
     throw std::runtime_error("Incomplete vec4");
 }
 
-static void to_json(nlohmann::json& j, const sgct::vec4& v) {
+static void to_json(nlohmann::json& j, const glm::vec4& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
@@ -693,22 +694,24 @@ static void to_json(nlohmann::json& j, const sgct::vec4& v) {
     j["w"] = v.w;
 }
 
-static void from_json(const nlohmann::json& j, sgct::mat4& m) {
+static void from_json(const nlohmann::json& j, glm::mat4& m) {
     std::array<double, 16> vs = j.get<std::array<double, 16>>();
+    float* values = glm::value_ptr(m);
     for (int i = 0; i < 16; i += 1) {
-        m.values[i] = static_cast<float>(vs[i]);
+        values[i] = static_cast<float>(vs[i]);
     }
 }
 
-static void to_json(nlohmann::json& j, const sgct::mat4& m) {
+static void to_json(nlohmann::json& j, const glm::mat4& m) {
     std::array<double, 16> vs;
+    const float* values = glm::value_ptr(m);
     for (int i = 0; i < 16; i += 1) {
-        vs[i] = m.values[i];
+        vs[i] = values[i];
     }
     j = vs;
 }
 
-static void from_json(const nlohmann::json& j, sgct::quat& q) {
+static void from_json(const nlohmann::json& j, glm::quat& q) {
     auto itPitch = j.find("pitch");
     auto itYaw = j.find("yaw");
     auto itRoll = j.find("roll");
@@ -717,11 +720,10 @@ static void from_json(const nlohmann::json& j, sgct::quat& q) {
         const float y = -itYaw->get<float>();
         const float z = -itRoll->get<float>();
 
-        glm::quat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0, 0.0, 1.0));
-        q = sgct::quat(quat.x, quat.y, quat.z, quat.w);
+        q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
     }
 
     auto itX = j.find("x");
@@ -736,7 +738,7 @@ static void from_json(const nlohmann::json& j, sgct::quat& q) {
     }
 }
 
-static void to_json(nlohmann::json& j, const sgct::quat& q) {
+static void to_json(nlohmann::json& j, const glm::quat& q) {
     j = nlohmann::json::object();
     j["x"] = q.x;
     j["y"] = q.y;
@@ -744,7 +746,7 @@ static void to_json(nlohmann::json& j, const sgct::quat& q) {
     j["w"] = q.w;
 }
 
-} // namespace sgct
+} // namespace glm
 
 namespace sgct::config {
 
@@ -775,11 +777,7 @@ static void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        const quat q = it->get<quat>();
-        glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
-        sgct::mat4 o;
-        std::memcpy(o.values.data(), glm::value_ptr(m), 16 * sizeof(float));
-        u.transformation = o;
+        u.transformation = glm::mat4_cast(it->get<glm::quat>());
     }
 
     if (auto it = j.find("tracking");  it != j.end()) {
@@ -1005,11 +1003,7 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "matrix", t.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        const quat q = it->get<quat>();
-        glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
-        sgct::mat4 o;
-        std::memcpy(o.values.data(), glm::value_ptr(m), 16 * sizeof(float));
-        t.transformation = o;
+        t.transformation = glm::mat4_cast(it->get<glm::quat>());
     }
 }
 
@@ -1319,7 +1313,7 @@ static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     parseValue(j, "channels", p.channels);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        sgct::vec3 orientation;
+        glm::vec3 orientation;
         parseValue(*it, "pitch", orientation.x);
         parseValue(*it, "yaw", orientation.y);
         parseValue(*it, "roll", orientation.z);
@@ -2175,7 +2169,7 @@ config::Cluster defaultCluster() {
     };
 
     config::Window window = {
-        .size = ivec2{ 1280, 720 },
+        .size = glm::ivec2(1280, 720),
         .viewports = { viewport },
         .id = 0,
         .isFullScreen = false
@@ -2189,7 +2183,7 @@ config::Cluster defaultCluster() {
 
     config::User user = {
         .eyeSeparation = 0.06f,
-        .position = vec3{ 0.f, 0.f, 0.f }
+        .position = glm::vec3(0.f, 0.f, 0.f)
     };
 
     config::Cluster res = {

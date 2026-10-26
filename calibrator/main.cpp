@@ -462,7 +462,7 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
-    const mat4 mvp = data.modelViewProjectionMatrix;
+    const glm::mat4& mvp = data.modelViewProjectionMatrix;
 
     glm::vec3 direction = {
         std::cos(theta) * std::sin(phi),
@@ -479,7 +479,7 @@ void draw(const RenderData& data) {
 
     if (renderGrid) {
         ShaderManager::instance().shaderProgram("grid").bind();
-        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
+        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
         glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(grid.vao);
         glDrawElements(GL_LINE_STRIP, grid.nVertLine, GL_UNSIGNED_SHORT, nullptr);
@@ -489,7 +489,7 @@ void draw(const RenderData& data) {
 
     if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
-        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
+        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
         glUniformMatrix4fv(box.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
 
         glBindTextureUnit(0, box.textureFront);
@@ -527,7 +527,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             offset,
             h / 2.f - s1,
-            vec4{ 0.f, 0.f, 1.f, 1.f },
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
             std::to_string(ClusterManager::instance().thisNodeId())
         );
 
@@ -541,7 +541,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             offset,
             h / 2.f - (s1 + s2) * 1.2f,
-            vec4{ 0.f, 0.f, 1.f, 1.f },
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
             ClusterManager::instance().thisNode().address()
         );
     }

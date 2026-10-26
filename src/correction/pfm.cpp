@@ -20,8 +20,9 @@
 
 namespace sgct::correction {
 
-Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-                                      const vec2& size, bool textureRenderMode)
+Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
+                                      const glm::vec2& pos, const glm::vec2& size,
+                                      bool textureRenderMode)
 {
     ZoneScoped;
 

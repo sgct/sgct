@@ -21,8 +21,8 @@
 
 namespace sgct::correction {
 
-Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2& pos,
-                                  const vec2& size)
+Buffer generateDomeProjectionMesh(const std::filesystem::path& path,
+                                  const glm::vec2& pos, const glm::vec2& size)
 {
     ZoneScoped;
 

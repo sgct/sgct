@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;

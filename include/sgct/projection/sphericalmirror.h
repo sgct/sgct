@@ -14,6 +14,8 @@
 
 #include <sgct/correctionmesh.h>
 #include <sgct/shaderprogram.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace sgct {
 
@@ -31,7 +33,7 @@ public:
         const Window& parent, User& user);
     ~SphericalMirrorProjection() final;
 
-    void update(const vec2& size) const override;
+    void update(const glm::vec2& size) const override;
 
     /**
      * Render the non linear projection to currently bounded FBO.
@@ -48,7 +50,7 @@ public:
      *
      * \param orientation The orientation of the dome
      */
-    void setOrientation(quat orientation);
+    void setOrientation(glm::quat orientation);
 
 private:
     void initTextures(unsigned int internalFormat) override;
@@ -56,7 +58,7 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    quat _orientation;
+    glm::quat _orientation;
     float _diameter = 2.4f;
 
     // mesh data

@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -55,13 +54,13 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = ProjectionPlane {
-                                        .lowerLeft = vec3 { 1.f, 2.f, 3.f },
-                                        .upperLeft = vec3 { 4.f, 5.f, 6.f },
-                                        .upperRight = vec3 { 7.f, 8.f, 9.f }
+                                        .lowerLeft = glm::vec3(1.f, 2.f, 3.f),
+                                        .upperLeft = glm::vec3(4.f, 5.f, 6.f),
+                                        .upperRight = glm::vec3(7.f, 8.f, 9.f)
                                     }
                                 }
                             }
@@ -117,13 +116,13 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = ProjectionPlane {
-                                        .lowerLeft = vec3 { 10.f, 11.f, 12.f },
-                                        .upperLeft = vec3 { 13.f, 14.f, 15.f },
-                                        .upperRight = vec3 { 16.f, 17.f, 18.f }
+                                        .lowerLeft = glm::vec3(10.f, 11.f, 12.f),
+                                        .upperLeft = glm::vec3(13.f, 14.f, 15.f),
+                                        .upperRight = glm::vec3(16.f, 17.f, 18.f)
                                     }
                                 }
                             }

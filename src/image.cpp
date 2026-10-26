@@ -200,12 +200,12 @@ int Image::bytesPerChannel() const {
     return _bytesPerChannel;
 }
 
-ivec2 Image::size() const {
+glm::ivec2 Image::size() const {
     return _size;
 }
 
-void Image::setSize(ivec2 size) {
-    _size = std::move(size);
+void Image::setSize(glm::ivec2 size) {
+    _size = size;
 }
 
 void Image::setChannels(int channels) {

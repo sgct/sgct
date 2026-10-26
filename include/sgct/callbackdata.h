@@ -12,7 +12,7 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/definitions.h>
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 
 namespace sgct {
 
@@ -24,14 +24,14 @@ struct SGCT_EXPORT RenderData {
     const BaseViewport& viewport;
     const FrustumMode frustumMode;
 
-    mat4 modelMatrix;
-    mat4 viewMatrix;
-    mat4 projectionMatrix;
+    glm::mat4 modelMatrix;
+    glm::mat4 viewMatrix;
+    glm::mat4 projectionMatrix;
     // @TODO (abock, 2019-12-03) Performance measurements needed to see whether this
     // caching is necessary
-    mat4 modelViewProjectionMatrix;
+    glm::mat4 modelViewProjectionMatrix;
 
-    ivec2 bufferSize;
+    glm::ivec2 bufferSize;
 };
 
 } // namespace sgct

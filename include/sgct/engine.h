@@ -15,7 +15,6 @@
 #include <sgct/callbackdata.h>
 #include <sgct/config.h>
 #include <sgct/keys.h>
-#include <sgct/math.h>
 #include <sgct/modifiers.h>
 #include <sgct/mouse.h>
 #include <sgct/window.h>
@@ -382,7 +381,7 @@ public:
      *
      * \return The current offset value for the statistics graph
      */
-    vec2 statsGraphOffset() const;
+    glm::vec2 statsGraphOffset() const;
 
     /**
      * Sets the new offet value for the statistics graph rendering. This value determines
@@ -392,7 +391,7 @@ public:
      *
      * \param offset The new offset value for the statistics graph rendering
      */
-    void setStatsGraphOffset(vec2 offset);
+    void setStatsGraphOffset(glm::vec2 offset);
 
     /**
      * Takes an RGBA screenshot and saves it as a PNG file. If stereo rendering is enabled

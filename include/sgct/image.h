@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <filesystem>
 
 namespace sgct {
@@ -34,15 +34,15 @@ public:
     const unsigned char* data() const;
     int channels() const;
     int bytesPerChannel() const;
-    ivec2 size() const;
+    glm::ivec2 size() const;
 
-    void setSize(ivec2 size);
+    void setSize(glm::ivec2 size);
     void setChannels(int channels);
     void setBytesPerChannel(int bpc);
 
 private:
     int _nChannels = 0;
-    ivec2 _size = ivec2{ 0, 0 };
+    glm::ivec2 _size = glm::ivec2(0, 0);
     unsigned int _dataSize = 0;
     int _bytesPerChannel = 1;
     unsigned char* _data = nullptr;

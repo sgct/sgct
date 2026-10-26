@@ -10,25 +10,19 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <cstring>
 #include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
 
 namespace {
-    sgct::quat fromEuler(float yaw, float pitch, float roll) {
-        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
-
-        sgct::quat res;
-        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
-        return res;
+    glm::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
+        return q;
     }
 } // namespace
 
@@ -67,7 +61,7 @@ TEST_CASE("Load: EquirectangularProjection/Minimal", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = EquirectangularProjection()
@@ -124,7 +118,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -182,7 +176,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -240,7 +234,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -298,7 +292,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -356,7 +350,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -414,7 +408,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -472,7 +466,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -530,7 +524,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -588,7 +582,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -646,7 +640,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -704,7 +698,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -762,7 +756,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -820,7 +814,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -878,7 +872,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -936,7 +930,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -994,7 +988,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -1052,7 +1046,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -1110,7 +1104,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -1168,7 +1162,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -1226,7 +1220,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -1284,7 +1278,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
@@ -1344,11 +1338,11 @@ TEST_CASE("Load: EquirectangularProjection/Orientation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {
-                                        .orientation = quat{ 1.f, 2.f, 3.f, 4.f }
+                                        .orientation = glm::quat(4.f, 1.f, 2.f, 3.f)
                                     }
                                 }
                             }
@@ -1402,7 +1396,7 @@ TEST_CASE("Load: EquirectangularProjection/Orientation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = EquirectangularProjection {

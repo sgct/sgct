@@ -145,12 +145,20 @@ FontManager::~FontManager() {
     _shader.deleteProgram();
 }
 
-void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) const {
+void FontManager::bindShader(const glm::mat4& mvp, const glm::vec4& color,
+                             int texture) const
+{
     _shader.bind();
 
-    glProgramUniform4fv(_shader.id(), _colorLocation, 1, &color.x);
+    glProgramUniform4fv(_shader.id(), _colorLocation, 1, glm::value_ptr(color));
     glProgramUniform1i(_shader.id(), _textureLocation, texture);
-    glProgramUniformMatrix4fv(_shader.id(), _mvpLocation, 1, GL_FALSE, mvp.values.data());
+    glProgramUniformMatrix4fv(
+        _shader.id(),
+        _mvpLocation,
+        1,
+        GL_FALSE,
+        glm::value_ptr(mvp)
+    );
 }
 
 bool FontManager::addFont(std::string name, std::string file, bool isAbsolutePath) {

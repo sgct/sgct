@@ -10,7 +10,7 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "schema.h"
 
 using namespace sgct;
@@ -755,7 +755,7 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
                     .devices = {
                         Tracker::Device {
                             .name = "def",
-                            .offset = vec3 { 1.f, 2.f, 3.f }
+                            .offset = glm::vec3(1.f, 2.f, 3.f)
                         }
                     }
                 }
@@ -798,7 +798,7 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
                     .devices = {
                         Tracker::Device {
                             .name = "def",
-                            .offset = vec3 { 4.f, 5.f, 6.f }
+                            .offset = glm::vec3(4.f, 5.f, 6.f)
                         }
                     }
                 }
@@ -837,23 +837,23 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
 }
 )";
 
-        mat4 m;
-        m.values[0] = 1.f;
-        m.values[1] = 2.f;
-        m.values[2] = 3.f;
-        m.values[3] = 4.f;
-        m.values[4] = 5.f;
-        m.values[5] = 6.f;
-        m.values[6] = 7.f;
-        m.values[7] = 8.f;
-        m.values[8] = 9.f;
-        m.values[9] = 10.f;
-        m.values[10] = 11.f;
-        m.values[11] = 12.f;
-        m.values[12] = 13.f;
-        m.values[13] = 14.f;
-        m.values[14] = 15.f;
-        m.values[15] = 16.f;
+        glm::mat4 m;
+        glm::value_ptr(m)[0] = 1.f;
+        glm::value_ptr(m)[1] = 2.f;
+        glm::value_ptr(m)[2] = 3.f;
+        glm::value_ptr(m)[3] = 4.f;
+        glm::value_ptr(m)[4] = 5.f;
+        glm::value_ptr(m)[5] = 6.f;
+        glm::value_ptr(m)[6] = 7.f;
+        glm::value_ptr(m)[7] = 8.f;
+        glm::value_ptr(m)[8] = 9.f;
+        glm::value_ptr(m)[9] = 10.f;
+        glm::value_ptr(m)[10] = 11.f;
+        glm::value_ptr(m)[11] = 12.f;
+        glm::value_ptr(m)[12] = 13.f;
+        glm::value_ptr(m)[13] = 14.f;
+        glm::value_ptr(m)[14] = 15.f;
+        glm::value_ptr(m)[15] = 16.f;
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -900,23 +900,23 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
 }
 )";
 
-        mat4 m;
-        m.values[0] = 17.f;
-        m.values[1] = 18.f;
-        m.values[2] = 19.f;
-        m.values[3] = 20.f;
-        m.values[4] = 21.f;
-        m.values[5] = 22.f;
-        m.values[6] = 23.f;
-        m.values[7] = 24.f;
-        m.values[8] = 25.f;
-        m.values[9] = 26.f;
-        m.values[10] = 27.f;
-        m.values[11] = 28.f;
-        m.values[12] = 29.f;
-        m.values[13] = 30.f;
-        m.values[14] = 31.f;
-        m.values[15] = 32.f;
+        glm::mat4 m;
+        glm::value_ptr(m)[0] = 17.f;
+        glm::value_ptr(m)[1] = 18.f;
+        glm::value_ptr(m)[2] = 19.f;
+        glm::value_ptr(m)[3] = 20.f;
+        glm::value_ptr(m)[4] = 21.f;
+        glm::value_ptr(m)[5] = 22.f;
+        glm::value_ptr(m)[6] = 23.f;
+        glm::value_ptr(m)[7] = 24.f;
+        glm::value_ptr(m)[8] = 25.f;
+        glm::value_ptr(m)[9] = 26.f;
+        glm::value_ptr(m)[10] = 27.f;
+        glm::value_ptr(m)[11] = 28.f;
+        glm::value_ptr(m)[12] = 29.f;
+        glm::value_ptr(m)[13] = 30.f;
+        glm::value_ptr(m)[14] = 31.f;
+        glm::value_ptr(m)[15] = 32.f;
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -963,7 +963,7 @@ TEST_CASE("Load: Tracker/Offset", "[parse]") {
             .trackers = {
                 Tracker {
                     .name = "abc",
-                    .offset = vec3{ 1.f, 2.f, 3.f }
+                    .offset = glm::vec3(1.f, 2.f, 3.f)
                 }
             }
         };
@@ -996,7 +996,7 @@ TEST_CASE("Load: Tracker/Offset", "[parse]") {
             .trackers = {
                 Tracker {
                     .name = "abc",
-                    .offset = vec3{ 4.f, 5.f, 6.f }
+                    .offset = glm::vec3(4.f, 5.f, 6.f)
                 }
             }
         };
@@ -1096,23 +1096,23 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
 }
 )";
 
-        mat4 m;
-        m.values[0] = 1.f;
-        m.values[1] = 2.f;
-        m.values[2] = 3.f;
-        m.values[3] = 4.f;
-        m.values[4] = 5.f;
-        m.values[5] = 6.f;
-        m.values[6] = 7.f;
-        m.values[7] = 8.f;
-        m.values[8] = 9.f;
-        m.values[9] = 10.f;
-        m.values[10] = 11.f;
-        m.values[11] = 12.f;
-        m.values[12] = 13.f;
-        m.values[13] = 14.f;
-        m.values[14] = 15.f;
-        m.values[15] = 16.f;
+        glm::mat4 m;
+        glm::value_ptr(m)[0] = 1.f;
+        glm::value_ptr(m)[1] = 2.f;
+        glm::value_ptr(m)[2] = 3.f;
+        glm::value_ptr(m)[3] = 4.f;
+        glm::value_ptr(m)[4] = 5.f;
+        glm::value_ptr(m)[5] = 6.f;
+        glm::value_ptr(m)[6] = 7.f;
+        glm::value_ptr(m)[7] = 8.f;
+        glm::value_ptr(m)[8] = 9.f;
+        glm::value_ptr(m)[9] = 10.f;
+        glm::value_ptr(m)[10] = 11.f;
+        glm::value_ptr(m)[11] = 12.f;
+        glm::value_ptr(m)[12] = 13.f;
+        glm::value_ptr(m)[13] = 14.f;
+        glm::value_ptr(m)[14] = 15.f;
+        glm::value_ptr(m)[15] = 16.f;
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -1149,23 +1149,23 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
 }
 )";
 
-        mat4 m;
-        m.values[0] = 17.f;
-        m.values[1] = 18.f;
-        m.values[2] = 19.f;
-        m.values[3] = 20.f;
-        m.values[4] = 21.f;
-        m.values[5] = 22.f;
-        m.values[6] = 23.f;
-        m.values[7] = 24.f;
-        m.values[8] = 25.f;
-        m.values[9] = 26.f;
-        m.values[10] = 27.f;
-        m.values[11] = 28.f;
-        m.values[12] = 29.f;
-        m.values[13] = 30.f;
-        m.values[14] = 31.f;
-        m.values[15] = 32.f;
+        glm::mat4 m;
+        glm::value_ptr(m)[0] = 17.f;
+        glm::value_ptr(m)[1] = 18.f;
+        glm::value_ptr(m)[2] = 19.f;
+        glm::value_ptr(m)[3] = 20.f;
+        glm::value_ptr(m)[4] = 21.f;
+        glm::value_ptr(m)[5] = 22.f;
+        glm::value_ptr(m)[6] = 23.f;
+        glm::value_ptr(m)[7] = 24.f;
+        glm::value_ptr(m)[8] = 25.f;
+        glm::value_ptr(m)[9] = 26.f;
+        glm::value_ptr(m)[10] = 27.f;
+        glm::value_ptr(m)[11] = 28.f;
+        glm::value_ptr(m)[12] = 29.f;
+        glm::value_ptr(m)[13] = 30.f;
+        glm::value_ptr(m)[14] = 31.f;
+        glm::value_ptr(m)[15] = 32.f;
         const Cluster Object = {
             .success = true,
             .masterAddress = "localhost",
@@ -1233,40 +1233,40 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
 }
 )";
 
-    mat4 m;
-    m.values[0] = 1.f;
-    m.values[1] = 2.f;
-    m.values[2] = 3.f;
-    m.values[3] = 4.f;
-    m.values[4] = 5.f;
-    m.values[5] = 6.f;
-    m.values[6] = 7.f;
-    m.values[7] = 8.f;
-    m.values[8] = 9.f;
-    m.values[9] = 10.f;
-    m.values[10] = 11.f;
-    m.values[11] = 12.f;
-    m.values[12] = 13.f;
-    m.values[13] = 14.f;
-    m.values[14] = 15.f;
-    m.values[15] = 16.f;
-    mat4 m2;
-    m2.values[0] = 17.f;
-    m2.values[1] = 18.f;
-    m2.values[2] = 19.f;
-    m2.values[3] = 20.f;
-    m2.values[4] = 21.f;
-    m2.values[5] = 22.f;
-    m2.values[6] = 23.f;
-    m2.values[7] = 24.f;
-    m2.values[8] = 25.f;
-    m2.values[9] = 26.f;
-    m2.values[10] = 27.f;
-    m2.values[11] = 28.f;
-    m2.values[12] = 29.f;
-    m2.values[13] = 30.f;
-    m2.values[14] = 31.f;
-    m2.values[15] = 32.f;
+    glm::mat4 m;
+    glm::value_ptr(m)[0] = 1.f;
+    glm::value_ptr(m)[1] = 2.f;
+    glm::value_ptr(m)[2] = 3.f;
+    glm::value_ptr(m)[3] = 4.f;
+    glm::value_ptr(m)[4] = 5.f;
+    glm::value_ptr(m)[5] = 6.f;
+    glm::value_ptr(m)[6] = 7.f;
+    glm::value_ptr(m)[7] = 8.f;
+    glm::value_ptr(m)[8] = 9.f;
+    glm::value_ptr(m)[9] = 10.f;
+    glm::value_ptr(m)[10] = 11.f;
+    glm::value_ptr(m)[11] = 12.f;
+    glm::value_ptr(m)[12] = 13.f;
+    glm::value_ptr(m)[13] = 14.f;
+    glm::value_ptr(m)[14] = 15.f;
+    glm::value_ptr(m)[15] = 16.f;
+    glm::mat4 m2;
+    glm::value_ptr(m2)[0] = 17.f;
+    glm::value_ptr(m2)[1] = 18.f;
+    glm::value_ptr(m2)[2] = 19.f;
+    glm::value_ptr(m2)[3] = 20.f;
+    glm::value_ptr(m2)[4] = 21.f;
+    glm::value_ptr(m2)[5] = 22.f;
+    glm::value_ptr(m2)[6] = 23.f;
+    glm::value_ptr(m2)[7] = 24.f;
+    glm::value_ptr(m2)[8] = 25.f;
+    glm::value_ptr(m2)[9] = 26.f;
+    glm::value_ptr(m2)[10] = 27.f;
+    glm::value_ptr(m2)[11] = 28.f;
+    glm::value_ptr(m2)[12] = 29.f;
+    glm::value_ptr(m2)[13] = 30.f;
+    glm::value_ptr(m2)[14] = 31.f;
+    glm::value_ptr(m2)[15] = 32.f;
     const Cluster Object = {
         .success = true,
         .masterAddress = "localhost",
@@ -1294,12 +1294,12 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
                                 .count = 4
                             }
                         },
-                        .offset = vec3 { 5.f, 6.f, 7.f },
+                        .offset = glm::vec3(5.f, 6.f, 7.f),
                         .transformation = m
 
                     }
                 },
-                .offset = vec3{ 8.f, 9.f, 10.f },
+                .offset = glm::vec3(8.f, 9.f, 10.f),
                 .scale = 11.f,
                 .transformation = m2
 

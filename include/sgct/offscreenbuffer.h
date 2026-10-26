@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 
 namespace sgct {
 
@@ -70,7 +70,7 @@ private:
     unsigned int _depthBuffer = 0;
     const unsigned int _internalColorFormat = 0x8058; // GL_RGBA8;
 
-    ivec2 _size = ivec2{ -1, -1 };
+    glm::ivec2 _size = glm::ivec2(-1, -1);
     bool _isMultiSampled = false;
 };
 

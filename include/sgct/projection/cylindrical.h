@@ -12,8 +12,8 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/math.h>
 #include <sgct/shaderprogram.h>
+#include <glm/glm.hpp>
 
 namespace sgct {
 
@@ -32,7 +32,7 @@ public:
 
     void renderCubemap(FrustumMode frustumMode) const override;
 
-    void update(const vec2& size) const override;
+    void update(const glm::vec2& size) const override;
 
     void setRotation(float rotation);
     void setHeightOffset(float heightOffset);

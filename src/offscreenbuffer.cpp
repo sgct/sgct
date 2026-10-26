@@ -74,7 +74,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glCreateFramebuffers(1, &_frameBuffer);
     glCreateRenderbuffers(1, &_depthBuffer);
 
-    _size = ivec2{ width, height };
+    _size = glm::ivec2(width, height);
     _isMultiSampled = samples > 1;
 
     // Create a multisampled buffer
@@ -209,7 +209,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 }
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
-    _size = ivec2{ width, height };
+    _size = glm::ivec2(width, height);
     _isMultiSampled = samples > 1;
 
     glDeleteFramebuffers(1, &_frameBuffer);
@@ -258,10 +258,10 @@ void OffScreenBuffer::unbind() {
 }
 
 void OffScreenBuffer::blit() const {
-    const ivec2 src0 = ivec2{ 0, 0 };
-    const ivec2 src1 = ivec2{ _size.x, _size.y };
-    ivec2 dst0 = ivec2{ 0, 0 };
-    ivec2 dst1 = ivec2{ _size.x, _size.y };
+    const glm::ivec2 src0 = glm::ivec2(0, 0);
+    const glm::ivec2 src1 = _size;
+    const glm::ivec2 dst0 = glm::ivec2(0, 0);
+    const glm::ivec2 dst1 = _size;
 
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);

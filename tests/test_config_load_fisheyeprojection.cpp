@@ -10,25 +10,19 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <cstring>
 #include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
 
 namespace {
-    sgct::quat fromEuler(float yaw, float pitch, float roll) {
-        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
-
-        sgct::quat res;
-        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
-        return res;
+    glm::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
+        return q;
     }
 } // namespace
 
@@ -67,7 +61,7 @@ TEST_CASE("Load: FisheyeProjection/Minimal", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = FisheyeProjection()
@@ -124,7 +118,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -182,7 +176,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -240,7 +234,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -298,7 +292,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -356,7 +350,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -414,7 +408,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -472,7 +466,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -530,7 +524,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -588,7 +582,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -646,7 +640,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -704,7 +698,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -762,7 +756,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -820,7 +814,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -878,7 +872,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -936,7 +930,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -994,7 +988,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1052,7 +1046,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1110,7 +1104,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1168,7 +1162,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1226,7 +1220,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1284,7 +1278,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1344,7 +1338,7 @@ TEST_CASE("Load: FisheyeProjection/FOV", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1402,7 +1396,7 @@ TEST_CASE("Load: FisheyeProjection/FOV", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1462,7 +1456,7 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1521,7 +1515,7 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1582,11 +1576,11 @@ TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .orientation = quat{ 1.f, 2.f, 3.f, 4.f }
+                                        .orientation = glm::quat(4.f, 1.f, 2.f, 3.f)
                                     }
                                 }
                             }
@@ -1640,7 +1634,7 @@ TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1705,7 +1699,7 @@ TEST_CASE("Load: FisheyeProjection/Tilt (Version 1)", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = FisheyeProjection {
@@ -1769,7 +1763,7 @@ TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1827,7 +1821,7 @@ TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1892,7 +1886,7 @@ TEST_CASE("Load: FisheyeProjection/Crop", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -1960,7 +1954,7 @@ TEST_CASE("Load: FisheyeProjection/Crop", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -2025,7 +2019,7 @@ TEST_CASE("Load: FisheyeProjection/KeepAspectRatio", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -2083,7 +2077,7 @@ TEST_CASE("Load: FisheyeProjection/KeepAspectRatio", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
@@ -2143,11 +2137,11 @@ TEST_CASE("Load: FisheyeProjection/Offset", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .offset = vec3{ 1.f, 2.f, 3.f }
+                                        .offset = glm::vec3(1.f, 2.f, 3.f)
                                     }
                                 }
                             }
@@ -2201,11 +2195,11 @@ TEST_CASE("Load: FisheyeProjection/Offset", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .offset = vec3{ 4.f, 5.f, 6.f }
+                                        .offset = glm::vec3(4.f, 5.f, 6.f)
                                     }
                                 }
                             }
@@ -2261,11 +2255,11 @@ TEST_CASE("Load: FisheyeProjection/Background/XYZW", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .background = vec4{ 1.f, 2.f, 3.f, 4.f }
+                                        .background = glm::vec4(1.f, 2.f, 3.f, 4.f)
                                     }
                                 }
                             }
@@ -2319,11 +2313,11 @@ TEST_CASE("Load: FisheyeProjection/Background/XYZW", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .background = vec4{ 5.f, 6.f, 7.f, 8.f }
+                                        .background = glm::vec4(5.f, 6.f, 7.f, 8.f)
                                     }
                                 }
                             }
@@ -2379,11 +2373,11 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .background = vec4{ 1.f, 2.f, 3.f, 4.f }
+                                        .background = glm::vec4(1.f, 2.f, 3.f, 4.f)
                                     }
                                 }
                             }
@@ -2437,11 +2431,11 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = FisheyeProjection {
-                                        .background = vec4{ 5.f, 6.f, 7.f, 8.f }
+                                        .background = glm::vec4(5.f, 6.f, 7.f, 8.f)
                                     }
                                 }
                             }
@@ -2509,7 +2503,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = FisheyeProjection {
@@ -2517,7 +2511,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                                     .quality = 256,
                                     .interpolation =
                                         FisheyeProjection::Interpolation::Linear,
-                                    .orientation = quat{ 1.f, 2.f, 3.f, 4.f },
+                                    .orientation = glm::quat(4.f, 1.f, 2.f, 3.f),
                                     .diameter = 3.f,
                                     .crop = FisheyeProjection::Crop {
                                         .left = 4.f,
@@ -2526,8 +2520,8 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                                         .top = 7.f
                                     },
                                     .keepAspectRatio = false,
-                                    .offset = vec3{ 8.f, 9.f, 10.f },
-                                    .background = vec4{ 11.f, 12.f, 13.f, 14.f }
+                                    .offset = glm::vec3(8.f, 9.f, 10.f),
+                                    .background = glm::vec4(11.f, 12.f, 13.f, 14.f)
                                 }
                             }
                         }

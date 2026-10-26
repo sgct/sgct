@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -52,7 +52,7 @@ public:
      *
      * \param resolution The pixel resolution of the frame buffer
      */
-    void resize(ivec2 resolution);
+    void resize(glm::ivec2 resolution);
 
     /**
      * This function saves the images to disc.
@@ -76,7 +76,7 @@ private:
     unsigned int _pbo = 0;
     const unsigned int _downloadType;
     int _dataSize = 0;
-    ivec2 _resolution = ivec2{ 0, 0 };
+    glm::ivec2 _resolution = glm::ivec2(0, 0);
     const int _bytesPerColor;
     const bool _addAlpha;
 

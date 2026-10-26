@@ -8,39 +8,31 @@
 
 #include <sgct/projection/projectionplane.h>
 
-#include <utility>
-
 namespace sgct {
 
-void ProjectionPlane::offset(const vec3& p) {
-    _lowerLeft.x += p.x;
-    _lowerLeft.y += p.y;
-    _lowerLeft.z += p.z;
-
-    _upperLeft.x += p.x;
-    _upperLeft.y += p.y;
-    _upperLeft.z += p.z;
-
-    _upperRight.x += p.x;
-    _upperRight.y += p.y;
-    _upperRight.z += p.z;
+void ProjectionPlane::offset(const glm::vec3& p) {
+    _lowerLeft += p;
+    _upperLeft += p;
+    _upperRight += p;
 }
 
-void ProjectionPlane::setCoordinates(vec3 lowerLeft, vec3 upperLeft, vec3 upperRight) {
+void ProjectionPlane::setCoordinates(glm::vec3 lowerLeft, glm::vec3 upperLeft,
+                                     glm::vec3 upperRight)
+{
     _lowerLeft = std::move(lowerLeft);
     _upperLeft = std::move(upperLeft);
     _upperRight = std::move(upperRight);
 }
 
-const vec3& ProjectionPlane::coordinateLowerLeft() const {
+const glm::vec3& ProjectionPlane::coordinateLowerLeft() const {
     return _lowerLeft;
 }
 
-const vec3& ProjectionPlane::coordinateUpperLeft() const {
+const glm::vec3& ProjectionPlane::coordinateUpperLeft() const {
     return _upperLeft;
 }
 
-const vec3& ProjectionPlane::coordinateUpperRight() const {
+const glm::vec3& ProjectionPlane::coordinateUpperRight() const {
     return _upperRight;
 }
 

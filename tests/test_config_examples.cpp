@@ -11,20 +11,16 @@
 #include <sgct/config.h>
 #include <filesystem>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace sgct::config;
 
 namespace {
-    sgct::quat fromEuler(float yaw, float pitch, float roll) {
-        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
-
-        sgct::quat res;
-        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
-        return res;
+    glm::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
+        return q;
     }
 } // namespace
 
@@ -812,7 +808,7 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
     CHECK(p.fov.up == 78.43599f);
     CHECK(p.fov.down == -78.43599f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(301.504967, 40.615664, -47.675061);
+    glm::quat q = fromEuler(301.504967, 40.615664, -47.675061);
     CHECK(p.orientation->w == q.w);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
@@ -973,7 +969,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1010,7 +1006,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1061,7 +1057,7 @@ TEST_CASE("Load Example: Single", "[parse]") {
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const glm::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -1228,7 +1224,7 @@ TEST_CASE("Load Example: Spout Output Cubemap", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
+    const glm::quat q = fromEuler(0.f, -90.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -1431,7 +1427,7 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1469,7 +1465,7 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);

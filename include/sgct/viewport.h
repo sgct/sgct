@@ -31,7 +31,7 @@ public:
     Viewport(const config::Viewport& viewport, const Window& parent);
     ~Viewport() override;
 
-    void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
+    void initialize(glm::vec2 size, bool hasStereo, unsigned int internalFormat,
         uint8_t samples);
 
     void loadData();

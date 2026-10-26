@@ -61,10 +61,10 @@ ScreenCapture::~ScreenCapture() {
     glDeleteBuffers(1, &_pbo);
 }
 
-void ScreenCapture::resize(ivec2 resolution) {
+void ScreenCapture::resize(glm::ivec2 resolution) {
     glDeleteBuffers(1, &_pbo);
 
-    _resolution = std::move(resolution);
+    _resolution = resolution;
 
     const int nChannels = _addAlpha ? 4 : 3;
     _dataSize = _resolution.x * _resolution.y * nChannels * _bytesPerColor;
@@ -107,7 +107,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
 
     std::string file = createFilename(number);
 
-    const ivec2 res =
+    const glm::ivec2 res =
         capSrc == CaptureSource::Texture ?
         _window.framebufferResolution() :
         _window.windowSize();
@@ -150,7 +150,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             default:
                 throw std::logic_error("Unhandled case label");
         }
-        const ivec2& s = imPtr->size();
+        const glm::ivec2& s = imPtr->size();
         const GLsizei w = static_cast<GLsizei>(s.x);
         const GLsizei h = static_cast<GLsizei>(s.y);
         glReadPixels(0, 0, w, h, _addAlpha ? GL_BGRA : GL_BGR, _downloadType, nullptr);

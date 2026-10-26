@@ -11,7 +11,6 @@
 
 #include <sgct/config.h>
 #include <sgct/error.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;

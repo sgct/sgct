@@ -11,7 +11,8 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <string>
 
 namespace sgct {
@@ -31,7 +32,7 @@ public:
     /**
      * Sets user's head position.
      */
-    void setPos(vec3 pos);
+    void setPos(glm::vec3 pos);
 
     /**
      * Set if the user's head position & orientation should be managed by a VRPN tracking
@@ -47,7 +48,7 @@ public:
      *
      * \param transform The transform matrix
      */
-    void setTransform(mat4 transform);
+    void setTransform(glm::mat4 transform);
 
     /**
      * Set the user's head orientation using euler angles. Note that rotations are
@@ -62,7 +63,7 @@ public:
     /**
      * Set the user's head orientation using a quaternion.
      */
-    void setOrientation(quat q);
+    void setOrientation(glm::quat q);
 
     /**
      * Changes the interocular distance and recalculates the user's eye positions.
@@ -74,9 +75,9 @@ public:
      */
     const std::string& name() const;
 
-    const vec3& posMono() const;
-    const vec3& posLeftEye() const;
-    const vec3& posRightEye() const;
+    const glm::vec3& posMono() const;
+    const glm::vec3& posLeftEye() const;
+    const glm::vec3& posRightEye() const;
 
     float eyeSeparation() const;
     const std::string& headTrackerName() const;
@@ -103,11 +104,11 @@ private:
     const std::string _name;
     float _eyeSeparation;
 
-    vec3 _posMono = vec3{ 0.f, 0.f, 0.f };
-    vec3 _posLeftEye = vec3{ 0.f, 0.f, 0.f };
-    vec3 _posRightEye = vec3{ 0.f, 0.f, 0.f };
+    glm::vec3 _posMono = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 _posLeftEye = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 _posRightEye = glm::vec3(0.f, 0.f, 0.f);
 
-    mat4 _transform = mat4(1.0);
+    glm::mat4 _transform = glm::mat4(1.f);
 
     std::string _headTrackerDeviceName;
     std::string _headTrackerName;

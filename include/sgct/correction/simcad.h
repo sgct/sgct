@@ -11,15 +11,15 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <filesystem>
 
 namespace sgct::correction {
 
 struct Buffer;
 
-SGCT_EXPORT Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
-    const vec2& size);
+SGCT_EXPORT Buffer generateSimCADMesh(const std::filesystem::path& path,
+    const glm::vec2& pos, const glm::vec2& size);
 
 } // namespace sgct::correction
 

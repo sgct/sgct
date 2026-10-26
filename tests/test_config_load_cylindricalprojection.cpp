@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -51,7 +50,7 @@ TEST_CASE("Load: CylindricalProjection/Minimal", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = CylindricalProjection()
@@ -108,7 +107,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -166,7 +165,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -224,7 +223,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -282,7 +281,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -340,7 +339,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -398,7 +397,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -456,7 +455,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -514,7 +513,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -572,7 +571,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -630,7 +629,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -688,7 +687,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -746,7 +745,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -804,7 +803,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -862,7 +861,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -920,7 +919,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -978,7 +977,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1036,7 +1035,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1094,7 +1093,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1152,7 +1151,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1210,7 +1209,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1268,7 +1267,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1328,7 +1327,7 @@ TEST_CASE("Load: CylindricalProjection/Rotation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1386,7 +1385,7 @@ TEST_CASE("Load: CylindricalProjection/Rotation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1446,7 +1445,7 @@ TEST_CASE("Load: CylindricalProjection/HeightOffset", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1504,7 +1503,7 @@ TEST_CASE("Load: CylindricalProjection/HeightOffset", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1564,7 +1563,7 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1622,7 +1621,7 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CylindricalProjection {
@@ -1684,7 +1683,7 @@ TEST_CASE("Load: CylindricalProjection/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = CylindricalProjection {

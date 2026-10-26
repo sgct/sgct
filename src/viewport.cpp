@@ -13,7 +13,6 @@
 #include <sgct/definitions.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/math.h>
 #include <sgct/profiling.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/cubemap.h>
@@ -80,7 +79,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
                 p.fov.down,
                 p.fov.left,
                 p.fov.right,
-                p.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
+                p.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)),
                 p.fov.distance.value_or(10.f)
             );
             if (p.offset) {
@@ -94,7 +93,7 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
                 p.fov.down,
                 p.fov.left,
                 p.fov.right,
-                p.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
+                p.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)),
                 p.fov.distance.value_or(10.f)
             );
             if (p.offset) {
@@ -135,13 +134,13 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
 
 Viewport::~Viewport() = default;
 
-void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
+void Viewport::initialize(glm::vec2 size, bool hasStereo, unsigned int internalFormat,
                           uint8_t samples)
 {
     if (_nonLinearProjection) {
         _nonLinearProjection->setStereo(hasStereo);
         _nonLinearProjection->initialize(internalFormat, samples);
-        _nonLinearProjection->update(std::move(size));
+        _nonLinearProjection->update(size);
     }
 }
 

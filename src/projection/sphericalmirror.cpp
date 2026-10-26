@@ -70,7 +70,7 @@ SphericalMirrorProjection::SphericalMirrorProjection(
                                                                      const Window& parent,
                                                                                User& user)
     : NonLinearProjection(parent)
-    , _orientation(config.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }))
+    , _orientation(config.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)))
     , _meshPathBottom(config.mesh.bottom)
     , _meshPathLeft(config.mesh.left)
     , _meshPathRight(config.mesh.right)
@@ -89,7 +89,7 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void SphericalMirrorProjection::update(const vec2&) const {}
+void SphericalMirrorProjection::update(const glm::vec2&) const {}
 
 void SphericalMirrorProjection::render(const BaseViewport& viewport,
                                        FrustumMode frustumMode) const
@@ -185,7 +185,7 @@ void SphericalMirrorProjection::renderCubemap(FrustumMode frustumMode) const {
     renderInternal(_subViewports.back, _textures.cubeFaceBack);
 }
 
-void SphericalMirrorProjection::setOrientation(quat orientation) {
+void SphericalMirrorProjection::setOrientation(glm::quat orientation) {
     _orientation = std::move(orientation);
 }
 
@@ -229,7 +229,7 @@ void SphericalMirrorProjection::initViewports() {
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
     const glm::mat4 baseRot =
-        glm::mat4_cast(glm::make_quat(&_orientation.x)) *
+        glm::mat4_cast(_orientation) *
         glm::rotate(glm::mat4(1.f), glm::radians(45.f), glm::vec3(1.f, 0.f, 0.f));
 
     // Right
@@ -242,11 +242,7 @@ void SphericalMirrorProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.right.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.right.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Left
@@ -259,11 +255,7 @@ void SphericalMirrorProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.left.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.left.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Bottom
@@ -279,11 +271,7 @@ void SphericalMirrorProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.top.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.top.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Front
@@ -291,11 +279,7 @@ void SphericalMirrorProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(baseRot * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(baseRot * upperLeftBase);
         const glm::vec3 ur = glm::vec3(baseRot * upperRightBase);
-        _subViewports.front.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.front.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // Back

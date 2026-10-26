@@ -12,7 +12,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/math.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
@@ -35,7 +34,7 @@
 namespace {
     using namespace sgct;
 
-    correction::Buffer setupMaskMesh(const vec2& pos, const vec2& size) {
+    correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
         correction::Buffer buff = {
             .vertices = {
                 {
@@ -65,7 +64,7 @@ namespace {
         return buff;
     }
 
-    correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
+    correction::Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size) {
         correction::Buffer buff = {
             .vertices = {
                 {
@@ -183,8 +182,8 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
     ZoneScoped;
 
     using namespace correction;
-    const vec2& parentPos = parent.position();
-    const vec2& parentSize = parent.size();
+    const glm::vec2& parentPos = parent.position();
+    const glm::vec2& parentSize = parent.size();
 
     // Generate unwarped mask
     {
@@ -236,7 +235,7 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
             auto fishPrj = dynamic_cast<FisheyeProjection*>(vp->nonLinearProjection());
             if (fishPrj) {
                 fishPrj->setIgnoreAspectRatio(true);
-                fishPrj->update(vec2{ 1.f, 1.f });
+                fishPrj->update(glm::vec2(1.f, 1.f));
             }
         }
     }

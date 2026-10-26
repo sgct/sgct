@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -57,7 +56,7 @@ TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = PlanarProjection {
@@ -127,7 +126,7 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = PlanarProjection {
@@ -197,7 +196,7 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = PlanarProjection {
@@ -269,7 +268,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = PlanarProjection {
@@ -279,7 +278,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
                                             .right = 3.f,
                                             .up = 4.f
                                         },
-                                        .orientation = quat{ 1.f, 2.f, 3.f, 4.f }
+                                        .orientation = glm::quat(4.f, 1.f, 2.f, 3.f)
                                     }
                                 }
                             }
@@ -339,7 +338,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = PlanarProjection {
@@ -349,7 +348,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
                                             .right = 8.f,
                                             .up = 9.f
                                         },
-                                        .orientation = quat{5.f, 6.f, 7.f, 8.f }
+                                        .orientation = glm::quat(8.f, 5.f, 6.f, 7.f)
                                     }
                                 }
                             }
@@ -411,7 +410,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = PlanarProjection {
@@ -421,7 +420,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
                                             .right = 3.f,
                                             .up = 4.f
                                         },
-                                        .offset = vec3{ 1.f, 2.f, 3.f }
+                                        .offset = glm::vec3(1.f, 2.f, 3.f)
                                     }
                                 }
                             }
@@ -481,7 +480,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = PlanarProjection {
@@ -491,7 +490,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
                                             .right = 8.f,
                                             .up = 9.f
                                         },
-                                        .offset = vec3{5.f, 6.f, 7.f }
+                                        .offset = glm::vec3(5.f, 6.f, 7.f)
                                     }
                                 }
                             }
@@ -554,7 +553,7 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = PlanarProjection {
@@ -565,8 +564,8 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
                                         .up = 4.f,
                                         .distance = 5.f
                                     },
-                                    .orientation = quat{ 7.f, 8.f, 9.f, 6.f },
-                                    .offset = vec3{ 10.f, 11.f, 12.f }
+                                    .orientation = glm::quat(6.f, 7.f, 8.f, 9.f),
+                                    .offset = glm::vec3(10.f, 11.f, 12.f)
                                 }
                             }
                         }

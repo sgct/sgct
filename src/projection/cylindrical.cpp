@@ -119,7 +119,7 @@ void CylindricalProjection::renderCubemap(FrustumMode frustumMode) const {
     renderCubeFace(_subViewports.back, 5, frustumMode);
 }
 
-void CylindricalProjection::update(const vec2&) const {}
+void CylindricalProjection::update(const glm::vec2&) const {}
 
 void CylindricalProjection::initVBO() {
     struct Vertex {
@@ -184,11 +184,7 @@ void CylindricalProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rotMat * upperRight);
-        _subViewports.right.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.right.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // -X face
@@ -207,11 +203,7 @@ void CylindricalProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
         const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
-        _subViewports.left.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.left.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // +Y face
@@ -228,11 +220,7 @@ void CylindricalProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
-        _subViewports.bottom.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.bottom.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // -Y face
@@ -251,11 +239,7 @@ void CylindricalProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
         const glm::vec3 ur = glm::vec3(rotMat * upperRight);
-        _subViewports.top.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.top.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // +Z face
@@ -263,11 +247,7 @@ void CylindricalProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
-        _subViewports.front.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.front.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
    _subViewports.back.setEnabled(false);

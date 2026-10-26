@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -46,7 +45,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {}
                         }
                     }
@@ -91,7 +90,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = { Viewport() }
                         }
                     }
@@ -136,7 +135,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = { Viewport(), Viewport() }
                         }
                     }
@@ -181,7 +180,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = { Viewport(), Viewport(), Viewport() }
                         }
                     }
@@ -232,7 +231,7 @@ TEST_CASE("Load: Viewport/User", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .user = "abc"
@@ -285,7 +284,7 @@ TEST_CASE("Load: Viewport/User", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .user = "def"
@@ -340,7 +339,7 @@ TEST_CASE("Load: Viewport/OverlayTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .overlayTexture = std::filesystem::absolute("abc")
@@ -393,7 +392,7 @@ TEST_CASE("Load: Viewport/OverlayTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .overlayTexture = std::filesystem::absolute("def")
@@ -448,7 +447,7 @@ TEST_CASE("Load: Viewport/BlendMaskTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .blendMaskTexture = std::filesystem::absolute("abc")
@@ -501,7 +500,7 @@ TEST_CASE("Load: Viewport/BlendMaskTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .blendMaskTexture = std::filesystem::absolute("def")
@@ -556,7 +555,7 @@ TEST_CASE("Load: Viewport/BlackLevelMaskTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .blackLevelMaskTexture =
@@ -610,7 +609,7 @@ TEST_CASE("Load: Viewport/BlackLevelMaskTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .blackLevelMaskTexture =
@@ -666,7 +665,7 @@ TEST_CASE("Load: Viewport/CorrectionMeshTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .correctionMeshTexture =
@@ -720,7 +719,7 @@ TEST_CASE("Load: Viewport/CorrectionMeshTexture", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .correctionMeshTexture =
@@ -776,7 +775,7 @@ TEST_CASE("Load: Viewport/IsTracked", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .isTracked = false
@@ -829,7 +828,7 @@ TEST_CASE("Load: Viewport/IsTracked", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .isTracked = true
@@ -884,7 +883,7 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .eye = Viewport::Eye::Mono
@@ -937,7 +936,7 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .eye = Viewport::Eye::StereoLeft
@@ -990,7 +989,7 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .eye = Viewport::Eye::StereoRight
@@ -1045,10 +1044,10 @@ TEST_CASE("Load: Viewport/Position", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
-                                    .position = vec2{ 1.f, 2.f }
+                                    .position = glm::vec2(1.f, 2.f)
                                 }
                             }
                         }
@@ -1098,10 +1097,10 @@ TEST_CASE("Load: Viewport/Position", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
-                                    .position = vec2{ 3.f, 4.f }
+                                    .position = glm::vec2(3.f, 4.f)
                                 }
                             }
                         }
@@ -1153,10 +1152,10 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
-                                    .size = vec2{ 1.f, 2.f }
+                                    .size = glm::vec2(1.f, 2.f)
                                 }
                             }
                         }
@@ -1206,10 +1205,10 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
-                                    .size = vec2{ 3.f, 4.f }
+                                    .size = glm::vec2(3.f, 4.f)
                                 }
                             }
                         }
@@ -1268,11 +1267,11 @@ TEST_CASE("Load: Viewport/Full", "[parse]") {
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
-                                .position = vec2{ 1.f, 2.f },
-                                .size = vec2{ 3.f, 4.f },
+                                .position = glm::vec2(1.f, 2.f),
+                                .size = glm::vec2(3.f, 4.f),
                                 .overlayTexture = std::filesystem::absolute("ghi"),
                                 .blendMaskTexture = std::filesystem::absolute("jkl"),
                                 .blackLevelMaskTexture = std::filesystem::absolute("mno"),

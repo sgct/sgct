@@ -12,7 +12,7 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/engine.h>
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <array>
 
 namespace sgct {
@@ -31,8 +31,8 @@ public:
     float scale() const;
     void setScale(float scale);
 
-    vec2 offset() const;
-    void setOffset(vec2 offset);
+    glm::vec2 offset() const;
+    void setOffset(glm::vec2 offset);
 
 private:
     const Engine::Statistics& _statistics;
@@ -114,7 +114,7 @@ private:
     Histogram _histogram;
 
     float _scale = 0.5f;
-    vec2 _offset;
+    glm::vec2 _offset = glm::vec2(0.f, 0.f);
 };
 
 } // namespace sgct

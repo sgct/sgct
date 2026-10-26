@@ -16,7 +16,6 @@
 #include <sgct/format.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/math.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/openxr.h>
@@ -25,11 +24,9 @@
 #include <sgct/statisticsrenderer.h>
 #include <glad/glad.h>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstring>
 #include <functional>
 #include <stdexcept>
 #include <tuple>
@@ -180,7 +177,7 @@ namespace {
         }
     }
 
-    sgct::ivec2 bakeSize(std::optional<sgct::ivec2> size, int monitorIndex) {
+    glm::ivec2 bakeSize(std::optional<glm::ivec2> size, int monitorIndex) {
         if (size.has_value()) {
             return *size;
         }
@@ -193,72 +190,64 @@ namespace {
         monitorIndex = std::clamp(monitorIndex, 0, count - 1);
 
         const GLFWvidmode* mode = glfwGetVideoMode(monitors[monitorIndex]);
-        return sgct::ivec2(
+        return glm::ivec2(
             static_cast<int>(mode->width * ScaleFactor),
             static_cast<int>((mode->width / AspectRatio) * ScaleFactor)
         );
     }
 
-    sgct::mat4 convert(const glm::mat4& matrix) {
-        sgct::mat4 result;
-        std::memcpy(result.values.data(), glm::value_ptr(matrix), sizeof(float[16]));
-        return result;
-    }
-
-    sgct::mat4 viewMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
-                          sgct::FrustumMode frustum)
+    glm::mat4 viewMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
+                         sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-            return convert(
-                sgct::openxr::eyeToHeadTransform(frustum) * sgct::openxr::poseMatrix()
-            );
+            return sgct::openxr::eyeToHeadTransform(frustum) * sgct::openxr::poseMatrix();
         }
 #endif // SGCT_HAS_OPENXR
         return viewport.projection(frustum).viewMatrix();
     }
 
-    sgct::mat4 projectionMatrix(const sgct::Window& window,
-                                const sgct::Viewport& viewport, sgct::FrustumMode frustum)
+    glm::mat4 projectionMatrix(const sgct::Window& window,
+                               const sgct::Viewport& viewport, sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-            return convert(sgct::openxr::eyeProjectionMatrix(
+            return sgct::openxr::eyeProjectionMatrix(
                 frustum,
                 sgct::Engine::instance().nearClipPlane(),
                 sgct::Engine::instance().farClipPlane()
-            ));
+            );
         }
 #endif // SGCT_HAS_OPENXR
         return viewport.projection(frustum).projectionMatrix();
     }
 
-    sgct::mat4 viewProjectionMatrix(const sgct::Window& window,
-                                    const sgct::Viewport& viewport,
-                                    sgct::FrustumMode frustum)
+    glm::mat4 viewProjectionMatrix(const sgct::Window& window,
+                                   const sgct::Viewport& viewport,
+                                   sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-            return convert(sgct::openxr::currentViewProjectionMatrix(frustum));
+            return sgct::openxr::currentViewProjectionMatrix(frustum);
         }
 #endif // SGCT_HAS_OPENXR
         return viewport.projection(frustum).viewProjectionMatrix();
     }
 
-    sgct::ivec2 renderBufferSize(const sgct::Window& window, sgct::FrustumMode) {
+    glm::ivec2 renderBufferSize(const sgct::Window& window, sgct::FrustumMode) {
         return window.framebufferResolution();
     }
 
 #ifdef SGCT_HAS_OPENXR
-    sgct::ivec2 openXRFramebufferResolution(const sgct::Window& window) {
+    glm::ivec2 openXRFramebufferResolution(const sgct::Window& window) {
         if (!window.isOpenXREnabled() || !sgct::openxr::isHMDActive()) {
             return window.framebufferResolution();
         }
 
-        const sgct::ivec2 left = sgct::openxr::eyeResolution(
+        const glm::ivec2 left = sgct::openxr::eyeResolution(
             sgct::FrustumMode::StereoLeft
         );
-        const sgct::ivec2 right = sgct::openxr::eyeResolution(
+        const glm::ivec2 right = sgct::openxr::eyeResolution(
             sgct::FrustumMode::StereoRight
         );
         const int eyeWidth = std::max(left.x, right.x);
@@ -270,27 +259,24 @@ namespace {
         switch (window.stereoMode()) {
             case sgct::Window::StereoMode::SideBySide:
             case sgct::Window::StereoMode::SideBySideInverted:
-                return sgct::ivec2{ eyeWidth * 2, eyeHeight };
+                return glm::ivec2(eyeWidth * 2, eyeHeight);
             case sgct::Window::StereoMode::TopBottom:
             case sgct::Window::StereoMode::TopBottomInverted:
-                return sgct::ivec2{ eyeWidth, eyeHeight * 2 };
+                return glm::ivec2(eyeWidth, eyeHeight * 2);
             case sgct::Window::StereoMode::NoStereo:
                 return left;
             default:
-                return sgct::ivec2{ eyeWidth, eyeHeight };
+                return glm::ivec2(eyeWidth, eyeHeight);
         }
     }
 #endif // SGCT_HAS_OPENXR
 
-    sgct::vec2 viewportRenderSize(const sgct::Window& window,
-                                  const sgct::Viewport& viewport,
-                                  sgct::FrustumMode frustum)
+    glm::vec2 viewportRenderSize(const sgct::Window& window,
+                                 const sgct::Viewport& viewport,
+                                 sgct::FrustumMode frustum)
     {
-        const sgct::ivec2 res = renderBufferSize(window, frustum);
-        return sgct::vec2{
-            res.x * viewport.size().x,
-            res.y * viewport.size().y
-        };
+        const glm::ivec2 res = renderBufferSize(window, frustum);
+        return glm::vec2(res) * viewport.size();
     }
 } // namespace
 
@@ -421,8 +407,8 @@ config::Window createScalableConfiguration(
     res.isDecorated = res.isDecorated.value_or(false);
     res.draw2D = res.draw2D.value_or(false);
 
-    res.pos = res.pos.value_or(ivec2{ 0, 0 });
-    res.size =  ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
+    res.pos = res.pos.value_or(glm::ivec2(0, 0));
+    res.size = glm::ivec2(static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres));
     res.scalable = scalable;
 
     if (mesh.Projection == EasyBlendSDK_PROJECTION_Perspective) {
@@ -443,17 +429,16 @@ config::Window createScalableConfiguration(
         EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
         // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
         // right-handed coordinate system
-        const glm::quat q = glm::quat(glm::vec3(
+        proj.orientation = glm::quat(glm::vec3(
             glm::radians(-pitch),
             glm::radians(-heading),
             glm::radians(roll)
         ));
-        proj.orientation = quat(q.x, q.y, q.z, q.w);
-        proj.offset = vec3 {
+        proj.offset = glm::vec3(
             static_cast<float>(mesh.Frustum.XOffset),
             static_cast<float>(mesh.Frustum.YOffset),
             static_cast<float>(mesh.Frustum.ZOffset)
-        };
+        );
 
         res.viewports = {
             config::Viewport {.projection = proj }
@@ -463,13 +448,13 @@ config::Window createScalableConfiguration(
         // If the projection is orthographic, we need to create a fisheye projection
         // instead
 
-        res.resolution = ivec2 {
+        res.resolution = glm::ivec2(
             scalable.orthographicResolution.value_or(4096),
             scalable.orthographicResolution.value_or(4096)
-        };
+        );
         config::FisheyeProjection proj = {
             .quality = scalable.orthographicQuality.value_or(2048),
-            .background = vec4 { 0.f, 0.f, 0.f, 1.f }
+            .background = glm::vec4(0.f, 0.f, 0.f, 1.f)
         };
 
         res.viewports = {
@@ -570,7 +555,7 @@ Window::Window(const config::Window& window)
             Log::Error("Error creating NDI sender");
         }
 
-        ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
+        glm::ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
         _ndi.videoFrame.xres = res.x;
         _ndi.videoFrame.yres = res.y;
         _ndi.videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
@@ -650,7 +635,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         }
 
         const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
-        _windowSize = ivec2{ currentMode->width, currentMode->height };
+        _windowSize = glm::ivec2(currentMode->width, currentMode->height);
 
         glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
@@ -768,7 +753,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
                 // resolution b, which is undefined behavior. _pendingWindowRes is checked
                 // in Window::updateResolution, which is called from Engine's render loop
                 // after glfwPollEvents
-                win->_pendingWindowSize = ivec2 { width, height };
+                win->_pendingWindowSize = glm::ivec2(width, height);
             }
         );
         glfwSetFramebufferSizeCallback(
@@ -777,7 +762,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
                 Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
                 width = std::max(width, 1);
                 height = std::max(height, 1);
-                win->setFramebufferResolution(sgct::ivec2{ width, height });
+                win->setFramebufferResolution(glm::ivec2(width, height));
             }
         );
         glfwSetWindowFocusCallback(
@@ -899,7 +884,7 @@ void Window::initialize() {
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     ));
 
-    const ivec2 res =
+    const glm::ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
         _windowSize :
         framebufferResolution();
@@ -985,7 +970,7 @@ void Window::updateResolutions() {
 
 #ifdef SGCT_HAS_OPENXR
     if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-        const ivec2 resolution = openXRFramebufferResolution(*this);
+        const glm::ivec2 resolution = openXRFramebufferResolution(*this);
         if (resolution != _framebufferRes) {
             _framebufferRes = resolution;
             _windowResChanged = true;
@@ -1068,7 +1053,7 @@ void Window::update() {
 
     resizeFBOs();
 
-    const ivec2 res =
+    const glm::ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
         _windowSize :
         framebufferResolution();
@@ -1163,10 +1148,10 @@ void Window::renderFBOTexture() {
         FrustumMode::StereoLeft :
         FrustumMode::Mono;
 
-    const ivec2 size = ivec2{
+    const glm::ivec2 size = glm::ivec2(
         static_cast<int>(std::ceil(scale().x * _windowSize.x)),
         static_cast<int>(std::ceil(scale().y * _windowSize.y))
-    };
+    );
 
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(*this, BufferMode::BackBufferBlack, frustum);
@@ -1443,7 +1428,7 @@ bool Window::isOpenXREnabled() const {
     return _useOpenXR;
 }
 
-vec2 Window::scale() const {
+glm::vec2 Window::scale() const {
     return _scale;
 }
 
@@ -1451,7 +1436,7 @@ float Window::aspectRatio() const {
     return _aspectRatio;
 }
 
-ivec2 Window::windowSize() const {
+glm::ivec2 Window::windowSize() const {
     return _windowSize;
 }
 
@@ -1490,13 +1475,13 @@ void Window::renderScreenQuad() const {
     glBindVertexArray(0);
 }
 
-void Window::setFramebufferResolution(ivec2 resolution) {
+void Window::setFramebufferResolution(glm::ivec2 resolution) {
     if (!_useFixResolution) {
         _pendingFramebufferRes = std::move(resolution);
     }
 }
 
-ivec2 Window::framebufferResolution() const {
+glm::ivec2 Window::framebufferResolution() const {
     return _framebufferRes;
 }
 
@@ -1680,7 +1665,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         }
     }(type);
 
-    const ivec2 res = _framebufferRes;
+    const glm::ivec2 res = _framebufferRes;
     glTextureStorage2D(id, 1, formats, res.x, res.y);
     Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
 }
@@ -1689,7 +1674,7 @@ void Window::resizeFBOs() {
     bool updateFBO = !_useFixResolution;
 #ifdef SGCT_HAS_OPENXR
     if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-        const ivec2 resolution = openXRFramebufferResolution(*this);
+        const glm::ivec2 resolution = openXRFramebufferResolution(*this);
         if (resolution != _framebufferRes) {
             updateFBO = true;
         }
@@ -1898,7 +1883,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
                 GL_COLOR_ATTACHMENT0
             );
 
-            const ivec2 framebufferSize = framebufferResolution();
+            const glm::ivec2 framebufferSize = framebufferResolution();
             glViewport(0, 0, framebufferSize.x, framebufferSize.y);
             glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -2082,7 +2067,7 @@ void Window::loadShaders() {
 
         const int id = _fxaa->shader.id();
         _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
-        const ivec2 framebufferSize = framebufferResolution();
+        const glm::ivec2 framebufferSize = framebufferResolution();
         glProgramUniform1f(id, _fxaa->sizeX, static_cast<float>(framebufferSize.x));
 
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");

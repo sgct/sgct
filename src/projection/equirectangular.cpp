@@ -51,7 +51,7 @@ EquirectangularProjection::EquirectangularProjection(
                                                                      const Window& parent,
                                                                                User& user)
     : NonLinearProjection(parent)
-    , _orientation(config.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }))
+    , _orientation(config.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)))
 {
     setUser(user);
     setUseDepthTransformation(true);
@@ -110,9 +110,9 @@ void EquirectangularProjection::renderCubemap(FrustumMode frustumMode) const {
     renderCubeFace(_subViewports.back, 5, frustumMode);
 }
 
-void EquirectangularProjection::update(const vec2&) const {}
+void EquirectangularProjection::update(const glm::vec2&) const {}
 
-void EquirectangularProjection::setOrientation(quat orientation) {
+void EquirectangularProjection::setOrientation(glm::quat orientation) {
     _orientation = std::move(orientation);
 }
 
@@ -157,7 +157,7 @@ void EquirectangularProjection::initViewports() {
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
     const glm::mat4 baseRot =
-        glm::mat4_cast(glm::make_quat(&_orientation.x)) *
+        glm::mat4_cast(_orientation) *
         glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
 
     const glm::mat4 rollRot = glm::rotate(
@@ -180,11 +180,7 @@ void EquirectangularProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rotMat * upperRight);
-        _subViewports.right.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.right.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // -X face
@@ -203,11 +199,7 @@ void EquirectangularProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
         const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
-        _subViewports.left.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.left.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // +Y face
@@ -224,11 +216,7 @@ void EquirectangularProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
-        _subViewports.bottom.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.bottom.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // -Y face
@@ -247,11 +235,7 @@ void EquirectangularProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rotMat * upperLeft);
         const glm::vec3 ur = glm::vec3(rotMat * upperRight);
-        _subViewports.top.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.top.projectionPlane().setCoordinates(ll, ul, ur);
     }
 
     // +Z face
@@ -259,11 +243,7 @@ void EquirectangularProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
         const glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
-        _subViewports.front.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.front.projectionPlane().setCoordinates(ll, ul, ur);
     }
     // -Z face
     {
@@ -275,11 +255,7 @@ void EquirectangularProjection::initViewports() {
         const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
         const glm::vec3 ul = glm::vec3(r * upperLeftBase);
         const glm::vec3 ur = glm::vec3(r * upperRightBase);
-        _subViewports.back.projectionPlane().setCoordinates(
-            vec3(ll.x, ll.y, ll.z),
-            vec3(ul.x, ul.y, ul.z),
-            vec3(ur.x, ur.y, ur.z)
-        );
+        _subViewports.back.projectionPlane().setCoordinates(ll, ul, ur);
     }
 }
 

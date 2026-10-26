@@ -13,6 +13,7 @@
 
 #include <sgct/baseviewport.h>
 #include <sgct/definitions.h>
+#include <glm/glm.hpp>
 #include <cstdint>
 #include <memory>
 
@@ -40,7 +41,7 @@ public:
 
     virtual void render(const BaseViewport& viewport, FrustumMode frustumMode) const = 0;
     virtual void renderCubemap(FrustumMode frustumMode) const = 0;
-    virtual void update(const vec2& size) const = 0;
+    virtual void update(const glm::vec2& size) const = 0;
 
     virtual void updateFrustums(FrustumMode mode, float nearClip, float farClip);
 
@@ -73,7 +74,7 @@ public:
     /**
      * \return The resolution of the cubemap
      */
-    ivec2 cubemapResolution() const;
+    glm::ivec2 cubemapResolution() const;
 
 protected:
     virtual void initTextures(unsigned int internalFormat);
@@ -120,8 +121,8 @@ protected:
     bool _useDepthTransformation = false;
     bool _isStereo = false;
 
-    ivec2 _cubemapResolution = ivec2(512, 512);
-    vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);
+    glm::ivec2 _cubemapResolution = glm::ivec2(512, 512);
+    glm::vec4 _clearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);
 
     std::unique_ptr<OffScreenBuffer> _cubeMapFbo;
 };

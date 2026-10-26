@@ -12,8 +12,8 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/math.h>
 #include <sgct/shaderprogram.h>
+#include <glm/glm.hpp>
 #include <array>
 #include <string>
 #include <vector>
@@ -47,7 +47,7 @@ public:
     /**
      * Update projection when aspect ratio changes for the viewport.
      */
-    void update(const vec2& size) const override;
+    void update(const glm::vec2& size) const override;
 
     /**
      * Render the non linear projection to currently bounded FBO.
@@ -58,7 +58,7 @@ public:
      * Render the enabled faces of the cubemap.
      */
 
-    void setSpoutRigOrientation(vec3 orientation);
+    void setSpoutRigOrientation(glm::vec3 orientation);
 
 private:
     void initTextures(unsigned int internalFormat) override;
@@ -105,7 +105,7 @@ private:
     const std::string _ndiGroups;
 #endif // SGCT_HAS_NDI
 
-    vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
+    glm::vec3 _rigOrientation = glm::vec3(0.f, 0.f, 0.f);
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;

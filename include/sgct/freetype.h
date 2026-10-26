@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <string>
 
 namespace sgct {
@@ -26,7 +26,7 @@ class Font;
 enum class Alignment { TopLeft, TopCenter, TopRight };
 
 SGCT_EXPORT void print(const Window& window, const BaseViewport& viewport, Font& font,
-    Alignment mode, float x, float y, const vec4& color, std::string text);
+    Alignment mode, float x, float y, const glm::vec4& color, std::string text);
 
 } // namespace sgct::text
 

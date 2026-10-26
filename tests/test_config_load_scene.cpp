@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -55,7 +54,7 @@ TEST_CASE("Load: Scene/Offset", "[parse]") {
             .success = true,
             .masterAddress = "localhost",
             .scene = Scene {
-                .offset = vec3{ 0.f, 0.f, 0.f }
+                .offset = glm::vec3(0.f, 0.f, 0.f)
             }
         };
 
@@ -82,7 +81,7 @@ TEST_CASE("Load: Scene/Offset", "[parse]") {
             .success = true,
             .masterAddress = "localhost",
             .scene = Scene {
-                .offset = vec3{ 1.f, 2.f, 3.f }
+                .offset = glm::vec3(1.f, 2.f, 3.f)
             }
         };
 
@@ -111,7 +110,7 @@ TEST_CASE("Load: Scene/Orientation", "[parse]") {
             .success = true,
             .masterAddress = "localhost",
             .scene = Scene {
-                .orientation = quat{ 0.f, 0.f, 0.f, 0.f }
+                .orientation = glm::quat(0.f, 0.f, 0.f, 0.f)
             }
         };
 
@@ -138,7 +137,7 @@ TEST_CASE("Load: Scene/Orientation", "[parse]") {
             .success = true,
             .masterAddress = "localhost",
             .scene = Scene {
-                .orientation = quat{ 2.f, 3.f, 4.f, 1.f }
+                .orientation = glm::quat(1.f, 2.f, 3.f, 4.f)
             }
         };
 
@@ -224,8 +223,8 @@ TEST_CASE("Load: Scene/Full", "[parse]") {
         .success = true,
         .masterAddress = "localhost",
         .scene = Scene {
-            .offset = vec3{ 1.f, 2.f, 3.f },
-            .orientation = quat{ 5.f, 6.f, 7.f, 4.f },
+            .offset = glm::vec3(1.f, 2.f, 3.f),
+            .orientation = glm::quat(4.f, 5.f, 6.f, 7.f),
             .scale = 8.f
         }
     };

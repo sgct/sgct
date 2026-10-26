@@ -39,8 +39,8 @@ namespace {
 
 namespace sgct::correction {
 
-Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
-                          const vec2& size)
+Buffer generateSimCADMesh(const std::filesystem::path& path, const glm::vec2& pos,
+                          const glm::vec2& size)
 {
     ZoneScoped;
 

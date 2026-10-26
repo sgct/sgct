@@ -13,7 +13,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <glm/glm.hpp>
 #include <unordered_map>
 
 typedef struct FT_LibraryRec_* FT_Library;
@@ -33,8 +33,8 @@ public:
     struct FontFaceData {
         unsigned int texId = 0;
         float distToNextChar = 0.f;
-        vec2 pos = vec2{ 0.f, 0.f };
-        vec2 size = vec2{ 0.f, 0.f };
+        glm::vec2 pos = glm::vec2(0.f, 0.f);
+        glm::vec2 size = glm::vec2(0.f, 0.f);
         FT_Glyph glyph = nullptr;
     };
 

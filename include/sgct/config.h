@@ -271,7 +271,7 @@ struct SGCT_EXPORT SphericalMirrorProjection {
         bool operator==(const Mesh&) const noexcept = default;
     };
     std::optional<int> quality;
-    std::optional<float> tilt;
+    std::optional<quat> orientation;
     std::optional<vec4> background;
     Mesh mesh;
 

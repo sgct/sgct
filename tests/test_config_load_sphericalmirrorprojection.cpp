@@ -11,10 +11,26 @@
 
 #include <sgct/config.h>
 #include <sgct/math.h>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <cstring>
 #include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
+
+namespace {
+    sgct::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
+        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
+
+        sgct::quat res;
+        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
+        return res;
+    }
+} // namespace
 
 TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
     {
@@ -1626,7 +1642,77 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     }
 }
 
-TEST_CASE("Load: SphericalMirrorProjection/Tilt", "[parse]") {
+TEST_CASE("Load: SphericalMirrorProjection/Orientation", "[parse]") {
+    constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "def",
+                  "right": "ghi",
+                  "top": "jkl"
+                },
+                "orientation": { "pitch": 1.0, "yaw": 2.0, "roll": 3.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = ivec2{ 640, 480 },
+                        .viewports = {
+                            Viewport {
+                                .projection = SphericalMirrorProjection {
+                                    .orientation = fromEuler(2.f, 1.f, 3.f),
+                                    .mesh = SphericalMirrorProjection::Mesh {
+                                        .bottom = "abc",
+                                        .left = "def",
+                                        .right = "ghi",
+                                        .top = "jkl"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+
+    const std::string str = serializeConfig(Object);
+    const config::Cluster output = readJsonConfig(str);
+    CHECK(output == Object);
+}
+
+TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
@@ -1673,7 +1759,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt", "[parse]") {
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .tilt = 1.f,
+                                        .orientation = fromEuler(0.f, -1.f, 0.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
                                             .bottom = "abc",
                                             .left = "def",
@@ -1743,7 +1829,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt", "[parse]") {
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .tilt = 2.f,
+                                        .orientation = fromEuler(0.f, -2.f, 0.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
                                             .bottom = "123",
                                             .left = "456",
@@ -2055,7 +2141,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
 TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
+  "version": 2,
   "masteraddress": "localhost",
   "nodes": [
     {
@@ -2075,7 +2161,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
                   "right": "ghi",
                   "top": "jkl"
                 },
-                "tilt": 1.0,
+                "orientation": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 },
                 "background": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 }
               }
             }
@@ -2101,7 +2187,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
                             Viewport {
                                 .projection = SphericalMirrorProjection {
                                     .quality = 256,
-                                    .tilt = 1.f,
+                                    .orientation = quat{ 1.f, 2.f, 3.f, 4.f },
                                     .background = vec4{ 1.f, 2.f, 3.f, 4.f },
                                     .mesh = SphericalMirrorProjection::Mesh {
                                         .bottom = "abc",
@@ -2229,6 +2315,114 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
 
         CHECK_THROWS_AS(validate(Config), ParsingError);
     }
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Orientation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "orientation": "abc"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Tilt (Version 1)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "tilt": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Tilt (Version 2)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "tilt": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
 TEST_CASE("Validate: SphericalMirrorProjection/Tilt/Wrong Type", "[validate]") {

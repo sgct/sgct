@@ -342,7 +342,7 @@
         "quality": {
           "$ref": "#/$defs/projectionquality"
         },
-        "tilt": { "type": "number" },
+        "orientation": { "$ref": "#/$defs/orientation" },
         "background": { "$ref": "#/$defs/color" },
         "geometry": {
           "type": "object",

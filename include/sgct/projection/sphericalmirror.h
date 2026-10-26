@@ -44,12 +44,11 @@ public:
     void renderCubemap(FrustumMode frustumMode) const override;
 
     /**
-     * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
-     * from the horizontal.
+     * Set the orientation of the dome used in the spherical mirror renderer.
      *
-     * \param angle The tilt angle in degrees
+     * \param orientation The orientation of the dome
      */
-    void setTilt(float angle);
+    void setOrientation(quat orientation);
 
 private:
     void initTextures(unsigned int internalFormat) override;
@@ -57,7 +56,7 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _tilt;
+    quat _orientation;
     float _diameter = 2.4f;
 
     // mesh data

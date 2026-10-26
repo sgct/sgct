@@ -1122,8 +1122,7 @@ TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
         std::get<SphericalMirrorProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 2048);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 1.f);
     CHECK(p.background->y == 0.1f);

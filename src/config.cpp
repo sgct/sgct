@@ -1248,7 +1248,7 @@ static void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
-    parseValue(j, "tilt", p.tilt);
+    parseValue(j, "orientation", p.orientation);
     parseValue(j, "background", p.background);
 
     if (auto it = j.find("geometry");  it != j.end()) {
@@ -1271,8 +1271,8 @@ static void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
         j["quality"] = std::to_string(*p.quality);
     }
 
-    if (p.tilt.has_value()) {
-        j["tilt"] = *p.tilt;
+    if (p.orientation.has_value()) {
+        j["orientation"] = *p.orientation;
     }
 
     if (p.background.has_value()) {
@@ -2040,7 +2040,7 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 namespace {
     constexpr int CurrentConfigVersion = 2;
 
-    // Version 1 -> 2: FisheyeProjection 'tilt' was replaced by 'orientation'
+    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation'
     void upgradeConfigV1ToV2(nlohmann::json& j) {
         auto nodes = j.find("nodes");
         if (nodes == j.end() || !nodes->is_array()) {
@@ -2058,8 +2058,12 @@ namespace {
                 }
                 for (nlohmann::json& viewport : *viewports) {
                     auto proj = viewport.find("projection");
-                    if (proj == viewport.end() || !proj->is_object() ||
-                        proj->value("type", "") != "FisheyeProjection")
+                    if (proj == viewport.end() || !proj->is_object()) {
+                        continue;
+                    }
+                    const std::string type = proj->value("type", "");
+                    if (type != "FisheyeProjection" &&
+                        type != "SphericalMirrorProjection")
                     {
                         continue;
                     }

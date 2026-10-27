@@ -340,11 +340,7 @@ struct SGCT_EXPORT Window {
         CheckerboardInverted,
         VerticalInterlaced,
         VerticalInterlacedInverted,
-        Dummy,
-        SideBySide,
-        SideBySideInverted,
-        TopBottom,
-        TopBottomInverted
+        Dummy
     };
 
     struct Spout {

@@ -79,7 +79,7 @@ void CylindricalProjection::render(const BaseViewport& viewport,
     ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(frustumMode);
+    viewport.setupViewport();
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);

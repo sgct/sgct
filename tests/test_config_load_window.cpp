@@ -3019,9 +3019,315 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
     }
+}
 
+TEST_CASE("Load: Window/Stereo/SideBySide (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
     {
-        constexpr std::string_view String = R"(
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "stereo": "side_by_side",
+          "viewports": [
+            {
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 80.0, "vfov": 50.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    const PlanarProjection proj = {
+        .fov = PlanarProjection::FOV {
+            .down = -25.f,
+            .left = -40.f,
+            .right = 40.f,
+            .up = 25.f
+        }
+    };
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = glm::ivec2(640, 480),
+                        .viewports = {
+                            Viewport {
+                                .position = glm::vec2(0.f, 0.f),
+                                .size = glm::vec2(0.5f, 1.f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoLeft
+                            },
+                            Viewport {
+                                .position = glm::vec2(0.5f, 0.f),
+                                .size = glm::vec2(0.5f, 1.f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoRight
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+}
+
+TEST_CASE("Load: Window/Stereo/SideBySideInverted (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "stereo": "side_by_side_inverted",
+          "viewports": [
+            {
+              "pos": { "x": 0.5, "y": 0.0 },
+              "size": { "x": 0.5, "y": 1.0 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 80.0, "vfov": 50.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    const PlanarProjection proj = {
+        .fov = PlanarProjection::FOV {
+            .down = -25.f,
+            .left = -40.f,
+            .right = 40.f,
+            .up = 25.f
+        }
+    };
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = glm::ivec2(640, 480),
+                        .viewports = {
+                            Viewport {
+                                .position = glm::vec2(0.75f, 0.f),
+                                .size = glm::vec2(0.25f, 1.f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoLeft
+                            },
+                            Viewport {
+                                .position = glm::vec2(0.25f, 0.f),
+                                .size = glm::vec2(0.25f, 1.f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoRight
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+}
+
+TEST_CASE("Load: Window/Stereo/TopBottom (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "stereo": "top_bottom",
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 0.5, "y": 1.0 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 80.0, "vfov": 50.0 }
+              }
+            },
+            {
+              "pos": { "x": 0.5, "y": 0.0 },
+              "size": { "x": 0.5, "y": 1.0 },
+              "eye": "center",
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 80.0, "vfov": 50.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    const PlanarProjection proj = {
+        .fov = PlanarProjection::FOV {
+            .down = -25.f,
+            .left = -40.f,
+            .right = 40.f,
+            .up = 25.f
+        }
+    };
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = glm::ivec2(640, 480),
+                        .viewports = {
+                            Viewport {
+                                .position = glm::vec2(0.f, 0.5f),
+                                .size = glm::vec2(0.5f, 0.5f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoLeft
+                            },
+                            Viewport {
+                                .position = glm::vec2(0.f, 0.f),
+                                .size = glm::vec2(0.5f, 0.5f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoRight
+                            },
+                            Viewport {
+                                .position = glm::vec2(0.5f, 0.5f),
+                                .size = glm::vec2(0.5f, 0.5f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoLeft
+                            },
+                            Viewport {
+                                .position = glm::vec2(0.5f, 0.f),
+                                .size = glm::vec2(0.5f, 0.5f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoRight
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+}
+
+TEST_CASE("Load: Window/Stereo/TopBottomInverted (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "stereo": "top_bottom_inverted",
+          "viewports": [
+            {
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 80.0, "vfov": 50.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    const PlanarProjection proj = {
+        .fov = PlanarProjection::FOV {
+            .down = -25.f,
+            .left = -40.f,
+            .right = 40.f,
+            .up = 25.f
+        }
+    };
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = glm::ivec2(640, 480),
+                        .viewports = {
+                            Viewport {
+                                .position = glm::vec2(0.f, 0.f),
+                                .size = glm::vec2(1.f, 0.5f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoLeft
+                            },
+                            Viewport {
+                                .position = glm::vec2(0.f, 0.5f),
+                                .size = glm::vec2(1.f, 0.5f),
+                                .projection = proj,
+                                .eye = Viewport::Eye::StereoRight
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+}
+
+TEST_CASE("Load: Window/Stereo/SideBySide/No Viewports (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -3040,35 +3346,30 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
 }
 )";
 
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .size = glm::ivec2(640, 480),
-                            .stereo = Window::StereoMode::SideBySide
-                        }
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = glm::ivec2(640, 480)
                     }
                 }
             }
-        };
+        }
+    };
 
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+}
 
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
+TEST_CASE("Load: Window/Stereo/SideBySide (Version 2)", "[parse]") {
+    constexpr std::string_view String = R"(
 {
-  "version": 1,
+  "version": 2,
   "masteraddress": "localhost",
   "nodes": [
     {
@@ -3077,7 +3378,7 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
       "windows": [
         {
           "size": { "x": 640, "y": 480 },
-          "stereo": "side_by_side_inverted"
+          "stereo": "side_by_side"
         }
       ]
     }
@@ -3085,120 +3386,13 @@ TEST_CASE("Load: Window/Stereo", "[parse]") {
 }
 )";
 
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .size = glm::ivec2(640, 480),
-                            .stereo = Window::StereoMode::SideBySideInverted
-                        }
-                    }
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "abc",
-      "port": 1,
-      "windows": [
-        {
-          "size": { "x": 640, "y": 480 },
-          "stereo": "top_bottom"
-        }
-      ]
-    }
-  ]
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .size = glm::ivec2(640, 480),
-                            .stereo = Window::StereoMode::TopBottom
-                        }
-                    }
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "abc",
-      "port": 1,
-      "windows": [
-        {
-          "size": { "x": 640, "y": 480 },
-          "stereo": "top_bottom_inverted"
-        }
-      ]
-    }
-  ]
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .nodes = {
-                Node {
-                    .address = "abc",
-                    .port = 1,
-                    .windows = {
-                        Window {
-                            .size = glm::ivec2(640, 480),
-                            .stereo = Window::StereoMode::TopBottomInverted
-                        }
-                    }
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
+    CHECK_THROWS_MATCHES(
+        sgct::readJsonConfig(String),
+        std::runtime_error,
+        Catch::Matchers::Message(
+            "[ReadConfig] (6085): Unknown stereo mode side_by_side"
+        )
+    );
 }
 
 TEST_CASE("Load: Window/Spout/Enabled", "[parse]") {
@@ -4989,6 +5183,60 @@ TEST_CASE("Validate: Window/Stereo/Illegal Value", "[validate]") {
       "windows": [
         {
           "stereo": "does-not-exist"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Stereo/SideBySide (Version 1)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "stereo": "side_by_side",
+          "viewports": [
+            {
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 80.0, "vfov": 50.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
+}
+
+TEST_CASE("Validate: Window/Stereo/SideBySide (Version 2)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "stereo": "side_by_side"
         }
       ]
     }

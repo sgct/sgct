@@ -96,7 +96,7 @@ void SphericalMirrorProjection::render(const BaseViewport& viewport,
 {
     ZoneScoped;
 
-    viewport.setupViewport(frustumMode);
+    viewport.setupViewport();
 
     const float aspect =
         viewport.window().aspectRatio() * viewport.size().x / viewport.size().y;

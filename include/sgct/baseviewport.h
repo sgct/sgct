@@ -30,7 +30,7 @@ public:
     explicit BaseViewport(const Window& parent, FrustumMode eye = FrustumMode::Mono);
     virtual ~BaseViewport();
 
-    void setupViewport(FrustumMode frustum) const;
+    void setupViewport() const;
 
     const Projection& projection(FrustumMode frustumMode) const;
     ProjectionPlane& projectionPlane();

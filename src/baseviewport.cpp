@@ -31,61 +31,16 @@ BaseViewport::BaseViewport(const Window& parent, FrustumMode eye)
 
 BaseViewport::~BaseViewport() = default;
 
-void BaseViewport::setupViewport(FrustumMode frustum) const {
+void BaseViewport::setupViewport() const {
     ZoneScoped;
 
     const glm::ivec2 res = _parent.framebufferResolution();
-    glm::ivec4 vpCoordinates = glm::ivec4(
+    const glm::ivec4 vpCoordinates = glm::ivec4(
         static_cast<int>(_position.x * res.x),
         static_cast<int>(_position.y * res.y),
         static_cast<int>(_size.x * res.x),
         static_cast<int>(_size.y * res.y)
     );
-
-    if (frustum == FrustumMode::StereoLeft) {
-        switch (_parent.stereoMode()) {
-            case Window::StereoMode::SideBySide:
-                vpCoordinates.x /= 2;
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::SideBySideInverted:
-                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
-                vpCoordinates.z = vpCoordinates.z / 2;
-                break;
-            case Window::StereoMode::TopBottom:
-                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
-                vpCoordinates.w /= 2;
-                break;
-            case Window::StereoMode::TopBottomInverted:
-                vpCoordinates.y /= 2;
-                vpCoordinates.w /= 2;
-                break;
-            default:
-                break;
-        }
-    }
-    else {
-        switch (_parent.stereoMode()) {
-            case Window::StereoMode::SideBySide:
-                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::SideBySideInverted:
-                vpCoordinates.x /= 2;
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::TopBottom:
-                vpCoordinates.y /= 2;
-                vpCoordinates.w /= 2;
-                break;
-            case Window::StereoMode::TopBottomInverted:
-                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
-                vpCoordinates.w /= 2;
-                break;
-            default:
-                break;
-        }
-    }
 
     glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);

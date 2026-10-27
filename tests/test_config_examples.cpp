@@ -38,31 +38,47 @@ TEST_CASE("Load Example: 3DTV", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == true);
-    REQUIRE(w.stereo.has_value());
-    CHECK(*w.stereo == Window::StereoMode::SideBySide);
+    CHECK(!w.stereo.has_value());
     CHECK(w.size->x == 1920);
     CHECK(w.size->y == 1080);
 
-    REQUIRE(w.viewports.size() == 1);
-    const Viewport& v = w.viewports[0];
-    REQUIRE(v.position.has_value());
-    CHECK(v.position->x == 0.f);
-    CHECK(v.position->y == 0.f);
-    REQUIRE(v.size.has_value());
-    CHECK(v.size->x == 1.f);
-    CHECK(v.size->y == 1.f);
+    REQUIRE(w.viewports.size() == 2);
+    {
+        const Viewport& v = w.viewports[0];
+        REQUIRE(v.eye.has_value());
+        CHECK(*v.eye == Viewport::Eye::StereoLeft);
+        REQUIRE(v.position.has_value());
+        CHECK(v.position->x == 0.f);
+        CHECK(v.position->y == 0.f);
+        REQUIRE(v.size.has_value());
+        CHECK(v.size->x == 0.5f);
+        CHECK(v.size->y == 1.f);
+    }
+    {
+        const Viewport& v = w.viewports[1];
+        REQUIRE(v.eye.has_value());
+        CHECK(*v.eye == Viewport::Eye::StereoRight);
+        REQUIRE(v.position.has_value());
+        CHECK(v.position->x == 0.5f);
+        CHECK(v.position->y == 0.f);
+        REQUIRE(v.size.has_value());
+        CHECK(v.size->x == 0.5f);
+        CHECK(v.size->y == 1.f);
+    }
 
-    REQUIRE(std::holds_alternative<ProjectionPlane>(v.projection));
-    const ProjectionPlane& p = std::get<ProjectionPlane>(v.projection);
-    CHECK(p.lowerLeft.x == -1.7156f);
-    CHECK(p.lowerLeft.y == -0.965f);
-    CHECK(p.lowerLeft.z == 0.f);
-    CHECK(p.upperLeft.x == -1.7156f);
-    CHECK(p.upperLeft.y == 0.965f);
-    CHECK(p.upperLeft.z == 0.f);
-    CHECK(p.upperRight.x == 1.7156f);
-    CHECK(p.upperRight.y == 0.965f);
-    CHECK(p.upperRight.z == 0.f);
+    for (const Viewport& v : w.viewports) {
+        REQUIRE(std::holds_alternative<ProjectionPlane>(v.projection));
+        const ProjectionPlane& p = std::get<ProjectionPlane>(v.projection);
+        CHECK(p.lowerLeft.x == -1.7156f);
+        CHECK(p.lowerLeft.y == -0.965f);
+        CHECK(p.lowerLeft.z == 0.f);
+        CHECK(p.upperLeft.x == -1.7156f);
+        CHECK(p.upperLeft.y == 0.965f);
+        CHECK(p.upperLeft.z == 0.f);
+        CHECK(p.upperRight.x == 1.7156f);
+        CHECK(p.upperRight.y == 0.965f);
+        CHECK(p.upperRight.z == 0.f);
+    }
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];
@@ -722,33 +738,49 @@ TEST_CASE("Load Example: Single SBS Stereo", "[parse]") {
     const Window& w = n.windows[0];
     REQUIRE(w.isFullScreen.has_value());
     CHECK(*w.isFullScreen == false);
-    REQUIRE(w.stereo.has_value());
-    CHECK(*w.stereo == Window::StereoMode::SideBySide);
+    CHECK(!w.stereo.has_value());
     REQUIRE(w.pos.has_value());
     CHECK(w.pos->x == 200);
     CHECK(w.pos->y == 300);
     CHECK(w.size->x == 1280);
     CHECK(w.size->y == 360);
 
-    REQUIRE(w.viewports.size() == 1);
-    const Viewport& v = w.viewports[0];
-    REQUIRE(v.position.has_value());
-    CHECK(v.position->x == 0.f);
-    CHECK(v.position->y == 0.f);
-    REQUIRE(v.size.has_value());
-    CHECK(v.size->x == 1.f);
-    CHECK(v.size->y == 1.f);
+    REQUIRE(w.viewports.size() == 2);
+    {
+        const Viewport& v = w.viewports[0];
+        REQUIRE(v.eye.has_value());
+        CHECK(*v.eye == Viewport::Eye::StereoLeft);
+        REQUIRE(v.position.has_value());
+        CHECK(v.position->x == 0.f);
+        CHECK(v.position->y == 0.f);
+        REQUIRE(v.size.has_value());
+        CHECK(v.size->x == 0.5f);
+        CHECK(v.size->y == 1.f);
+    }
+    {
+        const Viewport& v = w.viewports[1];
+        REQUIRE(v.eye.has_value());
+        CHECK(*v.eye == Viewport::Eye::StereoRight);
+        REQUIRE(v.position.has_value());
+        CHECK(v.position->x == 0.5f);
+        CHECK(v.position->y == 0.f);
+        REQUIRE(v.size.has_value());
+        CHECK(v.size->x == 0.5f);
+        CHECK(v.size->y == 1.f);
+    }
 
-    REQUIRE(std::holds_alternative<PlanarProjection>(v.projection));
-    const PlanarProjection& p = std::get<PlanarProjection>(v.projection);
-    CHECK(p.fov.left == -80.f / 2.f);
-    CHECK(p.fov.right == 80.f / 2.f);
-    CHECK(p.fov.up == 50.534015846724f / 2.f);
-    CHECK(p.fov.down == -50.534015846724f / 2.f);
-    REQUIRE(p.orientation.has_value());
-    CHECK(p.orientation->x == 0.f);
-    CHECK(p.orientation->y == 0.f);
-    CHECK(p.orientation->z == 0.f);
+    for (const Viewport& v : w.viewports) {
+        REQUIRE(std::holds_alternative<PlanarProjection>(v.projection));
+        const PlanarProjection& p = std::get<PlanarProjection>(v.projection);
+        CHECK(p.fov.left == -80.f / 2.f);
+        CHECK(p.fov.right == 80.f / 2.f);
+        CHECK(p.fov.up == 50.534015846724f / 2.f);
+        CHECK(p.fov.down == -50.534015846724f / 2.f);
+        REQUIRE(p.orientation.has_value());
+        CHECK(p.orientation->x == 0.f);
+        CHECK(p.orientation->y == 0.f);
+        CHECK(p.orientation->z == 0.f);
+    }
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];

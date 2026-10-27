@@ -476,11 +476,7 @@
             "anaglyph_wimmer",
             "vertical_interlaced",
             "vertical_interlaced_inverted",
-            "test", "dummy",
-            "side_by_side",
-            "side_by_side_inverted",
-            "top_bottom",
-            "top_bottom_inverted"
+            "test", "dummy"
           ]
         },
         "spout": { "$ref": "#/$defs/spout" },

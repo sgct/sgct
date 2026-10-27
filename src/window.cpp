@@ -86,14 +86,6 @@ namespace {
                 return sgct::Window::StereoMode::VerticalInterlacedInverted;
             case StereoMode::Dummy:
                 return sgct::Window::StereoMode::Dummy;
-            case StereoMode::SideBySide:
-                return sgct::Window::StereoMode::SideBySide;
-            case StereoMode::SideBySideInverted:
-                return sgct::Window::StereoMode::SideBySideInverted;
-            case StereoMode::TopBottom:
-                return sgct::Window::StereoMode::TopBottom;
-            case StereoMode::TopBottomInverted:
-                return sgct::Window::StereoMode::TopBottomInverted;
             default:
                 throw std::logic_error("Unhandled case label");
         }
@@ -226,18 +218,30 @@ namespace {
             return window.framebufferResolution();
         }
 
-        switch (window.stereoMode()) {
-            case sgct::Window::StereoMode::SideBySide:
-            case sgct::Window::StereoMode::SideBySideInverted:
-                return glm::ivec2(eyeWidth * 2, eyeHeight);
-            case sgct::Window::StereoMode::TopBottom:
-            case sgct::Window::StereoMode::TopBottomInverted:
-                return glm::ivec2(eyeWidth, eyeHeight * 2);
-            case sgct::Window::StereoMode::NoStereo:
-                return left;
-            default:
-                return glm::ivec2(eyeWidth, eyeHeight);
+        if (window.stereoMode() != sgct::Window::StereoMode::NoStereo) {
+            return glm::ivec2(eyeWidth, eyeHeight);
         }
+
+        // Size the framebuffer so that each eye viewport covers its full eye resolution
+        glm::ivec2 res = glm::ivec2(0, 0);
+        for (const std::unique_ptr<sgct::Viewport>& vp : window.viewports()) {
+            if (vp->eye() == sgct::FrustumMode::Mono) {
+                continue;
+            }
+            const glm::ivec2 eyeRes = sgct::openxr::eyeResolution(vp->eye());
+            const glm::vec2 size = vp->size();
+            if (size.x <= 0.f || size.y <= 0.f) {
+                continue;
+            }
+            res = glm::max(
+                res,
+                glm::ivec2(
+                    static_cast<int>(std::ceil(eyeRes.x / size.x)),
+                    static_cast<int>(std::ceil(eyeRes.y / size.y))
+                )
+            );
+        }
+        return (res.x > 0 && res.y > 0) ? res : left;
     }
 #endif // SGCT_HAS_OPENXR
 
@@ -898,7 +902,7 @@ void Window::initialize() {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->initialize(
             viewportRenderSize(*this, *vp, vp->eye()),
-            _stereoMode != StereoMode::NoStereo,
+            _stereoMode != StereoMode::NoStereo || vp->eye() != FrustumMode::Mono,
             _internalColorFormat,
             _nAASamples
         );
@@ -1087,13 +1091,7 @@ void Window::draw() {
     }
 
     // Render right regular viewports to FBO
-    // Use a single texture for side-by-side and top-bottom stereo modes
-    if (_stereoMode >= Window::StereoMode::SideBySide) {
-        renderViewports(FrustumMode::StereoRight, Eye::MonoOrLeft);
-    }
-    else {
-        renderViewports(FrustumMode::StereoRight, Eye::Right);
-    }
+    renderViewports(FrustumMode::StereoRight, Eye::Right);
 }
 
 void Window::renderFBOTexture() {
@@ -1125,9 +1123,7 @@ void Window::renderFBOTexture() {
 
     bool maskShaderSet = false;
     const std::vector<std::unique_ptr<Viewport>>& vps = _viewports;
-    if (_stereoMode > Window::StereoMode::Active &&
-        _stereoMode < Window::StereoMode::SideBySide)
-    {
+    if (_stereoMode > Window::StereoMode::Active) {
         glBindTextureUnit(0, _frameBufferTextures.leftEye);
         glBindTextureUnit(1, _frameBufferTextures.rightEye);
 
@@ -1347,9 +1343,7 @@ void Window::swapBuffers(bool takeScreenshot) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(_frameBufferTextures.leftEye);
             }
-            if (_screenCaptureRight && _stereoMode > StereoMode::NoStereo &&
-                _stereoMode < Window::StereoMode::SideBySide)
-            {
+            if (_screenCaptureRight && _stereoMode != StereoMode::NoStereo) {
                 _screenCaptureRight->saveScreenCapture(_frameBufferTextures.rightEye);
             }
         }
@@ -1675,10 +1669,10 @@ void Window::destroyFBOs() {
 }
 
 bool Window::useRightEyeTexture() const {
-    return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
+    return _stereoMode != StereoMode::NoStereo;
 }
 
-void Window::renderViewports(FrustumMode frustum, Eye eye) const {
+void Window::renderViewports(FrustumMode windowFrustum, Eye eye) const {
     ZoneScoped;
 
     // With FXAA the scene is rendered into the intermediate texture and the FXAA pass
@@ -1717,13 +1711,10 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
             continue;
         }
 
-        // If passive stereo or mono
-        if (sm == Window::StereoMode::NoStereo) {
-            // @TODO (abock, 2019-12-04) Not sure about this one; the frustum is set in
-            // the calling function based on the stereo mode already and we are
-            // overwriting it here
-            frustum = vp->eye();
-        }
+        // In a mono window each viewport selects its own eye, which is how passive
+        // split-screen stereo is configured
+        const FrustumMode frustum =
+            sm == Window::StereoMode::NoStereo ? vp->eye() : windowFrustum;
 
         if (vp->isTracked()) {
             vp->calculateFrustum(
@@ -1755,7 +1746,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
 
             if (_hasCallDraw3DFunction) {
                 // Run scissor test to prevent clearing of entire buffer
-                vp->setupViewport(frustum);
+                vp->setupViewport();
                 glEnable(GL_SCISSOR_TEST);
                 glClearColor(0.f, 0.f, 0.f, 0.f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1808,9 +1799,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
-    // For side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
-    const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
-    if (!isSplitScreen || frustum != FrustumMode::StereoLeft) {
+    {
         ZoneScopedN("PostFX/Blit");
 
         // Copy AA-buffer to "regular" / non-AA buffer
@@ -1876,17 +1865,13 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
             ShaderProgram::unbind();
         }
 
-        render2D(frustum);
-        if (isSplitScreen) {
-            // Render left eye info and graph to render 2D items after post fx
-            render2D(FrustumMode::StereoLeft);
-        }
+        render2D(windowFrustum);
     }
 
     glDisable(GL_BLEND);
 }
 
-void Window::render2D(FrustumMode frustum) const {
+void Window::render2D(FrustumMode windowFrustum) const {
     ZoneScoped;
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
@@ -1894,7 +1879,10 @@ void Window::render2D(FrustumMode frustum) const {
             continue;
         }
 
-        vp->setupViewport(frustum);
+        const FrustumMode frustum =
+            stereoMode() == Window::StereoMode::NoStereo ? vp->eye() : windowFrustum;
+
+        vp->setupViewport();
 
         // If viewport has overlay
         if (vp->hasOverlayTexture()) {
@@ -1935,7 +1923,7 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
 
     // Run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(mode);
+    viewport.setupViewport();
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -2049,7 +2037,7 @@ void Window::loadShaders() {
     }
 
 
-    if (_stereoMode > StereoMode::Active && _stereoMode < StereoMode::SideBySide) {
+    if (_stereoMode > StereoMode::Active) {
         ZoneScopedN("Stereo shader");
         // Reload shader program if it exists
         _stereo.deleteProgram();

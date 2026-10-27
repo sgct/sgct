@@ -59,11 +59,7 @@ public:
         CheckerboardInverted,
         VerticalInterlaced,
         VerticalInterlacedInverted,
-        Dummy,
-        SideBySide,
-        SideBySideInverted,
-        TopBottom,
-        TopBottomInverted
+        Dummy
     };
 
     static void makeSharedContextCurrent();
@@ -331,20 +327,22 @@ private:
 
     /**
      * Causes all of the viewports of the provided \p window be rendered with the
-     * \p frustum into the texture behind the provided \p ti texture index.
+     * \p windowFrustum into the texture behind the provided \p ti texture index. In a
+     * window without stereo, each viewport is rendered with its own eye instead.
      *
-     * \param frustum The frustum that should be used to render the viewports
+     * \param windowFrustum The frustum that should be used to render the viewports
      * \param eye The eye that should be rendered
      */
-    void renderViewports(FrustumMode frustum, Eye eye) const;
+    void renderViewports(FrustumMode windowFrustum, Eye eye) const;
 
     /**
      * Draw viewport overlays if there are any. This function renders stats, OSD and
-     * overlays of the provided \p window and using the provided \p frustum.
+     * overlays of the provided \p window and using the provided \p windowFrustum. In a
+     * window without stereo, each viewport is rendered with its own eye instead.
      *
-     * \param frustum The frustum for which the overlay should be drawn
+     * \param windowFrustum The frustum for which the overlay should be drawn
      */
-    void render2D(FrustumMode frustum) const;
+    void render2D(FrustumMode windowFrustum) const;
 
     /**
      * This function copies/render the result from the previous window same viewport (if

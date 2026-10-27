@@ -483,10 +483,6 @@ namespace {
         if (t == "vertical_interlaced")          { return M::VerticalInterlaced; }
         if (t == "vertical_interlaced_inverted") { return M::VerticalInterlacedInverted; }
         if (t == "test" || t == "dummy")         { return M::Dummy; }
-        if (t == "side_by_side")                 { return M::SideBySide; }
-        if (t == "side_by_side_inverted")        { return M::SideBySideInverted; }
-        if (t == "top_bottom")                   { return M::TopBottom; }
-        if (t == "top_bottom_inverted")          { return M::TopBottomInverted; }
 
         throw Err(6085, std::format("Unknown stereo mode {}", t));
     }
@@ -513,14 +509,6 @@ namespace {
                 return "vertical_interlaced_inverted";
             case sgct::config::Window::StereoMode::Dummy:
                 return "dummy";
-            case sgct::config::Window::StereoMode::SideBySide:
-                return "side_by_side";
-            case sgct::config::Window::StereoMode::SideBySideInverted:
-                return "side_by_side_inverted";
-            case sgct::config::Window::StereoMode::TopBottom:
-                return "top_bottom";
-            case sgct::config::Window::StereoMode::TopBottomInverted:
-                return "top_bottom_inverted";
             default:
                 throw std::logic_error("Missing case exception");
         }
@@ -2058,7 +2046,53 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 namespace {
     constexpr int CurrentConfigVersion = 2;
 
-    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation'
+    // Expands a viewport from a version 1 split-screen stereo window into one viewport
+    // per eye, each occupying its eye's half of the window
+    std::pair<nlohmann::json, nlohmann::json> splitViewportIntoEyes(
+                                                            const nlohmann::json& viewport,
+                                                              std::string_view stereoMode)
+    {
+        glm::vec2 pos = glm::vec2(0.f, 0.f);
+        glm::vec2 size = glm::vec2(1.f, 1.f);
+        if (auto it = viewport.find("pos"); it != viewport.end() && it->is_object()) {
+            pos = glm::vec2(it->value("x", 0.f), it->value("y", 0.f));
+        }
+        if (auto it = viewport.find("size"); it != viewport.end() && it->is_object()) {
+            size = glm::vec2(it->value("x", 1.f), it->value("y", 1.f));
+        }
+
+        auto makeEye = [&viewport](std::string_view eye, glm::vec2 p, glm::vec2 s) {
+            nlohmann::json res = viewport;
+            res["eye"] = eye;
+            res["pos"] = { { "x", p.x }, { "y", p.y } };
+            res["size"] = { { "x", s.x }, { "y", s.y } };
+            return res;
+        };
+
+        const bool isSideBySide = stereoMode.starts_with("side_by_side");
+        const bool isInverted = stereoMode.ends_with("_inverted");
+        if (isSideBySide) {
+            const glm::vec2 s = glm::vec2(size.x / 2.f, size.y);
+            const glm::vec2 first = glm::vec2(pos.x / 2.f, pos.y);
+            const glm::vec2 second = glm::vec2(0.5f + pos.x / 2.f, pos.y);
+            return isInverted ?
+                std::pair(makeEye("left", second, s), makeEye("right", first, s)) :
+                std::pair(makeEye("left", first, s), makeEye("right", second, s));
+        }
+        else {
+            const glm::vec2 s = glm::vec2(size.x, size.y / 2.f);
+            const glm::vec2 top = glm::vec2(pos.x, 0.5f + pos.y / 2.f);
+            const glm::vec2 bottom = glm::vec2(pos.x, pos.y / 2.f);
+            return isInverted ?
+                std::pair(makeEye("left", bottom, s), makeEye("right", top, s)) :
+                std::pair(makeEye("left", top, s), makeEye("right", bottom, s));
+        }
+    }
+
+    // Version 1 -> 2:
+    //  - Fisheye and SphericalMirror 'tilt' was replaced by 'orientation'
+    //  - The split-screen stereo modes (side_by_side, top_bottom and their inverted
+    //    variants) were removed in favor of explicit per-eye viewports
     void upgradeConfigV1ToV2(nlohmann::json& j) {
         auto nodes = j.find("nodes");
         if (nodes == j.end() || !nodes->is_array()) {
@@ -2071,7 +2105,33 @@ namespace {
             }
             for (nlohmann::json& window : *windows) {
                 auto viewports = window.find("viewports");
-                if (viewports == window.end() || !viewports->is_array()) {
+                const bool hasViewports =
+                    viewports != window.end() && viewports->is_array();
+
+                auto stereo = window.find("stereo");
+                if (stereo != window.end() && stereo->is_string()) {
+                    const std::string mode = stereo->get<std::string>();
+                    if (mode == "side_by_side" || mode == "side_by_side_inverted" ||
+                        mode == "top_bottom" || mode == "top_bottom_inverted")
+                    {
+                        if (hasViewports) {
+                            nlohmann::json expanded = nlohmann::json::array();
+                            for (const nlohmann::json& viewport : *viewports) {
+                                if (!viewport.is_object()) {
+                                    expanded.push_back(viewport);
+                                    continue;
+                                }
+                                auto [l, r] = splitViewportIntoEyes(viewport, mode);
+                                expanded.push_back(std::move(l));
+                                expanded.push_back(std::move(r));
+                            }
+                            *viewports = std::move(expanded);
+                        }
+                        window.erase(stereo);
+                    }
+                }
+
+                if (!hasViewports) {
                     continue;
                 }
                 for (nlohmann::json& viewport : *viewports) {

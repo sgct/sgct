@@ -574,32 +574,6 @@ namespace {
             copiedViewport = true;
         }
 
-        if (!copiedViewport &&
-            (window.stereoMode() == Window::StereoMode::SideBySide ||
-             window.stereoMode() == Window::StereoMode::SideBySideInverted))
-        {
-            for (const std::unique_ptr<Viewport>& viewport : window.viewports()) {
-                if (!viewport->isEnabled() || viewport->eye() != FrustumMode::Mono)
-                {
-                    continue;
-                }
-
-                const glm::vec2& position = viewport->position();
-                const glm::vec2& size = viewport->size();
-                const int srcX = static_cast<int>(position.x * dim.x);
-                const int srcY = static_cast<int>(position.y * dim.y);
-                const int srcWidth = static_cast<int>(size.x * dim.x);
-                const int srcHeight = static_cast<int>(size.y * dim.y);
-                const int eyeWidth = srcWidth / 2;
-                const bool useLeftHalf =
-                    (index == 0) ==
-                    (window.stereoMode() == Window::StereoMode::SideBySide);
-                const int s = srcX + (useLeftHalf ? 0 : eyeWidth);
-                blitSourceRect(s, srcY, eyeWidth, srcHeight);
-                copiedViewport = true;
-            }
-        }
-
         if (!copiedViewport) {
             attachSourceTexture(window.frameBufferTextureEye(
                 index == 0 ? Eye::MonoOrLeft : Eye::Right
@@ -1262,32 +1236,6 @@ namespace {
 
             blitSourceRect(srcX, srcY, srcWidth, srcHeight);
             copiedViewport = true;
-        }
-
-        if (!copiedViewport &&
-            (window.stereoMode() == Window::StereoMode::SideBySide ||
-             window.stereoMode() == Window::StereoMode::SideBySideInverted))
-        {
-            for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
-                if (!vp->isEnabled() || vp->eye() != FrustumMode::Mono) {
-                    continue;
-                }
-
-                const glm::vec2& position = vp->position();
-                const glm::vec2& size = vp->size();
-                const int srcX = static_cast<int>(position.x * dim.x);
-                const int srcY = static_cast<int>(position.y * dim.y);
-                const int srcWidth = static_cast<int>(size.x * dim.x);
-                const int srcHeight = static_cast<int>(size.y * dim.y);
-                const int eyeWidth = srcWidth / 2;
-                const bool useLeftHalf =
-                    (index == 0) ==
-                    (window.stereoMode() == Window::StereoMode::SideBySide);
-
-                const int s = srcX + (useLeftHalf ? 0 : eyeWidth);
-                blitSourceRect(s, srcY, eyeWidth, srcHeight);
-                copiedViewport = true;
-            }
         }
 
         if (!copiedViewport) {

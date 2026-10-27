@@ -11,13 +11,12 @@
 #include <sgct/baseviewport.h>
 #include <sgct/config.h>
 #include <sgct/definitions.h>
+#include <sgct/glm.h>
 #include <sgct/projection/projectionplane.h>
 #include <sgct/internalshaders.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <array>
 #include <cstddef>
 #include <string_view>

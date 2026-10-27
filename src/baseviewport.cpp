@@ -9,11 +9,10 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/glm.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>

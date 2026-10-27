@@ -12,9 +12,8 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
+#include <sgct/glm.h>
 #include <sgct/shaderprogram.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 namespace sgct {
 

@@ -9,8 +9,8 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <sgct/config.h>
+#include <sgct/glm.h>
 #include <filesystem>
-#include <glm/gtc/quaternion.hpp>
 
 using namespace sgct::config;
 

@@ -7,10 +7,8 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/glm.h>
 #include <sgct/opengl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <filesystem>
 #include <numeric>
 #include <thread>

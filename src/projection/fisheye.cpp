@@ -9,6 +9,7 @@
 #include <sgct/projection/fisheye.h>
 
 #include <sgct/engine.h>
+#include <sgct/glm.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
@@ -16,7 +17,6 @@
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <stdexcept>

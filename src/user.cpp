@@ -8,10 +8,8 @@
 
 #include <sgct/user.h>
 
-#include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
+#include <sgct/glm.h>
 #include <glm/gtx/euler_angles.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace sgct {
 

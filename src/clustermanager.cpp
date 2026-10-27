@@ -10,13 +10,11 @@
 
 #include <sgct/config.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <algorithm>
 #include <functional>
 #include <stdexcept>

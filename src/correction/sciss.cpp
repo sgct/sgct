@@ -13,12 +13,11 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
-#include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <fstream>
 #include <vector>

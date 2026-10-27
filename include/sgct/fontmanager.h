@@ -14,8 +14,8 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/font.h>
+#include <sgct/glm.h>
 #include <sgct/shaderprogram.h>
-#include <glm/glm.hpp>
 #include <map>
 #include <memory>
 #include <string>

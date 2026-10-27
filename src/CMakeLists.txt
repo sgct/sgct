@@ -50,6 +50,7 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/font.h
     ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/glm.h
     ${PROJECT_SOURCE_DIR}/include/sgct/image.h
     ${PROJECT_SOURCE_DIR}/include/sgct/internalshaders.h
     ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
@@ -144,8 +145,8 @@ target_precompile_headers(sgct PRIVATE
   <sgct/config.h>
   <sgct/engine.h>
   <sgct/format.h>
+  <sgct/glm.h>
   <sgct/opengl.h>
-  <glm/glm.hpp>
 
   <scn/scan.h>
 

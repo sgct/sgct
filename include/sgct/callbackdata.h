@@ -12,7 +12,7 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/definitions.h>
-#include <glm/glm.hpp>
+#include <sgct/glm.h>
 
 namespace sgct {
 

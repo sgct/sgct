@@ -9,11 +9,11 @@
 #include <sgct/projection/cubemap.h>
 
 #include <sgct/internalshaders.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include <string_view>
 
 #ifdef SGCT_HAS_SPOUT

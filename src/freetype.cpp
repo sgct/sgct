@@ -13,11 +13,10 @@
 #include <sgct/baseviewport.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
+#include <sgct/glm.h>
 #include <sgct/opengl.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/window.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <sstream>
 #include <utility>
 

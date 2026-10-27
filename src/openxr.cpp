@@ -10,6 +10,7 @@
 
 #include <sgct/openxr.h>
 
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/window.h>
@@ -34,9 +35,6 @@
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include <algorithm>
 #include <array>

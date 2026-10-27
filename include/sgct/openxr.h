@@ -12,9 +12,8 @@
 #ifdef SGCT_HAS_OPENXR
 
 #include <sgct/definitions.h>
+#include <sgct/glm.h>
 #include <sgct/sgctexports.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 namespace sgct { class Window; }
 

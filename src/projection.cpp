@@ -13,7 +13,7 @@
 #pragma warning(push)
 #pragma warning(disable : 4127)
 #endif // WIN32
-#include <glm/gtc/matrix_transform.hpp>
+#include <sgct/glm.h>
 
 #ifdef WIN32
 #pragma warning(pop)

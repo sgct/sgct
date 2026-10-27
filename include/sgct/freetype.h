@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <glm/glm.hpp>
+#include <sgct/glm.h>
 #include <string>
 
 namespace sgct {

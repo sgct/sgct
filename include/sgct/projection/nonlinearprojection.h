@@ -13,7 +13,7 @@
 
 #include <sgct/baseviewport.h>
 #include <sgct/definitions.h>
-#include <glm/glm.hpp>
+#include <sgct/glm.h>
 #include <cstdint>
 #include <memory>
 

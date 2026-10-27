@@ -13,12 +13,10 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 #include <stdexcept>
 #include <string>

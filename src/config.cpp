@@ -10,10 +10,9 @@
 
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #define JSON_HAS_CPP_11
 #define JSON_HAS_CPP_14

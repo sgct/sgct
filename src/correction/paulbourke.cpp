@@ -11,10 +11,10 @@
 #include <sgct/correction/buffer.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <glm/glm.hpp>
 #include <scn/scan.h>
 #include <fstream>
 #include <string>

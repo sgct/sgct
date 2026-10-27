@@ -10,7 +10,7 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <glm/gtc/type_ptr.hpp>
+#include <sgct/glm.h>
 #include "schema.h"
 
 using namespace sgct;

@@ -11,8 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <sgct/glm.h>
 #include <cstdint>
 #include <filesystem>
 #include <optional>

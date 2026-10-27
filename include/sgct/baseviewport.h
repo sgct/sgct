@@ -13,9 +13,8 @@
 
 #include <sgct/definitions.h>
 #include <sgct/projection.h>
+#include <sgct/glm.h>
 #include <sgct/projection/projectionplane.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 namespace sgct {
 

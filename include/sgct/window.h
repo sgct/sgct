@@ -12,11 +12,11 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/definitions.h>
+#include <sgct/glm.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/screencapture.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
-#include <glm/glm.hpp>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>

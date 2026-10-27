@@ -9,6 +9,7 @@
 #include <sgct/statisticsrenderer.h>
 
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/shaderprogram.h>
@@ -20,9 +21,6 @@
 #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #include <string_view>
 #include <tuple>

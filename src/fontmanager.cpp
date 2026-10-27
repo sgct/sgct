@@ -11,10 +11,9 @@
 #include <sgct/fontmanager.h>
 
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <sstream>
 

@@ -11,6 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
@@ -19,8 +20,6 @@
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <algorithm>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <string_view>
 
 namespace {

@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "name": "window",
+          "pos": { "x": 0, "y": 0 },
+          "size": { "x": 320, "y": 180 },
+          "viewports": [
+            {
+              "mesh": "../../config/mesh/standard_16x9.data",
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": { "type": "FisheyeProjection", "fov": 180.0, "quality": "medium" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeseparation": 0.065,
+      "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    }
+  ]
+}

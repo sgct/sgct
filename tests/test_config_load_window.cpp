@@ -3449,10 +3449,12 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
@@ -3498,10 +3500,12 @@ TEST_CASE("Load: Window/NDI/Enabled", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -3551,10 +3555,12 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
@@ -3602,10 +3608,12 @@ TEST_CASE("Load: Window/NDI/Name", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -3624,7 +3632,7 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
-            "groups": "abc,def"
+            "group": "abc,def"
           }
         }
       ]
@@ -3655,10 +3663,12 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
@@ -3675,7 +3685,7 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
           "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
-            "groups": "123,456"
+            "group": "123,456"
           }
         }
       ]
@@ -3706,10 +3716,12 @@ TEST_CASE("Load: Window/NDI/Groups", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -3985,6 +3997,112 @@ TEST_CASE("Load: Window/Resolution", "[parse]") {
     }
 }
 
+TEST_CASE("Load: Window/OpenXR/Enabled", "[parse]") {
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "openxr": {
+            "enabled": true
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .masterAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .windows = {
+                        Window {
+                            .size = glm::ivec2(640, 480),
+                            .openxr = Window::OpenXR {
+                                .enabled = true
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        CHECK_NOTHROW(validate(String));
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        CHECK_NOTHROW(validate(str));
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "openxr": {
+            "enabled": false
+          }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .masterAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .windows = {
+                        Window {
+                            .size = glm::ivec2(640, 480),
+                            .openxr = Window::OpenXR {
+                                .enabled = false
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        CHECK_NOTHROW(validate(String));
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        CHECK_NOTHROW(validate(str));
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+}
+
 TEST_CASE("Load: Window/ScalableMesh", "[parse]") {
 #ifndef SGCT_HAS_SCALABLE
     SKIP("Loading a Scalable mesh requires SGCT built with SGCT_SCALABLE_SUPPORT");
@@ -4127,7 +4245,7 @@ TEST_CASE("Load: Window/Full", "[parse]") {
           "ndi": {
             "enabled": true,
             "name": "pqr",
-            "groups": "stu,vwx"
+            "group": "stu,vwx"
           },
           "pos": { "x": 1, "y": 2 },
           "size": { "x": 640, "y": 480 },
@@ -4232,6 +4350,7 @@ TEST_CASE("Validate: Window/ID/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "id": "abc"
         }
       ]
@@ -4241,6 +4360,83 @@ TEST_CASE("Validate: Window/ID/Wrong Type", "[validate]") {
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ID/Illegal Value", "[validate]") {
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "id": -1
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "id": 128
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Window/ID/Out Of Range", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "id": 300
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message(
+            "[ReadConfig] (6043): Value 300 for window id is out of range"
+        )
+    );
 }
 
 TEST_CASE("Validate: Window/Name/Wrong Type", "[validate]") {
@@ -4254,6 +4450,7 @@ TEST_CASE("Validate: Window/Name/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "name": 123
         }
       ]
@@ -4277,6 +4474,7 @@ TEST_CASE("Validate: Window/Tags/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "tags": [ 123 ]
         }
       ]
@@ -4299,6 +4497,7 @@ TEST_CASE("Validate: Window/Tags/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "tags": [ 123, "abc" ]
         }
       ]
@@ -4321,6 +4520,7 @@ TEST_CASE("Validate: Window/Tags/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "tags": [ "abc", 123 ]
         }
       ]
@@ -4331,6 +4531,29 @@ TEST_CASE("Validate: Window/Tags/Wrong Type", "[validate]") {
 
         CHECK_THROWS_AS(validate(Config), ParsingError);
     }
+}
+
+TEST_CASE("Validate: Window/Tags", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "tags": [ "abc", "def" ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
 }
 
 TEST_CASE("Validate: Window/Tags/Duplicate", "[validate]") {
@@ -4344,7 +4567,31 @@ TEST_CASE("Validate: Window/Tags/Duplicate", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "tags": [ "abc", "def", "abc" ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Tags/Empty", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "tags": [ "abc", "" ]
         }
       ]
     }
@@ -4366,6 +4613,7 @@ TEST_CASE("Validate: Window/BufferBitDepth/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "bufferbitdepth": 123
         }
       ]
@@ -4388,6 +4636,7 @@ TEST_CASE("Validate: Window/BufferBitDepth/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "bufferbitdepth": "1"
         }
       ]
@@ -4410,6 +4659,7 @@ TEST_CASE("Validate: Window/IsFullScreen/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "fullscreen": 123
         }
       ]
@@ -4432,6 +4682,7 @@ TEST_CASE("Validate: Window/ShouldAutoIconify/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "autoiconify": 123
         }
       ]
@@ -4454,6 +4705,7 @@ TEST_CASE("Validate: Window/HideMouseCursor/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "hidemousecursor": 123
         }
       ]
@@ -4476,6 +4728,7 @@ TEST_CASE("Validate: Window/IsFloating/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "floating": 123
         }
       ]
@@ -4498,6 +4751,7 @@ TEST_CASE("Validate: Window/AlwaysRender/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "alwaysrender": 123
         }
       ]
@@ -4520,6 +4774,7 @@ TEST_CASE("Validate: Window/IsHidden/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "hidden": 123
         }
       ]
@@ -4542,6 +4797,7 @@ TEST_CASE("Validate: Window/TakeScreenshot/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "takescreenshot": 123
         }
       ]
@@ -4564,6 +4820,7 @@ TEST_CASE("Validate: Window/MSAA/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "msaa": "abc"
         }
       ]
@@ -4587,6 +4844,7 @@ TEST_CASE("Validate: Window/MSAA/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "msaa": -10
         }
       ]
@@ -4609,6 +4867,7 @@ TEST_CASE("Validate: Window/MSAA/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "msaa": 500
         }
       ]
@@ -4632,6 +4891,7 @@ TEST_CASE("Validate: Window/UseFxaa/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "fxaa": "abc"
         }
       ]
@@ -4654,6 +4914,7 @@ TEST_CASE("Validate: Window/IsDecorated/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "border": "abc"
         }
       ]
@@ -4676,6 +4937,7 @@ TEST_CASE("Validate: Window/IsResizable/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "resizable": "abc"
         }
       ]
@@ -4698,6 +4960,7 @@ TEST_CASE("Validate: Window/Draw2D/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "draw2d": "abc"
         }
       ]
@@ -4720,6 +4983,7 @@ TEST_CASE("Validate: Window/Draw3D/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "draw3d": "abc"
         }
       ]
@@ -4742,7 +5006,8 @@ TEST_CASE("Validate: Window/IsMirrored/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "mirror": "abc"
+          "size": { "x": 640, "y": 480 },
+          "mirrorx": "abc"
         }
       ]
     }
@@ -4764,6 +5029,7 @@ TEST_CASE("Validate: Window/NoError/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "noerror": "abc"
         }
       ]
@@ -4786,6 +5052,7 @@ TEST_CASE("Validate: Window/BlitWindowId/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "blitwindowid": "abc"
         }
       ]
@@ -4809,6 +5076,7 @@ TEST_CASE("Validate: Window/BlitWindowId/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "blitwindowid": -5000
         }
       ]
@@ -4831,6 +5099,7 @@ TEST_CASE("Validate: Window/BlitWindowId/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "blitwindowid": 5000
         }
       ]
@@ -4841,6 +5110,58 @@ TEST_CASE("Validate: Window/BlitWindowId/Illegal Value", "[validate]") {
 
         CHECK_THROWS_AS(validate(Config), ParsingError);
     }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "blitwindowid": 128
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+}
+
+TEST_CASE("Validate: Window/BlitWindowId/Out Of Range", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "blitwindowid": 5000
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message(
+            "[ReadConfig] (6044): Value 5000 for window blitwindowid is out of range"
+        )
+    );
 }
 
 TEST_CASE("Validate: Window/MirrorX/Wrong Type", "[validate]") {
@@ -4854,6 +5175,7 @@ TEST_CASE("Validate: Window/MirrorX/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "mirrorx": "abc"
         }
       ]
@@ -4876,6 +5198,7 @@ TEST_CASE("Validate: Window/MirrorY/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "mirrory": "abc"
         }
       ]
@@ -4898,6 +5221,7 @@ TEST_CASE("Validate: Window/Monitor/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "monitor": "abc"
         }
       ]
@@ -4907,6 +5231,29 @@ TEST_CASE("Validate: Window/Monitor/Wrong Type", "[validate]") {
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/Monitor/Primary", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "monitor": -1
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
 }
 
 TEST_CASE("Validate: Window/Monitor/Illegal Value", "[validate]") {
@@ -4921,7 +5268,8 @@ TEST_CASE("Validate: Window/Monitor/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "monitor": -1
+          "size": { "x": 640, "y": 480 },
+          "monitor": -2
         }
       ]
     }
@@ -4943,7 +5291,8 @@ TEST_CASE("Validate: Window/Monitor/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "monitor": 500
+          "size": { "x": 640, "y": 480 },
+          "monitor": -100
         }
       ]
     }
@@ -4966,6 +5315,7 @@ TEST_CASE("Validate: Window/Stereo/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "stereo": 123
         }
       ]
@@ -4988,6 +5338,7 @@ TEST_CASE("Validate: Window/Stereo/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "stereo": "does-not-exist"
         }
       ]
@@ -5010,6 +5361,7 @@ TEST_CASE("Validate: Window/Spout/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": 123
         }
       ]
@@ -5032,6 +5384,7 @@ TEST_CASE("Validate: Window/Spout/Enabled/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": 123
           }
@@ -5056,6 +5409,7 @@ TEST_CASE("Validate: Window/Spout/Name/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": true,
             "name": 123
@@ -5081,6 +5435,7 @@ TEST_CASE("Validate: Window/Spout/Name/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "spout": {
             "enabled": true,
             "name": ""
@@ -5106,6 +5461,7 @@ TEST_CASE("Validate: Window/NDI/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": 123
         }
       ]
@@ -5128,6 +5484,7 @@ TEST_CASE("Validate: Window/NDI/Enabled/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": 123
           }
@@ -5152,6 +5509,7 @@ TEST_CASE("Validate: Window/NDI/Name/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
             "name": 123
@@ -5177,6 +5535,7 @@ TEST_CASE("Validate: Window/NDI/Name/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
             "name": ""
@@ -5202,9 +5561,10 @@ TEST_CASE("Validate: Window/NDI/Groups/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
-            "groups": 123
+            "group": 123
           }
         }
       ]
@@ -5227,9 +5587,10 @@ TEST_CASE("Validate: Window/NDI/Groups/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "ndi": {
             "enabled": true,
-            "groups": ""
+            "group": ""
           }
         }
       ]
@@ -5252,6 +5613,7 @@ TEST_CASE("Validate: Window/Pos/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "pos": 123
         }
       ]
@@ -5274,6 +5636,7 @@ TEST_CASE("Validate: Window/Pos/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "pos": {}
         }
       ]
@@ -5296,6 +5659,7 @@ TEST_CASE("Validate: Window/Pos/X/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "pos": {
             "y": 2
           }
@@ -5320,6 +5684,7 @@ TEST_CASE("Validate: Window/Pos/X/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "pos": {
             "x": "abc",
             "y": 2
@@ -5345,6 +5710,7 @@ TEST_CASE("Validate: Window/Pos/Y/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "pos": {
             "x": 1
           }
@@ -5369,6 +5735,7 @@ TEST_CASE("Validate: Window/Pos/Y/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "pos": {
             "x": 1,
             "y": "abc"
@@ -5536,6 +5903,7 @@ TEST_CASE("Validate: Window/Resolution/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "res": 123
         }
       ]
@@ -5558,6 +5926,7 @@ TEST_CASE("Validate: Window/Resolution/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "res": {}
         }
       ]
@@ -5580,6 +5949,7 @@ TEST_CASE("Validate: Window/Resolution/X/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "res": {
             "y": 2
           }
@@ -5604,6 +5974,7 @@ TEST_CASE("Validate: Window/Resolution/X/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "res": {
             "x": "abc",
             "y": 2
@@ -5629,6 +6000,7 @@ TEST_CASE("Validate: Window/Resolution/Y/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "res": {
             "x": 1
           }
@@ -5653,10 +6025,103 @@ TEST_CASE("Validate: Window/Resolution/Y/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "res": {
             "x": 1,
             "y": "abc"
           }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/OpenXR/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "openxr": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/OpenXR/Enabled/Missing", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "openxr": {}
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/OpenXR/Enabled/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "openxr": { "enabled": 123 }
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/OpenXR/Additional Property", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "openxr": { "enabled": true, "abc": 1 }
         }
       ]
     }
@@ -5678,7 +6143,129 @@ TEST_CASE("Validate: Window/ScalableMesh/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "scalableMesh": 123
+          "size": { "x": 640, "y": 480 },
+          "scalablemesh": 123
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ScalableMesh/Ortho", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "scalablemesh": "abc",
+          "scalablemesh_ortho_quality": 1024,
+          "scalablemesh_ortho_res": 2048
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
+}
+
+TEST_CASE("Validate: Window/ScalableMesh/OrthoQuality/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "scalablemesh": "abc",
+          "scalablemesh_ortho_quality": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ScalableMesh/OrthoQuality/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "scalablemesh": "abc",
+          "scalablemesh_ortho_quality": 0
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ScalableMesh/OrthoRes/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "scalablemesh": "abc",
+          "scalablemesh_ortho_res": "abc"
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Window/ScalableMesh/OrthoRes/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "scalablemesh": "abc",
+          "scalablemesh_ortho_res": 0
         }
       ]
     }
@@ -5700,6 +6287,7 @@ TEST_CASE("Validate: Window/Viewports/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
+          "size": { "x": 640, "y": 480 },
           "viewports": 123
         }
       ]

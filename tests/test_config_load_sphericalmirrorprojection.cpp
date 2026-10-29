@@ -2206,10 +2206,6 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
     CHECK(output == Object);
 }
 
-
-
-
-
 TEST_CASE("Validate: SphericalMirrorProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -2221,18 +2217,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Wrong Type", "[validate]"
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2255,18 +2254,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2288,18 +2290,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2430,18 +2435,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Tilt/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "tilt": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "tilt": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2463,18 +2471,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/Wrong Type", "[validat
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2496,318 +2507,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/All/Missing", "[valida
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {}
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/X/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "y": 1,
-                "z": 1,
-                "w": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {}
               }
             }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/X/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": "abc",
-                "y": 1,
-                "z": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Y/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "z": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Y/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": "abc",
-                "z": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Z/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Z/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "z": "abc",
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/W/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "z": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/W/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": "abc"
-              }
-            }
-          }
+          ]
         }
       ]
     }
@@ -2829,22 +2543,25 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Missing", "[validate
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "g": 1,
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2866,23 +2583,26 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Wrong Type", "[valid
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": "abc",
-                "g": 1,
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": "abc",
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2904,22 +2624,25 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Missing", "[validate
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2941,23 +2664,26 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Wrong Type", "[valid
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": "abc",
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": "abc",
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2979,22 +2705,25 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Missing", "[validate
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3016,23 +2745,26 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Wrong Type", "[valid
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "b": "abc",
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "b": "abc",
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3054,22 +2786,25 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Missing", "[validate
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "b": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3091,23 +2826,26 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Wrong Type", "[valid
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "b": 1,
-                "a": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3129,12 +2867,15 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3156,12 +2897,15 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/All/Missing", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3183,16 +2927,19 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Missing", "[validate]
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3214,17 +2961,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Wrong Type", "[valida
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": 123,
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": 123,
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3246,17 +2996,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Illegal Value", "[val
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3278,16 +3031,19 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Missing", "[validate]")
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3309,17 +3065,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Wrong Type", "[validate
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": 123,
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": 123,
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3341,17 +3100,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Illegal Value", "[valid
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3373,16 +3135,19 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Missing", "[validate]"
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3404,17 +3169,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Wrong Type", "[validat
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": 123,
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": 123,
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3436,17 +3204,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Illegal Value", "[vali
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3468,16 +3239,19 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Missing", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3499,17 +3273,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Wrong Type", "[validate]
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3531,17 +3308,20 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Illegal Value", "[valida
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }

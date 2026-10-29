@@ -2539,10 +2539,6 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
     CHECK(output == Object);
 }
 
-
-
-
-
 TEST_CASE("Validate: FisheyeProjection/FOV/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
@@ -2554,12 +2550,15 @@ TEST_CASE("Validate: FisheyeProjection/FOV/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "fov": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "fov": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2581,12 +2580,15 @@ TEST_CASE("Validate: FisheyeProjection/FOV/Illegal value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "fov": -50.0
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "fov": -50.0
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2608,12 +2610,15 @@ TEST_CASE("Validate: FisheyeProjection/Quality/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2636,12 +2641,15 @@ TEST_CASE("Validate: FisheyeProjection/Quality/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2663,12 +2671,15 @@ TEST_CASE("Validate: FisheyeProjection/Quality/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2691,12 +2702,15 @@ TEST_CASE("Validate: FisheyeProjection/Interpolation/Wrong Type", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "interpolation": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "interpolation": 123
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2718,12 +2732,15 @@ TEST_CASE("Validate: FisheyeProjection/Interpolation/Illegal Value", "[validate]
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "interpolation": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "interpolation": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2835,12 +2852,15 @@ TEST_CASE("Validate: FisheyeProjection/Tilt/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "tilt": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "tilt": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2862,12 +2882,15 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "diameter": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "diameter": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2879,7 +2902,8 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Wrong Type", "[validate]") {
 }
 
 TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
-    constexpr std::string_view Config = R"(
+    {
+        constexpr std::string_view Config = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2889,12 +2913,15 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "diameter": -50.0
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "diameter": -50.0
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2902,7 +2929,38 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
 }
 )";
 
-    CHECK_THROWS_AS(validate(Config), ParsingError);
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
+
+    {
+        constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "diameter": 0.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        CHECK_THROWS_AS(validate(Config), ParsingError);
+    }
 }
 
 TEST_CASE("Validate: FisheyeProjection/Crop/Wrong Type", "[validate]") {
@@ -2916,12 +2974,15 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2943,12 +3004,15 @@ TEST_CASE("Validate: FisheyeProjection/Crop/All/Missing Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2970,16 +3034,19 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Left/Missing Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "right": 2,
-                "bottom": 3,
-                "top": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "right": 2,
+                  "bottom": 3,
+                  "top": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3001,17 +3068,20 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Left/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": "abc",
-                "right": 2,
-                "bottom": 3,
-                "top": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": "abc",
+                  "right": 2,
+                  "bottom": 3,
+                  "top": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3033,16 +3103,19 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Right/Missing Value", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": 1,
-                "bottom": 3,
-                "top": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": 1,
+                  "bottom": 3,
+                  "top": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3064,17 +3137,20 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Right/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": 1,
-                "right": "abc",
-                "bottom": 3,
-                "top": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": 1,
+                  "right": "abc",
+                  "bottom": 3,
+                  "top": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3096,16 +3172,19 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Bottom/Missing Value", "[validate]")
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": 1,
-                "right": 2,
-                "top": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": 1,
+                  "right": 2,
+                  "top": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3127,17 +3206,20 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Bottom/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": 1,
-                "right": 2,
-                "bottom": "abc",
-                "top": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": 1,
+                  "right": 2,
+                  "bottom": "abc",
+                  "top": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3159,16 +3241,19 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Top/Missing Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": 1,
-                "right": 2,
-                "bottom": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": 1,
+                  "right": 2,
+                  "bottom": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3190,17 +3275,20 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Top/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "crop": {
-                "left": 1,
-                "right": 2,
-                "bottom": 3,
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "crop": {
+                  "left": 1,
+                  "right": 2,
+                  "bottom": 3,
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3222,12 +3310,15 @@ TEST_CASE("Validate: FisheyeProjection/KeepAspectRatio/Wrong Type", "[validate]"
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "keepaspectratio": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "keepaspectratio": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3249,12 +3340,15 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3276,12 +3370,15 @@ TEST_CASE("Validate: FisheyeProjection/Offset/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3303,15 +3400,18 @@ TEST_CASE("Validate: FisheyeProjection/Offset/X/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3333,16 +3433,19 @@ TEST_CASE("Validate: FisheyeProjection/Offset/X/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {
-                "x": "abc",
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {
+                  "x": "abc",
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3364,15 +3467,18 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Y/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {
-                "x": 1,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {
+                  "x": 1,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3394,16 +3500,19 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Y/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {
-                "x": 1,
-                "y": "abc",
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {
+                  "x": 1,
+                  "y": "abc",
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3425,15 +3534,18 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Z/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {
-                "x": 1,
-                "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {
+                  "x": 1,
+                  "y": 2
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3455,16 +3567,19 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Z/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "offset": {
-                "x": 1,
-                "y": 2,
-                "z": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "offset": {
+                  "x": 1,
+                  "y": 2,
+                  "z": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3486,12 +3601,15 @@ TEST_CASE("Validate: FisheyeProjection/Background/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3513,264 +3631,15 @@ TEST_CASE("Validate: FisheyeProjection/Background/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {}
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/X/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "y": 2,
-                "z": 3,
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {}
               }
             }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/X/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": "abc",
-                "y": 2,
-                "z": 3,
-                "w": 4
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/Y/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": 1,
-                "z": 3,
-                "w": 4
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/Y/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": 1,
-                "y": "abc",
-                "z": 3,
-                "w": 4
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/Z/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": 1,
-                "y": 2,
-                "w": 4
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/Z/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": 1,
-                "y": 2,
-                "z": "abc",
-                "w": 4
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/W/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": 1,
-                "y": 2,
-                "z": 3
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: FisheyeProjection/Background/W/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "x": 1,
-                "y": 2,
-                "z": 3,
-                "w": "abc"
-              }
-            }
-          }
+          ]
         }
       ]
     }
@@ -3792,16 +3661,19 @@ TEST_CASE("Validate: FisheyeProjection/Background/R/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "g": 2,
-                "b": 3,
-                "a": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "g": 2,
+                  "b": 3,
+                  "a": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3823,17 +3695,20 @@ TEST_CASE("Validate: FisheyeProjection/Background/R/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": "abc",
-                "g": 2,
-                "b": 3,
-                "a": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": "abc",
+                  "g": 2,
+                  "b": 3,
+                  "a": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3855,16 +3730,19 @@ TEST_CASE("Validate: FisheyeProjection/Background/G/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": 1,
-                "b": 3,
-                "a": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": 1,
+                  "b": 3,
+                  "a": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3886,17 +3764,20 @@ TEST_CASE("Validate: FisheyeProjection/Background/G/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": 1,
-                "g": "abc",
-                "b": 3,
-                "a": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": 1,
+                  "g": "abc",
+                  "b": 3,
+                  "a": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3918,16 +3799,19 @@ TEST_CASE("Validate: FisheyeProjection/Background/B/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": 1,
-                "g": 2,
-                "a": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": 1,
+                  "g": 2,
+                  "a": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3949,17 +3833,20 @@ TEST_CASE("Validate: FisheyeProjection/Background/B/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": 1,
-                "g": 2,
-                "b": "abc",
-                "a": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": 1,
+                  "g": 2,
+                  "b": "abc",
+                  "a": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3981,16 +3868,19 @@ TEST_CASE("Validate: FisheyeProjection/Background/A/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": 1,
-                "g": 2,
-                "b": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": 1,
+                  "g": 2,
+                  "b": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -4012,17 +3902,20 @@ TEST_CASE("Validate: FisheyeProjection/Background/A/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "FisheyeProjection",
-              "background": {
-                "r": 1,
-                "g": 2,
-                "b": 3,
-                "a": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "background": {
+                  "r": 1,
+                  "g": 2,
+                  "b": 3,
+                  "a": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }

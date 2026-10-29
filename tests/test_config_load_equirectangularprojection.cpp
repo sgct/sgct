@@ -1464,12 +1464,15 @@ TEST_CASE("Validate: EquirectangularProjection/Quality/Wrong Type", "[validate]"
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "EquirectangularProjection",
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "EquirectangularProjection",
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1492,12 +1495,15 @@ TEST_CASE("Validate: EquirectangularProjection/Quality/Illegal Value", "[validat
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "EquirectangularProjection",
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "EquirectangularProjection",
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1519,12 +1525,15 @@ TEST_CASE("Validate: EquirectangularProjection/Quality/Illegal Value", "[validat
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "EquirectangularProjection",
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "EquirectangularProjection",
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }

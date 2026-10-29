@@ -112,3 +112,7 @@ langDef text
 # Resource files
 *.rc text
 *.qrc text
+
+# The image tests have to read the same files on every platform, so neither the meshes
+# nor the configuration files must be converted
+visualtests/** -text

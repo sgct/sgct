@@ -13,7 +13,7 @@ def buildWithPreset(preset) {
 }
 
 def runUnitTests(preset) {
-  def script = "ctest --preset ${preset} --output-junit test_results.xml"
+  def script = "ctest --preset ${preset} -LE visual --output-junit test_results.xml"
 
   if (isUnix()) {
     sh(script: script, label: "Run unit tests (${preset})")

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GeometryFile>
+  <GeometryDefinition>
+    <X-FlatParameters range="2.0">0 0 0 0 0.2 0 0 0 0</X-FlatParameters>
+    <Y-FlatParameters range="2.0">0 0 0.3 0 0 0 0 0 0</Y-FlatParameters>
+  </GeometryDefinition>
+</GeometryFile>

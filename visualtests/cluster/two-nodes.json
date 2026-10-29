@@ -1,0 +1,57 @@
+{
+  "version": 2,
+  "masteraddress": "127.0.0.1",
+  "firmsync": true,
+  "nodes": [
+    {
+      "address": "127.0.0.1",
+      "port": 20410,
+      "windows": [
+        {
+          "name": "server",
+          "pos": { "x": 0, "y": 0 },
+          "size": { "x": 256, "y": 256 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 90, "vfov": 90 },
+                "orientation": { "yaw": -30.0, "pitch": 0.0, "roll": 0.0 }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "address": "127.0.0.2",
+      "port": 20411,
+      "windows": [
+        {
+          "name": "client",
+          "pos": { "x": 300, "y": 0 },
+          "size": { "x": 256, "y": 256 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": { "hfov": 90, "vfov": 90 },
+                "orientation": { "yaw": 30.0, "pitch": 0.0, "roll": 0.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeseparation": 0.065,
+      "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    }
+  ]
+}

@@ -42,6 +42,13 @@ namespace {
     bool runTests = false;
     uint64_t frameNumber = 0;
 
+    // If this is set, the calibrator renders the box, takes a single screenshot of the
+    // back buffer, and terminates
+    bool runImageTest = false;
+    // The frame in which the screenshot is taken. The first frames are skipped so that
+    // all nodes of a cluster are connected and have rendered at least once
+    constexpr uint64_t ImageTestScreenshotFrame = 5;
+
     float phi = glm::pi<float>();
     float theta = 0.f;
 
@@ -552,6 +559,19 @@ void postDraw() {
         Log::Info(std::format("Frame: {}", frameNumber));
     }
 
+    if (Engine::instance().isMaster() && runImageTest) {
+        frameNumber++;
+        if (frameNumber == ImageTestScreenshotFrame) {
+            // The screenshot is taken in the next frame, after the value was synchronized
+            // with all clients. Destroying the engine waits for the screenshot to be
+            // written, and the clients terminate when the server disconnects
+            takeScreenshot = true;
+        }
+        else if (frameNumber == ImageTestScreenshotFrame + 1) {
+            Engine::instance().terminate();
+        }
+    }
+
     if (Engine::instance().isMaster() && runTests) {
         constexpr int FrameGridFirstScreenshot = 5;
         constexpr int FrameGridSettingBackBuffer = 10;
@@ -723,6 +743,12 @@ int main(int argc, char** argv) {
     }
 
     runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
+    runImageTest = std::find(arg.begin(), arg.end(), "--image-test") != arg.end();
+    if (runImageTest) {
+        // The back buffer contains the final image, including the correction meshes, the
+        // masks, and the composited stereo image
+        captureBackbuffer = true;
+    }
 
     const Engine::Callbacks callbacks = {
         .initOpenGL = initGL,

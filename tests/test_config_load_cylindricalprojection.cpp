@@ -1723,12 +1723,15 @@ TEST_CASE("Validate: CylindricalProjection/Quality/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CylindricalProjection",
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CylindricalProjection",
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1751,12 +1754,15 @@ TEST_CASE("Validate: CylindricalProjection/Quality/Illegal Value", "[validate]")
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CylindricalProjection",
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CylindricalProjection",
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1778,12 +1784,15 @@ TEST_CASE("Validate: CylindricalProjection/Quality/Illegal Value", "[validate]")
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CylindricalProjection",
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CylindricalProjection",
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1806,12 +1815,15 @@ TEST_CASE("Validate: CylindricalProjection/Rotation/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CylindricalProjection",
-              "rotation": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CylindricalProjection",
+                "rotation": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1833,12 +1845,15 @@ TEST_CASE("Validate: CylindricalProjection/HeightOffset/Wrong Type", "[validate]
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CylindricalProjection",
-              "heightoffset": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CylindricalProjection",
+                "heightoffset": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1860,12 +1875,15 @@ TEST_CASE("Validate: CylindricalProjection/Radius/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CylindricalProjection",
-              "radius": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CylindricalProjection",
+                "radius": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }

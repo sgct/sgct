@@ -1306,9 +1306,12 @@ TEST_CASE("Validate: Viewport/User/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "user": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "user": 123
+            }
+          ]
         }
       ]
     }
@@ -1330,9 +1333,12 @@ TEST_CASE("Validate: Viewport/OverlayTexture/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "overlayTexture": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "overlay": 123
+            }
+          ]
         }
       ]
     }
@@ -1354,9 +1360,12 @@ TEST_CASE("Validate: Viewport/BlendMaskTexture/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "blendMaskTexture": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "blendmask": 123
+            }
+          ]
         }
       ]
     }
@@ -1378,9 +1387,12 @@ TEST_CASE("Validate: Viewport/BlackLevelMaskTexture/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "blacklevelmask": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "blacklevelmask": 123
+            }
+          ]
         }
       ]
     }
@@ -1402,9 +1414,12 @@ TEST_CASE("Validate: Viewport/CorrectionMeshTexture/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": 123
+            }
+          ]
         }
       ]
     }
@@ -1426,9 +1441,12 @@ TEST_CASE("Validate: Viewport/IsTracked/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "tracked": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "tracked": 123
+            }
+          ]
         }
       ]
     }
@@ -1450,9 +1468,12 @@ TEST_CASE("Validate: Viewport/Eye/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "eye": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "eye": 123
+            }
+          ]
         }
       ]
     }
@@ -1474,9 +1495,12 @@ TEST_CASE("Validate: Viewport/Eye/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "eye": "abc"
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "eye": "abc"
+            }
+          ]
         }
       ]
     }
@@ -1498,9 +1522,12 @@ TEST_CASE("Validate: Viewport/Position/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "pos": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": 123
+            }
+          ]
         }
       ]
     }
@@ -1522,9 +1549,12 @@ TEST_CASE("Validate: Viewport/Position/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "pos": {}
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": {}
+            }
+          ]
         }
       ]
     }
@@ -1546,11 +1576,14 @@ TEST_CASE("Validate: Viewport/Position/X/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "pos": {
-              "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": {
+                "y": 2
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1572,12 +1605,15 @@ TEST_CASE("Validate: Viewport/Position/X/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "pos": {
-              "x": "abc",
-              "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": {
+                "x": "abc",
+                "y": 2
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1599,11 +1635,14 @@ TEST_CASE("Validate: Viewport/Position/Y/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "pos": {
-              "x": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": {
+                "x": 1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1625,12 +1664,15 @@ TEST_CASE("Validate: Viewport/Position/Y/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "pos": {
-              "x": 1,
-              "y": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": {
+                "x": 1,
+                "y": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1652,9 +1694,12 @@ TEST_CASE("Validate: Viewport/Size/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "size": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "size": 123
+            }
+          ]
         }
       ]
     }
@@ -1676,9 +1721,12 @@ TEST_CASE("Validate: Viewport/Size/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "size": {}
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "size": {}
+            }
+          ]
         }
       ]
     }
@@ -1700,11 +1748,14 @@ TEST_CASE("Validate: Viewport/Size/X/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "size": {
-              "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "size": {
+                "y": 2
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1726,12 +1777,15 @@ TEST_CASE("Validate: Viewport/Size/X/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "size": {
-              "x": "abc",
-              "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "size": {
+                "x": "abc",
+                "y": 2
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1753,11 +1807,14 @@ TEST_CASE("Validate: Viewport/Size/Y/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "size": {
-              "x": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "size": {
+                "x": 1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1779,12 +1836,15 @@ TEST_CASE("Validate: Viewport/Size/Y/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "size": {
-              "x": 1,
-              "y": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "size": {
+                "x": 1,
+                "y": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1806,9 +1866,12 @@ TEST_CASE("Validate: Viewport/Projection/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": 123
-          }
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": 123
+            }
+          ]
         }
       ]
     }

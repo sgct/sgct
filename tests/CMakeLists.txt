@@ -11,7 +11,16 @@ add_executable(SGCTTest)
 target_sources(
   SGCTTest
   PRIVATE
+    test_commandline.cpp
     test_config_examples.cpp
+    test_correction_domeprojection.cpp
+    test_correction_obj.cpp
+    test_correction_paulbourke.cpp
+    test_correction_pfm.cpp
+    test_correction_simcad.cpp
+    test_error.cpp
+    test_image.cpp
+    test_log.cpp
     test_config_load_capture.cpp
     test_config_load_cluster.cpp
     test_config_load_cubemapprojection.cpp
@@ -31,6 +40,12 @@ target_sources(
     test_config_load_user.cpp
     test_config_load_viewport.cpp
     test_config_load_window.cpp
+    test_config_roundtrip.cpp
+    test_config_serialize.cpp
+    test_config_validate.cpp
+    test_projection.cpp
+    test_shareddata.cpp
+    test_user.cpp
 )
 
 target_compile_features(SGCTTest PRIVATE cxx_std_23)
@@ -51,6 +66,7 @@ find_package(glm REQUIRED)
 find_package(Catch2 REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(nlohmann_json_schema_validator REQUIRED)
+find_package(stbimage CONFIG REQUIRED)
 
 target_link_libraries(
   SGCTTest
@@ -60,9 +76,12 @@ target_link_libraries(
     nlohmann_json::nlohmann_json
     nlohmann_json_schema_validator::validator
     glm::glm
+    unofficial::stbimage::stbimage-read-impl
 )
 
-add_test(NAME SGCTTest COMMAND SGCTTest)
+include(Catch)
+# Register each test case individually so that failures are reported per test case
+catch_discover_tests(SGCTTest DISCOVERY_MODE PRE_TEST PROPERTIES LABELS unit)
 
 add_test(
   NAME VcpkgManifestSync

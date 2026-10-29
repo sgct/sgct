@@ -1604,10 +1604,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
@@ -1666,10 +1668,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -1732,10 +1736,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
@@ -1796,10 +1802,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -1822,7 +1830,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
                 "type": "CubemapProjection",
                 "ndi": {
                   "enabled": true,
-                  "groups": "abc,def"
+                  "group": "abc,def"
                 }
               }
             }
@@ -1862,10 +1870,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
@@ -1886,7 +1896,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
                 "type": "CubemapProjection",
                 "ndi": {
                   "enabled": true,
-                  "groups": "123,456"
+                  "group": "123,456"
                 }
               }
             }
@@ -1926,10 +1936,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -2167,7 +2179,7 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
                 "ndi": {
                   "enabled": false,
                   "name": "abc",
-                  "groups": "abc,def"
+                  "group": "abc,def"
                 },
                 "channels": {
                     "right": true,
@@ -2248,12 +2260,15 @@ TEST_CASE("Validate: CubemapProjection/Quality/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2276,12 +2291,15 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2303,12 +2321,15 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2331,12 +2352,15 @@ TEST_CASE("Validate: CubemapProjection/Spout/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2358,14 +2382,17 @@ TEST_CASE("Validate: CubemapProjection/Spout/Enabled/Wrong Type", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": {
-                "enabled": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": {
+                  "enabled": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2387,15 +2414,18 @@ TEST_CASE("Validate: CubemapProjection/Spout/Name/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": {
-                "enabled": true,
-                "name": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": {
+                  "enabled": true,
+                  "name": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2417,15 +2447,18 @@ TEST_CASE("Validate: CubemapProjection/Spout/Name/Illegal Value", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": {
-                "enabled": true,
-                "name": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": {
+                  "enabled": true,
+                  "name": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2447,12 +2480,15 @@ TEST_CASE("Validate: CubemapProjection/NDI/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2474,14 +2510,17 @@ TEST_CASE("Validate: CubemapProjection/NDI/Enabled/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2503,15 +2542,18 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "name": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "name": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2533,15 +2575,18 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "name": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "name": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2563,15 +2608,18 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "groups": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "group": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2593,15 +2641,18 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Illegal Value", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "groups": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "group": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2623,12 +2674,15 @@ TEST_CASE("Validate: CubemapProjection/Channels/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2650,18 +2704,21 @@ TEST_CASE("Validate: CubemapProjection/Channels/Right/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2683,19 +2740,22 @@ TEST_CASE("Validate: CubemapProjection/Channels/Right/Wrong Type", "[validate]")
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": "abc",
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": "abc",
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2717,18 +2777,21 @@ TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2750,19 +2813,22 @@ TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Wrong Type", "[validate]")
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": "abc",
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": "abc",
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2784,18 +2850,21 @@ TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2817,19 +2886,22 @@ TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Wrong Type", "[validate]"
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": "abc",
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": "abc",
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2851,18 +2923,21 @@ TEST_CASE("Validate: CubemapProjection/Channels/Top/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2884,19 +2959,22 @@ TEST_CASE("Validate: CubemapProjection/Channels/Top/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": "abc",
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": "abc",
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2918,18 +2996,21 @@ TEST_CASE("Validate: CubemapProjection/Channels/Left/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2951,19 +3032,22 @@ TEST_CASE("Validate: CubemapProjection/Channels/Left/Wrong Type", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": "abc",
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": "abc",
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2985,18 +3069,21 @@ TEST_CASE("Validate: CubemapProjection/Channels/zRight/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3018,19 +3105,22 @@ TEST_CASE("Validate: CubemapProjection/Channels/zRight/Wrong Type", "[validate]"
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3052,12 +3142,15 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3079,12 +3172,15 @@ TEST_CASE("Validate: CubemapProjection/Orientation/All/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3106,15 +3202,18 @@ TEST_CASE("Validate: CubemapProjection/Orientation/X/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3136,16 +3235,19 @@ TEST_CASE("Validate: CubemapProjection/Orientation/X/Wrong Type", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": "abc",
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": "abc",
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3167,15 +3269,18 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Y/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3197,16 +3302,19 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Y/Wrong Type", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "y": "abc",
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "y": "abc",
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3228,15 +3336,18 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Z/Missing", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "y": 2
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3258,16 +3369,19 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Z/Wrong Type", "[validate]") 
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2,
-                "z": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "y": 2,
+                  "z": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }

@@ -120,10 +120,10 @@ public:
     };
 
     struct SGCT_EXPORT Settings {
-        /// Stores the configuration option whether the created OpenGL contexts should be
-        /// debug contexts or regular ones. This value is only in use between the
-        /// constructor and the #initialize function
-        bool createDebugContext = false;
+        /// Stores the configuration option whether the Vulkan validation layer and debug
+        /// messenger should be enabled. This value is only in use between the constructor
+        /// and the #initialize function
+        bool enableValidation = false;
 
         /// Sets the swap interval to be used by the application
         ///   -1 = adaptive sync(Nvidia)
@@ -178,15 +178,9 @@ public:
      * library to be called during the different times of the frame.
      */
     struct SGCT_EXPORT Callbacks {
-        /// This function is called before the window is created (before OpenGL context is
-        /// created). At this stage the configuration file has been read and network is
-        /// initialized
+        /// This function is called before the window is created. At this stage the
+        /// configuration file has been read and network is initialized
         void (*preWindow)() = nullptr;
-
-        /// This function is called once before the starting the render loop and after
-        /// creation of the OpenGL context. The window that is passed in this callback is
-        /// the shared context between all created windows
-        void (*initOpenGL)(GLFWwindow*) = nullptr;
 
         /// This function is called before the synchronization stage
         void (*preSync)() = nullptr;
@@ -202,11 +196,10 @@ public:
         /// can used to render text and HUDs that will not be filtered or antialiased
         void (*draw2D)(const RenderData&) = nullptr;
 
-        /// This function is called after the draw stage but before the OpenGL buffer swap
+        /// This function is called after the draw stage but before the buffer swap
         void (*postDraw)() = nullptr;
 
-        /// This is called before all SGCT components will be destroyed. The same shared
-        /// context is active that was passed in the Callbacks::initOpenGL callback
+        /// This is called before all SGCT components will be destroyed
         void (*cleanup)() = nullptr;
 
         /// This function is called to encode all shared data that is sent to the
@@ -524,7 +517,7 @@ private:
     ~Engine();
 
     /**
-     * Two-phase initialization that will setup all of the required OpenGL state and other
+     * Two-phase initialization that will setup all of the required Vulkan state and other
      * states that are necessary to run the Engine instance created by the constructor.
      */
     void initialize();
@@ -542,18 +535,13 @@ private:
     void frameLockPostStage();
 
     /**
-     * This function waits for all windows to be created on the whole cluster in order to
-     * set the barrier (hardware swap-lock). Under some Nvidia drivers the stability is
-     * improved by first join a swapgroup and then set the barrier then all windows in a
-     * swapgroup are created.
+     * This function waits for all nodes of the cluster to connect before the rendering
+     * starts, so that the frame synchronization begins with all windows created.
      */
-    void waitForAllWindowsInSwapGroupToOpen();
+    void waitForAllNodesToConnect();
 
     /// The function pointer that is called before any windows are created
     void (*_preWindowFn)() = nullptr;
-
-    /// The function pointer that is called after all windows have been created
-    void (*_initOpenGLFn)(GLFWwindow*) = nullptr;
 
     /// Function pointer that is called before the synchronization step of the frame
     void (*_preSyncFn)() = nullptr;

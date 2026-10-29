@@ -8,10 +8,9 @@
 
 #include <sgct/statisticsrenderer.h>
 
+#include <sgct/error.h>
 #include <sgct/format.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #ifdef SGCT_HAS_TEXT
@@ -19,11 +18,12 @@
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
-#include <glad/glad.h>
+#include <sgct/vulkan/context.h>
 #include <glm/fwd.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include <cstring>
 #include <string_view>
 #include <tuple>
 #include <vector>
@@ -40,27 +40,53 @@ namespace {
     constexpr sgct::vec4 ColorLoopTimeMin = sgct::vec4{ 0.4f, 0.4f, 1.f, 0.8f };
     constexpr sgct::vec4 ColorLoopTimeMax = sgct::vec4{ 0.15f, 0.15f, 0.8f, 0.8f };
 
-    constexpr std::string_view StatsVertShader = R"(
-#version 460 core
+    void check(VkResult result, const char* what) {
+        if (result != VK_SUCCESS) {
+            throw sgct::Error(
+                sgct::Error::Component::Engine,
+                4450,
+                std::format("Vulkan error ({}): {}", static_cast<int>(result), what)
+            );
+        }
+    }
+
+    // The per-draw parameters
+    struct Constants {
+        sgct::mat4 mvp;
+        sgct::vec4 color;
+    };
+
+    constexpr const char* StatsVertShader = R"(
+#version 460
 
 layout (location = 0) in vec2 in_vertPosition;
 
-uniform mat4 mvp;
+layout (push_constant) uniform Constants {
+  mat4 mvp;
+  vec4 color;
+} pc;
 
-
-void main() { gl_Position = mvp * vec4(in_vertPosition, 0.0, 1.0); }
+void main() { gl_Position = pc.mvp * vec4(in_vertPosition, 0.0, 1.0); }
 )";
 
-    constexpr std::string_view StatsFragShader = R"(
-#version 460 core
+    constexpr const char* StatsFragShader = R"(
+#version 460
 
-out vec4 out_color;
+layout (push_constant) uniform Constants {
+  mat4 mvp;
+  vec4 color;
+} pc;
 
-uniform vec4 col;
+layout (location = 0) out vec4 out_color;
 
-
-void main() { out_color = col; }
+void main() { out_color = pc.color; }
 )";
+
+    sgct::mat4 toMat4(const glm::mat4& m) {
+        sgct::mat4 res;
+        std::memcpy(res.values.data(), glm::value_ptr(m), sizeof(sgct::mat4));
+        return res;
+    }
 
     // Histogram parameters
     constexpr double HistogramScaleFrame = 35.0 / 1000.0; // 35ms
@@ -74,21 +100,27 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 {
     ZoneScoped;
 
-    // Setup shaders
-    _shader = ShaderProgram("General Statistics Shader");
-    _shader.addVertexShader(StatsVertShader);
-    _shader.addFragmentShader(StatsFragShader);
-    _shader.createAndLinkProgram();
-    _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
-    _colorLoc = glGetUniformLocation(_shader.id(), "col");
+    vulkan::Context& ctx = vulkan::Context::instance();
 
+    VkPushConstantRange pushConstants = {};
+    pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstants.offset = 0;
+    pushConstants.size = sizeof(Constants);
+    VkPipelineLayoutCreateInfo layoutInfo = {};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layoutInfo.pushConstantRangeCount = 1;
+    layoutInfo.pPushConstantRanges = &pushConstants;
+    check(
+        vkCreatePipelineLayout(ctx.device(), &layoutInfo, nullptr, &_pipelineLayout),
+        "vkCreatePipelineLayout"
+    );
+
+    // The static buffer contains the background quad, the 1 ms lines, the 0, 30 & 60
+    // FPS lines, and the axes of the histograms
+    std::vector<Vertex> vs;
     {
-        unsigned int& vao = _lines.staticDraw.vao;
-        unsigned int& vbo = _lines.staticDraw.vbo;
-
         constexpr float Length = static_cast<float>(Engine::Statistics::HistoryLength);
         // Static background quad
-        std::vector<Vertex> vs;
         vs.emplace_back(0.f, 0.f);
         vs.emplace_back(Length, 0.f);
         vs.emplace_back(0.f, 1.f / 30.f);
@@ -111,91 +143,98 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 
         vs.emplace_back(0.f, 1.f / 60.f);
         vs.emplace_back(Length, 1.f / 60.f);
-
-        glCreateBuffers(1, &_lines.staticDraw.vbo);
-        glNamedBufferStorage(vbo, vs.size() * sizeof(Vertex), vs.data(), GL_NONE_BIT);
-
-        glCreateVertexArrays(1, &vao);
-        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
-
-        glEnableVertexArrayAttrib(vao, 0);
-        glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-        glVertexArrayAttribBinding(vao, 0, 0);
     }
-
     {
-        unsigned int& vao = _lines.dynamicDraw.vao;
-        unsigned int& vbo = _lines.dynamicDraw.vbo;
+        // Histogram axes
+        _histogram.staticDraw.first = static_cast<uint32_t>(vs.size());
+        vs.emplace_back(0.f, 0.f);
+        vs.emplace_back(1.f, 0.f);
+        vs.emplace_back(0.f, 0.f);
+        vs.emplace_back(0.f, 1.f);
+    }
+    _staticBuffer = std::make_unique<vulkan::Buffer>(
+        ctx, vs.size() * sizeof(Vertex), vulkan::Buffer::Type::Vertex
+    );
+    _staticBuffer->upload(vs.data());
 
-        glCreateBuffers(1, &vbo);
-        glNamedBufferStorage(
-            vbo,
-            sizeof(StatisticsRenderer::Lines::Vertices),
-            nullptr,
-            GL_DYNAMIC_STORAGE_BIT
+    // The dynamic buffers contain the lines of the graphs followed by the histogram bars
+    for (std::unique_ptr<vulkan::Buffer>& buffer : _dynamicBuffers) {
+        buffer = std::make_unique<vulkan::Buffer>(
+            ctx,
+            sizeof(Lines::Vertices) + sizeof(Histogram::Vertices),
+            vulkan::Buffer::Type::DynamicVertex
         );
-
-        glCreateVertexArrays(1, &vao);
-        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
-
-        glEnableVertexArrayAttrib(vao, 0);
-        glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-        glVertexArrayAttribBinding(vao, 0, 0);
-    }
-
-    {
-        unsigned int& vao = _histogram.staticDraw.vao;
-        unsigned int& vbo = _histogram.staticDraw.vbo;
-
-        glCreateBuffers(1, &vbo);
-        constexpr std::array<Vertex, 4> Vertices = {
-            Vertex{ 0.f, 0.f }, Vertex{ 1.f, 0.f }, Vertex{ 0.f, 0.f }, Vertex{ 0.f, 1.f }
-        };
-        glNamedBufferStorage(vbo, 4 * sizeof(Vertex), Vertices.data(), GL_NONE_BIT);
-
-        glCreateVertexArrays(1, &vao);
-        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
-
-        glEnableVertexArrayAttrib(vao, 0);
-        glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-        glVertexArrayAttribBinding(vao, 0, 0);
-    }
-
-    {
-        unsigned int& vao = _histogram.dynamicDraw.vao;
-        unsigned int& vbo = _histogram.dynamicDraw.vbo;
-
-        glCreateBuffers(1, &vbo);
-        glNamedBufferStorage(
-            vbo,
-            sizeof(Histogram::Vertices),
-            nullptr,
-            GL_DYNAMIC_STORAGE_BIT
-        );
-
-        glCreateVertexArrays(1, &vao);
-        glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
-
-        glEnableVertexArrayAttrib(vao, 0);
-        glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-        glVertexArrayAttribBinding(vao, 0, 0);
+        std::memset(buffer->map(), 0, buffer->size());
     }
 }
 
 StatisticsRenderer::~StatisticsRenderer() {
     ZoneScoped;
 
-    _shader.deleteProgram();
+    // The renderer can be removed at runtime while frames that use it are in flight
+    vulkan::Context& ctx = vulkan::Context::instance();
+    vkDeviceWaitIdle(ctx.device());
 
-    glDeleteVertexArrays(1, &_lines.staticDraw.vao);
-    glDeleteBuffers(1, &_lines.staticDraw.vbo);
-    glDeleteVertexArrays(1, &_lines.dynamicDraw.vao);
-    glDeleteBuffers(1, &_lines.dynamicDraw.vbo);
+    _pipelines.clear();
+    vkDestroyPipelineLayout(ctx.device(), _pipelineLayout, nullptr);
+}
 
-    glDeleteVertexArrays(1, &_histogram.staticDraw.vao);
-    glDeleteBuffers(1, &_histogram.staticDraw.vbo);
-    glDeleteVertexArrays(1, &_histogram.dynamicDraw.vao);
-    glDeleteBuffers(1, &_histogram.dynamicDraw.vbo);
+const StatisticsRenderer::Pipelines& StatisticsRenderer::pipelines(VkRenderPass renderPass,
+                                                     const vulkan::SceneFormat& format)
+{
+    // All render passes with the same format that the statistics are drawn into are
+    // compatible, so the pipelines can be shared between them
+    Pipelines& p = _pipelines[format];
+    if (!p.triangleStrip) {
+        vulkan::Context& ctx = vulkan::Context::instance();
+
+        vulkan::Pipeline::Settings settings;
+        settings.renderPass = renderPass;
+        settings.setSceneFormat(format);
+        settings.layout = _pipelineLayout;
+        settings.vertexBindings = { { 0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX } };
+        settings.vertexAttributes = { { 0, 0, VK_FORMAT_R32G32_SFLOAT, 0 } };
+        settings.cullMode = VK_CULL_MODE_NONE;
+        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) of the OpenGL path, which
+        // applies to the alpha channel as well
+        settings.blend = true;
+        settings.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        settings.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
+        auto create = [&](VkPrimitiveTopology topology) {
+            settings.topology = topology;
+            return std::make_unique<vulkan::Pipeline>(
+                ctx, StatsVertShader, StatsFragShader, settings
+            );
+        };
+        p.triangleStrip = create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        p.triangleList = create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        p.lineList = create(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+        p.lineStrip = create(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+    }
+    return p;
+}
+
+void StatisticsRenderer::draw(VkCommandBuffer cmd, const vulkan::Pipeline& pipeline,
+                              VkBuffer buffer, const vec4& color, const mat4& mvp,
+                              uint32_t first, uint32_t count) const
+{
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle());
+    const VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(cmd, 0, 1, &buffer, &offset);
+
+    Constants constants;
+    constants.mvp = mvp;
+    constants.color = color;
+    vkCmdPushConstants(
+        cmd,
+        _pipelineLayout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(Constants),
+        &constants
+    );
+    vkCmdDraw(cmd, count, 1, first, 0);
 }
 
 void StatisticsRenderer::update() {
@@ -224,12 +263,6 @@ void StatisticsRenderer::update() {
         _lines.buffer.loopTimeMax[i].y = static_cast<float>(_statistics.loopTimeMax[i]);
     }
 
-    glNamedBufferSubData(
-        _lines.dynamicDraw.vbo,
-        0,
-        sizeof(Lines::Vertices),
-        &_lines.buffer.frametimes
-    );
 
 
     // Histogram update
@@ -289,16 +322,31 @@ void StatisticsRenderer::update() {
     convertValues(h.buffer.loopTimeMin, h.values.loopTimeMin, h.maxBinValue.loopTimeMin);
     convertValues(h.buffer.loopTimeMax, h.values.loopTimeMax, h.maxBinValue.loopTimeMax);
 
-    glNamedBufferSubData(
-        _histogram.dynamicDraw.vbo,
-        0,
-        sizeof(Histogram::Vertices),
-        _histogram.buffer.frametimes.data()
+    // Frames in flight might still read the previously written buffers. The buffer of
+    // frame N is overwritten in frame N + DynamicBufferCount, by when every window has
+    // waited for its submission of frame N + 1, the last one that reads it
+    _currentDynamicBuffer = static_cast<int>(
+        Engine::instance().currentFrameNumber() % DynamicBufferCount
+    );
+    std::byte* dst = static_cast<std::byte*>(_dynamicBuffers[_currentDynamicBuffer]->map());
+    std::memcpy(dst, &_lines.buffer, sizeof(Lines::Vertices));
+    std::memcpy(
+        dst + sizeof(Lines::Vertices),
+        &_histogram.buffer,
+        sizeof(Histogram::Vertices)
     );
 }
 
-void StatisticsRenderer::render(const Window& window, const Viewport& viewport) const {
+void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
     ZoneScoped;
+
+    VkCommandBuffer cmd = window.currentCommandBuffer();
+    if (cmd == VK_NULL_HANDLE) {
+        return;
+    }
+    const Pipelines& p = pipelines(window.renderPass(), window.sceneFormat());
+    const VkBuffer staticBuffer = _staticBuffer->handle();
+    const VkBuffer dynamicBuffer = _dynamicBuffers[_currentDynamicBuffer]->handle();
 
     const ivec2 res = window.framebufferResolution();
     const glm::vec2 scaleOffset = glm::vec2(res.x / 2.f, res.y / 2.f);
@@ -330,15 +378,11 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
     const float penOffset = 20.f * _scale;
 
 
-    glLineWidth(1.f);
-
     {
         //
         // Render lines
         //
         ZoneScopedN("Lines");
-
-        _shader.bind();
 
         const glm::vec2 size = glm::vec2(
             res.x / static_cast<float>(Engine::Statistics::HistoryLength),
@@ -349,47 +393,50 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glm::mat4 m = glm::translate(orthoMat, glm::vec3(0.f, 250.f * _scale, 0.f));
         m = glm::translate(m, glm::vec3(_offset.x * res.x, _offset.y * res.y, 0.f));
         m = glm::scale(m, glm::vec3(size.x, size.y, 1.f));
-        glProgramUniformMatrix4fv(_shader.id(), _mvpLoc, 1, GL_FALSE, glm::value_ptr(m));
-
-        glBindVertexArray(_lines.staticDraw.vao);
+        const mat4 mvp = toMat4(m);
+        const uint32_t nLines = static_cast<uint32_t>(_lines.staticDraw.nLines);
 
         // Draw background (1024x1024 canvas)
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticBackground.x);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        draw(cmd, *p.triangleStrip, staticBuffer, ColorStaticBackground, mvp, 0, 4);
 
         // 1 ms lines
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticGrid.x);
-        glDrawArrays(GL_LINES, 4, _lines.staticDraw.nLines * 2);
+        draw(cmd, *p.lineList, staticBuffer, ColorStaticGrid, mvp, 4, nLines * 2);
 
         // Zero line, 60hz & 30hz
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticFrequency.x);
-        glDrawArrays(GL_LINES, 4 + _lines.staticDraw.nLines * 2, 6);
-
-        glBindVertexArray(_lines.dynamicDraw.vao);
+        draw(
+            cmd, *p.lineList, staticBuffer, ColorStaticFrequency, mvp, 4 + nLines * 2, 6
+        );
 
         // Frametime
-        constexpr int StatsLength = Engine::Statistics::HistoryLength;
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorFrameTime.x);
-        glDrawArrays(GL_LINE_STRIP, 0 * StatsLength, StatsLength);
+        constexpr uint32_t StatsLength = Engine::Statistics::HistoryLength;
+        draw(
+            cmd, *p.lineStrip, dynamicBuffer, ColorFrameTime, mvp,
+            0 * StatsLength, StatsLength
+        );
 
         // Drawtime
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorDrawTime.x);
-        glDrawArrays(GL_LINE_STRIP, 1 * StatsLength, StatsLength);
+        draw(
+            cmd, *p.lineStrip, dynamicBuffer, ColorDrawTime, mvp,
+            1 * StatsLength, StatsLength
+        );
 
         // Synctime
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorSyncTime.x);
-        glDrawArrays(GL_LINE_STRIP, 2 * StatsLength, StatsLength);
+        draw(
+            cmd, *p.lineStrip, dynamicBuffer, ColorSyncTime, mvp,
+            2 * StatsLength, StatsLength
+        );
 
         // Looptimemin
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorLoopTimeMin.x);
-        glDrawArrays(GL_LINE_STRIP, 3 * StatsLength, StatsLength);
+        draw(
+            cmd, *p.lineStrip, dynamicBuffer, ColorLoopTimeMin, mvp,
+            3 * StatsLength, StatsLength
+        );
 
         // Looptimemax
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorLoopTimeMax.x);
-        glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
-
-        glBindVertexArray(0);
-        ShaderProgram::unbind();
+        draw(
+            cmd, *p.lineStrip, dynamicBuffer, ColorLoopTimeMax, mvp,
+            4 * StatsLength, StatsLength
+        );
 
 #ifdef SGCT_HAS_TEXT
         constexpr text::Alignment mode = text::Alignment::TopLeft;
@@ -491,18 +538,22 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
             glm::mat4 m = glm::translate(orthoMat, glm::vec3(pos.x, pos.y, 0.f));
             m = glm::scale(m, glm::vec3(size.x, size.y, 1.f));
-            glUniformMatrix4fv(_mvpLoc, 1, GL_FALSE, glm::value_ptr(m));
-            glUniform4fv(_colorLoc, 1, glm::value_ptr(glm::vec4(1.f)));
+            const mat4 mvp = toMat4(m);
 
-            glBindVertexArray(_histogram.staticDraw.vao);
-            glDrawArrays(GL_LINES, 0, 4);
+            draw(
+                cmd, *p.lineList, staticBuffer, vec4{ 1.f, 1.f, 1.f, 1.f }, mvp,
+                _histogram.staticDraw.first, 4
+            );
 
-            glBindVertexArray(_histogram.dynamicDraw.vao);
-            glUniform4fv(_colorLoc, 1, &color.x);
-            glDrawArrays(GL_TRIANGLES, i * 6 * Histogram::Bins, 6 * Histogram::Bins);
+            // The histogram bars follow the lines in the dynamic buffer
+            constexpr uint32_t HistogramFirst = sizeof(Lines::Vertices) / sizeof(Vertex);
+            constexpr uint32_t BinVertices = 6 * Histogram::Bins;
+            draw(
+                cmd, *p.triangleList, dynamicBuffer, color, mvp,
+                HistogramFirst + static_cast<uint32_t>(i) * BinVertices, BinVertices
+            );
         };
 
-        _shader.bind();
         renderHistogram(0, ColorFrameTime);
         renderHistogram(1, ColorDrawTime);
         renderHistogram(2, ColorSyncTime);

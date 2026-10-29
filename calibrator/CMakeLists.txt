@@ -33,6 +33,19 @@ add_custom_command(
 )
 set_property(TARGET calibrator PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:calibrator>)
 
+# Rendering smoke test: run the calibrator's scripted test sequence with the Vulkan
+# validation layer enabled. The calibrator exits non-zero if the validation layer
+# reports any error (see main.cpp), so a clean run is a pass. It requires a Vulkan
+# device, so it will fail on headless machines without a GPU.
+if (SGCT_BUILD_TESTS)
+  add_test(
+    NAME CalibratorRenderSmoke
+    COMMAND calibrator -runTests -config ${PROJECT_SOURCE_DIR}/config/single.json --vulkan-validation
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:calibrator>
+  )
+  set_tests_properties(CalibratorRenderSmoke PROPERTIES TIMEOUT 180)
+endif ()
+
 # Same condition as the library install in src/CMakeLists.txt: a project that vendors SGCT
 # brings its own install rules and should not have ours appear in its packages
 if (PROJECT_IS_TOP_LEVEL)

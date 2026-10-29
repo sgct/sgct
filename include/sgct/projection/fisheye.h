@@ -12,12 +12,14 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/shaderprogram.h>
 #include <sgct/math.h>
+#include <array>
+#include <memory>
 
 namespace sgct {
 
 namespace config { struct FisheyeProjection; }
+namespace vulkan { class ProjectionPass; }
 class BaseViewport;
 class User;
 class Window;
@@ -39,14 +41,10 @@ public:
     void update(const vec2& size) const override;
 
     /**
-     * Render the non-linear projection to currently bounded FBO.
+     * Render the non-linear projection into the viewport.
      */
-    void render(const BaseViewport& viewport, FrustumMode frustumMode) const override;
-
-    /**
-     * Render the enabled faces of the cubemap.
-     */
-    void renderCubemap(FrustumMode frustumMode) const override;
+    void render(VkCommandBuffer cmd, const BaseViewport& viewport,
+        FrustumMode frustumMode, const VkRect2D& area) const override;
 
     /**
      * Set the dome diameter used in the fisheye renderer (used for the viewplane distance
@@ -80,8 +78,8 @@ public:
 
     /**
      * Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
-     * Base of fisheye is the XY-plane. This function is normally used in fisheye stereo
-     * rendering.
+     * Base of fisheye is the XY-plane. The offset is used for mono rendering; for stereo
+     * rendering, the offset is derived from the eye separation instead.
      */
     void setOffset(vec3 offset) const;
 
@@ -101,9 +99,8 @@ public:
     void setKeepAspectRatio(bool state);
 
 private:
-    void initVBO() override;
     void initViewports() override;
-    void initShaders() override;
+    void initPipelines(VkRenderPass renderPass) override;
 
     float _fov;
     float _tilt;
@@ -116,30 +113,16 @@ private:
     bool _ignoreAspectRatio = false;
     bool _keepAspectRatio;
 
-    mutable bool _isOffAxis = false;
     mutable vec3 _offset = vec3{ 0.f, 0.f, 0.f };
     vec3 _baseOffset = vec3{ 0.f, 0.f, 0.f };
     mutable vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 
-    // shader locations
-    struct {
-        int cubemap = -1;
-        int depthCubemap = -1;
-        int normalCubemap = -1;
-        int positionCubemap = -1;
-        int halfFov = -1;
-        int offset = -1;
-        int swapColor = -1;
-        int swapDepth = -1;
-        int swapNear = -1;
-        int swapFar = -1;
-    } _shaderLoc;
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
-    ShaderProgram _shader;
-    ShaderProgram _depthCorrectionShader;
+    /// The corners of the quad that the fisheye is drawn onto (xy is the position, zw
+    /// the texture coordinates), which depend on the aspect ratio of the viewport
+    mutable std::array<vec4, 4> _quad;
+    std::unique_ptr<vulkan::ProjectionPass> _pass;
 };
 
 } // namespace sgct

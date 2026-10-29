@@ -13,11 +13,12 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/math.h>
-#include <sgct/shaderprogram.h>
+#include <memory>
 
 namespace sgct {
 
 namespace config { struct EquirectangularProjection; }
+namespace vulkan { class ProjectionPass; }
 class BaseViewport;
 class User;
 class Window;
@@ -28,20 +29,16 @@ public:
         const Window& parent, User& user);
     ~EquirectangularProjection() final;
 
-    void render(const BaseViewport& viewport, FrustumMode mode) const override;
-
-    void renderCubemap(FrustumMode frustumMode) const override;
+    void render(VkCommandBuffer cmd, const BaseViewport& viewport, FrustumMode mode,
+        const VkRect2D& area) const override;
 
     void update(const vec2& size) const override;
 
 private:
-    void initVBO() override;
     void initViewports() override;
-    void initShaders() override;
+    void initPipelines(VkRenderPass renderPass) override;
 
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
-    ShaderProgram _shader;
+    std::unique_ptr<vulkan::ProjectionPass> _pass;
 };
 
 } // namespace sgct

@@ -20,11 +20,10 @@
 #include <sgct/openxr.h>
 #endif // SGCT_HAS_OPENXR
 #include <sgct/profiling.h>
-#include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
-#include <sgct/texturemanager.h>
 #include <sgct/version.h>
+#include <sgct/vulkan/context.h>
 #include <chrono>
 #include <iostream>
 #include <iterator>
@@ -34,10 +33,7 @@
 #include <stdexcept>
 
 #ifdef WIN32
-#include <glad/glad_wgl.h>
 #include <Windows.h>
-#else // ^^^^ WIN32 // !WIN32 vvvv
-#include <glad/glad.h>
 #endif // WIN32
 
 #define GLFW_INCLUDE_NONE
@@ -97,8 +93,8 @@ namespace {
 
         res.capture.nCaptureThreads =
             config.nCaptureThreads.value_or(res.capture.nCaptureThreads);
-        res.createDebugContext =
-            config.useOpenGLDebugContext.value_or(res.createDebugContext);
+        res.enableValidation =
+            config.useVulkanValidation.value_or(res.enableValidation);
         res.capture.capturePath = config.screenshotPath.value_or(res.capture.capturePath);
         res.capture.prefix = config.screenshotPrefix.value_or(res.capture.prefix);
         res.capture.addNodeName =
@@ -236,7 +232,6 @@ double time() {
 
 Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config)
     : _preWindowFn(std::move(callbacks.preWindow))
-    , _initOpenGLFn(std::move(callbacks.initOpenGL))
     , _preSyncFn(std::move(callbacks.preSync))
     , _postSyncPreDrawFn(std::move(callbacks.postSyncPreDraw))
     , _drawFn(std::move(callbacks.draw))
@@ -360,26 +355,8 @@ void Engine::initialize() {
         Log::Info(std::format("Using GLFW version {}.{}.{}", major, minor, release));
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
-
-    bool needsCompatProfile = std::any_of(
-        windows.cbegin(),
-        windows.cend(),
-        std::mem_fn(&Window::needsCompatibilityProfile)
-    );
-
-    glfwWindowHint(
-        GLFW_OPENGL_PROFILE,
-        needsCompatProfile ? GLFW_OPENGL_COMPAT_PROFILE : GLFW_OPENGL_CORE_PROFILE
-    );
-
-    if (_settings.createDebugContext) {
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-    }
 
     if (_preWindowFn) {
         ZoneScopedN("[SGCT] Pre-window creation");
@@ -389,34 +366,26 @@ void Engine::initialize() {
     for (size_t i = 0; i < windows.size(); i++) {
         ZoneScopedN("Creating Window");
 
-        GLFWwindow* s = (i == 0) ? nullptr : windows[0]->windowHandle();
         const bool isLastWindow = i == windows.size() - 1;
-        windows[i]->openWindow(s, isLastWindow);
-        gladLoadGL();
-#ifdef WIN32
-        gladLoadWGL(wglGetCurrentDC());
-#endif // WIN32
-        TracyGpuContext;
-
-        if (i == 0) {
-            int major = 0;
-            glGetIntegerv(GL_MAJOR_VERSION, &major);
-            int minor = 0;
-            glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-            if (major != 4 || minor != 6) {
-                throw Err(
-                    3007,
-                    "Error creating OpenGL context with version 4.6 when initializing "
-                    "the engine"
-                );
-            }
-        }
+        windows[i]->openWindow(isLastWindow);
     }
 
-    // Clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // The OpenXR runtime has to create the Vulkan instance and device, so its instance
+    // is created first. Without a runtime or a headset, SGCT continues without OpenXR
+    vulkan::Context::CreationOverrides overrides;
+#ifdef SGCT_HAS_OPENXR
+    if (openXRWindow(windows) && openxr::initializeInstance()) {
+        overrides = openxr::vulkanCreationOverrides();
+    }
+#endif // SGCT_HAS_OPENXR
+
+    // The Vulkan context needs a native window handle to create a surface, so it is
+    // initialized once all windows exist and before any swapchain is created
+    vulkan::Context::create().initialize(
+        windows[0]->windowHandle(),
+        _settings.enableValidation,
+        overrides
+    );
 
     if (RunFrameLockCheckThread && ClusterManager::instance().numberOfNodes() > 1) {
         _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
@@ -426,6 +395,10 @@ void Engine::initialize() {
     // resolution, so it needs to apply it using the same routine as in the end of a frame
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::updateResolutions));
+
+    // Create each window's swapchain, framebuffer, and command buffers now that the
+    // Vulkan context exists and the framebuffer resolutions are known
+    std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::initialize));
 
     // If a single node, skip syncing
     if (ClusterManager::instance().numberOfNodes() == 1) {
@@ -509,37 +482,12 @@ void Engine::initialize() {
         }
     }
 
-    // Get OpenGL version from the first window as there has to be one
-    GLFWwindow* winHandle = wins[0]->windowHandle();
-    const std::array<int, 3> v = {
-        glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR),
-        glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR),
-        glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION)
-    };
-    Log::Info(std::format("OpenGL version {}.{}.{} core profile", v[0], v[1], v[2]));
-
-    std::string vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    Log::Info(std::format("Vendor: {}", vendor));
-    std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    Log::Info(std::format("Renderer: {}", renderer));
-
-    Window::makeSharedContextCurrent();
-
 #ifdef SGCT_HAS_NDI
     const bool initializeSuccess = NDIlib_initialize();
     if (!initializeSuccess) {
         Log::Error("Error initializing NDI");
     }
 #endif // SGCT_HAS_NDI
-
-    if (_initOpenGLFn) {
-        Log::Info("Calling initialization callback");
-        ZoneScopedN("[SGCT] OpenGL Initialization");
-        GLFWwindow* share = thisNode.windows().front()->windowHandle();
-        _initOpenGLFn(share);
-    }
-
-    std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::initialize));
 
     updateFrustums();
 
@@ -558,22 +506,10 @@ void Engine::initialize() {
     text::FontManager::instance().addFont("SGCTFont", std::string(FontName));
 #endif // SGCT_HAS_TEXT
 
-    // Init draw buffer resolution
-    waitForAllWindowsInSwapGroupToOpen();
-    // Init swap group if enabled
+    waitForAllNodesToConnect();
     if (thisNode.isUsingSwapGroups()) {
         Window::initNvidiaSwapGroups();
     }
-
-    // Init swap barrier is swap groups are active
-    Window::setBarrier(true);
-    Window::resetSwapGroupFrameNumber();
-
-    std::for_each(
-        wins.cbegin(),
-        wins.cend(),
-        std::mem_fn(&Window::initializeContextSpecific)
-    );
 }
 
 Engine::~Engine() {
@@ -584,7 +520,6 @@ Engine::~Engine() {
     const ClusterManager& cm = ClusterManager::instance();
     const bool hasNode = cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
     if (hasNode) {
-        Window::makeSharedContextCurrent();
         if (_cleanupFn) {
             _cleanupFn();
         }
@@ -612,46 +547,35 @@ Engine::~Engine() {
         Log::Debug("Done");
     }
 
-    // Deinit window and unbind swapgroups
+    // Deinit and close all windows (destroys their Vulkan resources) before destroying
+    // the shared Vulkan context, since the Vulkan surfaces reference the native windows.
     // There might not be any thisNode as its creation might have failed
     if (hasNode) {
         const std::vector<std::unique_ptr<Window>>& wins = cm.thisNode().windows();
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::closeWindow));
     }
 
-#ifdef SGCT_HAS_OPENXR
-    if (openxr::isHMDActive()) {
-        Log::Debug("Shutting down OpenXR");
-        openxr::shutdown();
-    }
-#endif // SGCT_HAS_OPENXR
-
-    // Close TCP connections
-    Log::Debug("Destroying network manager");
-    NetworkManager::destroy();
-
-    // Shared contex
-    if (hasNode && !cm.thisNode().windows().empty()) {
-        Window::makeSharedContextCurrent();
-    }
-
-    Log::Debug("Destroying shader manager and internal shaders");
-    ShaderManager::destroy();
-
+    // The statistics and the fonts own Vulkan resources, too. The windows have waited for
+    // the device to become idle when they were closed
     _statisticsRenderer = nullptr;
-
-    Log::Debug("Destroying texture manager");
-    TextureManager::destroy();
-
 #ifdef SGCT_HAS_TEXT
     Log::Debug("Destroying font manager");
     text::FontManager::destroy();
 #endif // SGCT_HAS_TEXT
 
-    // Window specific context
-    if (hasNode && !cm.thisNode().windows().empty()) {
-        cm.thisNode().windows().front()->makeOpenGLContextCurrent();
-    }
+#ifdef SGCT_HAS_OPENXR
+    // The OpenXR session and swapchains use the Vulkan device
+    Log::Debug("Shutting down OpenXR");
+    openxr::shutdown();
+#endif // SGCT_HAS_OPENXR
+
+    // Destroy the Vulkan context after all window resources are gone but before the GLFW
+    // windows are terminated, since the Vulkan surfaces reference the native windows
+    vulkan::Context::destroy();
+
+    // Close TCP connections
+    Log::Debug("Destroying network manager");
+    NetworkManager::destroy();
 
     Log::Debug("Destroying shared data");
     SharedData::destroy();
@@ -777,13 +701,6 @@ void Engine::frameLockPostStage() {
 }
 
 void Engine::exec() {
-    Window::makeSharedContextCurrent();
-
-    unsigned int timeQueryBegin = 0;
-    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryBegin);
-    unsigned int timeQueryEnd = 0;
-    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryEnd);
-
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     while (!_shouldTerminate && !thisNode.closeAllWindows() &&
@@ -793,8 +710,6 @@ void Engine::exec() {
             ZoneScopedN("GLFW Poll Events");
             glfwPollEvents();
         }
-
-        Window::makeSharedContextCurrent();
 
         if (_preSyncFn) [[likely]] {
             ZoneScopedN("[SGCT] PreSync");
@@ -812,7 +727,6 @@ void Engine::exec() {
 
         frameLockPreStage();
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::update));
-        Window::makeSharedContextCurrent();
 
         if (_postSyncPreDrawFn) [[likely]] {
             ZoneScopedN("[SGCT] PostSyncPreDraw");
@@ -832,22 +746,11 @@ void Engine::exec() {
             const double ft = static_cast<float>(startFrameTime - _statsPrevTimestamp);
             addValue(_statistics.frametimes, ft);
             _statsPrevTimestamp = startFrameTime;
-
-            if (_statisticsRenderer) [[unlikely]] {
-                glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
-            }
         }
 
         // Render Viewports / Draw
         std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::draw));
-        std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::renderFBOTexture));
-
-        Window::makeSharedContextCurrent();
-
-        if (_statisticsRenderer) [[unlikely]] {
-            ZoneScopedN("glQueryCounter");
-            glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
-        }
+        std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::renderComposite));
 
         if (_postDrawFn) [[likely]] {
             ZoneScopedN("[SGCT] PostDraw");
@@ -856,27 +759,20 @@ void Engine::exec() {
 
 #ifdef SGCT_HAS_OPENXR
         if (Window* window = openXRWindow(wins)) {
-            ZoneScopedN("[SGCT] OpenXR Submit");
+            ZoneScopedN("[SGCT] OpenXR Copy");
             openxr::copyWindowToHMD(window);
         }
 #endif // SGCT_HAS_OPENXR
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("Statistics Update");
-            // Wait until the query results are available
-            GLint done = GL_FALSE;
-            while (!done) {
-                glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
+            // The GPU time of the windows' last completed frames, which is one or two
+            // frames behind as the measurement is read without waiting for the GPU
+            double drawTime = 0.0;
+            for (const std::unique_ptr<Window>& window : wins) {
+                drawTime += window->gpuFrameTime();
             }
-
-            // Get the query results
-            GLuint64 timerStart = 0;
-            glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
-            GLuint64 timerEnd = 0;
-            glGetQueryObjectui64v(timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
-
-            const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
-            addValue(_statistics.drawTimes, t);
+            addValue(_statistics.drawTimes, drawTime);
 
             _statisticsRenderer->update();
         }
@@ -907,7 +803,14 @@ void Engine::exec() {
             window->swapBuffers(shouldTakeScreenshot);
         }
 
-        TracyGpuCollect;
+#ifdef SGCT_HAS_OPENXR
+        // The copies into the OpenXR swapchain images were submitted with the window
+        if (openXRWindow(wins)) {
+            ZoneScopedN("[SGCT] OpenXR Submit Frame");
+            openxr::submitFrame();
+        }
+#endif // SGCT_HAS_OPENXR
+
         FrameMark;
 
         std::for_each(
@@ -923,10 +826,6 @@ void Engine::exec() {
         }
         _shouldTakeScreenshot = false;
     }
-
-    Window::makeSharedContextCurrent();
-    glDeleteQueries(1, &timeQueryBegin);
-    glDeleteQueries(1, &timeQueryEnd);
 }
 
 bool Engine::isMaster() const {
@@ -937,56 +836,20 @@ unsigned int Engine::currentFrameNumber() const {
     return _frameCounter;
 }
 
-void Engine::waitForAllWindowsInSwapGroupToOpen() {
+void Engine::waitForAllNodesToConnect() {
     ZoneScoped;
 
     ClusterManager& cm = ClusterManager::instance();
     Node& thisNode = cm.thisNode();
 
-    // Clear the buffers initially
-    for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-        ZoneScopedN("Clear Windows");
-        window->makeOpenGLContextCurrent();
-        glDrawBuffer(GL_BACK);
-        glClearColor(0.f, 0.f, 0.f, 0.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        {
-            ZoneScopedN("glfwSwapBuffers");
-            glfwSwapBuffers(window->windowHandle());
-        }
-    }
-
-    {
-        ZoneScopedN("GLFW Poll Events");
-        glfwPollEvents();
-    }
-
-    // Must wait until all nodes are running if using swap barrier
+    // Must wait until all nodes are running
     if (cm.ignoreSync() || cm.numberOfNodes() == 1) {
         return;
     }
 
-    // Check if swapgroups are supported
-#ifdef WIN32
-    const bool hasSwapGroup = glfwExtensionSupported("WGL_NV_swap_group") == GLFW_TRUE;
-    Log::Info(
-        hasSwapGroup ?
-        "Swap groups are supported by hardware" :
-        "Swap groups are not supported by hardware"
-    );
-#else // ^^^^ WIN32 // !WIN32 vvvv
-    Log::Info("Swap groups are not supported by hardware");
-#endif // WIN32
-
     Log::Info("Waiting for all nodes to connect");
 
     while (!NetworkManager::instance().areAllNodesConnected()) {
-        // Swap front and back rendering buffers
-        for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glfwSwapBuffers(window->windowHandle());
-        }
         {
             ZoneScopedN("GLFW Poll Events");
             glfwPollEvents();
@@ -995,10 +858,10 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         if (_shouldTerminate || !NetworkManager::instance().isRunning() ||
             thisNode.closeAllWindows())
         {
-            // We can't just exit as the client application might need the OpenGL state
-            // for some cleanup.  Instead, we are calling the terminate function which
-            // will cause the first `render` call to be bypassed and the cleanup should
-            // work as expected
+            // We can't just exit as the client application might need its state for some
+            // cleanup.  Instead, we are calling the terminate function which will cause
+            // the first `render` call to be bypassed and the cleanup should work as
+            // expected
             terminate();
             break;
         }

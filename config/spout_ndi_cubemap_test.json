@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "scene": {
+    "offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "orientation": { "yaw": 0.0, "pitch": -90.0, "roll": 0.0 },
+    "scale": 1.0
+  },
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "fullscreen": false,
+          "stereo": "none",
+          "msaa": 4,
+          "size": { "x": 1024, "y": 1024 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": "512",
+                "spout": {
+                  "enabled": true,
+                  "name": "OS_CUBEMAP"
+                },
+                "ndi": {
+                  "enabled": true,
+                  "name": "OS_CUBEMAP_NDI"
+                },
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                },
+                "orientation": { "yaw": 0.0, "pitch": 0.0, "roll": 0.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeseparation": 0.06,
+      "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    }
+  ]
+}

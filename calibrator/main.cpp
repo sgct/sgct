@@ -6,40 +6,104 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include <sgct/error.h>
+#include <sgct/profiling.h>
 #include <sgct/sgct.h>
-#include <sgct/opengl.h>
+#include <sgct/vulkan.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
+#include <format>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <memory>
 #include <numeric>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 #include <thread>
+#include <vector>
+
+namespace vk = sgct::vulkan;
 
 namespace {
-    struct {
-        GLuint vao = 0;
-        GLuint vbo = 0;
-        GLuint iboLine = 0;
-        int nVertLine = 0;
+    // Grid vertex: elevation and azimuth in radians
+    struct GridVertex {
+        float elevation;
+        float azimuth;
+    };
 
-        GLint mvpMatrixLocation = -1;
-        GLint cameraMatrixLocation = -1;
-    } grid;
+    // Box vertex: position, texture coordinates, and the id of the face texture
+    struct BoxVertex {
+        float x;
+        float y;
+        float z;
 
-    struct {
-        GLuint vao = 0;
-        GLuint vbo = 0;
+        float s;
+        float t;
 
-        GLint mvpMatrixLocation = -1;
-        GLint cameraMatrixLocation = -1;
+        uint8_t textureId;
+    };
 
-        GLuint textureFront = 0;
-        GLuint textureRight = 0;
-        GLuint textureBack = 0;
-        GLuint textureLeft = 0;
-        GLuint textureTop = 0;
-        GLuint textureBottom = 0;
-    } box;
+    // Uniform buffer contents; the layout must match the shader UBO declarations
+    struct GridUniforms {
+        glm::mat4 mvp;
+        glm::mat4 camera;
+        float radius;
+    };
+
+    struct BoxUniforms {
+        glm::mat4 mvp;
+        glm::mat4 camera;
+    };
+
+    // Vulkan resources for the wireframe grid
+    struct GridResources {
+        std::unique_ptr<vk::Buffer> vertexBuffer;
+        std::unique_ptr<vk::Buffer> indexBuffer;
+        VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+        VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        uint32_t indexCount = 0;
+    };
+
+    // Vulkan resources for the textured box
+    struct BoxResources {
+        std::unique_ptr<vk::Buffer> vertexBuffer;
+        std::array<std::unique_ptr<vk::Texture>, 6> textures;
+        VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+        VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        uint32_t vertexCount = 36;
+    };
+
+    GridResources grid;
+    BoxResources box;
+    // The draw callback runs once per viewport and eye into the same command buffer, so
+    // every draw gets its own slice of this ring through a dynamic uniform buffer
+    // descriptor instead of overwriting a single uniform buffer
+    constexpr VkDeviceSize UniformBytesPerFrame = 64 * 1024;
+    std::unique_ptr<vk::UniformRing> uniforms;
+    // The pipelines for each format of the windows' render targets. All render passes of
+    // the same format are compatible, so the pipelines work for all of them
+    struct Pipelines {
+        std::unique_ptr<vk::Pipeline> grid;
+        std::unique_ptr<vk::Pipeline> box;
+    };
+    std::map<vk::SceneFormat, Pipelines> pipelines;
+    bool resourcesCreated = false;
 
     bool runTests = false;
     uint64_t frameNumber = 0;
@@ -57,141 +121,145 @@ namespace {
     float radius = 7.4f;
 
     constexpr std::string_view GridVertexShader = R"(
-#version 460 core
+#version 460
 
 layout(location = 0) in vec2 in_position;
 
-out Data {
-  vec4 color;
-} out_data;
+layout(set = 0, binding = 0) uniform GridUniforms {
+    mat4 mvp;
+    mat4 camera;
+    float radius;
+} u;
 
-uniform float radius;
-uniform mat4 mvp;
-uniform mat4 camera;
-
-const float PI = 3.141592654;
-
+layout(location = 0) out vec4 out_color;
 
 void main() {
-  float elevation = in_position.x;
-  float azimuth = in_position.y;
+    float elevation = in_position.x;
+    float azimuth = in_position.y;
 
-  vec3 p = vec3(
-    radius * cos(elevation) * sin(azimuth),
-    radius * sin(elevation),
-    -radius * cos(elevation) * cos(azimuth)
-  );
-  gl_Position = mvp * camera * vec4(p, 1.0);
-  out_data.color = vec4(p, 1.0);
+    vec3 p = vec3(
+        u.radius * cos(elevation) * sin(azimuth),
+        u.radius * sin(elevation),
+        -u.radius * cos(elevation) * cos(azimuth)
+    );
+    gl_Position = u.mvp * u.camera * vec4(p, 1.0);
+    out_color = vec4(p, 1.0);
 }
 )";
 
     constexpr std::string_view GridFragmentShader = R"(
-#version 460 core
+#version 460
 
-in Data {
-  vec4 color;
-} in_data;
+layout(location = 0) in vec4 in_color;
+layout(location = 0) out vec4 out_color;
 
-out vec4 out_color;
-
-void main() { out_color = in_data.color; }
+void main() { out_color = in_color; }
 )";
 
     constexpr std::string_view BoxVertexShader = R"(
-#version 460 core
+#version 460
 
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec2 in_texCoords;
-layout(location = 2) in int in_textureId;
+layout(location = 2) in uint in_textureId;
 
-out Data {
-  vec2 texCoords;
-  flat int textureId;
-} out_data;
+layout(set = 0, binding = 0) uniform BoxUniforms {
+    mat4 mvp;
+    mat4 camera;
+} u;
 
-uniform mat4 mvp;
-uniform mat4 camera;
-
+layout(location = 0) out vec2 out_texCoords;
+layout(location = 1) out flat uint out_textureId;
 
 void main() {
-  gl_Position = mvp * camera * vec4(in_position, 1.0);
-  out_data.texCoords = in_texCoords;
-  out_data.textureId = in_textureId;
+    gl_Position = u.mvp * u.camera * vec4(in_position, 1.0);
+    out_texCoords = in_texCoords;
+    out_textureId = in_textureId;
 }
 )";
 
     constexpr std::string_view BoxFragmentShader = R"(
-#version 460 core
+#version 460
 
-in Data {
-  vec2 texCoords;
-  flat int textureId;
-} in_data;
+layout(location = 0) in vec2 in_texCoords;
+layout(location = 1) in flat uint in_textureId;
 
-out vec4 color;
+layout(set = 0, binding = 1) uniform sampler2D tex[6];
 
-uniform sampler2D tex[6];
-
+layout(location = 0) out vec4 color;
 
 void main() {
-    color = texture(tex[in_data.textureId], in_data.texCoords);
+    color = texture(tex[in_textureId], in_texCoords);
 }
 )";
+
+    // Converts the OpenGL-style NDC depth range [-1, 1] to the Vulkan range [0, 1]
+    const glm::mat4 depthScaleBias(
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 0.5f, 0.f,
+        0.f, 0.f, 0.5f, 1.f
+    );
+
+    glm::mat4 toGlm(const sgct::mat4& m) {
+        glm::mat4 result;
+        std::memcpy(&result[0][0], m.values.data(), sizeof(glm::mat4));
+        return result;
+    }
+
+    // sgct::Image stores 3/4-channel pixels in BGR(A) order (see Image::load, which
+    // swaps the R and B channels stb_image produces so that the legacy OpenGL path can
+    // upload them with GL_BGR/GL_BGRA). Pick the matching Vulkan format so the bytes are
+    // interpreted in the same order they were written
+    VkFormat formatForChannels(int channels) {
+        switch (channels) {
+            case 3:
+                return VK_FORMAT_B8G8R8_UNORM;
+            case 4:
+            default:
+                return VK_FORMAT_B8G8R8A8_UNORM;
+        }
+    }
+
+    void check(VkResult result, const char* what) {
+        if (result != VK_SUCCESS) {
+            // Throw sgct::Error (not a plain runtime_error) so that Window::draw's
+            // catch (const Error&) rethrows it instead of misreading it as a
+            // "swapchain out of date" condition
+            const std::string msg = std::format(
+                "Vulkan error ({}): {}", static_cast<int>(result), what);
+            sgct::Log::Error(msg);
+            throw sgct::Error(sgct::Error::Component::Window, 4600, msg);
+        }
+    }
 } // namespace
 
 using namespace sgct;
 
-void initializeGrid() {
-    struct GridVertex {
-        float elevation;
-        float azimuth;
-    };
-
+void createGridResources(vk::Context& ctx) {
     constexpr uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
-    glEnable(GL_PRIMITIVE_RESTART);
-    glPrimitiveRestartIndex(RestartIndex);
-
-    glCreateBuffers(1, &grid.vbo);
-    glCreateBuffers(1, &grid.iboLine);
-    glCreateVertexArrays(1, &grid.vao);
-
-    glVertexArrayVertexBuffer(grid.vao, 0, grid.vbo, 0, sizeof(GridVertex));
-    glVertexArrayElementBuffer(grid.vao, grid.iboLine);
-
-    glEnableVertexArrayAttrib(grid.vao, 0);
-    glVertexArrayAttribFormat(grid.vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(grid.vao, 0, 0);
 
     constexpr int ElevationSteps = 40;
     constexpr int AzimuthSteps = 160;
 
     std::vector<GridVertex> vertices;
-    // (abock, 2019-10-09) We generate the vertices ring-wise;  first iterating over the
+    // (abock, 2019-10-09) We generate the vertices ring-wise; first iterating over the
     // elevation and then the azimuth will lead to the bottom most ring be filled first,
-    // before going to the upper rings.  That also means that two vertices on top of each
+    // before going to the upper rings. That also means that two vertices on top of each
     // other should be separated in the vertices list by 'AzimuthSteps' positions
     for (int e = 0; e <= ElevationSteps; e++) {
         for (int a = 0; a < AzimuthSteps; a++) {
             float ev = static_cast<float>(e) / static_cast<float>(ElevationSteps - 1);
             float av = static_cast<float>(a) / static_cast<float>(AzimuthSteps - 1);
-            
+
             GridVertex vertex;
             vertex.elevation = glm::radians(ev * 90.f);
             vertex.azimuth = glm::radians(av * 360.f);
             vertices.push_back(vertex);
         }
     }
-    glNamedBufferStorage(
-        grid.vao,
-        vertices.size() * sizeof(GridVertex),
-        vertices.data(),
-        GL_NONE_BIT
-    );
 
     // Line representation
-    // (abock, 2019-10-09) It's possible to compute a better size of how many indices
-    // we'll need, but I can't be asked (and we are seriously not performance limited)
     std::vector<uint16_t> indices;
     indices.reserve(2 * ElevationSteps * AzimuthSteps);
 
@@ -204,7 +272,7 @@ void initializeGrid() {
         indices.insert(indices.end(), t.begin(), t.end());
     }
     indices.push_back(RestartIndex);
-    // Then the vertical lines; see above; every vertical vertex is separated by exactly
+    // Then the vertical lines; every vertical vertex is separated by exactly
     // 'AzimuthSteps' positions in the vertex array
     for (int a = 0; a < AzimuthSteps; a++) {
         for (int e = 0; e < ElevationSteps; e++) {
@@ -213,64 +281,80 @@ void initializeGrid() {
         indices.push_back(RestartIndex);
     }
 
-    grid.nVertLine = static_cast<int>(indices.size());
-    glNamedBufferStorage(
-        grid.iboLine,
-        indices.size() * sizeof(uint16_t),
-        indices.data(),
-        GL_NONE_BIT
+    grid.indexCount = static_cast<uint32_t>(indices.size());
+
+    grid.vertexBuffer = std::make_unique<vk::Buffer>(
+        ctx, vertices.size() * sizeof(GridVertex), vk::Buffer::Type::Vertex);
+    grid.vertexBuffer->upload(vertices.data());
+
+    grid.indexBuffer = std::make_unique<vk::Buffer>(
+        ctx, indices.size() * sizeof(uint16_t), vk::Buffer::Type::Index);
+    grid.indexBuffer->upload(indices.data());
+
+    // Descriptor set layout: a single uniform buffer in the uniform ring
+    VkDescriptorSetLayoutBinding binding = {};
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+    VkDescriptorSetLayoutCreateInfo dslInfo = {};
+    dslInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    dslInfo.bindingCount = 1;
+    dslInfo.pBindings = &binding;
+    check(
+        vkCreateDescriptorSetLayout(ctx.device(), &dslInfo, nullptr, &grid.descriptorSetLayout),
+        "vkCreateDescriptorSetLayout"
     );
 
-
-    ShaderManager::instance().addShaderProgram(
-        "grid",
-        GridVertexShader,
-        GridFragmentShader
+    VkPipelineLayoutCreateInfo plInfo = {};
+    plInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    plInfo.setLayoutCount = 1;
+    plInfo.pSetLayouts = &grid.descriptorSetLayout;
+    check(
+        vkCreatePipelineLayout(ctx.device(), &plInfo, nullptr, &grid.pipelineLayout),
+        "vkCreatePipelineLayout"
     );
-    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("grid");
-    grid.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
-    assert(grid.mvpMatrixLocation != -1);
-    grid.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
-    assert(grid.cameraMatrixLocation != -1);
-    GLuint radiusLocation = glGetUniformLocation(prog.id(), "radius");
-    assert(radiusLocation != std::numeric_limits<GLuint>::max());
-    glProgramUniform1f(prog.id(), radiusLocation, radius);
+
+    VkDescriptorPoolSize poolSize = {};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    poolSize.descriptorCount = 1;
+    VkDescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.maxSets = 1;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    check(
+        vkCreateDescriptorPool(ctx.device(), &poolInfo, nullptr, &grid.descriptorPool),
+        "vkCreateDescriptorPool"
+    );
+
+    VkDescriptorSetLayout layouts[1] = { grid.descriptorSetLayout };
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = grid.descriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = layouts;
+    check(vkAllocateDescriptorSets(ctx.device(), &allocInfo, &grid.descriptorSet),
+        "vkAllocateDescriptorSets");
+
+    VkDescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer = uniforms->handle();
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(GridUniforms);
+    VkWriteDescriptorSet write = {};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = grid.descriptorSet;
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    write.pBufferInfo = &bufferInfo;
+    // vkUpdateDescriptorSets returns void in this SDK, so there is no result to check
+    vkUpdateDescriptorSets(ctx.device(), 1, &write, 0, nullptr);
 }
 
-void initializeBox() {
-    struct BoxVertex {
-        float x;
-        float y;
-        float z;
-
-        float s;
-        float t;
-
-        uint8_t textureId;
-    };
-
-    glCreateBuffers(1, &box.vbo);
-    glCreateVertexArrays(1, &box.vao);
-    glVertexArrayVertexBuffer(box.vao, 0, box.vbo, 0, sizeof(BoxVertex));
-
-    glEnableVertexArrayAttrib(box.vao, 0);
-    glVertexArrayAttribFormat(box.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(box.vao, 0, 0);
-
-    glEnableVertexArrayAttrib(box.vao, 1);
-    glVertexArrayAttribFormat(box.vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(BoxVertex, s));
-    glVertexArrayAttribBinding(box.vao, 1, 0);
-
-    glEnableVertexArrayAttrib(box.vao, 2);
-    glVertexArrayAttribIFormat(
-        box.vao,
-        2,
-        1,
-        GL_UNSIGNED_BYTE,
-        offsetof(BoxVertex, textureId)
-    );
-    glVertexArrayAttribBinding(box.vao, 2, 0);
-
+void createBoxResources(vk::Context& ctx) {
     constexpr std::array<BoxVertex, 2 * 3 * 6> Vertices = {
         // Front
         BoxVertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
@@ -326,129 +410,217 @@ void initializeBox() {
         BoxVertex{  10.f, -10.f,  10.f, 1.f, 0.f, 5 },  // +-+
         BoxVertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
     };
-    glNamedBufferStorage(
-        box.vbo,
-        Vertices.size() * sizeof(BoxVertex),
-        Vertices.data(),
-        GL_NONE_BIT
-    );
 
+    box.vertexBuffer = std::make_unique<vk::Buffer>(
+        ctx, Vertices.size() * sizeof(BoxVertex), vk::Buffer::Type::Vertex);
+    box.vertexBuffer->upload(Vertices.data());
 
-    struct ImageData {
-        std::string filename;
-        Image img;
-        std::atomic_bool imageDone = false;
-        std::atomic_bool uploadDone = false;
-        std::atomic_bool threadDone = false;
-    };
-    auto loadImage = [](ImageData& data) {
-        data.img.load(data.filename);
-        data.imageDone = true;
-        while (!data.uploadDone) {}
-        data.img = Image();
-        data.threadDone = true;
-    };
-
+    // Load the six face textures
     Log::Info("Loading test pattern images...");
+    const char* filenames[6] = {
+        "test-pattern-0.png",
+        "test-pattern-1.png",
+        "test-pattern-2.png",
+        "test-pattern-3.png",
+        "test-pattern-4.png",
+        "test-pattern-5.png"
+    };
 
-    ImageData front;
-    front.filename = "test-pattern-0.png";
-    if (!std::filesystem::exists(front.filename)) {
-        Log::Error(std::format("Could not find image '{}'", front.filename));
-        exit(EXIT_FAILURE);
+    for (int i = 0; i < 6; i++) {
+        if (!std::filesystem::exists(filenames[i])) {
+            Log::Error(std::format("Could not find image '{}'", filenames[i]));
+            exit(EXIT_FAILURE);
+        }
+        sgct::Image img;
+        img.load(filenames[i]);
+        const sgct::ivec2 size = img.size();
+        box.textures[i] = std::make_unique<vk::Texture>(
+            ctx,
+            static_cast<uint32_t>(size.x),
+            static_cast<uint32_t>(size.y),
+            formatForChannels(img.channels()),
+            img.data(),
+            VK_FILTER_LINEAR,
+            // The same number of mipmap levels as the OpenGL TextureManager generated
+            8
+        );
     }
-    std::thread t1(loadImage, std::ref(front));
 
-    ImageData right;
-    right.filename = "test-pattern-1.png";
-    if (!std::filesystem::exists(right.filename)) {
-        Log::Error(std::format("Could not find image '{}'", right.filename));
-        exit(EXIT_FAILURE);
-    }
-    std::thread t2(loadImage, std::ref(right));
+    // Descriptor set layout: a uniform buffer in the uniform ring and an array of six
+    // combined image samplers
+    VkDescriptorSetLayoutBinding bindings[2] = {};
+    bindings[0].binding = 0;
+    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    bindings[0].descriptorCount = 1;
+    bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-    ImageData back;
-    back.filename = "test-pattern-2.png";
-    if (!std::filesystem::exists(back.filename)) {
-        Log::Error(std::format("Could not find image '{}'", back.filename));
-        exit(EXIT_FAILURE);
-    }
-    std::thread t3(loadImage, std::ref(back));
+    bindings[1].binding = 1;
+    bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    bindings[1].descriptorCount = 6;
+    bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    ImageData left;
-    left.filename = "test-pattern-3.png";
-    if (!std::filesystem::exists(left.filename)) {
-        Log::Error(std::format("Could not find image '{}'", left.filename));
-        exit(EXIT_FAILURE);
-    }
-    std::thread t4(loadImage, std::ref(left));
-
-    ImageData top;
-    top.filename = "test-pattern-4.png";
-    if (!std::filesystem::exists(top.filename)) {
-        Log::Error(std::format("Could not find image '{}'", top.filename));
-        exit(EXIT_FAILURE);
-    }
-    std::thread t5(loadImage, std::ref(top));
-
-    ImageData bottom;
-    bottom.filename = "test-pattern-5.png";
-    if (!std::filesystem::exists(bottom.filename)) {
-        Log::Error(std::format("Could not find image '{}'", bottom.filename));
-        exit(EXIT_FAILURE);
-    }
-    std::thread t6(loadImage, std::ref(bottom));
-
-    while (!front.imageDone || !right.imageDone || !back.imageDone ||
-           !left.imageDone || !top.imageDone || !bottom.imageDone)
-    {}
-
-    box.textureFront = TextureManager::instance().loadTexture(std::move(front.img));
-    front.uploadDone = true;
-    box.textureRight = TextureManager::instance().loadTexture(std::move(right.img));
-    right.uploadDone = true;
-    box.textureBack = TextureManager::instance().loadTexture(std::move(back.img));
-    back.uploadDone = true;
-    box.textureLeft = TextureManager::instance().loadTexture(std::move(left.img));
-    left.uploadDone = true;
-    box.textureTop = TextureManager::instance().loadTexture(std::move(top.img));
-    top.uploadDone = true;
-    box.textureBottom = TextureManager::instance().loadTexture(std::move(bottom.img));
-    bottom.uploadDone = true;
-
-    while (!front.threadDone) {}
-    t1.join();
-    while (!right.threadDone) {}
-    t2.join();
-    while (!back.threadDone) {}
-    t3.join();
-    while (!left.threadDone) {}
-    t4.join();
-    while (!top.threadDone) {}
-    t5.join();
-    while (!bottom.threadDone) {}
-    t6.join();
-
-    ShaderManager::instance().addShaderProgram(
-        "box",
-        BoxVertexShader,
-        BoxFragmentShader
+    VkDescriptorSetLayoutCreateInfo dslInfo = {};
+    dslInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    dslInfo.bindingCount = 2;
+    dslInfo.pBindings = bindings;
+    check(
+        vkCreateDescriptorSetLayout(ctx.device(), &dslInfo, nullptr, &box.descriptorSetLayout),
+        "vkCreateDescriptorSetLayout"
     );
-    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("box");
-    box.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
-    assert(box.mvpMatrixLocation != -1);
-    box.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
-    assert(box.cameraMatrixLocation != -1);
 
-    GLuint texLoc = glGetUniformLocation(prog.id(), "tex");
-    assert(texLoc != std::numeric_limits<GLuint>::max());
-    constexpr std::array<int, 6> Indices = { 0, 1, 2, 3, 4, 5 };
-    glProgramUniform1iv(prog.id(), texLoc, 6, Indices.data());
+    VkPipelineLayoutCreateInfo plInfo = {};
+    plInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    plInfo.setLayoutCount = 1;
+    plInfo.pSetLayouts = &box.descriptorSetLayout;
+    check(
+        vkCreatePipelineLayout(ctx.device(), &plInfo, nullptr, &box.pipelineLayout),
+        "vkCreatePipelineLayout"
+    );
+
+    VkDescriptorPoolSize poolSizes[2] = {};
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    poolSizes[0].descriptorCount = 1;
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[1].descriptorCount = 6;
+    VkDescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.maxSets = 1;
+    poolInfo.poolSizeCount = 2;
+    poolInfo.pPoolSizes = poolSizes;
+    check(
+        vkCreateDescriptorPool(ctx.device(), &poolInfo, nullptr, &box.descriptorPool),
+        "vkCreateDescriptorPool"
+    );
+
+    VkDescriptorSetLayout layouts[1] = { box.descriptorSetLayout };
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = box.descriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = layouts;
+    check(vkAllocateDescriptorSets(ctx.device(), &allocInfo, &box.descriptorSet),
+        "vkAllocateDescriptorSets");
+
+    VkDescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer = uniforms->handle();
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(BoxUniforms);
+
+    VkDescriptorImageInfo imageInfos[6] = {};
+    for (int i = 0; i < 6; i++) {
+        imageInfos[i].sampler = box.textures[i]->sampler();
+        imageInfos[i].imageView = box.textures[i]->imageView();
+        imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+    VkWriteDescriptorSet writes[2] = {};
+    writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[0].dstSet = box.descriptorSet;
+    writes[0].dstBinding = 0;
+    writes[0].dstArrayElement = 0;
+    writes[0].descriptorCount = 1;
+    writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    writes[0].pBufferInfo = &bufferInfo;
+
+    writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[1].dstSet = box.descriptorSet;
+    writes[1].dstBinding = 1;
+    writes[1].dstArrayElement = 0;
+    writes[1].descriptorCount = 6;
+    writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writes[1].pImageInfo = imageInfos;
+
+    // vkUpdateDescriptorSets returns void in this SDK, so there is no result to check
+    vkUpdateDescriptorSets(ctx.device(), 2, writes, 0, nullptr);
 }
 
-void initGL(GLFWwindow*) {
-    initializeGrid();
-    initializeBox();
+Pipelines createPipelines(vk::Context& ctx, VkRenderPass renderPass,
+                          const vk::SceneFormat& format)
+{
+    Pipelines result;
+
+    {
+        vk::Pipeline::Settings settings;
+        settings.renderPass = renderPass;
+        settings.setSceneFormat(format);
+        settings.layout = grid.pipelineLayout;
+        settings.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        settings.depthTest = true;
+        settings.depthWrite = true;
+        settings.depthCompare = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+        VkVertexInputBindingDescription binding = {};
+        binding.binding = 0;
+        binding.stride = sizeof(GridVertex);
+        binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        settings.vertexBindings.push_back(binding);
+
+        VkVertexInputAttributeDescription attr = {};
+        attr.location = 0;
+        attr.binding = 0;
+        attr.format = VK_FORMAT_R32G32_SFLOAT;
+        attr.offset = 0;
+        settings.vertexAttributes.push_back(attr);
+
+        result.grid = std::make_unique<vk::Pipeline>(
+            ctx, GridVertexShader.data(), GridFragmentShader.data(), settings);
+    }
+
+    {
+        vk::Pipeline::Settings settings;
+        settings.renderPass = renderPass;
+        settings.setSceneFormat(format);
+        settings.layout = box.pipelineLayout;
+        settings.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        settings.depthTest = true;
+        settings.depthWrite = true;
+        settings.depthCompare = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+        VkVertexInputBindingDescription binding = {};
+        binding.binding = 0;
+        binding.stride = sizeof(BoxVertex);
+        binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        settings.vertexBindings.push_back(binding);
+
+        VkVertexInputAttributeDescription attrs[3] = {};
+        attrs[0].location = 0;
+        attrs[0].binding = 0;
+        attrs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attrs[0].offset = 0;
+
+        attrs[1].location = 1;
+        attrs[1].binding = 0;
+        attrs[1].format = VK_FORMAT_R32G32_SFLOAT;
+        attrs[1].offset = offsetof(BoxVertex, s);
+
+        attrs[2].location = 2;
+        attrs[2].binding = 0;
+        attrs[2].format = VK_FORMAT_R8_UINT;
+        attrs[2].offset = offsetof(BoxVertex, textureId);
+
+        settings.vertexAttributes.insert(
+            settings.vertexAttributes.end(), attrs, attrs + 3);
+
+        result.box = std::make_unique<vk::Pipeline>(
+            ctx, BoxVertexShader.data(), BoxFragmentShader.data(), settings);
+    }
+    return result;
+}
+
+const Pipelines& ensureResources(const Window& window) {
+    vk::Context& ctx = vk::Context::instance();
+    if (!resourcesCreated) {
+        uniforms = std::make_unique<vk::UniformRing>(ctx, UniformBytesPerFrame);
+        createGridResources(ctx);
+        createBoxResources(ctx);
+        resourcesCreated = true;
+    }
+
+    Pipelines& p = pipelines[window.sceneFormat()];
+    if (!p.grid) {
+        p = createPipelines(ctx, window.renderPass(), window.sceneFormat());
+    }
+    return p;
 }
 
 void postSyncPreDraw() {
@@ -462,47 +634,68 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
-    const mat4 mvp = data.modelViewProjectionMatrix;
+    if (data.commandBuffer == VK_NULL_HANDLE) {
+        return;
+    }
 
-    glm::vec3 direction = {
+    const Pipelines& p = ensureResources(data.window);
+
+    VkCommandBuffer cmd = data.commandBuffer;
+
+    // Dynamic viewport and scissor. The window provides the area of the current viewport,
+    // with the viewport's y-axis flipped so that the OpenGL-style SGCT projection (y=+1 is
+    // up) produces an upright image, matching the original OpenGL rendering
+    vkCmdSetViewport(cmd, 0, 1, &data.vkViewport);
+    vkCmdSetScissor(cmd, 0, 1, &data.vkScissor);
+
+    // Camera matrices
+    const glm::mat4 mvp = depthScaleBias * toGlm(data.modelViewProjectionMatrix);
+
+    const glm::vec3 direction = {
         std::cos(theta) * std::sin(phi),
         std::sin(theta),
         std::cos(theta) * std::cos(phi)
     };
-    glm::vec3 right = {
+    const glm::vec3 right = {
         std::sin(phi - glm::half_pi<float>()),
         0.f,
         std::cos(phi - glm::half_pi<float>())
     };
-    glm::vec3 up = glm::cross(right, direction);
-    const glm::mat4 c = glm::lookAt(glm::vec3(0.f), direction, up);
+    const glm::vec3 up = glm::cross(right, direction);
+    const glm::mat4 camera = glm::lookAt(glm::vec3(0.f), direction, up);
 
     if (renderGrid) {
-        ShaderManager::instance().shaderProgram("grid").bind();
-        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
-        glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
-        glBindVertexArray(grid.vao);
-        glDrawElements(GL_LINE_STRIP, grid.nVertLine, GL_UNSIGNED_SHORT, nullptr);
-        glBindVertexArray(0);
-        ShaderManager::instance().shaderProgram("grid").unbind();
+        GridUniforms u;
+        u.mvp = mvp;
+        u.camera = camera;
+        u.radius = radius;
+        const uint32_t uniformOffset = uniforms->push(data.frameNumber, u);
+
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, p.grid->handle());
+        const VkBuffer vertexBuffer = grid.vertexBuffer->handle();
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, &offset);
+        vkCmdBindIndexBuffer(cmd, grid.indexBuffer->handle(), 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindDescriptorSets(
+            cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, p.grid->layout(), 0, 1,
+            &grid.descriptorSet, 1, &uniformOffset);
+        vkCmdDrawIndexed(cmd, grid.indexCount, 1, 0, 0, 0);
     }
 
     if (renderBox) {
-        ShaderManager::instance().shaderProgram("box").bind();
-        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
-        glUniformMatrix4fv(box.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
+        BoxUniforms u;
+        u.mvp = mvp;
+        u.camera = camera;
+        const uint32_t uniformOffset = uniforms->push(data.frameNumber, u);
 
-        glBindTextureUnit(0, box.textureFront);
-        glBindTextureUnit(1, box.textureRight);
-        glBindTextureUnit(2, box.textureBack);
-        glBindTextureUnit(3, box.textureLeft);
-        glBindTextureUnit(4, box.textureTop);
-        glBindTextureUnit(5, box.textureBottom);
-
-        glBindVertexArray(box.vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-        ShaderManager::instance().shaderProgram("grid").unbind();
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, p.box->handle());
+        const VkBuffer vertexBuffer = box.vertexBuffer->handle();
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, &offset);
+        vkCmdBindDescriptorSets(
+            cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, p.box->layout(), 0, 1,
+            &box.descriptorSet, 1, &uniformOffset);
+        vkCmdDraw(cmd, box.vertexCount, 1, 0, 0);
     }
 }
 
@@ -648,16 +841,53 @@ void decode(const std::vector<std::byte>& data) {
 }
 
 void cleanup() {
-    glDeleteVertexArrays(1, &grid.vao);
-    glDeleteBuffers(1, &grid.vbo);
-    glDeleteBuffers(1, &grid.iboLine);
+    if (!resourcesCreated) {
+        return;
+    }
 
-    TextureManager::instance().removeTexture(box.textureFront);
-    TextureManager::instance().removeTexture(box.textureRight);
-    TextureManager::instance().removeTexture(box.textureBack);
-    TextureManager::instance().removeTexture(box.textureLeft);
-    TextureManager::instance().removeTexture(box.textureTop);
-    TextureManager::instance().removeTexture(box.textureBottom);
+    vk::Context& ctx = vk::Context::instance();
+    VkDevice device = ctx.device();
+
+    // Ensure the GPU is done with all resources before destroying them
+    vkDeviceWaitIdle(device);
+
+    // Destroy the pipelines first (they reference the layouts)
+    pipelines.clear();
+
+    // Destroy the grid resources
+    if (grid.descriptorPool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(device, grid.descriptorPool, nullptr);
+        grid.descriptorPool = VK_NULL_HANDLE;
+    }
+    if (grid.pipelineLayout != VK_NULL_HANDLE) {
+        vkDestroyPipelineLayout(device, grid.pipelineLayout, nullptr);
+        grid.pipelineLayout = VK_NULL_HANDLE;
+    }
+    if (grid.descriptorSetLayout != VK_NULL_HANDLE) {
+        vkDestroyDescriptorSetLayout(device, grid.descriptorSetLayout, nullptr);
+        grid.descriptorSetLayout = VK_NULL_HANDLE;
+    }
+    grid.vertexBuffer.reset();
+    grid.indexBuffer.reset();
+
+    // Destroy the box resources
+    if (box.descriptorPool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(device, box.descriptorPool, nullptr);
+        box.descriptorPool = VK_NULL_HANDLE;
+    }
+    if (box.pipelineLayout != VK_NULL_HANDLE) {
+        vkDestroyPipelineLayout(device, box.pipelineLayout, nullptr);
+        box.pipelineLayout = VK_NULL_HANDLE;
+    }
+    if (box.descriptorSetLayout != VK_NULL_HANDLE) {
+        vkDestroyDescriptorSetLayout(device, box.descriptorSetLayout, nullptr);
+        box.descriptorSetLayout = VK_NULL_HANDLE;
+    }
+    box.vertexBuffer.reset();
+    box.textures = {};
+    uniforms.reset();
+
+    resourcesCreated = false;
 }
 
 void keyboard(Key key, Modifier, Action action, int, Window*) {
@@ -727,7 +957,6 @@ int main(int argc, char** argv) {
     runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
 
     const Engine::Callbacks callbacks = {
-        .initOpenGL = initGL,
         .postSyncPreDraw = postSyncPreDraw,
         .draw = draw,
         .draw2D = draw2D,
@@ -741,7 +970,7 @@ int main(int argc, char** argv) {
     try {
         Engine::create(cluster, callbacks, config);
     }
-    catch (const std::runtime_error& e) {
+    catch (const std::exception& e) {
         Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
@@ -762,8 +991,21 @@ int main(int argc, char** argv) {
     Log::Info("B:     Toggle capturing the back buffer");
     Log::Info("===========");
 
-
-    Engine::instance().exec();
+    try {
+        Engine::instance().exec();
+    }
+    catch (const std::exception& e) {
+        Log::Error(std::format("Render loop failed: {}", e.what()));
+        Engine::destroy();
+        std::cout.flush();
+        return EXIT_FAILURE;
+    }
+    // The context is destroyed by Engine::destroy(), so query it before that
+    const bool hasValidationErrors = vulkan::Context::instance().hasValidationErrors();
+    if (hasValidationErrors) {
+        Log::Error("The Vulkan validation layer reported errors during rendering");
+    }
     Engine::destroy();
-    exit(EXIT_SUCCESS);
+    std::cout.flush();
+    return hasValidationErrors ? EXIT_FAILURE : EXIT_SUCCESS;
 }

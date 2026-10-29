@@ -12,7 +12,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <algorithm>
 #include <cassert>
@@ -264,7 +263,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
     }
 
     Buffer buffer;
-    buffer.geometryType = GL_TRIANGLES;
+    buffer.geometryType = correction::Buffer::GeometryType::Triangles;
     buffer.vertices.reserve(positions.size());
     assert(positions.size() == texCoords.size());
     for (size_t i = 0; i < positions.size(); i++) {

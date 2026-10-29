@@ -14,7 +14,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
@@ -202,7 +201,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         vertex.t = vertex.t * s.y + p.y;
     }
 
-    buf.geometryType = GL_TRIANGLES;
+    buf.geometryType = correction::Buffer::GeometryType::Triangles;
     return buf;
 }
 

@@ -15,7 +15,8 @@
 
 #include <sgct/font.h>
 #include <sgct/math.h>
-#include <sgct/shaderprogram.h>
+#include <sgct/vulkan/pipeline.h>
+#include <vulkan/vulkan.h>
 #include <map>
 #include <memory>
 #include <string>
@@ -28,11 +29,11 @@ namespace sgct::text {
 class Font;
 
 /**
- * Singleton for font handling. A lot of the font handling is based on Nehes tutorials for
- * freetype [link](http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/")
+ * Singleton for font handling. A lot of the font handling is based on Nehe's tutorial
+ * for freetype [link](http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/)
  *
- * How to load a font (somewhere in the OpenGL init callback or in callbacks with shared
- * OpenGL context):
+ * How to load a font (after the Engine was initialized, as the fonts create Vulkan
+ * textures):
  *
  * ```cpp
  * // Add Verdana size 14 to the FontManager using the system font path
@@ -89,7 +90,8 @@ public:
     static void destroy();
 
     /**
-     * Destructor cleans up all font objects, textures and shaders.
+     * Destructor cleans up all font objects, textures and pipelines. The GPU must not be
+     * using them anymore.
      */
     ~FontManager();
 
@@ -118,11 +120,23 @@ public:
     Font* font(const std::string& name, unsigned int height = 10);
 
     /**
-     * Binds the font shader and also sets the four uniform values for the
-     * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the
-     * texture index at which the font information is stored.
+     * Binds the font pipeline for scene render passes of \p format (creating it for
+     * \p renderPass if needed) and the atlas texture of \p font.
      */
-    void bindShader(const mat4& mvp, const vec4& color, int texture) const;
+    void bindPipeline(VkCommandBuffer cmd, VkRenderPass renderPass,
+        const vulkan::SceneFormat& format, const Font& font);
+
+    /**
+     * Records the draw of a single glyph with the font pipeline that has been bound
+     * through #bindPipeline.
+     *
+     * \param cmd The command buffer to record into
+     * \param mvp The matrix transforming the unit quad of the glyph
+     * \param color The color of the glyph
+     * \param texRect The area of the glyph in the atlas (see Font::FontFaceData)
+     */
+    void drawGlyph(VkCommandBuffer cmd, const mat4& mvp, const vec4& color,
+        const vec4& texRect) const;
 
 private:
     /**
@@ -149,10 +163,10 @@ private:
     /// All generated fonts
     std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> _fontMap;
 
-    ShaderProgram _shader;
-    int _mvpLocation = -1;
-    int _colorLocation = -1;
-    int _textureLocation = -1;
+    VkDescriptorSetLayout _setLayout = VK_NULL_HANDLE;
+    VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
+    /// The pipelines for the color formats of the render targets that text is drawn into
+    std::map<vulkan::SceneFormat, std::unique_ptr<vulkan::Pipeline>> _pipelines;
 };
 
 } // namespace sgct::text

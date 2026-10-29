@@ -20,9 +20,7 @@
 #include <sgct/math.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
-#include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
-#include <sgct/texturemanager.h>
 
 #ifdef SGCT_HAS_TEXT
 #include <sgct/font.h>

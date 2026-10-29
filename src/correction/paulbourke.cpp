@@ -12,7 +12,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
 #include <scn/scan.h>
@@ -130,7 +129,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
         vertex.t = vertex.t * size.y + pos.y;
     }
 
-    buf.geometryType = GL_TRIANGLES;
+    buf.geometryType = correction::Buffer::GeometryType::Triangles;
     return buf;
 }
 

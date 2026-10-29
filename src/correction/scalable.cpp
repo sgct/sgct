@@ -14,7 +14,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -460,7 +459,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
     }
 
     Buffer buf;
-    buf.geometryType = GL_TRIANGLES;
+    buf.geometryType = correction::Buffer::GeometryType::Triangles;
     buf.vertices.reserve(data.vertices.size());
     for (const Data::Vertex& vertex : data.vertices) {
         Buffer::Vertex v;

@@ -5,7 +5,7 @@
 [![GitHub Releases](https://img.shields.io/github/release/SGCT/sgct.svg)](https://github.com/SGCT/sgct/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SGCT/sgct/total)](https://github.com/SGCT/sgct/releases)
 
-SGCT is a free cross-platform C++ library for developing OpenGL applications that are synchronized across a cluster of image generating computers (IGs).  SGCT is designed to be as simple as possible to use for the developer and targets the use in immersive real-time applications.  SGCT supports a number of output formats, such as virtual reality (VR), planetarium/dome geometries, fisheye projections, and other types of projections.  In all cases, the client code only needs to render its scene using the projection matrices provided by SGCT and the compositing is then handled internally.  SGCT also supports a variety of stereoscopic formats such as active quad buffers, passive side-by-side, passive over-and-under, checkerboard/DLP/pixel interlaced, and different kinds of anaglyphic stereoscopy.  SGCT applications are scalable and use an XML configuration file format in which all IGs and their properties are specified.  With this approach, there is no need for recompilation of an application for different immersive environments and  applications extend naturally to a server-client clustered architecture without recompilation either.
+SGCT is a free cross-platform C++ library for developing Vulkan applications that are synchronized across a cluster of image generating computers (IGs).  SGCT is designed to be as simple as possible to use for the developer and targets the use in immersive real-time applications.  SGCT supports a number of output formats, such as virtual reality (VR), planetarium/dome geometries, fisheye projections, and other types of projections.  In all cases, the client code only needs to render its scene using the projection matrices provided by SGCT and the compositing is then handled internally.  SGCT also supports a variety of stereoscopic formats such as active quad buffers, passive side-by-side, passive over-and-under, checkerboard/DLP/pixel interlaced, and different kinds of anaglyphic stereoscopy.  SGCT applications are scalable and use an XML configuration file format in which all IGs and their properties are specified.  With this approach, there is no need for recompilation of an application for different immersive environments and  applications extend naturally to a server-client clustered architecture without recompilation either.
 
 ## Terminology
 We use the following terminology to talk about the way how SGCT works.  There is a single *Cluster* that consists of 1 or more *Node*s with each node usually corresponding to a single computer.  Each *Node* contains 1 or more *Window*s with each *Window* containing 1 or more *Viewport*s.  Some viewport types, such as Fisheye projections, can contain multiple *Subviewport*s, which are created automatically.  One the *Node*s in the *Cluster* is designated as the *server*, where as the other *Nodes* are *client*s.  The general dataflow in SGCT applications is from the *server* to the *clients*, and **not** vice versa.
@@ -125,9 +125,9 @@ SGCT links against the following external libraries, all of which are provided b
 
 - [Catch2](https://github.com/catchorg/Catch2) (tests only)
 - [FreeType](https://www.freetype.org)
-- [GLAD](https://github.com/Dav1dde/glad)
 - [GLFW](https://www.glfw.org)
 - [GLM](https://github.com/g-truc/glm)
+- [glslang](https://github.com/KhronosGroup/glslang)
 - [json-schema-validator](https://github.com/pboettch/json-schema-validator)
 - [libpng](http://www.libpng.org)
 - [minizip](https://github.com/madler/zlib/tree/master/contrib/minizip)
@@ -135,7 +135,7 @@ SGCT links against the following external libraries, all of which are provided b
 - [OpenXR](https://github.com/KhronosGroup/OpenXR-SDK)
 - [scnlib](https://github.com/eliaskosunen/scnlib)
 - [Spout2](https://github.com/leadedge/Spout2) (Windows only)
-- [Vulkan](https://github.com/KhronosGroup/Vulkan-Loader) (Windows only; OpenXR Vulkan fallback)
+- [Vulkan](https://github.com/KhronosGroup/Vulkan-Loader)
 - [stb_image](https://github.com/nothings/stb)
 - [TinyXML-2](https://github.com/leethomason/tinyxml2)
 - [Tracy](https://github.com/wolfpld/tracy) (optional)

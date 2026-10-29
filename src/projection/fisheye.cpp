@@ -9,28 +9,163 @@
 #include <sgct/projection/fisheye.h>
 
 #include <sgct/engine.h>
-#include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/offscreenbuffer.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
+#include <sgct/vulkan/context.h>
+#include <sgct/vulkan/cubemaptarget.h>
+#include <sgct/vulkan/projectionpass.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstdint>
+#include <span>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <utility>
 
 namespace {
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
+    struct PushConstants {
+        std::array<sgct::vec4, 4> corners;
+        sgct::vec4 bgColor;
+        sgct::vec3 offset;
+        float halfFov = 0.f;
+        float size = 0.f;
     };
+    static_assert(offsetof(PushConstants, bgColor) == 64);
+    static_assert(offsetof(PushConstants, offset) == 80);
+    static_assert(offsetof(PushConstants, halfFov) == 92);
+    static_assert(offsetof(PushConstants, size) == 96);
+
+    // The building blocks of the fragment shader, which mirror the shaders of the former
+    // OpenGL renderer. The offset of the off-axis variant is 0 for on-axis rendering,
+    // which makes both variants identical
+    constexpr std::string_view FisheyeFragHeader = R"(
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 0) out vec4 out_diffuse;
+
+  layout (set = 0, binding = 0) uniform samplerCube cubemap;
+#if HAS_NORMALS
+  layout (set = 0, binding = 1) uniform samplerCube normalmap;
+#endif
+#if HAS_POSITIONS
+  layout (set = 0, binding = 2) uniform samplerCube positionmap;
+#endif
+#if HAS_DEPTH
+  layout (set = 0, binding = 3) uniform samplerCube depthmap;
+#endif
+
+  layout (push_constant) uniform Constants {
+    layout (offset = 64) vec4 bgColor;
+    vec3 offset;
+    float halfFov;
+    float size;
+  } pc;
+
+  // The cube map is the mirror image of the OpenGL one along the y axis (see
+  // vulkan::CubemapTarget)
+  vec4 sampleCube(samplerCube map, vec3 dir) {
+    return texture(map, vec3(dir.x, -dir.y, dir.z));
+  }
+)";
+
+    constexpr std::string_view RotationFourFaceCubeFun = R"(
+  vec3 rotate(vec3 dir) {
+    const float Angle = 0.7071067812;
+    float x = Angle * dir.x + Angle * dir.z;
+    float y = dir.y;
+    float z = -Angle * dir.x + Angle * dir.z;
+    return vec3(x, y, z);
+  }
+)";
+
+    constexpr std::string_view RotationFiveSixFaceCubeFun = R"(
+  vec3 rotate(vec3 dir) {
+    const float Angle = 0.7071067812;
+    float x = Angle * dir.x - Angle * dir.y;
+    float y = Angle * dir.x + Angle * dir.y;
+    float z = dir.z;
+    return vec3(x, y, z);
+  }
+)";
+
+    constexpr std::string_view SampleFun = R"(
+  vec4 sampleCubeTexture(vec2 texel, samplerCube map, vec4 background) {
+    float s = 2.0 * (texel.s - 0.5);
+    float t = 2.0 * (texel.t - 0.5);
+    float r2 = s * s + t * t;
+    if (r2 <= 1.0) {
+      float phi = sqrt(r2) * pc.halfFov;
+      float theta = atan(s, t);
+      float x = sin(phi) * sin(theta) - pc.offset.x;
+      float y = -sin(phi) * cos(theta) - pc.offset.y;
+      float z = cos(phi) - pc.offset.z;
+      return sampleCube(map, rotate(vec3(x, y, z)));
+    }
+    else {
+      return background;
+    }
+  }
+)";
+
+    constexpr std::string_view InterpolateLinearFun = R"(
+  vec4 cubeSample(vec2 texCoords, samplerCube map, vec4 background) {
+    return sampleCubeTexture(texCoords, map, background);
+  }
+)";
+
+    constexpr std::string_view InterpolateCubicFun = R"(
+  vec4 cubic(float x) {
+    float x2 = x * x;
+    float x3 = x2 * x;
+    vec4 w = vec4(-x + 2 * x2 - x3, 2 - 5 * x2 + 3 * x3, x + 4 * x2 - 3 * x3, -x2 + x3);
+    return w / 2.0;
+  }
+
+  vec4 cubeSample(vec2 texCoords, samplerCube map, vec4 background) {
+    vec2 transTex = texCoords * vec2(pc.size, pc.size);
+    vec2 frac = fract(transTex);
+    transTex -= frac;
+
+    vec4 xcubic = cubic(frac.x);
+    vec4 ycubic = cubic(frac.y);
+
+    const float h = 1.0;
+    vec4 c = transTex.xxyy + vec4(-h, +h, -h, +h);
+    vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
+    vec4 offset = c + vec4(xcubic.yw, ycubic.yw) / s;
+
+    vec4 sample0 = sampleCubeTexture(offset.xz / pc.size, map, background);
+    vec4 sample1 = sampleCubeTexture(offset.yz / pc.size, map, background);
+    vec4 sample2 = sampleCubeTexture(offset.xw / pc.size, map, background);
+    vec4 sample3 = sampleCubeTexture(offset.yw / pc.size, map, background);
+
+    float sx = s.x / (s.x + s.y);
+    float sy = s.z / (s.z + s.w);
+
+    return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
+  }
+)";
+
+    constexpr std::string_view FisheyeFragMain = R"(
+  void main() {
+    out_diffuse = cubeSample(in_texCoords, cubemap, pc.bgColor);
+#if HAS_NORMALS
+    out_normal = cubeSample(in_texCoords, normalmap, vec4(0.0));
+#endif
+#if HAS_POSITIONS
+    out_position = cubeSample(in_texCoords, positionmap, vec4(0.0));
+#endif
+#if HAS_DEPTH
+    gl_FragDepth = cubeSample(in_texCoords, depthmap, vec4(1.0)).x;
+#endif
+  }
+)";
 } // namespace
 
 namespace sgct {
@@ -69,15 +204,9 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config,
         setBaseOffset(*config.offset);
     }
     _clearColor = config.background.value_or(_clearColor);
-    setUseDepthTransformation(true);
 }
 
-FisheyeProjection::~FisheyeProjection() {
-    glDeleteBuffers(1, &_vbo);
-    glDeleteVertexArrays(1, &_vao);
-    _shader.deleteProgram();
-    _depthCorrectionShader.deleteProgram();
-}
+FisheyeProjection::~FisheyeProjection() = default;
 
 void FisheyeProjection::update(const vec2& size) const {
     // Do the cropping in the fragment shader and not by changing the vbo
@@ -100,154 +229,51 @@ void FisheyeProjection::update(const vec2& size) const {
         }
     }
 
-    const std::array<Vertex, 4> v = {
-        Vertex{ -x, -y, -1.f, _cropLeft, _cropBottom },
-        Vertex{ -x,  y, -1.f, _cropLeft, 1.f - _cropTop },
-        Vertex{  x, -y, -1.f, 1.f - _cropRight, _cropBottom },
-        Vertex{  x,  y, -1.f, 1.f - _cropRight, 1.f - _cropTop }
+    _quad = {
+        vec4{ -x, -y, _cropLeft, _cropBottom },
+        vec4{ -x,  y, _cropLeft, 1.f - _cropTop },
+        vec4{  x, -y, 1.f - _cropRight, _cropBottom },
+        vec4{  x,  y, 1.f - _cropRight, 1.f - _cropTop }
     };
-    glNamedBufferSubData(_vbo, 0, 4 * sizeof(Vertex), v.data());
 }
 
-void FisheyeProjection::render(const BaseViewport& viewport,
-                               FrustumMode frustumMode) const
+void FisheyeProjection::render(VkCommandBuffer cmd, const BaseViewport&,
+                               FrustumMode frustumMode, const VkRect2D& area) const
 {
     ZoneScoped;
 
-    glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(frustumMode);
-    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
+    // The quad does not cover the whole viewport if the aspect ratio is kept
+    clearViewport(cmd, area);
 
-
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-    // If for some reson the active texture has been reset
-    glBindTextureUnit(0, _textures.cubeMapColor);
-
-    if (Engine::instance().settings().useDepthTexture) {
-        glBindTextureUnit(1, _textures.cubeMapDepth);
-        glUniform1i(_shaderLoc.depthCubemap, 1);
-    }
-
-    if (Engine::instance().settings().useNormalTexture) {
-        glBindTextureUnit(2, _textures.cubeMapNormals);
-        glUniform1i(_shaderLoc.normalCubemap, 2);
-    }
-
-    if (Engine::instance().settings().usePositionTexture) {
-        glBindTextureUnit(3, _textures.cubeMapPositions);
-        glUniform1i(_shaderLoc.positionCubemap, 3);
-    }
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-
-    glProgramUniform1i(_shader.id(), _shaderLoc.cubemap, 0);
-    glProgramUniform1f(_shader.id(), _shaderLoc.halfFov, glm::radians(_fov / 2.f));
-
-    if (_isOffAxis) {
-        glProgramUniform3fv(_shader.id(), _shaderLoc.offset, 1, &_totalOffset.x);
-    }
-
-    _shader.bind();
-
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-
-    ShaderProgram::unbind();
-
-    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-}
-
-void FisheyeProjection::renderCubemap(FrustumMode frustumMode) const {
-    ZoneScoped;
-
+    PushConstants constants;
+    constants.corners = _quad;
+    constants.bgColor = _clearColor;
+    constants.halfFov = glm::radians(_fov / 2.f);
+    constants.size = static_cast<float>(_cubemapResolution.x);
+    // For stereo rendering, the fisheye is rendered off-axis from the position of the eye
     switch (frustumMode) {
         case FrustumMode::Mono:
+            constants.offset = _totalOffset;
             break;
         case FrustumMode::StereoLeft:
-            setOffset(
-                vec3{ -Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f }
-            );
+            constants.offset = vec3{
+                _baseOffset.x - Engine::defaultUser().eyeSeparation() / _diameter,
+                _baseOffset.y,
+                _baseOffset.z
+            };
             break;
         case FrustumMode::StereoRight:
-            setOffset(
-                vec3{ Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f }
-            );
+            constants.offset = vec3{
+                _baseOffset.x + Engine::defaultUser().eyeSeparation() / _diameter,
+                _baseOffset.y,
+                _baseOffset.z
+            };
             break;
     }
 
-    auto render = [this](const BaseViewport& vp, int idx, FrustumMode mode) {
-        if (!vp.isEnabled()) {
-            return;
-        }
-
-        renderCubeFace(vp, idx, mode);
-
-        // Recalculate depth values from a cube to spherical model
-        if (Engine::instance().settings().useDepthTexture) {
-            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
-
-            _cubeMapFbo->attachCubeMapTexture(
-                _textures.cubeMapColor,
-                idx,
-                GL_COLOR_ATTACHMENT0
-            );
-            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
-
-            glViewport(0, 0, _cubemapResolution.x, _cubemapResolution.y);
-            glScissor(0, 0, _cubemapResolution.x, _cubemapResolution.y);
-            glEnable(GL_SCISSOR_TEST);
-
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            glDisable(GL_CULL_FACE);
-            glDisable(GL_BLEND);
-
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_ALWAYS);
-
-            glBindTextureUnit(0, _textures.colorSwap);
-            glBindTextureUnit(1, _textures.depthSwap);
-
-            glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapColor, 0);
-            glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapDepth, 1);
-            glProgramUniform1f(
-                _depthCorrectionShader.id(),
-                _shaderLoc.swapNear,
-                Engine::instance().nearClipPlane()
-            );
-            glProgramUniform1f(
-                _depthCorrectionShader.id(),
-                _shaderLoc.swapFar,
-                Engine::instance().farClipPlane()
-            );
-
-            _depthCorrectionShader.bind();
-            vp.window().renderScreenQuad();
-            ShaderProgram::unbind();
-
-            glDisable(GL_DEPTH_TEST);
-            glDepthFunc(GL_LESS);
-            glDisable(GL_SCISSOR_TEST);
-        }
-    };
-
-    render(_subViewports.right, 0, frustumMode);
-    render(_subViewports.left, 1, frustumMode);
-    render(_subViewports.bottom, 2, frustumMode);
-    render(_subViewports.top, 3, frustumMode);
-    render(_subViewports.front, 4, frustumMode);
-    render(_subViewports.back, 5, frustumMode);
+    _pass->bind(cmd, &constants);
+    _pass->setTextures(cmd, cubeTextures(frustumMode, TextureView::Cube));
+    _pass->drawQuad(cmd);
 }
 
 void FisheyeProjection::setDomeDiameter(float diameter) {
@@ -274,7 +300,6 @@ void FisheyeProjection::setOffset(vec3 offset) const {
     _totalOffset.x = _baseOffset.x + _offset.x;
     _totalOffset.y = _baseOffset.y + _offset.y;
     _totalOffset.z = _baseOffset.z + _offset.z;
-    _isOffAxis = glm::length(glm::make_vec3(&_totalOffset.x)) > 0.f;
 }
 
 void FisheyeProjection::setBaseOffset(vec3 offset) {
@@ -282,7 +307,6 @@ void FisheyeProjection::setBaseOffset(vec3 offset) {
     _totalOffset.x = _baseOffset.x + _offset.x;
     _totalOffset.y = _baseOffset.y + _offset.y;
     _totalOffset.z = _baseOffset.z + _offset.z;
-    _isOffAxis = glm::length(glm::make_vec3(&_totalOffset.x)) > 0.f;
 }
 
 void FisheyeProjection::setIgnoreAspectRatio(bool state) {
@@ -291,22 +315,6 @@ void FisheyeProjection::setIgnoreAspectRatio(bool state) {
 
 void FisheyeProjection::setKeepAspectRatio(bool state) {
     _keepAspectRatio = state;
-}
-
-void FisheyeProjection::initVBO() {
-    glCreateBuffers(1, &_vbo);
-    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
-    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 void FisheyeProjection::initViewports() {
@@ -579,151 +587,26 @@ void FisheyeProjection::initViewports() {
     }
 }
 
-void FisheyeProjection::initShaders() {
-    if (_isStereo || _preferedMonoFrustumMode != FrustumMode::Mono) {
-        // If any frustum mode other than Mono (or stereo)
-        _isOffAxis = true;
-    }
-
+void FisheyeProjection::initPipelines(VkRenderPass renderPass) {
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    const std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
-                                               bool useNormal, bool usePosition)
-    {
-        // It would be nice to do a multidimensional switch statement -.-
 
-        constexpr auto tuple = [](bool useOffAxis_, bool useDepth_,
-                                  bool useNormal_, bool usePosition_) -> uint16_t
-        {
-            // Injective mapping from <bool, bool, bool, bool.> to uint8_t
-            uint8_t value = 0;
-            value |= useOffAxis_ ? 0b0000 : 0b0001;
-            value |= useDepth_ ? 0b0000 : 0b0010;
-            value |= useNormal_ ? 0b0000 : 0b0100;
-            value |= usePosition_ ? 0b0000 : 0b1000;
-            return value;
-        };
+    std::string fragmentShader = fragmentShaderHeader();
+    fragmentShader += FisheyeFragHeader;
+    fragmentShader += _method == FisheyeMethod::FourFaceCube ?
+        RotationFourFaceCubeFun :
+        RotationFiveSixFaceCubeFun;
+    fragmentShader += SampleFun;
+    fragmentShader += isCubic ? InterpolateCubicFun : InterpolateLinearFun;
+    fragmentShader += FisheyeFragMain;
 
-        switch (tuple(isOffAxis, useDepth, useNormal, usePosition)) {
-            case tuple(true, true, false, false):
-                return shaders_fisheye::FisheyeFragOffAxisDepth;
-            case tuple(true, true, true, false):
-                return shaders_fisheye::FisheyeFragOffAxisDepthNormal;
-            case tuple(true, true, false, true):
-                return shaders_fisheye::FisheyeFragOffAxisDepthPosition;
-            case tuple(true, true, true, true):
-                return shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
-
-            case tuple(true, false, false, false):
-                return shaders_fisheye::FisheyeFragOffAxis;
-            case tuple(true, false, true, false):
-                return shaders_fisheye::FisheyeFragOffAxisNormal;
-            case tuple(true, false, false, true):
-                return shaders_fisheye::FisheyeFragOffAxisPosition;
-            case tuple(true, false, true, true):
-                return shaders_fisheye::FisheyeFragOffAxisNormalPosition;
-
-            case tuple(false, true, false, false):
-                return shaders_fisheye::FisheyeFragDepth;
-            case tuple(false, true, true, false):
-                return shaders_fisheye::FisheyeFragDepthNormal;
-            case tuple(false, true, false, true):
-                return shaders_fisheye::FisheyeFragDepthPosition;
-            case tuple(false, true, true, true):
-                return shaders_fisheye::FisheyeFragDepthNormalPosition;
-
-            case tuple(false, false, false, false):
-                return shaders_fisheye::FisheyeFrag;
-            case tuple(false, false, true, false):
-                return shaders_fisheye::FisheyeFragNormal;
-            case tuple(false, false, false, true):
-                return shaders_fisheye::FisheyeFragPosition;
-            case tuple(false, false, true, true):
-                return shaders_fisheye::FisheyeFragNormalPosition;
-
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
-    }(
-        _isOffAxis,
-        Engine::instance().settings().useDepthTexture,
-        Engine::instance().settings().useNormalTexture,
-        Engine::instance().settings().usePositionTexture
+    vulkan::ProjectionPass::Settings settings = projectionPassSettings();
+    settings.fragmentShader = std::move(fragmentShader);
+    settings.pushConstantSize = sizeof(PushConstants);
+    _pass = std::make_unique<vulkan::ProjectionPass>(
+        vulkan::Context::instance(),
+        renderPass,
+        settings
     );
-
-    const std::string_view samplerShader =
-        _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
-
-    _shader = ShaderProgram("FisheyeShader");
-    _shader.addVertexShader(shaders_fisheye::BaseVert);
-    _shader.addFragmentShader(fragmentShader);
-    _shader.addFragmentShader(samplerShader);
-    _shader.addFragmentShader(
-        isCubic ?
-            shaders_fisheye::InterpolateCubicFun :
-            shaders_fisheye::InterpolateLinearFun
-    );
-    if (_method == FisheyeMethod::FourFaceCube) {
-        _shader.addFragmentShader(shaders_fisheye::RotationFourFaceCubeFun);
-    }
-    else {
-        // Five or six face
-        _shader.addFragmentShader(shaders_fisheye::RotationFiveSixFaceCubeFun);
-    }
-
-
-    _shader.createAndLinkProgram();
-
-    const unsigned int id = _shader.id();
-    glProgramUniform4fv(id, glGetUniformLocation(id, "bgColor"), 1, &_clearColor.x);
-    if (isCubic) {
-        glProgramUniform1f(
-            id,
-            glGetUniformLocation(id, "size"),
-            static_cast<float>(_cubemapResolution.x)
-        );
-    }
-
-    _shaderLoc.cubemap = glGetUniformLocation(id, "cubemap");
-    glProgramUniform1i(id, _shaderLoc.cubemap, 0);
-
-    if (Engine::instance().settings().useDepthTexture) {
-        _shaderLoc.depthCubemap = glGetUniformLocation(id, "depthmap");
-        glProgramUniform1i(id, _shaderLoc.depthCubemap, 1);
-    }
-
-    if (Engine::instance().settings().useNormalTexture) {
-        _shaderLoc.normalCubemap = glGetUniformLocation(id, "normalmap");
-        glProgramUniform1i(id, _shaderLoc.normalCubemap, 2);
-    }
-
-    if (Engine::instance().settings().usePositionTexture) {
-        _shaderLoc.positionCubemap = glGetUniformLocation(id, "positionmap");
-        glProgramUniform1i(id, _shaderLoc.positionCubemap, 3);
-    }
-
-    _shaderLoc.halfFov = glGetUniformLocation(id, "halfFov");
-    glProgramUniform1f(id, _shaderLoc.halfFov, glm::half_pi<float>());
-
-    if (_isOffAxis) {
-        _shaderLoc.offset = glGetUniformLocation(id, "offset");
-        glProgramUniform3fv(id, _shaderLoc.offset, 1, &_totalOffset.x);
-    }
-
-    if (Engine::instance().settings().useDepthTexture) {
-        _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
-        _depthCorrectionShader.addVertexShader(shaders_fisheye::BaseVert);
-        _depthCorrectionShader.addFragmentShader(
-            shaders_fisheye::FisheyeDepthCorrectionFrag
-        );
-        _depthCorrectionShader.createAndLinkProgram();
-
-        _shaderLoc.swapColor = glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
-        glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapColor, 0);
-        _shaderLoc.swapDepth = glGetUniformLocation(_depthCorrectionShader.id(), "dTex");
-        glProgramUniform1i(_depthCorrectionShader.id(), _shaderLoc.swapDepth, 1);
-        _shaderLoc.swapNear = glGetUniformLocation(_depthCorrectionShader.id(), "near");
-        _shaderLoc.swapFar = glGetUniformLocation(_depthCorrectionShader.id(), "far");
-    }
 }
 
 } // namespace sgct

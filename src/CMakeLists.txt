@@ -51,7 +51,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
     ${PROJECT_SOURCE_DIR}/include/sgct/image.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/internalshaders.h
     ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
     ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
     ${PROJECT_SOURCE_DIR}/include/sgct/log.h
@@ -62,21 +61,30 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/network.h
     ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/node.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/offscreenbuffer.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/opengl.h
     ${PROJECT_SOURCE_DIR}/include/sgct/profiling.h
     ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
     ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
     ${PROJECT_SOURCE_DIR}/include/sgct/sgct.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
     ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
     ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/texturemanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/tinyxml.h
     ${PROJECT_SOURCE_DIR}/include/sgct/user.h
     ${PROJECT_SOURCE_DIR}/include/sgct/viewport.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan.h
     ${PROJECT_SOURCE_DIR}/include/sgct/window.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/buffer.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/compositepass.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/context.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/cubemaptarget.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/framebuffer.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/offscreenbuffer.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/overlaypass.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/pipeline.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/projectionpass.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/sceneformat.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/swapchain.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/texture.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vulkan/uniformring.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/domeprojection.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/obj.h
@@ -112,19 +120,31 @@ target_sources(
     network.cpp
     networkmanager.cpp
     node.cpp
-    offscreenbuffer.cpp
     openxr.cpp
     profiling.cpp
     projection.cpp
     screencapture.cpp
-    shadermanager.cpp
-    shaderprogram.cpp
     shareddata.cpp
     statisticsrenderer.cpp
-    texturemanager.cpp
     user.cpp
     viewport.cpp
     window.cpp
+    vulkan/buffer.cpp
+    vulkan/compositepass.cpp
+    vulkan/context.cpp
+    vulkan/cubemaptarget.cpp
+    vulkan/framebuffer.cpp
+    vulkan/imageresource.cpp
+    vulkan/imageresource.h
+    vulkan/imageresource.inl
+    vulkan/offscreenbuffer.cpp
+    vulkan/overlaypass.cpp
+    vulkan/pipeline.cpp
+    vulkan/projectionpass.cpp
+    vulkan/sceneformat.cpp
+    vulkan/swapchain.cpp
+    vulkan/texture.cpp
+    vulkan/uniformring.cpp
     correction/domeprojection.cpp
     correction/obj.cpp
     correction/paulbourke.cpp
@@ -146,7 +166,6 @@ target_precompile_headers(sgct PRIVATE
   <sgct/config.h>
   <sgct/engine.h>
   <sgct/format.h>
-  <sgct/opengl.h>
   <glm/glm.hpp>
 
   <scn/scan.h>
@@ -166,26 +185,32 @@ target_precompile_headers(sgct PRIVATE
 )
 
 find_package(Freetype REQUIRED)
-find_package(glad CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(glslang CONFIG REQUIRED)
 find_package(minizip CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(nlohmann_json_schema_validator CONFIG REQUIRED)
-find_package(OpenGL REQUIRED)
 find_package(OpenXR CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(scn CONFIG REQUIRED)
 find_package(stbimage CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
+find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
+
+# The Vulkan platform surface extension must be enabled before vulkan.h is first included.
+# The precompiled header pulls vulkan.h in through window.h, so this has to be a compile
+# definition (active during the PCH build), not a #define in a translation unit
+target_compile_definitions(sgct PRIVATE
+  $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
+  $<$<NOT:$<PLATFORM_ID:Windows>>:VK_USE_PLATFORM_XLIB_KHR>
+)
 
 if (WIN32)
   if (SGCT_SPOUT_SUPPORT)
     find_package(Spout2 CONFIG REQUIRED)
   endif ()
-
-  find_package(Vulkan REQUIRED)
 endif ()
 
 if (SGCT_TRACY_SUPPORT)
@@ -196,16 +221,22 @@ endif ()
 target_link_libraries(sgct
   PUBLIC
     Freetype::Freetype
-    glad::glad
     glfw
-    OpenGL::GL
     OpenXR::openxr_loader
+    Vulkan::Vulkan
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:Spout2::SpoutLibrary>
     $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
+    # The static library references the stb_image symbols (image.cpp) but only links
+    # the header, so the read implementation must be part of the link interface for
+    # consumers to resolve them (the shared library already contains the symbols)
+    $<IF:$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>,$<LINK_ONLY:unofficial::stbimage::stbimage-read-impl>,>
   PRIVATE
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
     glm::glm
+    glslang::glslang
+    glslang::glslang-default-resource-limits
+    glslang::SPIRV
     PNG::PNG
     scn::scn
     $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,unofficial::stbimage::stbimage-read-impl,unofficial::stbimage::stbimage>
@@ -214,7 +245,6 @@ target_link_libraries(sgct
     nlohmann_json_schema_validator::validator
     $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:scalable>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:ndi>
-    $<$<BOOL:${WIN32}>:Vulkan::Vulkan>
 )
 
 target_compile_definitions(sgct
@@ -227,7 +257,6 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_SCALABLE_SUPPORT}>:SGCT_HAS_SCALABLE>
     $<$<BOOL:${SGCT_NDI_SUPPORT}>:SGCT_HAS_NDI>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
-    $<$<BOOL:${WIN32}>:SGCT_HAS_OPENXR_VULKAN_FALLBACK>
 )
 
 if (WIN32)

@@ -13,8 +13,6 @@
 #include <sgct/baseviewport.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
-#include <sgct/opengl.h>
-#include <sgct/shaderprogram.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -77,11 +75,14 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
 
     const float h = font.height() * 1.59f;
 
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glBindVertexArray(font.vao());
+    // The text is recorded into the command buffer of the 2D pass of the window, which
+    // has set up the viewport
+    VkCommandBuffer cmd = window.currentCommandBuffer();
+    if (cmd == VK_NULL_HANDLE) {
+        return;
+    }
+    FontManager& fm = FontManager::instance();
+    fm.bindPipeline(cmd, window.renderPass(), window.sceneFormat(), font);
 
     for (size_t i = 0; i < lines.size(); i++) {
         glm::vec3 offset(x, y - h * i, 0.f);
@@ -95,8 +96,10 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
 
         for (const char c : lines[i]) {
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
-
-            glBindTextureUnit(0, ffd.texId);
+            if (!ffd.hasPixels) {
+                offset += glm::vec3(ffd.distToNextChar, 0.f, 0.f);
+                continue;
+            }
 
             const glm::mat4 trans = glm::translate(
                 orthoMatrix,
@@ -106,16 +109,11 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
             sgct::mat4 s;
             std::memcpy(s.values.data(), glm::value_ptr(scale), sizeof(sgct::mat4));
 
-            FontManager::instance().bindShader(s, color, 0);
-
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            fm.drawGlyph(cmd, s, color, ffd.texRect);
 
             offset += glm::vec3(ffd.distToNextChar, 0.f, 0.f);
         }
     }
-
-    glBindVertexArray(0);
-    sgct::ShaderProgram::unbind();
 }
 
 } // namespace sgct::text

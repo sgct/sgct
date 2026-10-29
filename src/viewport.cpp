@@ -15,13 +15,14 @@
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/profiling.h>
-#include <sgct/texturemanager.h>
+#include <sgct/image.h>
 #include <sgct/projection/cubemap.h>
 #include <sgct/projection/cylindrical.h>
 #include <sgct/projection/equirectangular.h>
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirror.h>
+#include <sgct/vulkan/texture.h>
 #include <cassert>
 #include <optional>
 #include <stdexcept>
@@ -135,12 +136,10 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
 
 Viewport::~Viewport() = default;
 
-void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
-                          uint8_t samples)
-{
+void Viewport::initialize(vec2 size, bool hasStereo, const vulkan::SceneFormat& format) {
     if (_nonLinearProjection) {
         _nonLinearProjection->setStereo(hasStereo);
-        _nonLinearProjection->initialize(internalFormat, samples);
+        _nonLinearProjection->initialize(format);
         _nonLinearProjection->update(std::move(size));
     }
 }
@@ -148,18 +147,30 @@ void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat
 void Viewport::loadData() {
     ZoneScoped;
 
-    TextureManager& mgr = TextureManager::instance();
+    auto load = [](const std::filesystem::path& path) {
+        Log::Debug(std::format("Loading texture '{}'", path));
+        Image img;
+        img.load(path);
+        return vulkan::Texture::fromImage(vulkan::Context::instance(), img);
+    };
+
     if (!_overlayFilename.empty()) {
-        _overlayTextureIndex = mgr.loadTexture(_overlayFilename, true, 1);
+        _overlayTexture = load(_overlayFilename);
     }
 
     if (!_blendMaskFilename.empty()) {
-        _blendMaskTextureIndex = mgr.loadTexture(_blendMaskFilename, true, 1);
+        _blendMaskTexture = load(_blendMaskFilename);
     }
 
     if (!_blackLevelMaskFilename.empty()) {
-        _blackLevelMaskTextureIndex = mgr.loadTexture(_blackLevelMaskFilename, true, 1);
+        _blackLevelMaskTexture = load(_blackLevelMaskFilename);
     }
+
+    loadMesh();
+}
+
+void Viewport::loadMesh() {
+    ZoneScoped;
 
     _mesh.loadMesh(
         _meshFilename,
@@ -178,40 +189,40 @@ void Viewport::calculateFrustum(FrustumMode mode, float nearClip, float farClip)
     }
 }
 
-void Viewport::renderQuadMesh() const {
+void Viewport::renderQuadMesh(VkCommandBuffer cmd) const {
     ZoneScoped;
 
     if (_isEnabled) {
-        _mesh.renderQuadMesh();
+        _mesh.renderQuadMesh(cmd);
     }
 }
 
-void Viewport::renderWarpMesh() const {
+void Viewport::renderWarpMesh(VkCommandBuffer cmd) const {
     ZoneScoped;
 
     if (_isEnabled) {
-        _mesh.renderWarpMesh();
+        _mesh.renderWarpMesh(cmd);
     }
 }
 
-void Viewport::renderMaskMesh() const {
+void Viewport::renderMaskMesh(VkCommandBuffer cmd) const {
     ZoneScoped;
 
     if (_isEnabled) {
-        _mesh.renderMaskMesh();
+        _mesh.renderMaskMesh(cmd);
     }
 }
 
 bool Viewport::hasOverlayTexture() const {
-    return _overlayTextureIndex != 0;
+    return _overlayTexture != nullptr;
 }
 
 bool Viewport::hasBlendMaskTexture() const {
-    return _blendMaskTextureIndex != 0;
+    return _blendMaskTexture != nullptr;
 }
 
 bool Viewport::hasBlackLevelMaskTexture() const {
-    return _blackLevelMaskTextureIndex != 0;
+    return _blackLevelMaskTexture != nullptr;
 }
 
 bool Viewport::hasSubViewports() const {
@@ -222,16 +233,16 @@ bool Viewport::isTracked() const {
     return _isTracked;
 }
 
-unsigned int Viewport::overlayTextureIndex() const {
-    return _overlayTextureIndex;
+const vulkan::Texture* Viewport::overlayTexture() const {
+    return _overlayTexture.get();
 }
 
-unsigned int Viewport::blendMaskTextureIndex() const {
-    return _blendMaskTextureIndex;
+const vulkan::Texture* Viewport::blendMaskTexture() const {
+    return _blendMaskTexture.get();
 }
 
-unsigned int Viewport::blackLevelMaskTextureIndex() const {
-    return _blackLevelMaskTextureIndex;
+const vulkan::Texture* Viewport::blackLevelMaskTexture() const {
+    return _blackLevelMaskTexture.get();
 }
 
 NonLinearProjection* Viewport::nonLinearProjection() const {

@@ -14,7 +14,6 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
-#include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/networkmanager.h>
@@ -23,14 +22,15 @@
 #include <sgct/profiling.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/statisticsrenderer.h>
-#include <glad/glad.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstring>
+#include <format>
 #include <functional>
+#include <limits>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -51,13 +51,6 @@
 
 #ifdef WIN32
 #include <Windows.h>
-#include <glad/glad_wgl.h>
-#endif // WIN32
-
-#ifdef WIN32
-#include <glad/glad_wgl.h>
-#else // ^^^^ WIN32 // !WIN32 vvvv
-#include <glad/glad.h>
 #endif // WIN32
 
 #define GLFW_INCLUDE_NONE
@@ -66,6 +59,148 @@
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
+    void check(VkResult result, const std::string& what) {
+        if (result != VK_SUCCESS) {
+            throw sgct::Error(
+                sgct::Error::Component::Window, 4500,
+                std::format("Vulkan error ({}): {}", static_cast<int>(result), what)
+            );
+        }
+    }
+
+    // The FXAA shader of the OpenGL renderer. The texture coordinates of the neighbors
+    // are computed here instead of in the vertex shader. The other attachments of the
+    // intermediate target are copied unchanged
+    constexpr std::string_view FxaaFrag = R"(
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 0) out vec4 out_color;
+#if HAS_NORMALS
+  layout (location = 1) out vec4 out_normal;
+#endif
+#if HAS_POSITIONS
+  layout (location = 2) out vec4 out_position;
+#endif
+
+  layout (set = 0, binding = 0) uniform sampler2D tex;
+#if HAS_NORMALS
+  layout (set = 0, binding = 1) uniform sampler2D normalTex;
+#endif
+#if HAS_POSITIONS
+  layout (set = 0, binding = 2) uniform sampler2D positionTex;
+#endif
+#if HAS_DEPTH
+  layout (set = 0, binding = 3) uniform sampler2D depthTex;
+#endif
+
+  layout (push_constant) uniform Constants {
+    layout (offset = 64) float rt_w;
+    float rt_h;
+    // fxaaSubPixTrim: Controls removal of sub-pixel aliasing
+    //   1/2 - low removal
+    //   1/3 - medium removal
+    //   1/4 - default removal
+    //   1/8 - high removal
+    //     0 - complete removal
+    float fxaaSubPixTrim;
+    float fxaaSubpixOffset;
+  } pc;
+
+  // FxaaEdgeThreshold: The minimum amount of local contrast required to apply algorithm
+  //   1/3 - too little
+  //   1/4 - low quality
+  //   1/8 - high quality
+  //   1/16 - overkill
+  const float FxaaEdgeThreshold = 1.0 / 8.0;
+
+  // FxaaEdgeThresholdMin: Trims the algorithm from processing dark.
+  //   1/32 - visible limit
+  //   1/16 - high quality
+  //   1/12 - upper limit (start of visible unfiltered edges)
+  const float FxaaEdgeThresholdMin = 1.0 / 16.0;
+
+  const float FxaaSpanMax = 8.0;
+
+  vec4 fxaa() {
+    vec2 texCoords = in_texCoords;
+    vec2 texel = vec2(1.0 / pc.rt_w, 1.0 / pc.rt_h);
+    vec2 offsetNW = texCoords + pc.fxaaSubpixOffset * vec2(-texel.x, -texel.y);
+    vec2 offsetNE = texCoords + pc.fxaaSubpixOffset * vec2( texel.x, -texel.y);
+    vec2 offsetSW = texCoords + pc.fxaaSubpixOffset * vec2(-texel.x,  texel.y);
+    vec2 offsetSE = texCoords + pc.fxaaSubpixOffset * vec2( texel.x,  texel.y);
+
+    vec3 rgbNW = textureLod(tex, offsetNW, 0.0).rgb;
+    vec3 rgbNE = textureLod(tex, offsetNE, 0.0).rgb;
+    vec3 rgbSW = textureLod(tex, offsetSW, 0.0).rgb;
+    vec3 rgbSE = textureLod(tex, offsetSE, 0.0).rgb;
+    vec3 rgbM  = textureLod(tex, texCoords, 0.0).rgb;
+
+    const vec3 Luma = vec3(0.299, 0.587, 0.114);
+    float lumaNW = dot(rgbNW, Luma);
+    float lumaNE = dot(rgbNE, Luma);
+    float lumaSW = dot(rgbSW, Luma);
+    float lumaSE = dot(rgbSE, Luma);
+    float lumaM  = dot( rgbM, Luma);
+
+    float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
+    float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
+    float range = lumaMax - lumaMin;
+    // local contrast check, for not processing homogeneous areas
+    if (range < max(FxaaEdgeThresholdMin, lumaMax * FxaaEdgeThreshold)) {
+      return vec4(rgbM, 1.0);
+    }
+
+    vec2 dir = vec2(
+      -((lumaNW + lumaNE) - (lumaSW + lumaSE)),
+      (lumaNW + lumaSW) - (lumaNE + lumaSE)
+    );
+
+    const float FxaaReduceMin = 1.0 / 128.0;
+    float dirReduce = max(
+      (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * pc.fxaaSubPixTrim),
+      FxaaReduceMin
+    );
+
+    float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);
+
+    dir = min(
+      vec2(FxaaSpanMax,  FxaaSpanMax),
+      max(vec2(-FxaaSpanMax, -FxaaSpanMax), dir * rcpDirMin)
+    ) / vec2(pc.rt_w, pc.rt_h);
+
+    vec3 rgbA = 0.5 * (
+      textureLod(tex, texCoords + dir * (1.0 / 3.0 - 0.5), 0.0).rgb +
+      textureLod(tex, texCoords + dir * (2.0 / 3.0 - 0.5), 0.0).rgb
+    );
+    vec3 rgbB = rgbA * 0.5 + (1.0 / 4.0) * (
+      textureLod(tex, texCoords + dir * (0.0 / 3.0 - 0.5), 0.0).rgb +
+      textureLod(tex, texCoords + dir * (3.0 / 3.0 - 0.5), 0.0).rgb
+    );
+    float lumaB = dot(rgbB, Luma);
+
+    if ((lumaB < lumaMin) || (lumaB > lumaMax))  {
+      return vec4(rgbA, 1.0);
+    }
+    else {
+      return vec4(rgbB, 1.0);
+    }
+  }
+
+  void main() {
+    out_color = fxaa();
+
+    ivec2 texelCoords = ivec2(gl_FragCoord.xy);
+#if HAS_NORMALS
+    out_normal = texelFetch(normalTex, texelCoords, 0);
+#endif
+#if HAS_POSITIONS
+    out_position = texelFetch(positionTex, texelCoords, 0);
+#endif
+#if HAS_DEPTH
+    gl_FragDepth = texelFetch(depthTex, texelCoords, 0).r;
+#endif
+  }
+)";
+
     sgct::Window::StereoMode convert(sgct::config::Window::StereoMode mode) {
         using StereoMode = sgct::config::Window::StereoMode;
         switch (mode) {
@@ -99,84 +234,6 @@ namespace {
                 return sgct::Window::StereoMode::TopBottomInverted;
             default:
                 throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    unsigned int colorBitDepthToColorFormat(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return GL_RGBA8;
-            case CBD::Depth16:      return GL_RGBA16;
-            case CBD::Depth16Float: return GL_RGBA16F;
-            case CBD::Depth32Float: return GL_RGBA32F;
-            case CBD::Depth16Int:   return GL_RGBA16I;
-            case CBD::Depth32Int:   return GL_RGBA32I;
-            case CBD::Depth16UInt:  return GL_RGBA16UI;
-            case CBD::Depth32UInt:  return GL_RGBA32UI;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    unsigned int colorBitDepthToDataType(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return GL_UNSIGNED_BYTE;
-            case CBD::Depth16:      return GL_UNSIGNED_SHORT;
-            case CBD::Depth16Float: return GL_HALF_FLOAT;
-            case CBD::Depth32Float: return GL_FLOAT;
-            case CBD::Depth16Int:   return GL_SHORT;
-            case CBD::Depth32Int:   return GL_INT;
-            case CBD::Depth16UInt:  return GL_UNSIGNED_SHORT;
-            case CBD::Depth32UInt:  return GL_UNSIGNED_INT;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    unsigned int colorBitDepthToBytesPerColor(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return 1;
-            case CBD::Depth16:      return 2;
-            case CBD::Depth16Float: return 2;
-            case CBD::Depth32Float: return 4;
-            case CBD::Depth16Int:   return 2;
-            case CBD::Depth32Int:   return 4;
-            case CBD::Depth16UInt:  return 2;
-            case CBD::Depth32UInt:  return 4;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    enum class BufferMode { BackBufferBlack, RenderToTexture };
-    void setAndClearBuffer(const sgct::Window& window, BufferMode buffer,
-                           sgct::FrustumMode frustum)
-    {
-        ZoneScoped;
-
-        if (buffer == BufferMode::BackBufferBlack) {
-            // Set buffer
-            if (window.stereoMode() != sgct::Window::StereoMode::Active) {
-                glDrawBuffer(GL_BACK);
-                glReadBuffer(GL_BACK);
-            }
-            else if (frustum == sgct::FrustumMode::StereoLeft) {
-                // If active left
-                glDrawBuffer(GL_BACK_LEFT);
-                glReadBuffer(GL_BACK_LEFT);
-            }
-            else if (frustum == sgct::FrustumMode::StereoRight) {
-                // If active right
-                glDrawBuffer(GL_BACK_RIGHT);
-                glReadBuffer(GL_BACK_RIGHT);
-            }
-
-            // When rendering textures to backbuffer (using fbo)
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
-        else {
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
 
@@ -249,6 +306,16 @@ namespace {
         return window.framebufferResolution();
     }
 
+    sgct::vec2 viewportRenderSize(const sgct::Window& window,
+                                  const sgct::Viewport& viewport)
+    {
+        const sgct::ivec2 res = window.framebufferResolution();
+        return sgct::vec2{
+            res.x * viewport.size().x,
+            res.y * viewport.size().y
+        };
+    }
+
 #ifdef SGCT_HAS_OPENXR
     sgct::ivec2 openXRFramebufferResolution(const sgct::Window& window) {
         if (!window.isOpenXREnabled() || !sgct::openxr::isHMDActive()) {
@@ -282,95 +349,39 @@ namespace {
     }
 #endif // SGCT_HAS_OPENXR
 
-    sgct::vec2 viewportRenderSize(const sgct::Window& window,
-                                  const sgct::Viewport& viewport,
-                                  sgct::FrustumMode frustum)
-    {
-        const sgct::ivec2 res = renderBufferSize(window, frustum);
-        return sgct::vec2{
-            res.x * viewport.size().x,
-            res.y * viewport.size().y
-        };
-    }
 } // namespace
 
 namespace sgct {
-
-static GLFWwindow* _activeContext = nullptr;
 
 bool Window::_useSwapGroups = false;
 bool Window::_isBarrierActive = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-void Window::makeSharedContextCurrent() {
-    ZoneScoped;
-
-    if (_activeContext == _sharedHandle) {
-        // `glfwMakeContextCurrent` is expensive even if we don't change the context
-        return;
-    }
-    _activeContext = _sharedHandle;
-    glfwMakeContextCurrent(_sharedHandle);
-}
-
 void Window::initNvidiaSwapGroups() {
-    ZoneScoped;
-
-#ifdef WIN32
-    if (glfwExtensionSupported("WGL_NV_swap_group")) {
-        Log::Info("Joining Nvidia swap group");
-
-        HDC hDC = wglGetCurrentDC();
-        unsigned int maxBarrier = 0;
-        unsigned int maxGroup = 0;
-        const BOOL res = wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
-        if (res == GL_FALSE) {
-            throw Err(3006, "Error requesting maximum number of swap groups");
-        }
-        Log::Info(std::format(
-            "WGL_NV_swap_group extension is supported. Max number of groups: {}. "
-            "Max number of barriers: {}", maxGroup, maxBarrier
-        ));
-
-        if (maxGroup > 0) {
-            _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-            Log::Info(std::format(
-                "Joining swapgroup 1 [{}]", _useSwapGroups ? "ok" : "failed"
-            ));
-        }
-        else {
-            Log::Error("No swap group found. This instance will not use swap groups");
-            _useSwapGroups = false;
-        }
+    // The swap groups and barriers of WGL_NV_swap_group correspond to the present barrier
+    // of VK_NV_present_barrier, which the swapchains join once the barrier is active
+    if (vulkan::Context::instance().supportsPresentBarrier()) {
+        Log::Info("Joining the Nvidia present barrier");
+        _useSwapGroups = true;
+        _isBarrierActive = true;
     }
     else {
+        Log::Warning("The Nvidia present barrier (VK_NV_present_barrier) is not supported");
         _useSwapGroups = false;
+        _isBarrierActive = false;
     }
-#endif // WIN32
 }
 
 void Window::resetSwapGroupFrameNumber() {
-#ifdef WIN32
-    if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
-        HDC hDC = wglGetCurrentDC();
-        int res = wglResetFrameCountNV(hDC);
-        if (res) {
-            Log::Info("Resetting frame counter");
-        }
-        else {
-            Log::Info("Resetting frame counter failed");
-        }
-    }
-#endif // WIN32
+    // The present barrier does not have a frame counter
 }
 
-void Window::setBarrier([[maybe_unused]] bool state) {
-#ifdef WIN32
+void Window::setBarrier(bool state) {
+    // The windows recreate their swapchains with the new state in their next draw
     if (_useSwapGroups && state != _isBarrierActive) {
-        Log::Info("Enabling Nvidia swap barrier");
-        _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
+        Log::Info(std::format("{} Nvidia present barrier", state ? "Enabling" : "Disabling"));
+        _isBarrierActive = state;
     }
-#endif // WIN32
 }
 
 bool Window::isBarrierActive() {
@@ -382,14 +393,7 @@ bool Window::isUsingSwapGroups() {
 }
 
 unsigned int Window::swapGroupFrameNumber() {
-    unsigned int frameNumber = 0;
-#ifdef WIN32
-    if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
-        HDC hDC = wglGetCurrentDC();
-        wglQueryFrameCountNV(hDC, &frameNumber);
-    }
-#endif // WIN32
-    return frameNumber;
+    return 0;
 }
 
 config::Window createScalableConfiguration(
@@ -513,6 +517,7 @@ Window::Window(const config::Window& window)
     , _shouldRenderWhileHidden(window.alwaysRender.value_or(false))
     , _nAASamples(window.msaa.value_or(1))
     , _useFXAA(window.useFxaa.value_or(false))
+    , _bufferBitDepth(window.bufferBitDepth)
     , _isDecorated(window.isDecorated.value_or(true))
     , _isResizable(window.isResizable.value_or(true))
     , _blitWindowId(window.blitWindowId.value_or(-1))
@@ -533,15 +538,6 @@ Window::Window(const config::Window& window)
         .name = window.spout ? window.spout->name.value_or("") : ""
     }
 #endif // SGCT_HAS_SPOUT
-    , _internalColorFormat(colorBitDepthToColorFormat(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
-    , _colorDataType(colorBitDepthToDataType(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
-    , _bytesPerColor(colorBitDepthToBytesPerColor(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
 {
     ZoneScoped;
 
@@ -570,17 +566,10 @@ Window::Window(const config::Window& window)
             Log::Error("Error creating NDI sender");
         }
 
-        ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
-        _ndi.videoFrame.xres = res.x;
-        _ndi.videoFrame.yres = res.y;
-        _ndi.videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
-        // We have a negative stride to account for the fact that OpenGL textures have
-        // their y-axis flipped compared to DirectX textures
-        _ndi.videoFrame.line_stride_in_bytes = -res.x * 4;
+        // The resolution, FourCC, and stride of the frames depend on the swapchain,
+        // which is created in initialize, so they are set in createStreamBuffers
         _ndi.videoFrame.frame_rate_N = 60000; // 60 fps
         _ndi.videoFrame.frame_rate_D = 1000;  // 60 fps
-        _ndi.videoFrame.picture_aspect_ratio =
-            static_cast<float>(res.x) / static_cast<float>(res.y);
         _ndi.videoFrame.frame_format_type = NDIlib_frame_format_type_progressive;
         _ndi.videoFrame.timecode = 0;
     }
@@ -600,34 +589,21 @@ Window::Window(const config::Window& window)
 
 Window::~Window() = default;
 
-void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
+void Window::openWindow(bool isLastWindow) {
     ZoneScoped;
 
     {
         ZoneScopedN("Set GLFW settings");
-        glfwWindowHint(GLFW_DEPTH_BITS, 32);
+        // SGCT renders through Vulkan, so no OpenGL context is created for the window.
+        // The GLFW window is only used to obtain a native handle for the Vulkan surface
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, _isResizable ? GLFW_TRUE : GLFW_FALSE);
-
-        const int antiAliasingSamples = _nAASamples;
-        glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
-
         glfwWindowHint(GLFW_AUTO_ICONIFY, _shouldAutoiconify ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
-        glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
-        glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_NONE);
-        if (_noError) {
-            glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
-        }
         if (!_isVisible) {
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         }
-    }
-
-    if (_stereoMode == StereoMode::Active) {
-        glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Log::Info(std::format("Window {}: Enabling quadbuffered rendering", _id));
     }
 
     GLFWmonitor* mon = nullptr;
@@ -659,12 +635,13 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     {
         ZoneScopedN("glfwCreateWindow");
+        // No OpenGL context is created (GLFW_NO_API), so there is no shared context to pass
         _windowHandle = glfwCreateWindow(
             _windowSize.x,
             _windowSize.y,
             "SGCT",
             mon,
-            share
+            nullptr
         );
         glfwSetWindowUserPointer(_windowHandle, this);
         if (_windowHandle == nullptr) {
@@ -680,11 +657,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         }
     );
 
-    {
-        ZoneScopedN("glfwMakeContextCurrent");
-        _sharedHandle = share != nullptr ? share : _windowHandle;
-        glfwMakeContextCurrent(_windowHandle);
-    }
+    _sharedHandle = _windowHandle;
 
     glm::ivec2 bufferSize = glm::ivec2(0);
     {
@@ -699,17 +672,17 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _framebufferRes.y = bufferSize.y;
     }
 
-    // Swap interval:
-    //  -1 = adaptive sync
-    //   0 = vertical sync off
-    //   1 = wait for vertical sync
-    //   2 = fix when using swapgroups in xp and running half the framerate
-
-    // If we would set multiple windows to use vsync, we would get a framerate of (monitor
-    // refreshrate)/(number of windows), which is something that might really slow down a
-    // multi-monitor application. Setting last window to the requested interval, which
-    // does mean all other windows will respect the last window in the pipeline
-    glfwSwapInterval(isLastWindow ? Engine::instance().settings().swapInterval : 0);
+    // The swap interval is applied to the last window only, as waiting for the vertical
+    // sync in every window would divide the frame rate by the number of windows. It is
+    // implemented through the present mode of the swapchain
+    _isLastWindow = isLastWindow;
+    if (_isLastWindow && Engine::instance().settings().swapInterval > 1) {
+        // Skipping vertical syncs cannot be expressed through the present modes
+        Log::Warning(std::format(
+            "Swap interval {} is not supported, waiting for every vertical sync instead",
+            Engine::instance().settings().swapInterval
+        ));
+    }
 
     // if client, disable mouse pointer
     if (_hideMouseCursor || !Engine::instance().isMaster()) {
@@ -718,15 +691,12 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
 
-    const bool captureBackBuffer = Engine::instance().settings().captureBackBuffer;
-    int bytesPerColor = captureBackBuffer ? 1 : _bytesPerColor;
-    unsigned int colorDataType = captureBackBuffer ? GL_UNSIGNED_BYTE : _colorDataType;
-    if (!useRightEyeTexture()) {
+    // Whether active stereo has a right eye target is only known once the swapchain has
+    // been created, so it has captures for both eyes
+    if (!needsRightEyeTarget() && _stereoMode != StereoMode::Active) {
         _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
             *this,
             ScreenCapture::EyeIndex::Mono,
-            bytesPerColor,
-            colorDataType,
             _hasAlpha
         );
     }
@@ -734,19 +704,14 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
             *this,
             ScreenCapture::EyeIndex::StereoLeft,
-            bytesPerColor,
-            colorDataType,
             _hasAlpha
         );
         _screenCaptureRight = std::make_unique<ScreenCapture>(
             *this,
-            ScreenCapture::EyeIndex::Mono,
-            bytesPerColor,
-            colorDataType,
+            ScreenCapture::EyeIndex::StereoRight,
             _hasAlpha
         );
     }
-    _finalFBO = std::make_unique<OffScreenBuffer>(_internalColorFormat);
 
     if (!_isFullScreen) {
         if (_windowPos) {
@@ -797,12 +762,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     );
 
     glfwSetWindowTitle(_windowHandle, _name.empty() ? title.c_str() : _name.c_str());
-
-    {
-        // Swap the buffers and update the window
-        ZoneScopedN("glfwSwapBuffers");
-        glfwSwapBuffers(_windowHandle);
-    }
 }
 
 void Window::closeWindow() {
@@ -835,128 +794,81 @@ void Window::closeWindow() {
     }
 #endif // SGCT_HAS_NDI
 
-    makeSharedContextCurrent();
-
     Log::Info(std::format("Deleting screen capture data for window {}", _id));
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
-    // Delete FBO stuff
-    if (_finalFBO) {
-        Log::Info(std::format("Releasing OpenGL buffers for window {}", _id));
-        _finalFBO = nullptr;
-        destroyFBOs();
+    // Release the Vulkan resources. Wait for the GPU to finish with the swapchain images,
+    // the framebuffer's depth image, and the offscreen images, then destroy the
+    // framebuffer before the swapchain since the framebuffers reference the swapchain
+    // image views
+    vulkan::Context& ctx = vulkan::Context::instance();
+    if (_swapchain) {
+        check(vkDeviceWaitIdle(ctx.device()), "vkDeviceWaitIdle");
     }
-
-    #ifdef SGCT_HAS_NDI
-        glDeleteBuffers(3, _ndi.pingPongPbo);
-    #endif // SGCT_HAS_NDI
-
-    Log::Info(std::format("Deleting VBOs for window {}", _id));
-    glDeleteBuffers(1, &_vbo);
-    _vbo = 0;
-
-    Log::Info(std::format("Deleting VAOs for window {}", _id));
-    glDeleteVertexArrays(1, &_vao);
-    _vao = 0;
-
-    _fboQuad.deleteProgram();
-    _overlay.deleteProgram();
-    _stereo.deleteProgram();
-    if (_fxaa) {
-        _fxaa->shader.deleteProgram();
+    _composite = nullptr;
+    _overlayPass = nullptr;
+    _fxaaPass = nullptr;
+    _intermediate = nullptr;
+    _offscreenRight = nullptr;
+    _offscreen = nullptr;
+    if (_linearSampler != VK_NULL_HANDLE) {
+        vkDestroySampler(ctx.device(), _linearSampler, nullptr);
+        _linearSampler = VK_NULL_HANDLE;
     }
+    _framebuffer = nullptr;
+    _swapchain = nullptr;
+    freeCommandBuffers();
 
-    // Current handle must be set at the end to properly destroy the window
-    makeOpenGLContextCurrent();
-
+    // Destroys the viewports' correction mesh buffers, which the GPU is done with
     _viewports.clear();
 
     glfwSetWindowSizeCallback(_windowHandle, nullptr);
     glfwSetFramebufferSizeCallback(_windowHandle, nullptr);
     glfwSetWindowFocusCallback(_windowHandle, nullptr);
     glfwSetWindowIconifyCallback(_windowHandle, nullptr);
-
-#ifdef WIN32
-    if (_useSwapGroups && glfwExtensionSupported("WGL_NV_swap_group")) {
-        HDC hDC = wglGetCurrentDC();
-        wglBindSwapBarrierNV(1, 0); // un-bind
-        wglJoinSwapGroupNV(hDC, 0); // un-join
-    }
-#endif // WIN32
 }
 
 void Window::initialize() {
     ZoneScoped;
 
-    createTextures();
-    createVBOs();
+    recreateSwapchain();
 
-    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
-
-    Log::Debug(std::format(
-        "Window {}: FBO initiated successfully. Number of samples: {}",
-        _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
-    ));
-
-    const ivec2 res =
-        Engine::instance().settings().captureBackBuffer ?
-        _windowSize :
-        framebufferResolution();
-
-    if (_screenCaptureLeftOrMono) {
-        _screenCaptureLeftOrMono->resize(res);
-    }
-
-    if (_screenCaptureRight) {
-        _screenCaptureRight->resize(res);
-    }
-
-    loadShaders();
-
-#ifdef SGCT_HAS_SPOUT
-    if (_spout.enabled) {
-        _spout.name = _spout.name.empty() ? "OpenSpace" : _spout.name;
-
-        _spout.handle = GetSpout();
-        bool success = false;
-        if (_spout.handle) {
-            success = _spout.handle->CreateSender(
-                _spout.name.c_str(),
-                _framebufferRes.x,
-                _framebufferRes.y
-            );
-        }
-        if (!success) {
-            Log::Error(std::format("Error creating SPOUT handle for {}", _spout.name));
-        }
-    }
-#endif // SGCT_HAS_SPOUT
-
-#ifdef SGCT_HAS_NDI
-    if (_ndi.handle) {
-        const GLsizeiptr bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
-        glCreateBuffers(3, _ndi.pingPongPbo);
-        glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
-        glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
-        glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
-    }
-#endif // SGCT_HAS_NDI
-
+    // The cube maps of the non-linear projections have the format of the render target,
+    // so that the pipelines of the draw callback can render into them
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->initialize(
-            viewportRenderSize(*this, *vp, vp->eye()),
+            viewportRenderSize(*this, *vp),
             _stereoMode != StereoMode::NoStereo,
-            _internalColorFormat,
-            _nAASamples
+            _sceneFormat
         );
     }
-}
 
-void Window::initializeContextSpecific() {
-    ZoneScoped;
+    // The content of the other window is used in the same frame, so it has to be drawn
+    // before this window
+    if (_blitWindowId >= 0) {
+        const std::vector<std::unique_ptr<Window>>& windows =
+            ClusterManager::instance().thisNode().windows();
+        auto source = std::find_if(
+            windows.cbegin(),
+            windows.cend(),
+            [id = _blitWindowId](const std::unique_ptr<Window>& w) { return w->id() == id; }
+        );
+        auto self = std::find_if(
+            windows.cbegin(),
+            windows.cend(),
+            [this](const std::unique_ptr<Window>& w) { return w.get() == this; }
+        );
+        if (source > self) {
+            Log::Warning(std::format(
+                "Window {}: The content of window {} can only be copied if that window "
+                "is specified first", _id, _blitWindowId
+            ));
+        }
+    }
 
-    makeOpenGLContextCurrent();
+    // Loads the overlay and mask textures and the correction meshes; the warp meshes map
+    // the offscreen image onto the window in the composite pass
     std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
     _hasAnyMasks = std::any_of(
         _viewports.cbegin(),
@@ -1022,28 +934,6 @@ void Window::updateResolutions() {
             "Resolution changed to {}x{} in window {}", _windowSize.x, _windowSize.y, _id
         ));
         _pendingWindowSize = std::nullopt;
-
-#ifdef SGCT_HAS_NDI
-        if (!_useFixResolution && _ndi.handle) {
-            _ndi.videoFrame.xres = _windowSize.x;
-            _ndi.videoFrame.yres = _windowSize.y;
-            _ndi.videoFrame.picture_aspect_ratio =
-                static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y);
-            // We have a negative stride to account for the fact that OpenGL textures have
-            // their y-axis flipped compared to DirectX textures
-            _ndi.videoFrame.line_stride_in_bytes = -_windowSize.x * 4;
-
-            // We need to send an "empty" frame as otherwise NDI might be in the middle of
-            // sending out one of the buffers that we are resizing. This extra call will
-            // force a synchronization
-            NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
-            const int bufferSize = _windowSize.x * _windowSize.y * 4;
-            glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
-            glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
-            glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
-            _ndi.currentFrame = 0;
-        }
-#endif // SGCT_HAS_NDI
     }
 
     if (_pendingFramebufferRes) {
@@ -1064,25 +954,13 @@ void Window::update() {
     if (!isVisible() || !isWindowResized()) {
         return;
     }
-    makeOpenGLContextCurrent();
 
-    resizeFBOs();
+    recreateSwapchain();
 
-    const ivec2 res =
-        Engine::instance().settings().captureBackBuffer ?
-        _windowSize :
-        framebufferResolution();
-    if (_screenCaptureLeftOrMono) {
-        _screenCaptureLeftOrMono->resize(res);
-    }
-    if (_screenCaptureRight) {
-        _screenCaptureRight->resize(res);
-    }
-
-    // Resize non linear projection buffers
+    // Adapt the non-linear projections to the new aspect ratio of their viewports
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         if (vp->hasSubViewports()) {
-            vp->nonLinearProjection()->update(viewportRenderSize(*this, *vp, vp->eye()));
+            vp->nonLinearProjection()->update(viewportRenderSize(*this, *vp));
         }
     }
 }
@@ -1090,318 +968,877 @@ void Window::update() {
 void Window::draw() {
     ZoneScopedN("Render window");
 
-    if (!isRenderingWhileHidden() && (!isVisible() || _isIconified)) [[unlikely]] {
+    _isRecording = false;
+    _frameRecorded = false;
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+
+    if (!shouldRenderFrame()) [[unlikely]] {
+        // Wait for the frames that are still in flight. Per-frame resources, such as the
+        // segments of a vulkan::UniformRing, assume that every window finished the frames
+        // it submitted a while ago, which this window would otherwise not guarantee while
+        // it does not acquire new images
+        std::array<VkFence, vulkan::Swapchain::MaxFramesInFlight> fences;
+        for (uint32_t i = 0; i < vulkan::Swapchain::MaxFramesInFlight; i++) {
+            fences[i] = _swapchain->inFlightFence(i);
+        }
+        check(
+            vkWaitForFences(
+                ctx.device(),
+                static_cast<uint32_t>(fences.size()),
+                fences.data(),
+                VK_TRUE,
+                std::numeric_limits<uint64_t>::max()
+            ),
+            "vkWaitForFences"
+        );
         return;
     }
 
-    // Render Left/Mono non-linear projection viewports to cubemap
-    for (const std::unique_ptr<Viewport>& vp : viewports()) {
-        ZoneScopedN("Render viewport");
+    _isOffscreenRendered = false;
 
-        if (!vp->hasSubViewports()) {
-            continue;
+    // The stereo mode and the swap barrier can change at runtime, which needs a swapchain
+    // with different layers or present barrier
+    if (_swapchainStereo != (_stereoMode == StereoMode::Active) ||
+        _swapchainPresentBarrier != (_useSwapGroups && _isBarrierActive))
+    {
+        recreateSwapchain();
+    }
+
+    // The framebuffer resolution can change without the swapchain being recreated (for
+    // example when the framebuffer size callback arrives after the window was resized),
+    // and the stereo mode can change at runtime
+    const ivec2 res = framebufferResolution();
+    if (static_cast<int>(_offscreen->extent().width) != std::max(res.x, 1) ||
+        static_cast<int>(_offscreen->extent().height) != std::max(res.y, 1) ||
+        needsRightEyeTarget() != (_offscreenRight != nullptr))
+    {
+        recreateOffscreen();
+    }
+
+    VkCommandBuffer cmd = VK_NULL_HANDLE;
+    try {
+        // Waits for the previous frame that used this in-flight slot to finish, then
+        // acquires a swapchain image. Throws if the swapchain is out of date
+        _imageIndex = _swapchain->acquireImage(_frameIndex);
+
+        // The fence was just waited on (so it is signaled); reset it so the submit in
+        // swapBuffers can signal it again
+        VkFence inFlightFence = _swapchain->inFlightFence(_frameIndex);
+        check(vkResetFences(ctx.device(), 1, &inFlightFence), "vkResetFences");
+
+        cmd = _commandBuffers[_frameIndex];
+        check(vkResetCommandBuffer(cmd, 0), "vkResetCommandBuffer");
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        check(vkBeginCommandBuffer(cmd, &beginInfo), "vkBeginCommandBuffer");
+        _isRecording = true;
+
+        if (_timestampPool != VK_NULL_HANDLE) {
+            // The previous frame in this slot has finished, as its fence was waited on
+            // while acquiring the image
+            const uint32_t first = 2 * _frameIndex;
+            if (_hasTimestamps[_frameIndex]) {
+                std::array<uint64_t, 2> ts = {};
+                const VkResult queryResult = vkGetQueryPoolResults(
+                    ctx.device(),
+                    _timestampPool,
+                    first,
+                    2,
+                    sizeof(ts),
+                    ts.data(),
+                    sizeof(uint64_t),
+                    VK_QUERY_RESULT_64_BIT
+                );
+                if (queryResult == VK_SUCCESS && ts[1] >= ts[0]) {
+                    const double period = ctx.limits().timestampPeriod;
+                    _gpuFrameTime = static_cast<double>(ts[1] - ts[0]) * period * 1e-9;
+                }
+                _hasTimestamps[_frameIndex] = false;
+            }
+            vkCmdResetQueryPool(cmd, _timestampPool, first, 2);
+            vkCmdWriteTimestamp(
+                cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, _timestampPool, first
+            );
         }
 
-        NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
-        if (_stereoMode == Window::StereoMode::NoStereo) {
-            // For mono viewports frustum mode can be selected by user or config
-            nonLinearProj->renderCubemap(vp->eye());
+        // The cube maps of all eyes are rendered first, as they cannot be rendered while
+        // the render pass of an offscreen target is active
+        renderCubemaps(cmd);
+
+#ifdef TRACY_ENABLE
+        TracyVkZone(_tracyContexts[_frameIndex], cmd, "Scene");
+#endif // TRACY_ENABLE
+
+        if (_stereoMode == StereoMode::NoStereo) {
+            recordTarget(cmd, *_offscreen, { FrustumMode::Mono });
+        }
+        else if (_stereoMode >= StereoMode::SideBySide) {
+            // Both eyes are rendered into separate halves of the same target, so they
+            // share a single render pass (beginning a second one would clear the left eye)
+            recordTarget(
+                cmd,
+                *_offscreen,
+                { FrustumMode::StereoLeft, FrustumMode::StereoRight }
+            );
         }
         else {
-            nonLinearProj->renderCubemap(FrustumMode::StereoLeft);
+            recordTarget(cmd, *_offscreen, { FrustumMode::StereoLeft });
+
+            // Active stereo only has a right eye target if the swapchain supports
+            // stereoscopic presentation; otherwise only its left eye is rendered
+            if (_offscreenRight) {
+                recordTarget(cmd, *_offscreenRight, { FrustumMode::StereoRight });
+            }
         }
+        _isOffscreenRendered = true;
     }
-
-    // Render left/mono regular viewports to FBO
-    // If any stereo type (except passive) then set frustum mode to left eye
-    if (_stereoMode == Window::StereoMode::NoStereo) {
-        renderViewports(FrustumMode::Mono, Eye::MonoOrLeft);
-
-        // If we are not rendering in stereo, we are done
-        return;
+    catch (const Error&) {
+        // A real Vulkan error (thrown by `check`); let it propagate
+        throw;
     }
-    else {
-        renderViewports(FrustumMode::StereoLeft, Eye::MonoOrLeft);
-    }
-
-    // Render right non-linear projection viewports to cubemap
-    for (const std::unique_ptr<Viewport>& vp : viewports()) {
-        ZoneScopedN("Render Cubemap");
-        if (!vp->hasSubViewports()) {
-            continue;
+    catch (const vulkan::SwapchainOutOfDate&) {
+        // The swapchain is out of date (thrown by `acquireImage`); recreate it and drop
+        // this frame. The command buffer may still be in the recording state, so return
+        // it to the initial state before the recreation frees it
+        if (cmd != VK_NULL_HANDLE) {
+            vkResetCommandBuffer(cmd, 0);
         }
-        NonLinearProjection* p = vp->nonLinearProjection();
-        p->renderCubemap(FrustumMode::StereoRight);
-    }
-
-    // Render right regular viewports to FBO
-    // Use a single texture for side-by-side and top-bottom stereo modes
-    if (_stereoMode >= Window::StereoMode::SideBySide) {
-        renderViewports(FrustumMode::StereoRight, Eye::MonoOrLeft);
-    }
-    else {
-        renderViewports(FrustumMode::StereoRight, Eye::Right);
+        _isRecording = false;
+        recreateSwapchain();
     }
 }
 
-void Window::renderFBOTexture() {
+void Window::recordTarget(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target,
+                          std::initializer_list<FrustumMode> frustums)
+{
+    // The whole target is cleared, which also covers the areas that no viewport renders
+    // into (the OpenGL path cleared each viewport with a scissor test instead)
+    if (_intermediate) {
+        // The 2D pass is drawn after the FXAA, so that the text is not filtered
+        _intermediate->begin(cmd);
+        for (FrustumMode frustum : frustums) {
+            recordScene(cmd, *_intermediate, frustum);
+        }
+        vkCmdEndRenderPass(cmd);
+
+        target.begin(cmd);
+        recordFxaa(cmd, target);
+    }
+    else {
+        target.begin(cmd);
+        for (FrustumMode frustum : frustums) {
+            recordScene(cmd, target, frustum);
+        }
+    }
+    for (FrustumMode frustum : frustums) {
+        record2D(cmd, target, frustum);
+    }
+    vkCmdEndRenderPass(cmd);
+}
+
+void Window::recordFxaa(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target) {
+    ZoneScopedN("FXAA");
+
+    // The intermediate target has the same size and orientation as the target, so the
+    // viewport is not flipped
+    const VkExtent2D extent = target.extent();
+    VkViewport viewport = {};
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
+    viewport.maxDepth = 1.f;
+    VkRect2D scissor = {};
+    scissor.extent = extent;
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    struct {
+        std::array<vec4, 4> corners;
+        float width;
+        float height;
+        float subPixTrim;
+        float subPixOffset;
+    } constants = {
+        {
+            vec4{ -1.f, -1.f, 0.f, 0.f },
+            vec4{ -1.f,  1.f, 0.f, 1.f },
+            vec4{  1.f, -1.f, 1.f, 0.f },
+            vec4{  1.f,  1.f, 1.f, 1.f }
+        },
+        static_cast<float>(extent.width),
+        static_cast<float>(extent.height),
+        // The values that the OpenGL renderer used
+        1.f / 4.f,
+        1.f / 2.f
+    };
+
+    auto image = [this](VkImageView view) {
+        VkDescriptorImageInfo info = {};
+        info.sampler = _linearSampler;
+        info.imageView = view;
+        info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        return info;
+    };
+    const std::array<VkDescriptorImageInfo, 4> images = {
+        image(_intermediate->colorImageView()),
+        image(_intermediate->normalsImageView()),
+        image(_intermediate->positionsImageView()),
+        image(_intermediate->depthImageView())
+    };
+
+    _fxaaPass->bind(cmd, &constants);
+    _fxaaPass->setTextures(cmd, images);
+    _fxaaPass->drawQuad(cmd);
+}
+
+const Window* Window::blitSource() const {
+    if (_blitWindowId < 0) {
+        return nullptr;
+    }
+
+    // Only a window that is drawn before this one (in the same frame) can be copied
+    const std::vector<std::unique_ptr<Window>>& windows =
+        ClusterManager::instance().thisNode().windows();
+    for (const std::unique_ptr<Window>& w : windows) {
+        if (w.get() == this) {
+            return nullptr;
+        }
+        if (w->id() == _blitWindowId) {
+            return w->_isOffscreenRendered ? w.get() : nullptr;
+        }
+    }
+    return nullptr;
+}
+
+void Window::renderCubemaps(VkCommandBuffer cmd) {
     ZoneScoped;
 
-    if (!isVisible()) [[unlikely]] {
+    if (!_hasCallDraw3DFunction || !Engine::instance().drawFunction()) {
         return;
     }
 
-    OffScreenBuffer::unbind();
-
-    makeOpenGLContextCurrent();
-
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    const FrustumMode frustum =
-        (stereoMode() == Window::StereoMode::Active) ?
-        FrustumMode::StereoLeft :
-        FrustumMode::Mono;
-
-    const ivec2 size = ivec2{
-        static_cast<int>(std::ceil(scale().x * _windowSize.x)),
-        static_cast<int>(std::ceil(scale().y * _windowSize.y))
+    auto render = [this, cmd](const Viewport& vp, FrustumMode frustum) {
+        if (vp.isTracked()) {
+            const_cast<Viewport&>(vp).calculateFrustum(
+                frustum,
+                Engine::instance().nearClipPlane(),
+                Engine::instance().farClipPlane()
+            );
+        }
+        // The cube map faces are copied for the Spout/NDI streaming once the frame's
+        // in-flight fence is signaled
+        vp.nonLinearProjection()->renderCubemap(
+            cmd, frustum, _frameIndex, _imageIndex,
+            _swapchain->inFlightFence(_frameIndex)
+        );
     };
 
-    glViewport(0, 0, size.x, size.y);
-    setAndClearBuffer(*this, BufferMode::BackBufferBlack, frustum);
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        if (!vp->isEnabled() || !vp->hasSubViewports()) {
+            continue;
+        }
 
-    bool maskShaderSet = false;
-    const std::vector<std::unique_ptr<Viewport>>& vps = _viewports;
-    if (_stereoMode > Window::StereoMode::Active &&
-        _stereoMode < Window::StereoMode::SideBySide)
+        if (_stereoMode == StereoMode::NoStereo) {
+            // For mono viewports the frustum mode can be selected by the user or config
+            render(*vp, vp->eye());
+        }
+        else {
+            render(*vp, FrustumMode::StereoLeft);
+            // Active stereo only renders the left eye (see draw)
+            if (_stereoMode != StereoMode::Active) {
+                render(*vp, FrustumMode::StereoRight);
+            }
+        }
+    }
+}
+
+namespace {
+    // The pixel rectangle uses OpenGL's bottom-left origin, whereas Vulkan's framebuffer
+    // coordinates start at the top-left. The viewport is flipped (negative height) so
+    // that NDC y = +1 maps to the top of the viewport
+    std::pair<VkViewport, VkRect2D> viewportArea(const sgct::Viewport& vp,
+                                                 sgct::FrustumMode frustum,
+                                                 int targetHeight)
     {
-        glBindTextureUnit(0, _frameBufferTextures.leftEye);
-        glBindTextureUnit(1, _frameBufferTextures.rightEye);
+        const sgct::ivec4 rect = vp.pixelRect(frustum);
+        VkViewport viewport = {};
+        viewport.x = static_cast<float>(rect.x);
+        viewport.y = static_cast<float>(targetHeight - rect.y);
+        viewport.width = static_cast<float>(rect.z);
+        viewport.height = -static_cast<float>(rect.w);
+        viewport.minDepth = 0.f;
+        viewport.maxDepth = 1.f;
 
-        _stereo.bind();
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+        VkRect2D scissor = {};
+        scissor.offset = {
+            std::max(rect.x, 0),
+            std::max(targetHeight - rect.y - rect.w, 0)
+        };
+        scissor.extent = {
+            static_cast<uint32_t>(std::max(rect.z, 0)),
+            static_cast<uint32_t>(std::max(rect.w, 0))
+        };
+        return std::pair(viewport, scissor);
+    }
+} // namespace
+
+void Window::recordScene(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target,
+                         FrustumMode frustum)
+{
+    ZoneScoped;
+
+    const int targetHeight = static_cast<int>(target.extent().height);
+
+    // For mono viewports the frustum mode can be selected by the user or config
+    auto viewportFrustum = [this, frustum](const Viewport& vp) {
+        return _stereoMode == StereoMode::NoStereo ? vp.eye() : frustum;
+    };
+
+    const bool hasDraw = _hasCallDraw3DFunction && Engine::instance().drawFunction();
+    const Window* source = blitSource();
+    if (hasDraw || source) {
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
+            if (!vp->isEnabled()) {
+                continue;
+            }
+
+            const FrustumMode vpFrustum = viewportFrustum(*vp);
+            const auto [viewport, scissor] = viewportArea(*vp, vpFrustum, targetHeight);
+            vkCmdSetViewport(cmd, 0, 1, &viewport);
+            vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+            // The content of the other window is drawn first, below the scene
+            if (source && !vp->hasSubViewports()) {
+                const vulkan::OffscreenBuffer* image = source->offscreenTarget(
+                    vpFrustum == FrustumMode::StereoRight ? Eye::Right : Eye::MonoOrLeft
+                );
+                _overlayPass->draw(cmd, image->colorImageView(), _linearSampler);
+            }
+            if (!hasDraw) {
+                continue;
+            }
+
+            // The frustums of the non-linear projections were calculated when their cube
+            // maps were rendered
+            if (vp->isTracked() && !vp->hasSubViewports()) {
+                vp->calculateFrustum(
+                    vpFrustum,
+                    Engine::instance().nearClipPlane(),
+                    Engine::instance().farClipPlane()
+                );
+            }
+
+            // A non-linear projection maps its cube map onto the viewport instead of
+            // calling the draw callback directly
+            if (vp->hasSubViewports()) {
+                vp->nonLinearProjection()->render(cmd, *vp, vpFrustum, scissor);
+                continue;
+            }
+
+            ZoneScopedN("[SGCT] Draw");
+            const RenderData renderData = {
+                *this,
+                *vp,
+                vpFrustum,
+                ClusterManager::instance().sceneTransform(),
+                viewMatrix(*this, *vp, vpFrustum),
+                projectionMatrix(*this, *vp, vpFrustum),
+                viewProjectionMatrix(*this, *vp, vpFrustum) *
+                    ClusterManager::instance().sceneTransform(),
+                renderBufferSize(*this, vpFrustum),
+                cmd,
+                _frameIndex,
+                _imageIndex,
+                Engine::instance().currentFrameNumber(),
+                target.extent(),
+                viewport,
+                scissor
+            };
+            Engine::instance().drawFunction()(renderData);
+        }
+    }
+}
+
+void Window::record2D(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target,
+                      FrustumMode frustum)
+{
+    ZoneScoped;
+
+    const int targetHeight = static_cast<int>(target.extent().height);
+
+    // For mono viewports the frustum mode can be selected by the user or config
+    auto viewportFrustum = [this, frustum](const Viewport& vp) {
+        return _stereoMode == StereoMode::NoStereo ? vp.eye() : frustum;
+    };
+
+    // The 2D pass draws the overlays, statistics, and the draw2D callback on top of the
+    // scene of all viewports
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        if (!vp->isEnabled()) {
+            continue;
+        }
+
+        const FrustumMode vpFrustum = viewportFrustum(*vp);
+        const auto [viewport, scissor] = viewportArea(*vp, vpFrustum, targetHeight);
+        vkCmdSetViewport(cmd, 0, 1, &viewport);
+        vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+        if (vp->hasOverlayTexture()) {
+            _overlayPass->draw(cmd, *vp->overlayTexture());
+        }
+
+        if (Engine::instance().statisticsRenderer()) {
+            Engine::instance().statisticsRenderer()->render(*this, *vp);
+        }
+
+        if (Engine::instance().draw2DFunction() && _hasCallDraw2DFunction) {
+            ZoneScopedN("[SGCT] Draw 2D");
+            const RenderData renderData = {
+                *this,
+                *vp,
+                vpFrustum,
+                ClusterManager::instance().sceneTransform(),
+                viewMatrix(*this, *vp, vpFrustum),
+                projectionMatrix(*this, *vp, vpFrustum),
+                viewProjectionMatrix(*this, *vp, vpFrustum) *
+                    ClusterManager::instance().sceneTransform(),
+                renderBufferSize(*this, vpFrustum),
+                cmd,
+                _frameIndex,
+                _imageIndex,
+                Engine::instance().currentFrameNumber(),
+                target.extent(),
+                viewport,
+                scissor
+            };
+            Engine::instance().draw2DFunction()(renderData);
+        }
+    }
+}
+
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+bool Window::streamingEnabled() const {
+#if defined(SGCT_HAS_SPOUT)
+    if (_spout.handle) {
+        return true;
+    }
+#endif // SGCT_HAS_SPOUT
+#if defined(SGCT_HAS_NDI)
+    if (_ndi.handle) {
+        return true;
+    }
+#endif // SGCT_HAS_NDI
+    return false;
+}
+
+void Window::createStreamBuffers() {
+    if (!streamingEnabled()) {
+        return;
+    }
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+    const VkExtent2D extent = _swapchain->extent();
+    const VkFormat format = _swapchain->format();
+    const VkDeviceSize size =
+        static_cast<VkDeviceSize>(extent.width) * extent.height * 4;
+
+    // NDI may still be reading the old readback buffers from a previous asynchronous
+    // send, so flush it before they are destroyed
+#ifdef SGCT_HAS_NDI
+    if (_ndi.handle) {
+        NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
+    }
+#endif // SGCT_HAS_NDI
+
+    _streamFormat = format;
+
+    // (Re)create the readback ring. The buffers are host-visible and persistently
+    // mapped, so the pixels can be read directly once the copy's fence is signaled
+    for (StreamBuffer& sb : _streamBuffers) {
+        sb.buffer = std::make_unique<vulkan::Buffer>(
+            ctx, size, vulkan::Buffer::Type::Readback
+        );
+        sb.hasData = false;
+    }
+    _streamFrame = 0;
+
+    // Spout expects RGBA pixels, so if the swapchain is BGRA allocate a temporary
+    // buffer for the conversion
+    const bool isBgra =
+        format == VK_FORMAT_B8G8R8A8_UNORM || format == VK_FORMAT_B8G8R8A8_SRGB;
+    if (isBgra) {
+        _streamRgba.resize(static_cast<size_t>(size));
     }
     else {
-        glBindTextureUnit(0, _frameBufferTextures.leftEye);
-
-        maskShaderSet = true;
-
-        glProgramUniform1i(
-            _fboQuad.id(),
-            glGetUniformLocation(_fboQuad.id(), "flipX"),
-            _mirrorX ? 1 : 0
-        );
-        glProgramUniform1i(
-            _fboQuad.id(),
-            glGetUniformLocation(_fboQuad.id(), "flipY"),
-            _mirrorY ? 1 : 0
-        );
-
-        _fboQuad.bind();
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-
-        // Render right eye in active stereo mode
-        if (_stereoMode == Window::StereoMode::Active) {
-            glViewport(0, 0, size.x, size.y);
-
-            // Clear buffers
-            setAndClearBuffer(
-                *this,
-                BufferMode::BackBufferBlack,
-                FrustumMode::StereoRight
-            );
-
-            glBindTextureUnit(0, _frameBufferTextures.rightEye);
-            std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-        }
+        _streamRgba.clear();
     }
-
-    // Render mask (mono)
-    if (_hasAnyMasks) {
-        if (!maskShaderSet) {
-            _fboQuad.bind();
-
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), _mirrorX ? 1 : 0);
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), _mirrorY ? 1 : 0);
-        }
-
-        glDrawBuffer(GL_BACK);
-        glReadBuffer(GL_BACK);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_BLEND);
-
-        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-        // Render blend masks
-        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (const std::unique_ptr<Viewport>& vp : _viewports) {
-            ZoneScopedN("Render Viewport");
-
-            if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
-                vp->renderMaskMesh();
-            }
-            if (vp->hasBlackLevelMaskTexture() && vp->isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp->blackLevelMaskTextureIndex());
-                vp->renderMaskMesh();
-            }
-        }
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-
-    ShaderProgram::unbind();
-    glDisable(GL_BLEND);
 
 #ifdef SGCT_HAS_SPOUT
-    if (_spout.handle) {
-        // Copy the current backbuffer content into the leftEye texture so that SPOUT
-        // shares the final composited (warped) output
-        glCopyTextureSubImage2D(
-            _frameBufferTextures.leftEye,
-            0,
-            0,
-            0,
-            0,
-            0,
-            _framebufferRes.x,
-            _framebufferRes.y
-        );
-
-        const bool s = _spout.handle->SendTexture(
-            _frameBufferTextures.leftEye,
-            static_cast<GLuint>(GL_TEXTURE_2D),
-            _framebufferRes.x,
-            _framebufferRes.y
-        );
-        if (!s) {
-            Log::Error(std::format("Error sending Spout texture for '{}'", _spout.name));
+    if (_spout.enabled) {
+        _spout.name = _spout.name.empty() ? "OpenSpace" : _spout.name;
+        if (!_spout.handle) {
+            _spout.handle = GetSpout();
+            if (_spout.handle &&
+                !_spout.handle->CreateSender(
+                    _spout.name.c_str(), extent.width, extent.height
+                ))
+            {
+                Log::Error(std::format(
+                    "Window {}: Error creating the Spout sender '{}'", _id, _spout.name
+                ));
+            }
+        }
+        else {
+            _spout.handle->UpdateSender(_spout.name.c_str(), extent.width, extent.height);
         }
     }
 #endif // SGCT_HAS_SPOUT
 
 #ifdef SGCT_HAS_NDI
     if (_ndi.handle) {
-        // The big picture for the NDI streaming is as follows: We are using a
-        // triple-buffered approach so that we don't have to block the main rendering
-        // thread when transferring the rendered texture into CPU memory. This introduces
-        // a two-frame latency into the system, but that is an acceptable trade-off.
-        // We are using triple-buffering to mitigate two bottlenecks; 1. the transfer of
-        // the texture data from GPU to the CPU and 2. the NDI video transfer. If we only
-        // would use a double-buffer here, we would need to make a memcpy of the
-        // downloaded data as NDI takes ownership while transferring
-        // In each frame we are triggering a PBO transfer of the rendered image to the
-        // CPU, mapping the PBO into host memory + trigger the NDI frame transfer, and
-        // then unmap the mapped memory again
-
-        ZoneScopedN("NDI");
-        TracyGpuZone("NDI");
-
-        assert(_ndi.videoFrame.xres == _framebufferRes.x);
-        assert(_ndi.videoFrame.yres == _framebufferRes.y);
-
-        // Triple-buffered async PBO readback:
-        // readIndex: CPU maps last frame's PBO and uses the mapped memory
-        // writeIndex: GPU writes this frame's texture into this PBO (non-blocking)
-        // unmap: Unmap the last frames readIndex
-        const int writeIndex = _ndi.currentFrame % 3;
-        const int readIndex = (_ndi.currentFrame - 1) % 3;
-        const int unmapIndex = (_ndi.currentFrame - 2) % 3;
-
-        // Start async GPU->PBO transfer for this frame
-        {
-            ZoneScopedN("PBO Readback");
-            TracyGpuZone("PBO Readback");
-
-            const GLsizei bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, _ndi.pingPongPbo[writeIndex]);
-
-            glGetTextureImage(
-                _frameBufferTextures.leftEye,
-                0,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                bufferSize,
-                nullptr
-            );
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        }
-
-        // Map last frame's PBO (GPU has had a full frame to complete the transfer)
-        if (_ndi.currentFrame >= 1) [[likely]] {
-            ZoneScopedN("PBO Map and Send");
-            TracyGpuZone("PBO Map and Send");
-
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, _ndi.pingPongPbo[readIndex]);
-            void* src = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-            // We are using a negative line stride to correct for the y-axis flip going
-            // from OpenGL to DirectX.  So our start point has to be the beginning of the
-            // *last* line of the image as NDI then steps backwards through the image to
-            // send it to the receiver. So we start at data() (=0), move to the end
-            // (+size) and then backtrack one line (- -line_stride = +line_stride)
-            const GLsizei bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
-            _ndi.videoFrame.p_data = reinterpret_cast<uint8_t*>(src) + bufferSize +
-                _ndi.videoFrame.line_stride_in_bytes;
-
-            {
-                ZoneScopedN("NDI Send");
-                NDIlib_send_send_video_async_v2(_ndi.handle, &_ndi.videoFrame);
-            }
-        }
-
-        // Unbind the previous frame's PBO
-        if (_ndi.currentFrame >= 2) [[likely]] {
-            ZoneScopedN("PBO Unbind");
-            TracyGpuZone("PBO Unbind");
-
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, _ndi.pingPongPbo[unmapIndex]);
-            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        }
-
-        _ndi.currentFrame++;
+        // The readback is top-down, so the stride is positive
+        _ndi.videoFrame.xres = extent.width;
+        _ndi.videoFrame.yres = extent.height;
+        _ndi.videoFrame.line_stride_in_bytes = static_cast<int>(extent.width) * 4;
+        _ndi.videoFrame.picture_aspect_ratio =
+            static_cast<float>(extent.width) / static_cast<float>(extent.height);
+        _ndi.videoFrame.FourCC =
+            isBgra ? NDIlib_FourCC_type_BGRA : NDIlib_FourCC_type_RGBA;
     }
 #endif // SGCT_HAS_NDI
 }
 
-void Window::swapBuffers(bool takeScreenshot) {
-    if (!(isVisible() || _shouldRenderWhileHidden)) {
+void Window::recordStreamCopy(VkCommandBuffer cmd) {
+    if (!streamingEnabled()) {
         return;
     }
 
-    makeOpenGLContextCurrent();
+    const VkExtent2D extent = _swapchain->extent();
+    StreamBuffer& sb = _streamBuffers[_streamFrame % 3];
+    const VkImage image = _swapchain->image(_imageIndex);
 
+    // The image was last written by the composite pass, whose render pass makes its
+    // writes available to the transfer stage
+    VkImageMemoryBarrier toTransfer = {};
+    toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    toTransfer.srcAccessMask = 0;
+    toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    toTransfer.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    toTransfer.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    toTransfer.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    toTransfer.image = image;
+    toTransfer.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+    vkCmdPipelineBarrier(
+        cmd,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &toTransfer
+    );
+
+    // Copy the left eye (the first layer of the swapchain image)
+    VkBufferImageCopy region = {};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+    region.imageOffset = { 0, 0, 0 };
+    region.imageExtent = { extent.width, extent.height, 1 };
+    vkCmdCopyImageToBuffer(
+        cmd, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, sb.buffer->handle(), 1, &region
+    );
+
+    // Return the image to its layout for the present and make the copied pixels visible
+    // to the host once the frame's fence is signaled
+    VkImageMemoryBarrier fromTransfer = toTransfer;
+    fromTransfer.srcAccessMask = 0;
+    fromTransfer.dstAccessMask = 0;
+    fromTransfer.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    fromTransfer.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    VkMemoryBarrier toHost = {};
+    toHost.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    toHost.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    toHost.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+    vkCmdPipelineBarrier(
+        cmd,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0,
+        1, &toHost,
+        0, nullptr,
+        1, &fromTransfer
+    );
+
+    // The copy completes when the frame's in-flight fence is signaled
+    sb.fence = _swapchain->inFlightFence(_frameIndex);
+    sb.hasData = true;
+}
+
+void Window::sendStreamFrame() {
+    if (!streamingEnabled()) {
+        return;
+    }
+
+    // The frame to send is the one recorded in the previous frame
+    StreamBuffer& sb = _streamBuffers[(_streamFrame + 2) % 3];
+    _streamFrame++;
+    if (!sb.hasData) {
+        return;
+    }
+    sb.hasData = false;
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+    // Wait for the copy of the previous frame to have finished
+    check(
+        vkWaitForFences(
+            ctx.device(), 1, &sb.fence, VK_TRUE, std::numeric_limits<uint64_t>::max()
+        ),
+        "vkWaitForFences"
+    );
+
+    const uint8_t* data = static_cast<const uint8_t*>(sb.buffer->map());
+    const VkExtent2D extent = _swapchain->extent();
+    const bool isBgra =
+        _streamFormat == VK_FORMAT_B8G8R8A8_UNORM ||
+        _streamFormat == VK_FORMAT_B8G8R8A8_SRGB;
+
+#ifdef SGCT_HAS_SPOUT
+    if (_spout.handle) {
+        const uint8_t* spoutData = data;
+        if (isBgra) {
+            // Spout expects RGBA pixels, so convert the BGRA readback
+            uint8_t* rgba = _streamRgba.data();
+            const size_t nPixels = static_cast<size_t>(extent.width) * extent.height;
+            for (size_t i = 0; i < nPixels; i++) {
+                rgba[i * 4 + 0] = data[i * 4 + 2];
+                rgba[i * 4 + 1] = data[i * 4 + 1];
+                rgba[i * 4 + 2] = data[i * 4 + 0];
+                rgba[i * 4 + 3] = data[i * 4 + 3];
+            }
+            spoutData = rgba;
+        }
+        if (!_spout.handle->SendImage(spoutData, extent.width, extent.height)) {
+            Log::Error(std::format(
+                "Window {}: Error sending the Spout image for '{}'", _id, _spout.name
+            ));
+        }
+    }
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+    if (_ndi.handle) {
+        // NDI converts the BGRA (or RGBA) pixels on its own thread, so the readback
+        // buffer can be passed directly; it stays valid until the next asynchronous send
+        _ndi.videoFrame.p_data = const_cast<uint8_t*>(data);
+        _ndi.videoFrame.timestamp = 0;
+        NDIlib_send_send_video_async_v2(_ndi.handle, &_ndi.videoFrame);
+    }
+#endif // SGCT_HAS_NDI
+}
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+
+void Window::renderComposite() {
+    ZoneScoped;
+
+    if (!_isRecording) {
+        return;
+    }
+    _isRecording = false;
+
+    VkCommandBuffer cmd = _commandBuffers[_frameIndex];
+    const VkExtent2D extent = _swapchain->extent();
+
+#ifdef TRACY_ENABLE
+    TracyVkZone(_tracyContexts[_frameIndex], cmd, "Composite");
+#endif // TRACY_ENABLE
+
+    using Mode = vulkan::CompositePass::Mode;
+    const Mode mode = [](StereoMode sm) {
+        switch (sm) {
+            case StereoMode::AnaglyphRedCyan:       return Mode::AnaglyphRedCyan;
+            case StereoMode::AnaglyphAmberBlue:     return Mode::AnaglyphAmberBlue;
+            case StereoMode::AnaglyphRedCyanWimmer: return Mode::AnaglyphRedCyanWimmer;
+            case StereoMode::Checkerboard:          return Mode::Checkerboard;
+            case StereoMode::CheckerboardInverted:  return Mode::CheckerboardInverted;
+            case StereoMode::VerticalInterlaced:    return Mode::VerticalInterlaced;
+            case StereoMode::VerticalInterlacedInverted:
+                return Mode::VerticalInterlacedInverted;
+            case StereoMode::Dummy:                 return Mode::Dummy;
+            // No stereo, active stereo (whose layers show one eye each), and the
+            // split-screen modes, whose left eye target already contains both eyes
+            default:                                return Mode::Mono;
+        }
+    }(_stereoMode);
+
+    // With stereoscopic presentation, the first layer of the swapchain image shows the
+    // left eye and the second one the right eye
+    for (uint32_t layer = 0; layer < _swapchain->layerCount(); layer++) {
+        VkClearValue clearValues[2] = {};
+        clearValues[0].color = {{ 0.f, 0.f, 0.f, 1.f }};
+        clearValues[1].depthStencil = { 1.f, 0 };
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = _framebuffer->renderPass();
+        renderPassInfo.framebuffer =
+            _framebuffer->framebuffer(_imageIndex * _swapchain->layerCount() + layer);
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = extent;
+        renderPassInfo.clearValueCount = 2;
+        renderPassInfo.pClearValues = clearValues;
+        vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        // The warp meshes are defined in OpenGL normalized device coordinates (y pointing
+        // up), so the viewport covering the whole swapchain image is flipped
+        VkViewport viewport = {};
+        viewport.x = 0.f;
+        viewport.y = static_cast<float>(extent.height);
+        viewport.width = static_cast<float>(extent.width);
+        viewport.height = -static_cast<float>(extent.height);
+        viewport.minDepth = 0.f;
+        viewport.maxDepth = 1.f;
+        VkRect2D scissor = {};
+        scissor.offset = { 0, 0 };
+        scissor.extent = extent;
+        vkCmdSetViewport(cmd, 0, 1, &viewport);
+        vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+        vulkan::CompositePass::PushConstants constants;
+        constants.flipX = _mirrorX ? 1 : 0;
+        constants.flipY = _mirrorY ? 1 : 0;
+        constants.mode = layer == 1 ? Mode::Right : mode;
+        constants.targetHeight = static_cast<int32_t>(extent.height);
+        _composite->bind(cmd, constants);
+
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
+            vp->renderWarpMesh(cmd);
+        }
+
+        // The masks are multiplied with the composited image:
+        // result = color * blendMask * blackLevelMask
+        if (_hasAnyMasks) {
+            _composite->bindMask(cmd, constants);
+            for (const std::unique_ptr<Viewport>& vp : _viewports) {
+                if (!vp->isEnabled()) {
+                    continue;
+                }
+                if (vp->hasBlendMaskTexture()) {
+                    _composite->setMaskTexture(cmd, *vp->blendMaskTexture());
+                    vp->renderMaskMesh(cmd);
+                }
+                if (vp->hasBlackLevelMaskTexture()) {
+                    _composite->setMaskTexture(cmd, *vp->blackLevelMaskTexture());
+                    vp->renderMaskMesh(cmd);
+                }
+            }
+        }
+
+        vkCmdEndRenderPass(cmd);
+    }
+
+    // The command buffer is ended and submitted in swapBuffers, after the screenshots
+    // have been recorded
+    _frameRecorded = true;
+}
+
+void Window::swapBuffers(bool takeScreenshot) {
+    // Nothing to submit if the frame was skipped or dropped (e.g. because the swapchain
+    // was out of date when acquiring the image). A recorded frame is always submitted,
+    // even if the window was hidden in the meantime, as draw has reset its fence
+    if (!_frameRecorded) {
+        return;
+    }
+    _frameRecorded = false;
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+    VkCommandBuffer cmd = _commandBuffers[_frameIndex];
+
+    // Record the copies of the screenshots. They are saved once the frame has finished
+    std::vector<ScreenCapture*> captures;
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
         if (Engine::instance().settings().captureBackBuffer) {
-            if (_screenCaptureLeftOrMono) {
-                _screenCaptureLeftOrMono->saveScreenCapture(
-                    0,
-                    _stereoMode == StereoMode::Active ?
-                        ScreenCapture::CaptureSource::LeftBackBuffer :
-                        ScreenCapture::CaptureSource::BackBuffer
-                );
+            if (!_swapchain->supportsCapture()) {
+                Log::Error(std::format(
+                    "Window {}: The swapchain does not support screenshots of the back "
+                    "buffer", _id
+                ));
             }
-            if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
-                _screenCaptureLeftOrMono->saveScreenCapture(
-                    0,
-                    ScreenCapture::CaptureSource::RightBackBuffer
-                );
+            else if (_screenCaptureLeftOrMono &&
+                     _screenCaptureLeftOrMono->record(
+                         cmd,
+                         _swapchain->image(_imageIndex),
+                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                         _swapchain->extent(),
+                         _swapchain->format()
+                     ))
+            {
+                captures.push_back(_screenCaptureLeftOrMono.get());
+            }
+            // The right eye of stereoscopic presentation is in the second layer
+            if (_swapchain->supportsCapture() && _swapchain->layerCount() == 2 &&
+                _screenCaptureRight &&
+                _screenCaptureRight->record(
+                    cmd,
+                    _swapchain->image(_imageIndex),
+                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    _swapchain->extent(),
+                    _swapchain->format(),
+                    1
+                ))
+            {
+                captures.push_back(_screenCaptureRight.get());
             }
         }
         else {
-            if (_screenCaptureLeftOrMono) {
-                _screenCaptureLeftOrMono->saveScreenCapture(_frameBufferTextures.leftEye);
-            }
-            if (_screenCaptureRight && _stereoMode > StereoMode::NoStereo &&
-                _stereoMode < Window::StereoMode::SideBySide)
+            if (_screenCaptureLeftOrMono &&
+                _screenCaptureLeftOrMono->record(
+                    cmd,
+                    _offscreen->colorImage(),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    _offscreen->extent(),
+                    _offscreen->colorFormat()
+                ))
             {
-                _screenCaptureRight->saveScreenCapture(_frameBufferTextures.rightEye);
+                captures.push_back(_screenCaptureLeftOrMono.get());
+            }
+            if (_screenCaptureRight && _offscreenRight &&
+                _screenCaptureRight->record(
+                    cmd,
+                    _offscreenRight->colorImage(),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    _offscreenRight->extent(),
+                    _offscreenRight->colorFormat()
+                ))
+            {
+                captures.push_back(_screenCaptureRight.get());
             }
         }
     }
+
+    // Record the copy of the composited image for the Spout/NDI streaming. It is sent
+    // one frame later, once this frame's fence has been signaled
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    recordStreamCopy(cmd);
+#endif
+
+    if (_timestampPool != VK_NULL_HANDLE) {
+        vkCmdWriteTimestamp(
+            cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, _timestampPool, 2 * _frameIndex + 1
+        );
+        _hasTimestamps[_frameIndex] = true;
+    }
+
+#ifdef TRACY_ENABLE
+    // TracyVkCollect records vkCmdResetQueryPool into the command buffer, so it must run
+    // while the buffer is still in the recording state (before vkEndCommandBuffer) and
+    // outside of a render pass
+    TracyVkCollect(_tracyContexts[_frameIndex], cmd);
+#endif // TRACY_ENABLE
+
+    check(vkEndCommandBuffer(cmd), "vkEndCommandBuffer");
 
     // Swap
     _windowResChanged = false;
@@ -1414,29 +1851,393 @@ void Window::swapBuffers(bool takeScreenshot) {
     }
 #endif // SGCT_HAS_SCALABLE
 
-    {
-        ZoneScopedN("glfwSwapBuffers");
-        glfwSwapBuffers(_windowHandle);
+    // Submit the command buffer recorded in draw. It waits on the image-available
+    // semaphore (signaled by acquireImage) and signals the render-finished semaphore
+    // (waited on by present); the in-flight fence is signaled when the submit completes
+    try {
+        VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkSemaphore imageAvailable = _swapchain->imageAvailableSemaphore(_frameIndex);
+        VkSemaphore renderFinished = _swapchain->renderFinishedSemaphore(_imageIndex);
+        VkFence inFlightFence = _swapchain->inFlightFence(_frameIndex);
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = &imageAvailable;
+        submitInfo.pWaitDstStageMask = &waitStage;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &_commandBuffers[_frameIndex];
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = &renderFinished;
+        VkResult result = vkQueueSubmit(ctx.queue(), 1, &submitInfo, inFlightFence);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            throw vulkan::SwapchainOutOfDate();
+        }
+        check(result, "vkQueueSubmit");
+
+        if (!captures.empty()) {
+            // The screenshots need the copies to have finished
+            check(
+                vkWaitForFences(
+                    ctx.device(),
+                    1,
+                    &inFlightFence,
+                    VK_TRUE,
+                    std::numeric_limits<uint64_t>::max()
+                ),
+                "vkWaitForFences"
+            );
+            std::for_each(captures.begin(), captures.end(), std::mem_fn(&ScreenCapture::save));
+        }
+
+        // Send the pixels of the previous frame to Spout/NDI. Its copy was recorded in
+        // the previous frame, whose fence has been signaled by now
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+        sendStreamFrame();
+#endif
+
+        // Send the cube map faces of the previous frame to their Spout/NDI senders
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
+            if (vp->hasSubViewports()) {
+                vp->nonLinearProjection()->sendStreamFrames();
+            }
+        }
+
+        // Present the acquired image; present waits on the render-finished semaphore
+        _swapchain->present(_imageIndex);
     }
-}
-
-void Window::makeOpenGLContextCurrent() {
-    ZoneScoped;
-
-    if (_activeContext == _windowHandle) {
-        // `glfwMakeContextCurrent` is expensive even if we don't change the context
+    catch (const vulkan::SwapchainOutOfDate&) {
+        // The swapchain went out of date between acquire and present (e.g. the window
+        // was moved to a monitor with a different DPI, which changes the surface extent
+        // without a window-size callback). Recreate it and drop this frame
+        recreateSwapchain();
         return;
     }
-    _activeContext = _windowHandle;
-    glfwMakeContextCurrent(_windowHandle);
+
+    // Advance to the next in-flight slot
+    _frameIndex = (_frameIndex + 1) % vulkan::Swapchain::MaxFramesInFlight;
 }
 
-bool Window::needsCompatibilityProfile() const {
-    return !_scalableMesh.path.empty();
+bool Window::shouldRenderFrame() const {
+    return isRenderingWhileHidden() || (isVisible() && !_isIconified);
+}
+
+void Window::recreateSwapchain() {
+    vulkan::Context& ctx = vulkan::Context::instance();
+
+    // Wait for the GPU to finish with the old resources (the swapchain images, the
+    // framebuffer's depth image, and the offscreen images) before destroying them
+    check(vkDeviceWaitIdle(ctx.device()), "vkDeviceWaitIdle");
+
+    // Any partially recorded frame refers to the command buffers that are freed here
+    _isRecording = false;
+    _frameRecorded = false;
+
+    // Destroy the framebuffer before the swapchain since the framebuffers reference the
+    // swapchain image views
+    _offscreenRight = nullptr;
+    _offscreen = nullptr;
+    _framebuffer = nullptr;
+    _swapchain = nullptr;
+    freeCommandBuffers();
+
+    _swapchain = std::make_unique<vulkan::Swapchain>(ctx, _windowHandle);
+    _swapchainStereo = _stereoMode == StereoMode::Active;
+    _swapchainPresentBarrier = _useSwapGroups && _isBarrierActive;
+    _swapchain->setStereo(_swapchainStereo);
+    _swapchain->setPresentBarrier(_swapchainPresentBarrier);
+    // The swap interval only applies to the last window; the others do not wait for the
+    // vertical sync but replace their pending image instead (or wait for it if the
+    // surface cannot do that)
+    if (!_isLastWindow) {
+        _swapchain->setPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
+    }
+    else if (Engine::instance().settings().swapInterval == 0) {
+        _swapchain->setPresentMode(VK_PRESENT_MODE_IMMEDIATE_KHR);
+    }
+    else {
+        _swapchain->setPresentMode(VK_PRESENT_MODE_FIFO_KHR);
+    }
+    _swapchain->create();
+    createCommandBuffers();
+
+    if (_swapchainStereo && _swapchain->layerCount() == 1 && !_hasWarnedAboutStereo) {
+        Log::Warning(std::format(
+            "Window {}: The surface does not support stereoscopic presentation, so only "
+            "the left eye is rendered", _id
+        ));
+        _hasWarnedAboutStereo = true;
+    }
+    if (_swapchainPresentBarrier && !_swapchain->usesPresentBarrier()) {
+        Log::Warning(std::format(
+            "Window {}: The surface does not support the present barrier", _id
+        ));
+    }
+
+    // One framebuffer per layer of each swapchain image
+    _framebuffer = std::make_unique<vulkan::Framebuffer>(
+        ctx, _swapchain->format(), _swapchain->imageViews(), _swapchain->extent()
+    );
+
+    if (_linearSampler == VK_NULL_HANDLE) {
+        VkSamplerCreateInfo samplerInfo = {};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.maxLod = 0.f;
+        check(
+            vkCreateSampler(ctx.device(), &samplerInfo, nullptr, &_linearSampler),
+            "vkCreateSampler"
+        );
+    }
+
+    // The composite pipeline depends on the swapchain's render pass
+    if (!_composite) {
+        _composite = std::make_unique<vulkan::CompositePass>(ctx);
+    }
+    _composite->setRenderPass(_framebuffer->renderPass());
+    if (!_overlayPass) {
+        _overlayPass = std::make_unique<vulkan::OverlayPass>(ctx);
+    }
+
+    recreateOffscreen();
+
+    // The readback ring of the Spout/NDI streaming has the size of the swapchain images
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    createStreamBuffers();
+#endif
+}
+
+void Window::recreateOffscreen() {
+    vulkan::Context& ctx = vulkan::Context::instance();
+
+    // In-flight frames and the composite pass' descriptor set reference the old images
+    check(vkDeviceWaitIdle(ctx.device()), "vkDeviceWaitIdle");
+    _fxaaPass = nullptr;
+    _intermediate = nullptr;
+    _offscreenRight = nullptr;
+    _offscreen = nullptr;
+    _isOffscreenRendered = false;
+
+    _sceneFormat = chooseSceneFormat();
+
+    // The scene is rendered at the framebuffer resolution, which can differ from the size
+    // of the swapchain images (e.g. with a fixed resolution); the composite pass scales it
+    const ivec2 res = framebufferResolution();
+    const VkExtent2D extent = {
+        static_cast<uint32_t>(std::max(res.x, 1)),
+        static_cast<uint32_t>(std::max(res.y, 1))
+    };
+    _offscreen = std::make_unique<vulkan::OffscreenBuffer>(ctx, extent, _sceneFormat);
+    if (needsRightEyeTarget()) {
+        _offscreenRight =
+            std::make_unique<vulkan::OffscreenBuffer>(ctx, extent, _sceneFormat);
+    }
+
+    if (_useFXAA) {
+        _intermediate =
+            std::make_unique<vulkan::OffscreenBuffer>(ctx, extent, _sceneFormat);
+
+        vulkan::ProjectionPass::Settings settings;
+        settings.fragmentShader = std::format(
+            "#version 460\n"
+            "#define HAS_NORMALS {}\n"
+            "#define HAS_POSITIONS {}\n"
+            "#define HAS_DEPTH {}\n"
+            "{}",
+            _sceneFormat.hasNormals ? 1 : 0,
+            _sceneFormat.hasPositions ? 1 : 0,
+            _sceneFormat.hasDepthTexture ? 1 : 0,
+            FxaaFrag
+        );
+        settings.pushConstantSize = 80;
+        settings.samplerCount = 4;
+        settings.colorAttachmentCount = _sceneFormat.colorAttachmentCount();
+        settings.samples = _sceneFormat.samples;
+        settings.writesAllAttachments = true;
+        settings.writesDepth = _sceneFormat.hasDepthTexture;
+        _fxaaPass = std::make_unique<vulkan::ProjectionPass>(
+            ctx,
+            _offscreen->renderPass(),
+            settings
+        );
+    }
+
+    // The composite pass always samples both inputs, so the left eye is bound twice if
+    // there is no separate right eye target
+    const vulkan::OffscreenBuffer& right = _offscreenRight ? *_offscreenRight : *_offscreen;
+    _composite->setInputs(_offscreen->colorImageView(), right.colorImageView());
+
+    // All offscreen targets have compatible render passes, so one pipeline serves them
+    _overlayPass->setRenderPass(_offscreen->renderPass(), _sceneFormat);
+
+    // The cube maps of the non-linear projections need to match a new render target
+    // format. Before the projections are initialized, their format is undefined
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
+        NonLinearProjection* projection = vp->nonLinearProjection();
+        if (projection && projection->sceneFormat().color != VK_FORMAT_UNDEFINED &&
+            projection->sceneFormat() != _sceneFormat)
+        {
+            projection->initialize(_sceneFormat);
+        }
+    }
+}
+
+vulkan::SceneFormat Window::chooseSceneFormat() const {
+    using CBD = config::Window::ColorBitDepth;
+    vulkan::Context& ctx = vulkan::Context::instance();
+
+    vulkan::SceneFormat format;
+
+    // The 8-bit targets use the format of the swapchain, so that the composite does not
+    // convert the colors
+    const CBD depth = _bufferBitDepth.value_or(CBD::Depth8);
+    VkFormat requested = [](CBD d, VkFormat swapchain) {
+        switch (d) {
+            case CBD::Depth8:       return swapchain;
+            case CBD::Depth16:      return VK_FORMAT_R16G16B16A16_UNORM;
+            case CBD::Depth16Float: return VK_FORMAT_R16G16B16A16_SFLOAT;
+            case CBD::Depth32Float: return VK_FORMAT_R32G32B32A32_SFLOAT;
+            // The integer formats can neither be blended nor filtered, which the 2D pass
+            // and the composite need
+            case CBD::Depth16Int:
+            case CBD::Depth16UInt:  return VK_FORMAT_R16G16B16A16_SFLOAT;
+            case CBD::Depth32Int:
+            case CBD::Depth32UInt:  return VK_FORMAT_R32G32B32A32_SFLOAT;
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }(depth, _swapchain->format());
+    if (depth == CBD::Depth16Int || depth == CBD::Depth16UInt ||
+        depth == CBD::Depth32Int || depth == CBD::Depth32UInt)
+    {
+        Log::Warning(std::format(
+            "Window {}: Integer buffers cannot be composited, so a floating point buffer "
+            "with the same size is used", _id
+        ));
+    }
+
+    VkFormatProperties properties = {};
+    vkGetPhysicalDeviceFormatProperties(ctx.physicalDevice(), requested, &properties);
+    constexpr VkFormatFeatureFlags Required =
+        VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+    if ((properties.optimalTilingFeatures & Required) != Required) {
+        Log::Warning(std::format(
+            "Window {}: The buffer bit depth is not supported by the device, so 8 bits "
+            "are used", _id
+        ));
+        requested = _swapchain->format();
+    }
+    format.color = requested;
+
+    format.samples = vulkan::supportedSampleCount(ctx, _nAASamples);
+    if (static_cast<int>(format.samples) < _nAASamples) {
+        Log::Warning(std::format(
+            "Window {}: {} samples are not supported, using {}",
+            _id, _nAASamples, static_cast<int>(format.samples)
+        ));
+    }
+
+    const Engine::Settings& settings = Engine::instance().settings();
+    format.hasNormals = settings.useNormalTexture;
+    format.hasPositions = settings.usePositionTexture;
+    format.hasDepthTexture = settings.useDepthTexture;
+    return format;
+}
+
+bool Window::needsRightEyeTarget() const {
+    // Active stereo has a right eye if the swapchain supports stereoscopic presentation
+    if (_stereoMode == StereoMode::Active) {
+        return _swapchain && _swapchain->layerCount() == 2;
+    }
+    return _stereoMode > StereoMode::Active && _stereoMode < StereoMode::SideBySide;
+}
+
+void Window::createCommandBuffers() {
+    vulkan::Context& ctx = vulkan::Context::instance();
+
+    _commandBuffers.resize(vulkan::Swapchain::MaxFramesInFlight);
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = ctx.commandPool();
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = vulkan::Swapchain::MaxFramesInFlight;
+    check(vkAllocateCommandBuffers(ctx.device(), &allocInfo, _commandBuffers.data()),
+        "vkAllocateCommandBuffers");
+
+    // Two timestamps per in-flight frame measure the GPU time of the frames
+    if (ctx.limits().timestampComputeAndGraphics) {
+        VkQueryPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+        poolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+        poolInfo.queryCount = 2 * vulkan::Swapchain::MaxFramesInFlight;
+        check(
+            vkCreateQueryPool(ctx.device(), &poolInfo, nullptr, &_timestampPool),
+            "vkCreateQueryPool"
+        );
+    }
+    _hasTimestamps = {};
+
+#ifdef TRACY_ENABLE
+    // One Tracy GPU context per in-flight command buffer, so the GPU zones of each
+    // frame are collected against the command buffer that recorded them
+    _tracyContexts.resize(_commandBuffers.size());
+    for (size_t i = 0; i < _commandBuffers.size(); i++) {
+        Log::Info(std::format(
+            "Creating Tracy GPU context {} (physdev={}, device={}, queue={}, cmdbuf={})",
+            i,
+            reinterpret_cast<uintptr_t>(ctx.physicalDevice()),
+            reinterpret_cast<uintptr_t>(ctx.device()),
+            reinterpret_cast<uintptr_t>(ctx.queue()),
+            reinterpret_cast<uintptr_t>(_commandBuffers[i])
+        ));
+        _tracyContexts[i] = TracyVkContext(
+            ctx.physicalDevice(), ctx.device(), ctx.queue(), _commandBuffers[i]
+        );
+        Log::Info(std::format("Created Tracy GPU context {} = {}", i,
+            reinterpret_cast<uintptr_t>(_tracyContexts[i])));
+        TracyVkContextName(_tracyContexts[i], "SGCT", 4);
+    }
+#endif // TRACY_ENABLE
+}
+
+void Window::freeCommandBuffers() {
+    if (_commandBuffers.empty()) {
+        return;
+    }
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+    vkFreeCommandBuffers(
+        ctx.device(),
+        ctx.commandPool(),
+        static_cast<uint32_t>(_commandBuffers.size()),
+        _commandBuffers.data()
+    );
+    _commandBuffers.clear();
+
+#ifdef TRACY_ENABLE
+    for (TracyVkCtx tracyCtx : _tracyContexts) {
+        TracyVkDestroy(tracyCtx);
+    }
+    _tracyContexts.clear();
+#endif // TRACY_ENABLE
+
+    if (_timestampPool != VK_NULL_HANDLE) {
+        vkDestroyQueryPool(ctx.device(), _timestampPool, nullptr);
+        _timestampPool = VK_NULL_HANDLE;
+    }
+    _hasTimestamps = {};
 }
 
 bool Window::shouldTakeScreenshot() const {
     return _takeScreenshot;
+}
+
+double Window::gpuFrameTime() const {
+    return _gpuFrameTime;
 }
 
 bool Window::isOpenXREnabled() const {
@@ -1457,6 +2258,35 @@ ivec2 Window::windowSize() const {
 
 GLFWwindow* Window::windowHandle() const {
     return _windowHandle;
+}
+
+VkRenderPass Window::renderPass() const {
+    // The scene is rendered into the offscreen target, so its render pass is the one the
+    // application pipelines must be created with
+    return _offscreen ? _offscreen->renderPass() : VK_NULL_HANDLE;
+}
+
+VkFormat Window::renderTargetFormat() const {
+    return _sceneFormat.color;
+}
+
+const vulkan::SceneFormat& Window::sceneFormat() const {
+    return _sceneFormat;
+}
+
+VkCommandBuffer Window::currentCommandBuffer() const {
+    return _isRecording ? _commandBuffers[_frameIndex] : VK_NULL_HANDLE;
+}
+
+VkCommandBuffer Window::frameCommandBuffer() const {
+    return _frameRecorded ? _commandBuffers[_frameIndex] : VK_NULL_HANDLE;
+}
+
+const vulkan::OffscreenBuffer* Window::offscreenTarget(Eye eye) const {
+    if (eye == Eye::Right && _offscreenRight) {
+        return _offscreenRight.get();
+    }
+    return _offscreen.get();
 }
 
 void Window::addViewport(std::unique_ptr<Viewport> vpPtr) {
@@ -1480,14 +2310,6 @@ void Window::updateFrustums(float nearClip, float farClip) {
         vp->calculateFrustum(FrustumMode::StereoLeft, nearClip, farClip);
         vp->calculateFrustum(FrustumMode::StereoRight, nearClip, farClip);
     }
-}
-
-void Window::renderScreenQuad() const {
-    TracyGpuZone("Render Screen Quad")
-
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
 }
 
 void Window::setFramebufferResolution(ivec2 resolution) {
@@ -1606,8 +2428,8 @@ void Window::setCallDraw3DFunction(bool state) {
 }
 
 void Window::setStereoMode(StereoMode sm) {
+    // The offscreen targets are adapted to the new mode at the beginning of the next draw
     _stereoMode = sm;
-    loadShaders();
 }
 
 Window::StereoMode Window::stereoMode() const {
@@ -1616,524 +2438,6 @@ Window::StereoMode Window::stereoMode() const {
 
 bool Window::isStereo() const {
     return _stereoMode != StereoMode::NoStereo;
-}
-
-void Window::createTextures() {
-    ZoneScoped;
-    TracyGpuZone("Create Textures");
-
-    GLint max = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-    if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error(std::format(
-            "Window {}: Requested framebuffer too big (Max: {})", _id, max
-        ));
-        return;
-    }
-
-    // Create left and right color & depth textures; don't allocate the right eye image if
-    // stereo is not used create a postFX texture for effects
-    generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
-    if (useRightEyeTexture()) {
-        generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
-    }
-    if (Engine::instance().settings().useDepthTexture) {
-        generateTexture(_frameBufferTextures.depth, TextureType::Depth);
-    }
-    if (_useFXAA) {
-        generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
-    }
-    if (Engine::instance().settings().useNormalTexture) {
-        generateTexture(_frameBufferTextures.normals, TextureType::Normal);
-    }
-    if (Engine::instance().settings().usePositionTexture) {
-        generateTexture(_frameBufferTextures.positions, TextureType::Position);
-    }
-
-    Log::Debug(std::format("Targets initialized successfully for window {}", _id));
-}
-
-void Window::generateTexture(unsigned int& id, Window::TextureType type) {
-    ZoneScoped;
-    TracyGpuZone("Generate Textures");
-
-    glDeleteTextures(1, &id);
-    glCreateTextures(GL_TEXTURE_2D, 1, &id);
-
-    glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-    // Determine the internal texture format, the texture format, and the pixel type
-    const GLenum formats = [this](Window::TextureType t) -> GLenum {
-        switch (t) {
-            case TextureType::Color:
-                return _internalColorFormat;
-            case TextureType::Depth:
-                return GL_DEPTH_COMPONENT32;
-            case TextureType::Normal:
-            case TextureType::Position:
-                return GL_RGB32F;
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
-    }(type);
-
-    const ivec2 res = _framebufferRes;
-    glTextureStorage2D(id, 1, formats, res.x, res.y);
-    Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
-}
-
-void Window::resizeFBOs() {
-    bool updateFBO = !_useFixResolution;
-#ifdef SGCT_HAS_OPENXR
-    if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-        const ivec2 resolution = openXRFramebufferResolution(*this);
-        if (resolution != _framebufferRes) {
-            updateFBO = true;
-        }
-    }
-#endif
-
-    makeSharedContextCurrent();
-    destroyFBOs();
-    createTextures();
-
-    _finalFBO->resizeFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
-
-    if (!_finalFBO->isMultiSampled()) {
-        _finalFBO->bind();
-        _finalFBO->attachColorTexture(_frameBufferTextures.leftEye, GL_COLOR_ATTACHMENT0);
-        OffScreenBuffer::unbind();
-    }
-}
-
-void Window::destroyFBOs() {
-    glDeleteTextures(1, &_frameBufferTextures.leftEye);
-    _frameBufferTextures.leftEye = 0;
-    glDeleteTextures(1, &_frameBufferTextures.rightEye);
-    _frameBufferTextures.rightEye = 0;
-    glDeleteTextures(1, &_frameBufferTextures.depth);
-    _frameBufferTextures.depth = 0;
-    glDeleteTextures(1, &_frameBufferTextures.intermediate);
-    _frameBufferTextures.intermediate = 0;
-    glDeleteTextures(1, &_frameBufferTextures.positions);
-    _frameBufferTextures.positions = 0;
-}
-
-bool Window::useRightEyeTexture() const {
-    return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
-}
-
-void Window::renderViewports(FrustumMode frustum, Eye eye) const {
-    ZoneScoped;
-
-    _finalFBO->bind();
-    if (_finalFBO->isMultiSampled()) {
-        return;
-    }
-
-    // Update attachments
-    _finalFBO->attachColorTexture(frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
-
-    if (Engine::instance().settings().useDepthTexture) {
-        _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
-    }
-
-    if (Engine::instance().settings().useNormalTexture) {
-        _finalFBO->attachColorTexture(_frameBufferTextures.normals, GL_COLOR_ATTACHMENT1);
-    }
-
-    if (Engine::instance().settings().usePositionTexture) {
-        _finalFBO->attachColorTexture(
-            _frameBufferTextures.positions,
-            GL_COLOR_ATTACHMENT2
-        );
-    }
-
-    const Window::StereoMode sm = stereoMode();
-    // Render all viewports for selected eye
-    for (const std::unique_ptr<Viewport>& vp : viewports()) {
-        if (!vp->isEnabled()) {
-            continue;
-        }
-
-        // If passive stereo or mono
-        if (sm == Window::StereoMode::NoStereo) {
-            // @TODO (abock, 2019-12-04) Not sure about this one; the frustum is set in
-            // the calling function based on the stereo mode already and we are
-            // overwriting it here
-            frustum = vp->eye();
-        }
-
-        if (vp->isTracked()) {
-            vp->calculateFrustum(
-                frustum,
-                Engine::instance().nearClipPlane(),
-                Engine::instance().farClipPlane()
-            );
-        }
-        if (vp->hasSubViewports()) {
-            if (_hasCallDraw3DFunction) {
-                vp->nonLinearProjection()->render(*vp, frustum);
-            }
-        }
-        else {
-            // Check if we want to blit the previous window before we do anything else
-            if (_blitWindowId >= 0) {
-                const std::vector<std::unique_ptr<Window>>& wins =
-                    Engine::instance().windows();
-                auto it = std::find_if(
-                    wins.cbegin(),
-                    wins.cend(),
-                    [id = _blitWindowId](const std::unique_ptr<Window>& w) {
-                        return w->id() == id;
-                    }
-                );
-                assert(it != wins.cend());
-                blitWindowViewport(**it, *vp, frustum);
-            }
-
-            if (_hasCallDraw3DFunction) {
-                // Run scissor test to prevent clearing of entire buffer
-                vp->setupViewport(frustum);
-                glEnable(GL_SCISSOR_TEST);
-                glClearColor(0.f, 0.f, 0.f, 0.f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glDisable(GL_SCISSOR_TEST);
-
-                if (Engine::instance().drawFunction()) {
-                    ZoneScopedN("[SGCT] Draw");
-                    const RenderData renderData = {
-                        *this,
-                        *vp,
-                        frustum,
-                        ClusterManager::instance().sceneTransform(),
-                        viewMatrix(*this, *vp, frustum),
-                        projectionMatrix(*this, *vp, frustum),
-                        viewProjectionMatrix(*this, *vp, frustum) *
-                            ClusterManager::instance().sceneTransform(),
-                        renderBufferSize(*this, frustum)
-                    };
-                    Engine::instance().drawFunction()(renderData);
-                }
-            }
-        }
-    }
-
-    // If we did not render anything, make sure we clear the screen at least
-    if (!_hasCallDraw3DFunction && _blitWindowId == -1) {
-        glClearColor(0.f, 0.f, 0.f, 0.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-    else if (_blitWindowId != -1) {
-        const std::vector<std::unique_ptr<Window>>& wins = Engine::instance().windows();
-        auto it = std::find_if(
-            wins.cbegin(),
-            wins.cend(),
-            [id = _blitWindowId](const std::unique_ptr<Window>& w) {
-                return w->id() == id;
-            }
-        );
-        assert(it != wins.cend());
-        const Window& srcWin = **it;
-
-        if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        }
-    }
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-
-    // For side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
-    const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
-    if (!isSplitScreen || frustum != FrustumMode::StereoLeft) {
-        ZoneScopedN("PostFX/Blit");
-
-        // Copy AA-buffer to "regular" / non-AA buffer
-
-        if (_finalFBO->isMultiSampled()) {
-            // Bind separate read and draw buffers to prepare blit operation
-            _finalFBO->bindBlit();
-
-            // update attachments
-            _finalFBO->attachColorTexture(
-                frameBufferTextureEye(eye),
-                GL_COLOR_ATTACHMENT0
-            );
-
-            if (Engine::instance().settings().useDepthTexture) {
-                _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
-            }
-
-            if (Engine::instance().settings().useNormalTexture) {
-                _finalFBO->attachColorTexture(
-                    _frameBufferTextures.normals,
-                    GL_COLOR_ATTACHMENT1
-                );
-            }
-
-            if (Engine::instance().settings().usePositionTexture) {
-                _finalFBO->attachColorTexture(
-                    _frameBufferTextures.positions,
-                    GL_COLOR_ATTACHMENT2
-                );
-            }
-            _finalFBO->blit();
-        }
-
-
-        if (_useFXAA) {
-            assert(_fxaa);
-
-            glDrawBuffer(GL_COLOR_ATTACHMENT0);
-            // bind target FBO
-            _finalFBO->attachColorTexture(
-                frameBufferTextureEye(eye),
-                GL_COLOR_ATTACHMENT0
-            );
-
-            const ivec2 framebufferSize = framebufferResolution();
-            glViewport(0, 0, framebufferSize.x, framebufferSize.y);
-            glClearColor(0.f, 0.f, 0.f, 0.f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            glBindTextureUnit(0, _frameBufferTextures.intermediate);
-
-            glProgramUniform1f(
-                _fxaa->shader.id(),
-                _fxaa->sizeX,
-                static_cast<float>(framebufferSize.x)
-            );
-            glProgramUniform1f(
-                _fxaa->shader.id(),
-                _fxaa->sizeY,
-                static_cast<float>(framebufferSize.y)
-            );
-
-            _fxaa->shader.bind();
-            renderScreenQuad();
-            ShaderProgram::unbind();
-        }
-
-        render2D(frustum);
-        if (isSplitScreen) {
-            // Render left eye info and graph to render 2D items after post fx
-            render2D(FrustumMode::StereoLeft);
-        }
-    }
-
-    glDisable(GL_BLEND);
-}
-
-void Window::render2D(FrustumMode frustum) const {
-    ZoneScoped;
-
-    for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        if (!vp->isEnabled()) {
-            continue;
-        }
-
-        vp->setupViewport(frustum);
-
-        // If viewport has overlay
-        if (vp->hasOverlayTexture()) {
-            glBindTextureUnit(0, vp->overlayTextureIndex());
-            _overlay.bind();
-            renderScreenQuad();
-        }
-
-        if (Engine::instance().statisticsRenderer()) {
-            Engine::instance().statisticsRenderer()->render(*this, *vp);
-        }
-
-        // Check if we should call the use defined draw2D function
-        if (Engine::instance().draw2DFunction() && _hasCallDraw2DFunction) {
-            ZoneScopedN("[SGCT] Draw 2D");
-            const RenderData renderData = {
-                *this,
-                *vp,
-                frustum,
-                ClusterManager::instance().sceneTransform(),
-                viewMatrix(*this, *vp, frustum),
-                projectionMatrix(*this, *vp, frustum),
-                viewProjectionMatrix(*this, *vp, frustum) *
-                    ClusterManager::instance().sceneTransform(),
-                renderBufferSize(*this, frustum)
-            };
-            Engine::instance().draw2DFunction()(renderData);
-        }
-    }
-}
-
-void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
-                                FrustumMode mode) const
-{
-    ZoneScoped;
-
-    assert(prevWindow.id() != id());
-
-    // Run scissor test to prevent clearing of entire buffer
-    glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(mode);
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
-
-
-    const unsigned int tex = [&prevWindow](FrustumMode v) {
-        switch (v) {
-            case FrustumMode::Mono:
-                return prevWindow._frameBufferTextures.leftEye;
-            case FrustumMode::StereoLeft:
-                return prevWindow._frameBufferTextures.rightEye;
-            case FrustumMode::StereoRight:
-                return prevWindow._frameBufferTextures.intermediate;
-            default:
-                throw std::logic_error("Missing case label");
-        }
-    }(mode);
-    glBindTextureUnit(0, tex);
-
-    _overlay.bind();
-    renderScreenQuad();
-    ShaderProgram::unbind();
-}
-
-void Window::createVBOs() {
-    ZoneScoped;
-    TracyGpuZone("Create VBOs");
-
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-
-        float u;
-        float v;
-
-        float r;
-        float g;
-        float b;
-        float a;
-    };
-
-    glCreateBuffers(1, &_vbo);
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, u));
-    glVertexArrayAttribBinding(_vao, 1, 0);
-
-    glEnableVertexArrayAttrib(_vao, 2);
-    glVertexArrayAttribFormat(_vao, 2, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, r));
-    glVertexArrayAttribBinding(_vao, 2, 0);
-
-    constexpr std::array<Vertex, 4> QuadVerts = {
-        Vertex{ -1.f, -1.f, -1.f,   0.f, 0.f,   1.f, 1.f, 1.f, 1.f },
-        Vertex{  1.f, -1.f, -1.f,   1.f, 0.f,   1.f, 1.f, 1.f, 1.f },
-        Vertex{ -1.f,  1.f, -1.f,   0.f, 1.f,   1.f, 1.f, 1.f, 1.f },
-        Vertex{  1.f,  1.f, -1.f,   1.f, 1.f,   1.f, 1.f, 1.f, 1.f }
-    };
-    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), QuadVerts.data(), GL_NONE_BIT);
-}
-
-void Window::loadShaders() {
-    ZoneScoped;
-    TracyGpuZone("Load Shaders");
-
-    {
-        ZoneScopedN("Quad Shader");
-        _fboQuad = ShaderProgram("FBOQuadShader");
-        _fboQuad.addVertexShader(shaders::BaseVert);
-        _fboQuad.addFragmentShader(shaders::BaseFrag);
-        _fboQuad.createAndLinkProgram();
-        glProgramUniform1i(_fboQuad.id(), glGetUniformLocation(_fboQuad.id(), "tex"), 0);
-    }
-
-    {
-        ZoneScopedN("Overlay Shader");
-        _overlay = ShaderProgram("OverlayShader");
-        _overlay.addVertexShader(shaders::BaseVert);
-        _overlay.addFragmentShader(shaders::OverlayFrag);
-        _overlay.createAndLinkProgram();
-        glProgramUniform1i(_overlay.id(), glGetUniformLocation(_overlay.id(), "tex"), 0);
-    }
-
-    if (_useFXAA) {
-        ZoneScopedN("FXAA shader");
-
-        _fxaa = FXAAShader();
-        _fxaa->shader = ShaderProgram("FXAAShader");
-        _fxaa->shader.addVertexShader(shaders::FXAAVert);
-        _fxaa->shader.addFragmentShader(shaders::FXAAFrag);
-        _fxaa->shader.createAndLinkProgram();
-        _fxaa->shader.bind();
-
-        const int id = _fxaa->shader.id();
-        _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
-        const ivec2 framebufferSize = framebufferResolution();
-        glProgramUniform1f(id, _fxaa->sizeX, static_cast<float>(framebufferSize.x));
-
-        _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
-        glProgramUniform1f(id, _fxaa->sizeY, static_cast<float>(framebufferSize.y));
-
-        glProgramUniform1f(id, glGetUniformLocation(id, "fxaaSubPixTrim"), 1.f / 4.f);
-        glProgramUniform1f(id, glGetUniformLocation(id, "fxaaSubpixOffset"), 1.f / 2.f);
-        glProgramUniform1i(id, glGetUniformLocation(id, "tex"), 0);
-    }
-
-
-    if (_stereoMode > StereoMode::Active && _stereoMode < StereoMode::SideBySide) {
-        ZoneScopedN("Stereo shader");
-        // Reload shader program if it exists
-        _stereo.deleteProgram();
-
-        const std::string_view stereoVertShader = shaders::BaseVert;
-        const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
-            using SM = StereoMode;
-            switch (mode) {
-                case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
-                case SM::AnaglyphAmberBlue: return shaders::AnaglyphAmberBlueFrag;
-                case SM::AnaglyphRedCyanWimmer: return shaders::AnaglyphRedCyanWimmerFrag;
-                case SM::Checkerboard: return shaders::CheckerBoardFrag;
-                case SM::CheckerboardInverted: return shaders::CheckerBoardInvertedFrag;
-                case SM::VerticalInterlaced: return shaders::VerticalInterlacedFrag;
-                case SM::VerticalInterlacedInverted:
-                    return shaders::VerticalInterlacedInvertedFrag;
-                case SM::Dummy: return shaders::DummyStereoFrag;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(_stereoMode);
-
-        _stereo = ShaderProgram("StereoShader");
-        _stereo.addVertexShader(stereoVertShader);
-        _stereo.addFragmentShader(stereoFragShader);
-        _stereo.createAndLinkProgram();
-        unsigned int id = _stereo.id();
-        glProgramUniform1i(id, glGetUniformLocation(id, "leftTex"), 0);
-        glProgramUniform1i(id, glGetUniformLocation(id, "rightTex"), 1);
-    }
-
-    ShaderProgram::unbind();
-}
-
-unsigned int Window::frameBufferTextureEye(Eye eye) const {
-    switch (eye) {
-        case Eye::MonoOrLeft: return _frameBufferTextures.leftEye;
-        case Eye::Right:      return _frameBufferTextures.rightEye;
-        default:              throw std::logic_error("Missing case label");
-    }
 }
 
 } // namespace sgct

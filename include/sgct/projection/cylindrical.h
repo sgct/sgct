@@ -13,11 +13,12 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/math.h>
-#include <sgct/shaderprogram.h>
+#include <memory>
 
 namespace sgct {
 
 namespace config { struct CylindricalProjection; }
+namespace vulkan { class ProjectionPass; }
 class BaseViewport;
 class User;
 class Window;
@@ -28,9 +29,8 @@ public:
         const Window& parent, User& user);
     ~CylindricalProjection() final;
 
-    void render(const BaseViewport& viewport, FrustumMode mode) const override;
-
-    void renderCubemap(FrustumMode frustumMode) const override;
+    void render(VkCommandBuffer cmd, const BaseViewport& viewport, FrustumMode mode,
+        const VkRect2D& area) const override;
 
     void update(const vec2& size) const override;
 
@@ -39,23 +39,14 @@ public:
     void setRadius(float radius);
 
 private:
-    void initVBO() override;
     void initViewports() override;
-    void initShaders() override;
+    void initPipelines(VkRenderPass renderPass) override;
 
     float _rotation;
     float _heightOffset;
     float _radius;
 
-    struct {
-        ShaderProgram program;
-        int cubemap = -1;
-        int rotation = -1;
-        int heightOffset = -1;
-    } _shader;
-
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
+    std::unique_ptr<vulkan::ProjectionPass> _pass;
 };
 
 } // namespace sgct

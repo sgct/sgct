@@ -13,20 +13,36 @@
 
 #include <sgct/engine.h>
 #include <sgct/math.h>
+#include <sgct/vulkan/buffer.h>
+#include <sgct/vulkan/pipeline.h>
+#include <vulkan/vulkan.h>
 #include <array>
+#include <map>
+#include <memory>
 
 namespace sgct {
 
 class Viewport;
 class Window;
 
+/**
+ * Renders the frame time graphs and histograms of the Engine::Statistics into the 2D
+ * pass of each viewport. The graph data is written by #update once per frame into one of
+ * several host-visible vertex buffers, so that frames that are still in flight keep
+ * reading the data they were recorded with.
+ */
 class SGCT_EXPORT StatisticsRenderer {
 public:
     StatisticsRenderer(const Engine::Statistics& statistics);
     ~StatisticsRenderer();
 
     void update();
-    void render(const Window& window, const Viewport& viewport) const;
+
+    /**
+     * Records the statistics into the command buffer of the 2D pass of the \p window,
+     * whose viewport and scissor are set to the area of \p viewport.
+     */
+    void render(const Window& window, const Viewport& viewport);
 
     float scale() const;
     void setScale(float scale);
@@ -35,11 +51,32 @@ public:
     void setOffset(vec2 offset);
 
 private:
+    // The pipelines for the different primitive topologies, created for a render pass
+    struct Pipelines {
+        std::unique_ptr<vulkan::Pipeline> triangleStrip;
+        std::unique_ptr<vulkan::Pipeline> triangleList;
+        std::unique_ptr<vulkan::Pipeline> lineList;
+        std::unique_ptr<vulkan::Pipeline> lineStrip;
+    };
+    const Pipelines& pipelines(VkRenderPass renderPass,
+        const vulkan::SceneFormat& format);
+
+    void draw(VkCommandBuffer cmd, const vulkan::Pipeline& pipeline, VkBuffer buffer,
+        const vec4& color, const mat4& mvp, uint32_t first, uint32_t count) const;
+
     const Engine::Statistics& _statistics;
 
-    ShaderProgram _shader;
-    int _mvpLoc = -1;
-    int _colorLoc = -1;
+    VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
+    /// The pipelines for the color formats of the render targets that are drawn into
+    std::map<vulkan::SceneFormat, Pipelines> _pipelines;
+
+    /// The background, grid lines, and histogram axes; see the constructor for the layout
+    std::unique_ptr<vulkan::Buffer> _staticBuffer;
+    /// The lines of the graphs followed by the histogram bars
+    static constexpr int DynamicBufferCount = 3;
+    std::array<std::unique_ptr<vulkan::Buffer>, DynamicBufferCount> _dynamicBuffers;
+    /// The dynamic buffer that was last written by #update
+    int _currentDynamicBuffer = 0;
 
     struct Vertex {
         float x = 0.f;
@@ -47,15 +84,8 @@ private:
     };
     struct Lines {
         struct {
-            unsigned int vao = 0;
-            unsigned int vbo = 0;
             int nLines = 0;
         } staticDraw;
-
-        struct {
-            unsigned int vao = 0;
-            unsigned int vbo = 0;
-        } dynamicDraw;
 
 
         struct Vertices {
@@ -102,14 +132,9 @@ private:
         } maxBinValue;
 
         struct {
-            unsigned int vao = 0;
-            unsigned int vbo = 0;
+            /// The index of the first vertex of the histogram axes in the static buffer
+            uint32_t first = 0;
         } staticDraw;
-
-        struct {
-            unsigned int vao = 0;
-            unsigned int vbo = 0;
-        } dynamicDraw;
     };
     Histogram _histogram;
 

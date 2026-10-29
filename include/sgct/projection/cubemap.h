@@ -13,13 +13,16 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/math.h>
-#include <sgct/shaderprogram.h>
+#include <sgct/vulkan/buffer.h>
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
 #ifdef SGCT_HAS_NDI
 #include <Processing.NDI.Lib.h>
+#include <Processing.NDI.Send.h>
+#include <Processing.NDI.Structs.h>
 #endif // SGCT_HAS_NDI
 
 #ifdef SGCT_HAS_SPOUT
@@ -30,13 +33,13 @@ using SPOUTHANDLE = SPOUTLIBRARY*;
 namespace sgct {
 
 namespace config { struct CubemapProjection; }
+namespace vulkan { class ProjectionPass; }
 class BaseViewport;
-class OffScreenBuffer;
 class User;
 class Window;
 
 /**
- * This class manages and renders non-linear fisheye projections.
+ * This class renders the six faces of a cube map side by side, in two rows of three.
  */
 class SGCT_EXPORT CubemapProjection final : public NonLinearProjection {
 public:
@@ -50,67 +53,68 @@ public:
     void update(const vec2& size) const override;
 
     /**
-     * Render the non linear projection to currently bounded FBO.
+     * Render the faces of the cube map into the viewport.
      */
-    void render(const BaseViewport& viewport, FrustumMode frustumMode) const override;
-
-    /**
-     * Render the enabled faces of the cubemap.
-     */
+    void render(VkCommandBuffer cmd, const BaseViewport& viewport,
+        FrustumMode frustumMode, const VkRect2D& area) const override;
 
     void setSpoutRigOrientation(vec3 orientation);
 
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    /// Sends the pixels of the previous frame's cube map faces to Spout/NDI
+    void sendStreamFrames() override;
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+
 private:
-    void initTextures(unsigned int internalFormat) override;
-    void initVBO() override;
     void initViewports() override;
-    void initShaders() override;
-    void initFBO(unsigned int internalFormat, int nSamples) override;
+    void initPipelines(VkRenderPass renderPass) override;
 
-    void renderCubemap(FrustumMode frustumMode) const override;
-
-    std::unique_ptr<OffScreenBuffer> _spoutFBO;
-
-    struct Cubeface {
-        bool enabled = true;
-        unsigned int texture = 0;
-
-#ifdef SGCT_HAS_SPOUT
-        struct {
-            SPOUTHANDLE handle = nullptr;
-        } spout;
-#endif // SGCT_HAS_SPOUT
-
-#ifdef SGCT_HAS_NDI
-        mutable struct {
-            NDIlib_send_instance_t handle = nullptr;
-            NDIlib_video_frame_v2_t videoFrame;
-            std::string name;
-            std::vector<std::byte> videoBufferPing;
-            std::vector<std::byte> videoBufferPong;
-            std::vector<std::byte>* currentVideoBuffer = nullptr;
-        } ndi;
-#endif // SGCT_HAS_NDI
-    };
-    std::array<Cubeface, 6> _cubeFaces;
-
-#ifdef SGCT_HAS_SPOUT
-    const bool _spoutEnabled;
-    const std::string _spoutName;
-#endif // SGCT_HAS_SPOUT
-
-#ifdef SGCT_HAS_NDI
-    const bool _ndiEnabled;
-    const std::string _ndiName;
-    const std::string _ndiGroups;
-#endif // SGCT_HAS_NDI
+    /// Which of the faces are rendered
+    std::array<bool, 6> _isFaceEnabled;
 
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
 
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
-    ShaderProgram _shader;
-    unsigned int _blitFbo = 0;
+    std::unique_ptr<vulkan::ProjectionPass> _pass;
+
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    // Records the readback copy of a face for the Spout/NDI streaming; the base class
+    // calls it after the render pass of each face of #renderCubemap
+    void recordFaceCopy(VkCommandBuffer cmd, int face, FrustumMode frustumMode,
+        VkFence fence) override;
+
+    // Allocates the readback ring and creates the Spout/NDI senders; called lazily the
+    // first time a face is copied, once the cube map resolution and format are known
+    void initializeStream();
+
+    struct FaceStream {
+        // Readback ring: one buffer per slot, one slot deeper than the frames in flight
+        std::array<std::unique_ptr<vulkan::Buffer>, 3> buffers;
+        std::array<VkFence, 3> fences = {};
+        std::array<bool, 3> hasData = {};
+#ifdef SGCT_HAS_SPOUT
+        SPOUTHANDLE spout = nullptr;
+#endif // SGCT_HAS_SPOUT
+#ifdef SGCT_HAS_NDI
+        NDIlib_send_instance_t ndi = nullptr;
+        NDIlib_video_frame_v2_t ndiFrame;
+#endif // SGCT_HAS_NDI
+    };
+    std::array<FaceStream, 6> _faceStreams;
+    // Monotonically increasing counter that indexes the ring
+    uint64_t _streamFrame = 0;
+    // The format of the readback pixels; it determines the NDI FourCC and whether the
+    // Spout sender needs a BGRA to RGBA conversion
+    VkFormat _streamFormat = VK_FORMAT_UNDEFINED;
+    uint32_t _streamResolution = 0;
+    bool _streamInitialized = false;
+    bool _spoutEnabled = false;
+    std::string _spoutName;
+    bool _ndiEnabled = false;
+    std::string _ndiName;
+    std::string _ndiGroups;
+    // Temporary RGBA pixels for the Spout senders, used when the cube map is BGRA
+    std::vector<uint8_t> _streamRgba;
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
 };
 
 } // namespace sgct

@@ -32,7 +32,7 @@ struct SGCT_EXPORT Configuration {
     std::optional<std::string> screenshotPrefix;
     std::optional<bool> addNodeNameInScreenshot;
     std::optional<bool> omitWindowNameInScreenshot;
-    std::optional<bool> useOpenGLDebugContext;
+    std::optional<bool> useVulkanValidation;
 
     std::optional<bool> printWaitMessage;
     std::optional<float> waitTimeout;

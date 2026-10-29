@@ -14,7 +14,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
@@ -219,10 +218,10 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
     }
 
     if (fileVersion == '2' && size[0] == 4) {
-        buf.geometryType = GL_TRIANGLES;
+        buf.geometryType = correction::Buffer::GeometryType::Triangles;
     }
     else {
-        buf.geometryType = GL_TRIANGLE_STRIP;
+        buf.geometryType = correction::Buffer::GeometryType::TriangleStrip;
     }
 
     return buf;

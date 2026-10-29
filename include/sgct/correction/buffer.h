@@ -31,8 +31,11 @@ struct SGCT_EXPORT Buffer {
     };
 
     std::vector<Vertex> vertices;
+    /// How the indices form triangles
+    enum class GeometryType { Triangles, TriangleStrip };
+
     std::vector<unsigned int> indices;
-    unsigned int geometryType = 0x0004; // = GL_TRIANGLES
+    GeometryType geometryType = GeometryType::Triangles;
 };
 
 } // namespace sgct::correction

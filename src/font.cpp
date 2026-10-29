@@ -12,7 +12,8 @@
 
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
+#include <sgct/vulkan/context.h>
+#include <sgct/vulkan/texture.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
 #include <algorithm>
@@ -129,56 +130,82 @@ namespace {
         return res;
     }
 
-    unsigned int generateTexture(int w, int h, const std::vector<unsigned char>& buffer) {
-        unsigned int tex = 0;
-        glCreateTextures(GL_TEXTURE_2D, 1, &tex);
+    // The glyphs are packed into rows of the atlas with this many pixels between them, so
+    // that sampling at the edge of a glyph does not pick up its neighbor
+    constexpr int AtlasPadding = 1;
+    constexpr int MaxAtlasWidth = 1024;
+} // namespace
 
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+namespace sgct::text {
 
-        glTextureParameteri(tex, GL_TEXTURE_BASE_LEVEL, 0);
-        glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+Font::Font(FT_Library lib, FT_Face face, unsigned int height)
+    : _library(lib)
+    , _face(face)
+    , _height(static_cast<float>(height))
+{
+    createAtlas();
+}
 
-        glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+Font::~Font() {
+    _atlas = nullptr;
+    FT_Done_Face(_face);
+}
 
-        glTextureStorage2D(tex, 1, GL_RG8, w, h);
-        glTextureSubImage2D(tex, 0, 0, 0, w, h, GL_RG, GL_UNSIGNED_BYTE, buffer.data());
-        return tex;
+void Font::setStrokeSize(int size) {
+    if (size == _strokeSize) {
+        return;
     }
+    _strokeSize = size;
 
-    std::optional<sgct::text::Font::FontFaceData>
-    createGlyph(FT_Library library, FT_Face face, FT_Fixed strokeSize, char c)
-    {
+    // The atlas might still be used by frames that are in flight
+    vkDeviceWaitIdle(vulkan::Context::instance().device());
+    createAtlas();
+}
+
+const Font::FontFaceData& Font::fontFaceData(char c) const {
+    return _fontFaceData[static_cast<unsigned char>(c)];
+}
+
+const vulkan::Texture& Font::atlas() const {
+    return *_atlas;
+}
+
+float Font::height() const {
+    return _height;
+}
+
+void Font::createAtlas() {
+    struct Glyph {
+        int x = 0;
+        int y = 0;
+        int width = 0;
+        int height = 0;
+        std::vector<unsigned char> pixels;
+    };
+    std::array<Glyph, 256> glyphs;
+
+    // Rasterize all glyphs that the font contains
+    for (size_t i = 0; i < glyphs.size(); i++) {
+        const char c = static_cast<char>(i);
+        FontFaceData& ffd = _fontFaceData[i];
+        ffd = FontFaceData();
+
         // Load the Glyph for our character.
         // Hints:
         // www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_LOAD_XXX
-
-        const FT_UInt charIndex = FT_Get_Char_Index(face, static_cast<FT_ULong>(c));
+        const FT_UInt charIndex = FT_Get_Char_Index(_face, static_cast<FT_ULong>(c));
         if (charIndex == 0) {
-            return std::nullopt;
+            continue;
+        }
+        if (FT_Load_Glyph(_face, charIndex, FT_LOAD_FORCE_AUTOHINT)) {
+            Log::Error(std::format("Error creating character {}", c));
+            continue;
         }
 
-        const FT_Error loadError = FT_Load_Glyph(face, charIndex, FT_LOAD_FORCE_AUTOHINT);
-        if (loadError) {
-            return std::nullopt;
-        }
-
-        // Load pixel data
-        const PixelDataResult res = getPixelData(library, face, strokeSize);
+        PixelDataResult res = getPixelData(_library, _face, _strokeSize);
         if (!res.success) {
-            return std::nullopt;
-        }
-
-        sgct::text::Font::FontFaceData ffd;
-        // Create texture
-        if (charIndex > 0 && c != ' ') {
-            ffd.texId = generateTexture(res.width, res.height, res.pixels);
-        }
-        else {
-            ffd.texId = 0;
+            Log::Error(std::format("Error creating character {}", c));
+            continue;
         }
 
         // Setup geometry data
@@ -190,95 +217,75 @@ namespace {
         ffd.pos.y = static_cast<float>(y);
         ffd.size.x = static_cast<float>(res.width);
         ffd.size.y = static_cast<float>(res.height);
+        ffd.distToNextChar = static_cast<float>(_face->glyph->advance.x / 64);
+        ffd.hasPixels = c != ' ' && res.width > 0 && res.height > 0;
 
-        // Delete the stroke glyph
+        if (ffd.hasPixels) {
+            glyphs[i].width = res.width;
+            glyphs[i].height = res.height;
+            glyphs[i].pixels = std::move(res.pixels);
+        }
+
         FT_Stroker_Done(res.gd.stroker);
         FT_Done_Glyph(res.gd.strokeGlyph);
-
-        // Can't delete them while they are used, delete when font is cleaned
-        ffd.glyph = res.gd.glyph;
-        ffd.distToNextChar = static_cast<float>(face->glyph->advance.x / 64);
-
-        return ffd;
-    }
-} // namespace
-
-namespace sgct::text {
-
-Font::Font(FT_Library lib, FT_Face face, unsigned int height)
-    : _library(lib)
-    , _face(face)
-    , _height(static_cast<float>(height))
-{
-    struct Vertex {
-        float x;
-        float y;
-        float s;
-        float t;
-    };
-    constexpr std::array<Vertex, 4> c = {
-        Vertex{ 0.f, 1.f, 0.f, 0.f },
-        Vertex{ 1.f, 1.f, 1.f, 0.f },
-        Vertex{ 0.f, 0.f, 0.f, 1.f },
-        Vertex{ 1.f, 0.f, 1.f, 1.f }
-    };
-
-    glCreateBuffers(1, &_vbo);
-    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), c.data(), GL_NONE_BIT);
-
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
-    glVertexArrayAttribBinding(_vao, 1, 0);
-}
-
-Font::~Font() {
-    glDeleteVertexArrays(1, &_vao);
-    glDeleteBuffers(1, &_vbo);
-    for (const std::pair<const char, FontFaceData>& n : _fontFaceData) {
-        glDeleteTextures(1, &(n.second.texId));
-        FT_Done_Glyph(n.second.glyph);
+        FT_Done_Glyph(res.gd.glyph);
     }
 
-    // This needs to be cleared before the face is destroyed
-    _fontFaceData.clear();
-    FT_Done_Face(_face);
-}
-
-void Font::setStrokeSize(int size) {
-    _strokeSize = size;
-}
-
-const Font::FontFaceData& Font::fontFaceData(char c) {
-    if (!_fontFaceData.contains(c)) {
-        // Check if c does not exist in map
-        createCharacter(c);
+    // Pack the glyphs into rows
+    int atlasWidth = 1;
+    int penX = 0;
+    int penY = 0;
+    int rowHeight = 0;
+    for (Glyph& g : glyphs) {
+        if (g.pixels.empty()) {
+            continue;
+        }
+        if (penX > 0 && penX + g.width > MaxAtlasWidth) {
+            penX = 0;
+            penY += rowHeight + AtlasPadding;
+            rowHeight = 0;
+        }
+        g.x = penX;
+        g.y = penY;
+        penX += g.width + AtlasPadding;
+        rowHeight = std::max(rowHeight, g.height);
+        atlasWidth = std::max(atlasWidth, g.x + g.width);
     }
-    return _fontFaceData[c];
-}
+    const int atlasHeight = std::max(penY + rowHeight, 1);
 
-unsigned int Font::vao() const {
-    return _vao;
-}
+    // Two channels per pixel: the glyph and the glyph including its stroke
+    std::vector<uint8_t> pixels(2 * static_cast<size_t>(atlasWidth) * atlasHeight, 0);
+    for (size_t i = 0; i < glyphs.size(); i++) {
+        const Glyph& g = glyphs[i];
+        if (g.pixels.empty()) {
+            continue;
+        }
+        for (int row = 0; row < g.height; row++) {
+            std::copy_n(
+                g.pixels.data() + 2 * static_cast<size_t>(row) * g.width,
+                2 * g.width,
+                pixels.data() + 2 * (static_cast<size_t>(g.y + row) * atlasWidth + g.x)
+            );
+        }
 
-float Font::height() const {
-    return _height;
-}
-
-void Font::createCharacter(char c) {
-    std::optional<FontFaceData> ffd = createGlyph(_library, _face, _strokeSize, c);
-    if (ffd) {
-        _fontFaceData[c] = std::move(*ffd);
+        const float w = static_cast<float>(atlasWidth);
+        const float h = static_cast<float>(atlasHeight);
+        _fontFaceData[i].texRect = vec4{
+            g.x / w,
+            g.y / h,
+            (g.x + g.width) / w,
+            (g.y + g.height) / h
+        };
     }
-    else {
-        Log::Error(std::format("Error creating character {}", c));
-    }
+
+    _atlas = std::make_unique<vulkan::Texture>(
+        vulkan::Context::instance(),
+        static_cast<uint32_t>(atlasWidth),
+        static_cast<uint32_t>(atlasHeight),
+        VK_FORMAT_R8G8_UNORM,
+        pixels.data(),
+        VK_FILTER_NEAREST
+    );
 }
 
 } // namespace sgct::text

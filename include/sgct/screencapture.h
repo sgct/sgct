@@ -12,6 +12,7 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/math.h>
+#include <vulkan/vulkan.h>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -21,18 +22,18 @@
 
 namespace sgct {
 
+namespace vulkan { class Buffer; }
 class Image;
 class Window;
 
 /**
- * This class is used internally by SGCT and is called when taking screenshots.
+ * Captures images of a window and saves them as PNG files. A capture is taken in two
+ * steps: #record adds the copy of an image into a host-visible readback buffer to the
+ * command buffer of the frame, and once that command buffer has finished executing,
+ * #save converts the pixels and writes the file on one of the capture threads.
  */
 class SGCT_EXPORT ScreenCapture {
 public:
-    /**
-     * The different file formats supported.
-     */
-    enum class CaptureSource { Texture, BackBuffer, LeftBackBuffer, RightBackBuffer };
     enum class EyeIndex { Mono, StereoLeft, StereoRight };
 
     struct ScreenCaptureThreadInfo {
@@ -43,26 +44,36 @@ public:
         bool isRunning = false; // needed for test if running without join
     };
 
-    ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei, int bytesPerColor,
-        unsigned int colorDataType, bool addAlpha);
+    ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei, bool addAlpha);
     ~ScreenCapture();
 
     /**
-     * Initializes the PBO or re-sizes it if the frame buffer size have changed.
+     * Records the copy of \p image into the readback buffer. The image is transitioned to
+     * the transfer source layout for the copy and back to \p layout afterwards.
      *
-     * \param resolution The pixel resolution of the frame buffer
+     * \param cmd The command buffer to record into; it must not be inside a render pass
+     * \param image The image to capture
+     * \param layout The layout of the image at this point of the command buffer, either
+     *        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL (an offscreen target that has been
+     *        sampled by the composite pass) or VK_IMAGE_LAYOUT_PRESENT_SRC_KHR (a
+     *        swapchain image whose render pass has finished)
+     * \param extent The size of the image
+     * \param format The format of the image: 8-bit RGBA and BGRA, which are saved with 8
+     *        bits per channel, and 16-bit normalized, 16-bit float, and 32-bit float RGBA,
+     *        which are saved with 16 bits per channel (the floats clamped to [0, 1])
+     * \param layer The layer of the image to capture
+     *
+     * \return `true` if the copy was recorded and #save has to be called once \p cmd has
+     *         finished executing, `false` if no screenshot is taken
      */
-    void resize(ivec2 resolution);
+    bool record(VkCommandBuffer cmd, VkImage image, VkImageLayout layout,
+        VkExtent2D extent, VkFormat format, uint32_t layer = 0);
 
     /**
-     * This function saves the images to disc.
-     *
-     * \param textureId The texture that will be streamed from the GPU if frame buffer
-     *        objects are used in the rendering
-     * \param capSrc The object that should be captured
+     * Saves the image that was copied by the last call to #record on a capture thread.
+     * The command buffer passed to #record must have finished executing.
      */
-    void saveScreenCapture(unsigned int textureId,
-        CaptureSource capSrc = CaptureSource::Texture);
+    void save();
 
 private:
     std::string createFilename(uint64_t frameNumber);
@@ -73,12 +84,13 @@ private:
     std::vector<ScreenCaptureThreadInfo> _captureInfos;
 
     const unsigned int _nThreads;
-    unsigned int _pbo = 0;
-    const unsigned int _downloadType;
-    int _dataSize = 0;
     ivec2 _resolution = ivec2{ 0, 0 };
-    const int _bytesPerColor;
     const bool _addAlpha;
+
+    std::unique_ptr<vulkan::Buffer> _readback;
+    VkFormat _readbackFormat = VK_FORMAT_UNDEFINED;
+    std::string _pendingFilename;
+    bool _hasPendingCapture = false;
 
     const EyeIndex _eyeIndex;
     const Window& _window;

@@ -13,7 +13,6 @@
 #include <sgct/format.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
@@ -27,8 +26,12 @@
 #include <sgct/correction/simcad.h>
 #include <sgct/correction/skyskan.h>
 #include <sgct/projection/fisheye.h>
+#include <sgct/vulkan/buffer.h>
+#include <sgct/vulkan/context.h>
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
+#include <vector>
 
 #define Err(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 
@@ -60,7 +63,7 @@ namespace {
                 }
             },
             .indices = { 0, 3, 1, 2 },
-            .geometryType = GL_TRIANGLE_STRIP
+            .geometryType = correction::Buffer::GeometryType::TriangleStrip
         };
         return buff;
     }
@@ -90,7 +93,7 @@ namespace {
                 }
             },
             .indices = { 0, 3, 1, 2 },
-            .geometryType = GL_TRIANGLE_STRIP
+            .geometryType = correction::Buffer::GeometryType::TriangleStrip
         };
         return buff;
     }
@@ -104,78 +107,61 @@ CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
     using Vertex = correction::Buffer::Vertex;
 
     ZoneScoped;
-    TracyGpuZone("createMesh");
 
-    glCreateBuffers(1, &vbo);
-    glNamedBufferStorage(
-        vbo,
-        buffer.vertices.size() * sizeof(Vertex),
-        buffer.vertices.data(),
-        GL_NONE_BIT
+    // All meshes are drawn as triangle lists so that a single pipeline serves all of
+    // them. Triangle strips are expanded here; the meshes contain no primitive restart
+    // indices, and the degenerate triangles that stitch strip rows together have no area
+    // and therefore produce no fragments
+    std::vector<uint32_t> indices;
+    if (buffer.geometryType == correction::Buffer::GeometryType::Triangles) {
+        indices.assign(buffer.indices.begin(), buffer.indices.end());
+    }
+    else if (buffer.geometryType == correction::Buffer::GeometryType::TriangleStrip) {
+        if (buffer.indices.size() >= 3) {
+            indices.reserve((buffer.indices.size() - 2) * 3);
+            for (size_t i = 0; i + 2 < buffer.indices.size(); i++) {
+                indices.push_back(buffer.indices[i]);
+                indices.push_back(buffer.indices[i + 1]);
+                indices.push_back(buffer.indices[i + 2]);
+            }
+        }
+    }
+    else {
+        throw Err(2003, std::format(
+            "Unsupported correction mesh geometry type {}",
+            static_cast<int>(buffer.geometryType)
+        ));
+    }
+
+    if (buffer.vertices.empty() || indices.empty()) {
+        throw Err(2004, "Correction mesh contains no geometry");
+    }
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+
+    const VkDeviceSize vertexSize = buffer.vertices.size() * sizeof(Vertex);
+    vertexBuffer = std::make_unique<vulkan::Buffer>(
+        ctx, vertexSize, vulkan::Buffer::Type::Vertex
     );
+    vertexBuffer->upload(buffer.vertices.data(), vertexSize);
 
-    glCreateBuffers(1, &ibo);
-    glNamedBufferStorage(
-        ibo,
-        buffer.indices.size() * sizeof(unsigned int),
-        buffer.indices.data(),
-        GL_NONE_BIT
+    const VkDeviceSize indexSize = indices.size() * sizeof(uint32_t);
+    indexBuffer = std::make_unique<vulkan::Buffer>(
+        ctx, indexSize, vulkan::Buffer::Type::Index
     );
+    indexBuffer->upload(indices.data(), indexSize);
 
-
-    glCreateVertexArrays(1, &vao);
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
-    glVertexArrayElementBuffer(vao, ibo);
-
-    glEnableVertexArrayAttrib(vao, 0);
-    glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(vao, 0, 0);
-
-    glEnableVertexArrayAttrib(vao, 1);
-    glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
-    glVertexArrayAttribBinding(vao, 1, 0);
-
-    glEnableVertexArrayAttrib(vao, 2);
-    glVertexArrayAttribFormat(vao, 2, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, r));
-    glVertexArrayAttribBinding(vao, 2, 0);
-
-    nVertices = static_cast<int>(buffer.vertices.size());
-    nIndices = static_cast<int>(buffer.indices.size());
-    type = buffer.geometryType;
+    nIndices = static_cast<uint32_t>(indices.size());
 }
 
 CorrectionMesh::CorrectionMeshGeometry::CorrectionMeshGeometry(
-                                                    CorrectionMeshGeometry&& rhs) noexcept
-    : vao(rhs.vao)
-    , vbo(rhs.vbo)
-    , ibo(rhs.ibo)
-    , nVertices(rhs.nVertices)
-    , nIndices(rhs.nIndices)
-    , type(rhs.type)
-{
-    // We need to prevent a double-free of the OpenGL resource in the destructor
-    rhs.vao = 0;
-    rhs.vbo = 0;
-    rhs.ibo = 0;
-}
+                                           CorrectionMeshGeometry&&) noexcept = default;
 
-CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
-    // Yes, glDeleteVertexArrays and glDeleteBuffers work when passing 0, but this check
-    // is a standin for whether they were created in the first place. This would only fail
-    // if there is no OpenGL context, which would cause these functions to fail, too
-    if (vao) {
-        glDeleteVertexArrays(1, &vao);
-        vao = 0;
-    }
-    if (vbo) {
-        glDeleteBuffers(1, &vbo);
-        vbo = 0;
-    }
-    if (ibo) {
-        glDeleteBuffers(1, &ibo);
-        ibo = 0;
-    }
-}
+CorrectionMesh::CorrectionMeshGeometry&
+CorrectionMesh::CorrectionMeshGeometry::operator=(
+                                           CorrectionMeshGeometry&&) noexcept = default;
+
+CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() = default;
 
 void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& parent,
                               bool needsMaskGeometry, bool textureRenderMode)
@@ -266,29 +252,28 @@ void CorrectionMesh::loadMesh(const std::filesystem::path& path, BaseViewport& p
     ));
 }
 
-void CorrectionMesh::CorrectionMeshGeometry::render() const {
-    glBindVertexArray(vao);
-    glDrawElements(type, nIndices, GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
+void CorrectionMesh::CorrectionMeshGeometry::render(VkCommandBuffer cmd) const {
+    const VkBuffer vb = vertexBuffer->handle();
+    const VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(cmd, 0, 1, &vb, &offset);
+    vkCmdBindIndexBuffer(cmd, indexBuffer->handle(), 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(cmd, nIndices, 1, 0, 0, 0);
 }
 
-void CorrectionMesh::renderQuadMesh() const {
-    TracyGpuZone("Render Quad mesh")
+void CorrectionMesh::renderQuadMesh(VkCommandBuffer cmd) const {
     assert(_quadGeometry);
-    _quadGeometry->render();
+    _quadGeometry->render(cmd);
 }
 
-void CorrectionMesh::renderWarpMesh() const {
+void CorrectionMesh::renderWarpMesh(VkCommandBuffer cmd) const {
     if (_warpGeometry) {
-        TracyGpuZone("Render Warp mesh")
-        _warpGeometry->render();
+        _warpGeometry->render(cmd);
     }
 }
 
-void CorrectionMesh::renderMaskMesh() const {
+void CorrectionMesh::renderMaskMesh(VkCommandBuffer cmd) const {
     if (_maskGeometry) {
-        TracyGpuZone("Render Mask mesh")
-        _maskGeometry->render();
+        _maskGeometry->render(cmd);
     }
 }
 

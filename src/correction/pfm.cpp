@@ -12,7 +12,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
 #include <scn/scan.h>
@@ -166,7 +165,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         }
     }
 
-    buf.geometryType = GL_TRIANGLE_STRIP;
+    buf.geometryType = correction::Buffer::GeometryType::TriangleStrip;
     return buf;
 }
 

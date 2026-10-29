@@ -8,72 +8,124 @@
 
 #include <sgct/projection/cubemap.h>
 
-#include <sgct/internalshaders.h>
+#include <sgct/config.h>
+#include <sgct/error.h>
 #include <sgct/log.h>
-#include <sgct/offscreenbuffer.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <sgct/window.h>
+#include <sgct/vulkan/context.h>
+#include <sgct/vulkan/cubemaptarget.h>
+#include <sgct/vulkan/projectionpass.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <span>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #ifdef SGCT_HAS_SPOUT
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif // NOMINMAX
 #include <SpoutLibrary/SpoutLibrary.h>
 #endif // SGCT_HAS_SPOUT
-#include <sgct/config.h>
-#include <sgct/window.h>
 
 namespace {
+    void check(VkResult result, const std::string& what) {
+        if (result != VK_SUCCESS) {
+            throw sgct::Error(
+                sgct::Error::Component::Window, 4500,
+                std::format("Vulkan error ({}): {}", static_cast<int>(result), what)
+            );
+        }
+    }
+
+    struct PushConstants {
+        std::array<sgct::vec4, 4> corners;
+        /// The layer of the cube map image that each face is stored in
+        std::array<int32_t, 6> layers;
+        /// A bit mask of the faces that are rendered
+        int32_t enabledFaces = 0;
+    };
+    static_assert(offsetof(PushConstants, layers) == 64);
+    static_assert(offsetof(PushConstants, enabledFaces) == 88);
+
+    // The quad covering the whole viewport (xy is the position, zw the texture
+    // coordinates), drawn as a triangle strip
+    constexpr std::array<sgct::vec4, 4> FullQuad = {
+        sgct::vec4{ -1.f, -1.f, 0.f, 0.f },
+        sgct::vec4{ -1.f,  1.f, 0.f, 1.f },
+        sgct::vec4{  1.f, -1.f, 1.f, 0.f },
+        sgct::vec4{  1.f,  1.f, 1.f, 1.f }
+    };
+
+    // The faces are laid out in two rows of three columns, like the OpenGL shader did
     constexpr std::string_view FragmentShader = R"(
-  #version 460 core
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 0) out vec4 out_diffuse;
 
-  in Data {
-    vec2 texCoords;
-    vec4 color;
-  } in_data;
+  layout (set = 0, binding = 0) uniform sampler2DArray faces;
+#if HAS_NORMALS
+  layout (set = 0, binding = 1) uniform sampler2DArray normals;
+#endif
+#if HAS_POSITIONS
+  layout (set = 0, binding = 2) uniform sampler2DArray positions;
+#endif
+#if HAS_DEPTH
+  layout (set = 0, binding = 3) uniform sampler2DArray depths;
+#endif
 
-  out vec4 out_diffuse;
+  layout (push_constant) uniform Constants {
+    layout (offset = 64) int layers[6];
+    int enabledFaces;
+  } pc;
 
-  uniform sampler2D right;
-  uniform sampler2D zLeft;
-  uniform sampler2D bottom;
-  uniform sampler2D top;
-  uniform sampler2D left;
-  uniform sampler2D zRight;
+  const int Right = 0;
+  const int ZLeft = 1;
+  const int Bottom = 2;
+  const int Top = 3;
+  const int Left = 4;
+  const int ZRight = 5;
 
 
   void main() {
-    float column = in_data.texCoords.x * 3.0; // 3 columns
-    float row = in_data.texCoords.y * 2.0;    // 2 rows
-    
-    int col = int(floor(column));
-    int rowId = int(floor(row));
-    
+    float column = in_texCoords.x * 3.0; // 3 columns
+    float row = in_texCoords.y * 2.0;    // 2 rows
+
+    int col = clamp(int(floor(column)), 0, 2);
+    int rowId = clamp(int(floor(row)), 0, 1);
+
     vec2 localCoord = vec2(fract(column), fract(row));
-    
-    if (rowId == 0 && col == 0) {
-      out_diffuse = texture(zRight, localCoord);
-    } 
-    else if (rowId == 0 && col == 1) {
-      out_diffuse = texture(top, localCoord);
-    } 
-    else if (rowId == 0 && col == 2) {
-      out_diffuse = texture(left, localCoord);
-    } 
-    else if (rowId == 1 && col == 0) {
-      out_diffuse = texture(zLeft, localCoord);
-    } 
-    else if (rowId == 1 && col == 1) {
-      out_diffuse = texture(bottom, localCoord);
+
+    const int Faces[6] = int[6](ZRight, Top, Left, ZLeft, Bottom, Right);
+    int face = Faces[rowId * 3 + col];
+    if ((pc.enabledFaces & (1 << face)) == 0) {
+      // The faces that are not rendered are black, like the unbound OpenGL textures
+      out_diffuse = vec4(0.0, 0.0, 0.0, 1.0);
+#if HAS_NORMALS
+      out_normal = vec4(0.0);
+#endif
+#if HAS_POSITIONS
+      out_position = vec4(0.0);
+#endif
+#if HAS_DEPTH
+      gl_FragDepth = 1.0;
+#endif
+      return;
     }
-    else if (rowId == 1 && col == 2) {
-      out_diffuse = texture(right, localCoord);
-    } 
+
+    // The faces are stored upside down compared to OpenGL (see vulkan::CubemapTarget)
+    vec3 tex = vec3(localCoord.x, 1.0 - localCoord.y, float(pc.layers[face]));
+    out_diffuse = texture(faces, tex);
+#if HAS_NORMALS
+    out_normal = texture(normals, tex);
+#endif
+#if HAS_POSITIONS
+    out_position = texture(positions, tex);
+#endif
+#if HAS_DEPTH
+    gl_FragDepth = texture(depths, tex).r;
+#endif
   }
 )";
 } // namespace
@@ -83,14 +135,16 @@ namespace sgct {
 CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
                                      const Window& parent, User& user)
     : NonLinearProjection(parent)
-    , _cubeFaces{
-        Cubeface { config.channels ? config.channels->right : true },
-        Cubeface { config.channels ? config.channels->left : true },
-        Cubeface { config.channels ? config.channels->bottom : true },
-        Cubeface { config.channels ? config.channels->top : true },
-        Cubeface { config.channels ? config.channels->zLeft : true },
-        Cubeface { config.channels ? config.channels->zRight : true },
+    , _isFaceEnabled{
+        config.channels ? config.channels->right : true,
+        config.channels ? config.channels->left : true,
+        config.channels ? config.channels->bottom : true,
+        config.channels ? config.channels->top : true,
+        config.channels ? config.channels->zLeft : true,
+        config.channels ? config.channels->zRight : true
     }
+    , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
 #ifdef SGCT_HAS_SPOUT
     , _spoutEnabled(config.spout ? config.spout->enabled : false)
     , _spoutName(config.spout ? config.spout->name.value_or("") : "")
@@ -100,7 +154,7 @@ CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
     , _ndiName(config.ndi ? config.ndi->name.value_or("OpenSpace") : "OpenSpace")
     , _ndiGroups(config.ndi ? config.ndi->groups.value_or("") : "")
 #endif // SGCT_HAS_NDI
-    , _rigOrientation(config.orientation.value_or(vec3{ 0.f, 0.f, 0.f }))
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
 {
     setUser(user);
     if (config.quality) {
@@ -111,259 +165,51 @@ CubemapProjection::CubemapProjection(const config::CubemapProjection& config,
 }
 
 CubemapProjection::~CubemapProjection() {
-    for (const Cubeface& info : _cubeFaces) {
-        glDeleteTextures(1, &info.texture);
-
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    for (FaceStream& stream : _faceStreams) {
 #ifdef SGCT_HAS_SPOUT
-        if (info.spout.handle) {
-            reinterpret_cast<SPOUTHANDLE>(info.spout.handle)->ReleaseSender();
-            reinterpret_cast<SPOUTHANDLE>(info.spout.handle)->Release();
+        if (stream.spout) {
+            stream.spout->ReleaseSender();
+            stream.spout->Release();
         }
 #endif // SGCT_HAS_SPOUT
-
 #ifdef SGCT_HAS_NDI
-        if (info.ndi.handle) {
-            // One of the two buffers might be still in flight so we have to flush the
-            // pipeline before we can destroy the video or we might risk NDI accessing
-            // dead memory and crashing
-            NDIlib_send_send_video_async_v2(info.ndi.handle, nullptr);
-            NDIlib_send_destroy(info.ndi.handle);
+        if (stream.ndi) {
+            // Flush the pipeline before destroying the sender, so NDI does not access
+            // a readback buffer that is being destroyed
+            NDIlib_send_send_video_async_v2(stream.ndi, nullptr);
+            NDIlib_send_destroy(stream.ndi);
         }
 #endif // SGCT_HAS_NDI
     }
-
-    glDeleteFramebuffers(1, &_blitFbo);
-
-    glDeleteBuffers(1, &_vbo);
-    glDeleteVertexArrays(1, &_vao);
-    _shader.deleteProgram();
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
 }
 
 void CubemapProjection::update(const vec2&) const {}
 
-void CubemapProjection::render(const BaseViewport& viewport,
-                               FrustumMode frustumMode) const
+void CubemapProjection::render(VkCommandBuffer cmd, const BaseViewport&,
+                               FrustumMode frustumMode, const VkRect2D& area) const
 {
     ZoneScoped;
 
-    glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(frustumMode);
-    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
+    clearViewport(cmd, area);
 
+    PushConstants constants;
+    constants.corners = FullQuad;
     for (int i = 0; i < 6; i++) {
-        glBindTextureUnit(i, _cubeFaces[i].enabled ? _cubeFaces[i].texture : 0);
+        constants.layers[i] = static_cast<int32_t>(vulkan::CubemapTarget::layer(i));
+        if (_isFaceEnabled[i]) {
+            constants.enabledFaces |= 1 << i;
+        }
     }
 
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-
-    _shader.bind();
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-    ShaderProgram::unbind();
-
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    for (int i = 0; i < 6; i++) {
-        if (!_cubeFaces[i].enabled) {
-            continue;
-        }
-
-#ifdef SGCT_HAS_SPOUT
-        if (_spoutEnabled) {
-            glBindTexture(GL_TEXTURE_2D, _cubeFaces[i].texture);
-            SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_cubeFaces[i].spout.handle);
-            const bool s = h->SendTexture(
-                _cubeFaces[i].texture,
-                static_cast<GLuint>(GL_TEXTURE_2D),
-                _cubemapResolution.x,
-                _cubemapResolution.y
-            );
-            if (!s) {
-                Log::Error(std::format(
-                    "Error sending texture '{}' for face {}", _cubeFaces[i].texture, i
-                ));
-            }
-        }
-#endif // SGCT_HAS_SPOUT
-
-#ifdef SGCT_HAS_NDI
-        if (_ndiEnabled) {
-            // Download the texture data from the GPU
-            glGetTextureImage(
-                _cubeFaces[i].texture,
-                0,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                _cubemapResolution.x * _cubemapResolution.y * 4,
-                _cubeFaces[i].ndi.currentVideoBuffer->data()
-            );
-
-            // We are using a negative line stride to correct for the y-axis flip going
-            // from OpenGL to DirectX. So our start point has to be the beginning of the
-            // *last* line of the image as NDI then steps backwards through the image to
-            // send it to the receiver. So we start at data() (=0), move to the end
-            // (+size) and then backtrack one line (- -line_stride = +line_stride)
-            _cubeFaces[i].ndi.videoFrame.p_data = reinterpret_cast<uint8_t*>(
-                _cubeFaces[i].ndi.currentVideoBuffer->data() +
-                _cubeFaces[i].ndi.currentVideoBuffer->size() +
-                _cubeFaces[i].ndi.videoFrame.line_stride_in_bytes
-            );
-
-            NDIlib_send_send_video_async_v2(
-                _cubeFaces[i].ndi.handle,
-                &_cubeFaces[i].ndi.videoFrame
-            );
-
-            // Switch the current buffer
-            _cubeFaces[i].ndi.currentVideoBuffer =
-                _cubeFaces[i].ndi.currentVideoBuffer ==
-                    &_cubeFaces[i].ndi.videoBufferPing ?
-                &_cubeFaces[i].ndi.videoBufferPong :
-                &_cubeFaces[i].ndi.videoBufferPing;
-        }
-#endif // SGCT_HAS_NDI
-    }
+    _pass->bind(cmd, &constants);
+    _pass->setTextures(cmd, cubeTextures(frustumMode, TextureView::Array));
+    _pass->drawQuad(cmd);
 }
 
 void CubemapProjection::setSpoutRigOrientation(vec3 orientation) {
     _rigOrientation = std::move(orientation);
-}
-
-void CubemapProjection::initTextures(unsigned int internalFormat) {
-    NonLinearProjection::initTextures(internalFormat);
-
-    Log::Debug("CubemapProjection initTextures");
-
-    for (int i = 0; i < 6; i++) {
-        Log::Debug(std::format("CubemapProjection initTextures {}", i));
-        if (!_cubeFaces[i].enabled) {
-            continue;
-        }
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &_cubeFaces[i].texture);
-
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_BASE_LEVEL, 0);
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(_cubeFaces[i].texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureStorage2D(
-            _cubeFaces[i].texture,
-            1,
-            internalFormat,
-            _cubemapResolution.x,
-            _cubemapResolution.y
-        );
-
-#ifdef SGCT_HAS_SPOUT
-        if (_spoutEnabled) {
-            _cubeFaces[i].spout.handle = GetSpout();
-            if (_cubeFaces[i].spout.handle) {
-                constexpr std::array<const char*, 6> CubeMapFaceName = {
-                    "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
-                };
-
-                SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_cubeFaces[i].spout.handle);
-                const std::string fullName =
-                    _spoutName.empty() ?
-                    CubeMapFaceName[i] :
-                    std::format("{}-{}", _spoutName, CubeMapFaceName[i]);
-                bool success = h->CreateSender(
-                    fullName.c_str(),
-                    _cubemapResolution.x,
-                    _cubemapResolution.y
-                );
-                if (!success) {
-                    Log::Error(std::format(
-                        "Error creating SPOUT handle for {}", CubeMapFaceName[i]
-                    ));
-                }
-            }
-        }
-#endif // SGCT_HAS_SPOUT
-
-#ifdef SGCT_HAS_NDI
-        if (_ndiEnabled) {
-            constexpr std::array<const char*, 6> CubeMapFaceName = {
-                "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
-            };
-
-            _cubeFaces[i].ndi.name = std::format("{}-{}", _ndiName, CubeMapFaceName[i]);
-
-            NDIlib_send_create_t createDesc;
-            createDesc.p_ndi_name = _cubeFaces[i].ndi.name.c_str();
-            if (!_ndiGroups.empty()) {
-                createDesc.p_groups = _ndiGroups.c_str();
-            }
-
-            _cubeFaces[i].ndi.handle = NDIlib_send_create(&createDesc);
-            if (!_cubeFaces[i].ndi.handle) {
-                Log::Error("Error creating NDI sender");
-            }
-
-            _cubeFaces[i].ndi.videoFrame.xres = _cubemapResolution.x;
-            _cubeFaces[i].ndi.videoFrame.yres = _cubemapResolution.y;
-            _cubeFaces[i].ndi.videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
-            // We have a negative stride to account for the fact that OpenGL textures have
-            // their y-axis flipped compared to DirectX textures
-            _cubeFaces[i].ndi.videoFrame.line_stride_in_bytes = -_cubemapResolution.x * 4;
-            _cubeFaces[i].ndi.videoFrame.frame_rate_N = 60000; // 60 fps
-            _cubeFaces[i].ndi.videoFrame.frame_rate_D = 1000;  // 60 fps
-            _cubeFaces[i].ndi.videoFrame.picture_aspect_ratio = 1.f;
-            _cubeFaces[i].ndi.videoFrame.frame_format_type =
-                NDIlib_frame_format_type_progressive;
-            _cubeFaces[i].ndi.videoFrame.timecode = 0;
-
-            _cubeFaces[i].ndi.videoBufferPing.resize(
-                _cubemapResolution.x * _cubemapResolution.y * 4
-            );
-            _cubeFaces[i].ndi.videoBufferPong.resize(
-                _cubemapResolution.x * _cubemapResolution.y * 4
-            );
-
-            _cubeFaces[i].ndi.currentVideoBuffer = &_cubeFaces[i].ndi.videoBufferPing;
-        }
-#endif // SGCT_HAS_NDI
-    }
-}
-
-void CubemapProjection::initVBO() {
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
-
-    glCreateBuffers(1, &_vbo);
-    constexpr std::array<Vertex, 4> v = {
-        Vertex { -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex { -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex {  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex {  1.f,  1.f, -1.f, 1.f, 1.f }
-    };
-    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
-
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
-    glVertexArrayAttribBinding(_vao, 1, 0);
 }
 
 void CubemapProjection::initViewports() {
@@ -506,79 +352,215 @@ void CubemapProjection::initViewports() {
             vec3(ur.x, ur.y, ur.z)
         );
     }
+
+    // Only the faces of the enabled channels are rendered
+    _subViewports.right.setEnabled(_isFaceEnabled[0]);
+    _subViewports.left.setEnabled(_isFaceEnabled[1]);
+    _subViewports.bottom.setEnabled(_isFaceEnabled[2]);
+    _subViewports.top.setEnabled(_isFaceEnabled[3]);
+    _subViewports.front.setEnabled(_isFaceEnabled[4]);
+    _subViewports.back.setEnabled(_isFaceEnabled[5]);
 }
 
-void CubemapProjection::initShaders() {
-    _shader = ShaderProgram("CubemapShader");
-    _shader.addVertexShader(shaders::BaseVert);
-    _shader.addFragmentShader(FragmentShader);
-    _shader.createAndLinkProgram();
-
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "right"), 0);
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "zLeft"), 1);
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "bottom"), 2);
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "top"), 3);
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "left"), 4);
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "zRight"), 5);
+void CubemapProjection::initPipelines(VkRenderPass renderPass) {
+    vulkan::ProjectionPass::Settings settings = projectionPassSettings();
+    settings.fragmentShader = fragmentShaderHeader() + std::string(FragmentShader);
+    settings.pushConstantSize = sizeof(PushConstants);
+    _pass = std::make_unique<vulkan::ProjectionPass>(
+        vulkan::Context::instance(),
+        renderPass,
+        settings
+    );
 }
 
-void CubemapProjection::initFBO(unsigned int internalFormat, int nSamples) {
-    NonLinearProjection::initFBO(internalFormat, nSamples);
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+void CubemapProjection::initializeStream() {
+    if (_streamInitialized) {
+        return;
+    }
+    _streamInitialized = true;
 
-    _spoutFBO = std::make_unique<OffScreenBuffer>(internalFormat);
-    _spoutFBO->createFBO(_cubemapResolution.x, _cubemapResolution.y, 1);
-    glCreateFramebuffers(1, &_blitFbo);
-}
+    vulkan::Context& ctx = vulkan::Context::instance();
+    const vulkan::CubemapTarget& target = cubemap(FrustumMode::Mono);
+    _streamResolution = target.resolution();
+    _streamFormat = target.format().color;
+    const VkDeviceSize size =
+        static_cast<VkDeviceSize>(_streamResolution) * _streamResolution * 4;
 
-void CubemapProjection::renderCubemap(FrustumMode frustumMode) const {
-    ZoneScoped;
+    const bool isBgra =
+        _streamFormat == VK_FORMAT_B8G8R8A8_UNORM ||
+        _streamFormat == VK_FORMAT_B8G8R8A8_SRGB;
 
-    auto render = [this](const BaseViewport& vp, int index, FrustumMode mode) {
-        if (!_cubeFaces[index].enabled) {
-            return;
-        }
+    // Spout expects RGBA pixels, so if the cube map is BGRA allocate a temporary
+    // buffer for the conversion
+    if (isBgra) {
+        _streamRgba.resize(size);
+    }
 
-        renderCubeFace(vp, index, mode);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
-        glFramebufferTexture2D(
-            GL_READ_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
-            _textures.cubeMapColor,
-            0
-        );
-        glFramebufferTexture2D(
-            GL_DRAW_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT1,
-            GL_TEXTURE_2D,
-            _cubeFaces[index].texture,
-            0
-        );
-        glDrawBuffer(GL_COLOR_ATTACHMENT1);
-        glBlitFramebuffer(
-            0,
-            0,
-            _cubemapResolution.x,
-            _cubemapResolution.y,
-            0,
-            0,
-            _cubemapResolution.x,
-            _cubemapResolution.y,
-            GL_COLOR_BUFFER_BIT,
-            GL_NEAREST
-        );
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // The names of the faces, in the order of the face indices
+    constexpr std::array<const char*, 6> FaceName = {
+        "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
     };
 
-    render(_subViewports.right, 0, frustumMode);
-    render(_subViewports.left, 1, frustumMode);
-    render(_subViewports.bottom, 2, frustumMode);
-    render(_subViewports.top, 3, frustumMode);
-    render(_subViewports.front, 4, frustumMode);
-    render(_subViewports.back, 5, frustumMode);
+    for (int face = 0; face < 6; face++) {
+        FaceStream& stream = _faceStreams[face];
+        // The readback ring. The buffers are host-visible and persistently mapped, so
+        // the pixels can be read directly once the copy's fence is signaled
+        for (auto& buffer : stream.buffers) {
+            buffer = std::make_unique<vulkan::Buffer>(
+                ctx, size, vulkan::Buffer::Type::Readback
+            );
+        }
+        for (bool& hasData : stream.hasData) {
+            hasData = false;
+        }
+
+#ifdef SGCT_HAS_SPOUT
+        if (_spoutEnabled) {
+            const std::string name = _spoutName.empty() ?
+                FaceName[face] : std::format("{}-{}", _spoutName, FaceName[face]);
+            stream.spout = GetSpout();
+            if (stream.spout && !stream.spout->CreateSender(
+                    name.c_str(), _streamResolution, _streamResolution
+                ))
+            {
+                Log::Error(std::format(
+                    "Cubemap projection: Error creating the Spout sender '{}'", name
+                ));
+            }
+        }
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+        if (_ndiEnabled) {
+            const std::string name = std::format("{}-{}", _ndiName, FaceName[face]);
+            NDIlib_send_create_t createDesc;
+            createDesc.p_ndi_name = name.c_str();
+            if (!_ndiGroups.empty()) {
+                createDesc.p_groups = _ndiGroups.c_str();
+            }
+            stream.ndi = NDIlib_send_create(&createDesc);
+            if (!stream.ndi) {
+                Log::Error(std::format(
+                    "Cubemap projection: Error creating the NDI sender '{}'", name
+                ));
+            }
+            else {
+                // The readback is top-down, so the stride is positive
+                stream.ndiFrame.xres = _streamResolution;
+                stream.ndiFrame.yres = _streamResolution;
+                stream.ndiFrame.line_stride_in_bytes =
+                    static_cast<int>(_streamResolution) * 4;
+                stream.ndiFrame.picture_aspect_ratio = 1.f;
+                stream.ndiFrame.FourCC =
+                    isBgra ? NDIlib_FourCC_type_BGRA : NDIlib_FourCC_type_RGBA;
+                stream.ndiFrame.frame_rate_N = 60000; // 60 fps
+                stream.ndiFrame.frame_rate_D = 1000;  // 60 fps
+                stream.ndiFrame.frame_format_type = NDIlib_frame_format_type_progressive;
+                stream.ndiFrame.timecode = 0;
+            }
+        }
+#endif // SGCT_HAS_NDI
+    }
 }
+
+void CubemapProjection::recordFaceCopy(VkCommandBuffer cmd, int face,
+                                       FrustumMode frustumMode, VkFence fence)
+{
+    // Only stream the left/mono eye
+    if (frustumMode == FrustumMode::StereoRight) {
+        return;
+    }
+    if (!_spoutEnabled && !_ndiEnabled) {
+        return;
+    }
+    if (!_isFaceEnabled[face]) {
+        return;
+    }
+
+    initializeStream();
+
+    const uint32_t slot = static_cast<uint32_t>(_streamFrame % 3);
+    FaceStream& stream = _faceStreams[face];
+    cubemap(frustumMode).copyFace(cmd, face, stream.buffers[slot]->handle());
+    stream.fences[slot] = fence;
+    stream.hasData[slot] = true;
+}
+
+void CubemapProjection::sendStreamFrames() {
+    if (!_spoutEnabled && !_ndiEnabled) {
+        return;
+    }
+
+    // The frame to send is the one recorded in the previous frame
+    const uint32_t slot = static_cast<uint32_t>((_streamFrame + 2) % 3);
+    _streamFrame++;
+
+    vulkan::Context& ctx = vulkan::Context::instance();
+    const bool isBgra =
+        _streamFormat == VK_FORMAT_B8G8R8A8_UNORM ||
+        _streamFormat == VK_FORMAT_B8G8R8A8_SRGB;
+
+    for (int face = 0; face < 6; face++) {
+        FaceStream& stream = _faceStreams[face];
+        if (!stream.hasData[slot]) {
+            continue;
+        }
+        stream.hasData[slot] = false;
+
+        // Wait for the copy of the previous frame to have finished
+        check(
+            vkWaitForFences(
+                ctx.device(), 1, &stream.fences[slot], VK_TRUE,
+                std::numeric_limits<uint64_t>::max()
+            ),
+            "vkWaitForFences"
+        );
+
+        const uint8_t* data = static_cast<const uint8_t*>(
+            stream.buffers[slot]->map()
+        );
+
+#ifdef SGCT_HAS_SPOUT
+        if (stream.spout) {
+            const uint8_t* spoutData = data;
+            if (isBgra) {
+                // Spout expects RGBA pixels, so convert the BGRA readback
+                uint8_t* rgba = _streamRgba.data();
+                const size_t nPixels =
+                    static_cast<size_t>(_streamResolution) * _streamResolution;
+                for (size_t i = 0; i < nPixels; i++) {
+                    rgba[i * 4 + 0] = data[i * 4 + 2];
+                    rgba[i * 4 + 1] = data[i * 4 + 1];
+                    rgba[i * 4 + 2] = data[i * 4 + 0];
+                    rgba[i * 4 + 3] = data[i * 4 + 3];
+                }
+                spoutData = rgba;
+            }
+            if (!stream.spout->SendImage(
+                    spoutData, _streamResolution, _streamResolution
+                ))
+            {
+                Log::Error(std::format(
+                    "Cubemap projection: Error sending the Spout image for face {}",
+                    face
+                ));
+            }
+        }
+#endif // SGCT_HAS_SPOUT
+
+#ifdef SGCT_HAS_NDI
+        if (stream.ndi) {
+            // NDI converts the BGRA (or RGBA) pixels on its own thread, so the readback
+            // buffer can be passed directly; it stays valid until the next asynchronous
+            // send to this sender
+            stream.ndiFrame.p_data = const_cast<uint8_t*>(data);
+            stream.ndiFrame.timestamp = 0;
+            NDIlib_send_send_video_async_v2(stream.ndi, &stream.ndiFrame);
+        }
+#endif // SGCT_HAS_NDI
+    }
+}
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
 
 } // namespace sgct

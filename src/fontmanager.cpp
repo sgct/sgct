@@ -10,12 +10,13 @@
 
 #include <sgct/fontmanager.h>
 
+#include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <sgct/vulkan/context.h>
+#include <sgct/vulkan/texture.h>
 #include <algorithm>
+#include <cstring>
 #include <sstream>
 
 #ifdef WIN32
@@ -41,43 +42,67 @@
 namespace {
     std::string SystemFontPath;
 
-    constexpr std::string_view FontVertShader = R"(
-#version 460 core
+    void check(VkResult result, const char* what) {
+        if (result != VK_SUCCESS) {
+            throw sgct::Error(
+                sgct::Error::Component::Window,
+                4440,
+                std::format("Vulkan error ({}): {}", static_cast<int>(result), what)
+            );
+        }
+    }
 
-layout (location = 0) in vec2 in_texCoords;
-layout (location = 1) in vec2 in_position;
+    // The per-glyph parameters. The glyph is drawn as a unit quad that is transformed by
+    // the matrix
+    struct GlyphConstants {
+        sgct::mat4 mvp;
+        sgct::vec4 color;
+        sgct::vec4 texRect;
+    };
 
-out Data {
-  vec2 texCoords;
-} out_data;
+    // The unit quad of the glyph as a triangle strip. The top of the quad samples the top
+    // row of the glyph in the atlas
+    constexpr const char* FontVertShader = R"(
+#version 460
 
-uniform mat4 mvp;
+layout (push_constant) uniform Constants {
+  mat4 mvp;
+  vec4 color;
+  vec4 texRect;
+} pc;
 
+layout (location = 0) out vec2 out_texCoords;
+
+const vec2 Positions[4] = vec2[](
+  vec2(0.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 0.0), vec2(1.0, 0.0)
+);
 
 void main() {
-  gl_Position = mvp * vec4(in_position, 0.0, 1.0);
-  out_data.texCoords = in_texCoords;
+  vec2 p = Positions[gl_VertexIndex];
+  gl_Position = pc.mvp * vec4(p, 0.0, 1.0);
+  out_texCoords = mix(pc.texRect.xy, pc.texRect.zw, vec2(p.x, 1.0 - p.y));
 })";
 
-    constexpr std::string_view FontFragShader = R"(
-#version 460 core
+    constexpr const char* FontFragShader = R"(
+#version 460
 
-in Data {
-  vec2 texCoords;
-} in_data;
+layout (push_constant) uniform Constants {
+  mat4 mvp;
+  vec4 color;
+  vec4 texRect;
+} pc;
 
-out vec4 out_color;
+layout (set = 0, binding = 0) uniform sampler2D tex;
 
-uniform vec4 col;
-uniform sampler2D tex;
-
+layout (location = 0) in vec2 in_texCoords;
+layout (location = 0) out vec4 out_color;
 
 const vec4 StrokeCol = vec4(0.0, 0.0, 0.0, 0.9);
 
 void main() {
-    vec2 luminanceAlpha = texture(tex, in_data.texCoords).rg;
-    vec4 blend = mix(StrokeCol, col, luminanceAlpha.r);
-    out_color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
+  vec2 luminanceAlpha = texture(tex, in_texCoords).rg;
+  vec4 blend = mix(StrokeCol, pc.color, luminanceAlpha.r);
+  out_color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
 })";
 } // namespace
 
@@ -142,15 +167,105 @@ FontManager::~FontManager() {
         FT_Done_FreeType(_library);
     }
 
-    _shader.deleteProgram();
+    _pipelines.clear();
+    if (_pipelineLayout != VK_NULL_HANDLE || _setLayout != VK_NULL_HANDLE) {
+        VkDevice device = vulkan::Context::instance().device();
+        vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
+        vkDestroyDescriptorSetLayout(device, _setLayout, nullptr);
+    }
 }
 
-void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) const {
-    _shader.bind();
+void FontManager::bindPipeline(VkCommandBuffer cmd, VkRenderPass renderPass,
+                               const vulkan::SceneFormat& format, const Font& font)
+{
+    vulkan::Context& ctx = vulkan::Context::instance();
 
-    glProgramUniform4fv(_shader.id(), _colorLocation, 1, &color.x);
-    glProgramUniform1i(_shader.id(), _textureLocation, texture);
-    glProgramUniformMatrix4fv(_shader.id(), _mvpLocation, 1, GL_FALSE, mvp.values.data());
+    if (_pipelineLayout == VK_NULL_HANDLE) {
+        // The atlas is set through a push descriptor as every font has its own
+        VkDescriptorSetLayoutBinding binding = {};
+        binding.binding = 0;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        binding.descriptorCount = 1;
+        binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        VkDescriptorSetLayoutCreateInfo setLayoutInfo = {};
+        setLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        setLayoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT;
+        setLayoutInfo.bindingCount = 1;
+        setLayoutInfo.pBindings = &binding;
+        check(
+            vkCreateDescriptorSetLayout(ctx.device(), &setLayoutInfo, nullptr, &_setLayout),
+            "vkCreateDescriptorSetLayout"
+        );
+
+        VkPushConstantRange pushConstants = {};
+        pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstants.offset = 0;
+        pushConstants.size = sizeof(GlyphConstants);
+        VkPipelineLayoutCreateInfo layoutInfo = {};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        layoutInfo.setLayoutCount = 1;
+        layoutInfo.pSetLayouts = &_setLayout;
+        layoutInfo.pushConstantRangeCount = 1;
+        layoutInfo.pPushConstantRanges = &pushConstants;
+        check(
+            vkCreatePipelineLayout(ctx.device(), &layoutInfo, nullptr, &_pipelineLayout),
+            "vkCreatePipelineLayout"
+        );
+    }
+
+    // All render passes with the same format that text is drawn into are compatible, so
+    // the pipeline can be shared between them
+    std::unique_ptr<vulkan::Pipeline>& pipeline = _pipelines[format];
+    if (!pipeline) {
+        vulkan::Pipeline::Settings settings;
+        settings.renderPass = renderPass;
+        settings.setSceneFormat(format);
+        settings.layout = _pipelineLayout;
+        settings.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        settings.cullMode = VK_CULL_MODE_NONE;
+        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) of the OpenGL path, which
+        // applies to the alpha channel as well
+        settings.blend = true;
+        settings.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        settings.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        pipeline = std::make_unique<vulkan::Pipeline>(
+            ctx, FontVertShader, FontFragShader, settings
+        );
+    }
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
+
+    VkDescriptorImageInfo image = {};
+    image.sampler = font.atlas().sampler();
+    image.imageView = font.atlas().imageView();
+    image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    VkWriteDescriptorSet write = {};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstBinding = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo = &image;
+    vkCmdPushDescriptorSet(
+        cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &write
+    );
+}
+
+void FontManager::drawGlyph(VkCommandBuffer cmd, const mat4& mvp, const vec4& color,
+                            const vec4& texRect) const
+{
+    GlyphConstants constants;
+    constants.mvp = mvp;
+    constants.color = color;
+    constants.texRect = texRect;
+    vkCmdPushConstants(
+        cmd,
+        _pipelineLayout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(GlyphConstants),
+        &constants
+    );
+    vkCmdDraw(cmd, 4, 1, 0, 0);
 }
 
 bool FontManager::addFont(std::string name, std::string file, bool isAbsolutePath) {
@@ -214,23 +329,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     }
 
     // Create the font when all error tests are done
-    auto font = std::make_unique<Font>(_library, face, height);
-
-    static bool isShaderCreated = false;
-    if (!isShaderCreated) {
-        _shader = ShaderProgram("FontShader");
-        _shader.addVertexShader(FontVertShader);
-        _shader.addFragmentShader(FontFragShader);
-        _shader.createAndLinkProgram();
-
-        _mvpLocation = glGetUniformLocation(_shader.id(), "mvp");
-        _colorLocation = glGetUniformLocation(_shader.id(), "col");
-        _textureLocation = glGetUniformLocation(_shader.id(), "tex");
-
-        isShaderCreated = true;
-    }
-
-    return font;
+    return std::make_unique<Font>(_library, face, height);
 }
 
 } // namespace sgct::text

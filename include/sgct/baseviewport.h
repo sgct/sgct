@@ -29,7 +29,13 @@ public:
     explicit BaseViewport(const Window& parent, FrustumMode eye = FrustumMode::Mono);
     virtual ~BaseViewport();
 
-    void setupViewport(FrustumMode frustum) const;
+    /**
+     * Returns the pixel rectangle (x, y, width, height) this viewport covers in the
+     * window's framebuffer for the provided frustum, taking side-by-side and top-bottom
+     * stereo into account. Following the common graphics convention, (x, y) is the
+     * lower-left corner measured from the bottom-left of the framebuffer.
+     */
+    ivec4 pixelRect(FrustumMode frustum) const;
 
     const Projection& projection(FrustumMode frustumMode) const;
     ProjectionPlane& projectionPlane();

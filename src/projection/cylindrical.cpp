@@ -12,40 +12,83 @@
 #include <sgct/config.h>
 #include <sgct/definitions.h>
 #include <sgct/projection/projectionplane.h>
-#include <sgct/internalshaders.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
+#include <sgct/vulkan/context.h>
+#include <sgct/vulkan/cubemaptarget.h>
+#include <sgct/vulkan/projectionpass.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
 #include <cstddef>
+#include <span>
+#include <string>
 #include <string_view>
 
 namespace {
+    struct PushConstants {
+        std::array<sgct::vec4, 4> corners;
+        float rotation = 0.f;
+        float heightOffset = 0.f;
+    };
+    static_assert(offsetof(PushConstants, rotation) == 64);
+
+    // The quad covering the whole viewport (xy is the position, zw the texture
+    // coordinates), drawn as a triangle strip
+    constexpr std::array<sgct::vec4, 4> FullQuad = {
+        sgct::vec4{ -1.f, -1.f, 0.f, 0.f },
+        sgct::vec4{ -1.f,  1.f, 0.f, 1.f },
+        sgct::vec4{  1.f, -1.f, 1.f, 0.f },
+        sgct::vec4{  1.f,  1.f, 1.f, 1.f }
+    };
+
     constexpr std::string_view FragmentShader = R"(
-  #version 460 core
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 0) out vec4 out_diffuse;
 
-  in Data {
-    vec2 texCoords;
-  } in_data;
+  layout (set = 0, binding = 0) uniform samplerCube cubemap;
+#if HAS_NORMALS
+  layout (set = 0, binding = 1) uniform samplerCube normalmap;
+#endif
+#if HAS_POSITIONS
+  layout (set = 0, binding = 2) uniform samplerCube positionmap;
+#endif
+#if HAS_DEPTH
+  layout (set = 0, binding = 3) uniform samplerCube depthmap;
+#endif
 
-  out vec4 out_diffuse;
-
-  uniform samplerCube cubemap;
-  uniform float rotation;
-  uniform float heightOffset;
+  layout (push_constant) uniform Constants {
+    layout (offset = 64) float rotation;
+    float heightOffset;
+  } pc;
 
   const float PI = 3.141592654;
 
+  // Writes the other attachments of the cube map in the (mirrored) direction
+  void writeAttachments(vec3 dir) {
+#if HAS_NORMALS
+    out_normal = texture(normalmap, dir);
+#endif
+#if HAS_POSITIONS
+    out_position = texture(positionmap, dir);
+#endif
+#if HAS_DEPTH
+    gl_FragDepth = texture(depthmap, dir).r;
+#endif
+  }
+
 
   void main() {
-    vec2 pixelNormalized = in_data.texCoords;
+    vec2 pixelNormalized = in_texCoords;
     float angle = 2.0 * PI * pixelNormalized.x;
-    vec2 direction = vec2(cos(-angle + rotation), sin(-angle + rotation));
+    vec2 direction = vec2(cos(-angle + pc.rotation), sin(-angle + pc.rotation));
 
-    vec3 tex = vec3(direction, pixelNormalized.y + heightOffset);
-    out_diffuse = texture(cubemap, tex);
+    vec3 tex = vec3(direction, pixelNormalized.y + pc.heightOffset);
+    // The cube map is the mirror image of the OpenGL one along the y axis (see
+    // vulkan::CubemapTarget)
+    vec3 dir = vec3(tex.x, -tex.y, tex.z);
+    out_diffuse = texture(cubemap, dir);
+    writeAttachments(dir);
   }
 )";
 } // namespace
@@ -60,96 +103,32 @@ CylindricalProjection::CylindricalProjection(const config::CylindricalProjection
     , _radius(config.radius.value_or(5.f))
 {
     setUser(user);
-    setUseDepthTransformation(true);
 
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
 }
 
-CylindricalProjection::~CylindricalProjection() {
-    glDeleteBuffers(1, &_vbo);
-    glDeleteVertexArrays(1, &_vao);
-    _shader.program.deleteProgram();
-}
+CylindricalProjection::~CylindricalProjection() = default;
 
-void CylindricalProjection::render(const BaseViewport& viewport,
-                                   FrustumMode frustumMode) const
+void CylindricalProjection::render(VkCommandBuffer cmd, const BaseViewport&,
+                                   FrustumMode frustumMode, const VkRect2D& area) const
 {
     ZoneScoped;
 
-    glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(frustumMode);
-    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
+    clearViewport(cmd, area);
 
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    PushConstants constants;
+    constants.corners = FullQuad;
+    constants.rotation = glm::radians(_rotation);
+    constants.heightOffset = _heightOffset;
 
-    glBindTextureUnit(0, _textures.cubeMapColor);
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-
-    glProgramUniform1i(_shader.program.id(), _shader.cubemap, 0);
-    glProgramUniform1f(_shader.program.id(), _shader.rotation, glm::radians(_rotation));
-    glProgramUniform1f(_shader.program.id(), _shader.heightOffset, _heightOffset);
-
-    _shader.program.bind();
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-    ShaderProgram::unbind();
-
-    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-}
-
-void CylindricalProjection::renderCubemap(FrustumMode frustumMode) const {
-    ZoneScoped;
-
-    renderCubeFace(_subViewports.right, 0, frustumMode);
-    renderCubeFace(_subViewports.left, 1, frustumMode);
-    renderCubeFace(_subViewports.bottom, 2, frustumMode);
-    renderCubeFace(_subViewports.top, 3, frustumMode);
-    renderCubeFace(_subViewports.front, 4, frustumMode);
-    renderCubeFace(_subViewports.back, 5, frustumMode);
+    _pass->bind(cmd, &constants);
+    _pass->setTextures(cmd, cubeTextures(frustumMode, TextureView::Cube));
+    _pass->drawQuad(cmd);
 }
 
 void CylindricalProjection::update(const vec2&) const {}
-
-void CylindricalProjection::initVBO() {
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
-
-    glCreateBuffers(1, &_vbo);
-    constexpr std::array<Vertex, 4> v = {
-        Vertex { -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex { -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex {  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex {  1.f,  1.f, -1.f, 1.f, 1.f }
-    };
-    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
-
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
-    glVertexArrayAttribBinding(_vao, 1, 0);
-}
 
 void CylindricalProjection::initViewports() {
     // Setup base viewport that will be rotated to create the other cubemap views
@@ -273,16 +252,15 @@ void CylindricalProjection::initViewports() {
    _subViewports.back.setEnabled(false);
 }
 
-void CylindricalProjection::initShaders() {
-    _shader.program = ShaderProgram("CylindricalProjectionShader");
-    _shader.program.addVertexShader(shaders_fisheye::BaseVert);
-    _shader.program.addFragmentShader(FragmentShader);
-    _shader.program.createAndLinkProgram();
-
-    _shader.cubemap = glGetUniformLocation(_shader.program.id(), "cubemap");
-    glProgramUniform1i(_shader.program.id(), _shader.cubemap, 0);
-    _shader.rotation = glGetUniformLocation(_shader.program.id(), "rotation");
-    _shader.heightOffset = glGetUniformLocation(_shader.program.id(), "heightOffset");
+void CylindricalProjection::initPipelines(VkRenderPass renderPass) {
+    vulkan::ProjectionPass::Settings settings = projectionPassSettings();
+    settings.fragmentShader = fragmentShaderHeader() + std::string(FragmentShader);
+    settings.pushConstantSize = sizeof(PushConstants);
+    _pass = std::make_unique<vulkan::ProjectionPass>(
+        vulkan::Context::instance(),
+        renderPass,
+        settings
+    );
 }
 
 void CylindricalProjection::setRotation(float rotation) {

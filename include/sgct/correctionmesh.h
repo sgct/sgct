@@ -11,12 +11,16 @@
 
 #include <sgct/sgctexports.h>
 
+#include <vulkan/vulkan.h>
+#include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <optional>
 
 namespace sgct {
 
 namespace correction { struct Buffer; }
+namespace vulkan { class Buffer; }
 class BaseViewport;
 
 /**
@@ -42,36 +46,39 @@ public:
         bool needsMaskGeometry = false, bool textureRenderMode = false);
 
     /**
-     * Render the final mesh where for mapping the frame buffer to the screen.
+     * Records the draw of the unwarped quad covering the parent viewport into \p cmd. A
+     * pipeline consuming correction::Buffer::Vertex triangle lists must be bound.
      */
-    void renderQuadMesh() const;
+    void renderQuadMesh(VkCommandBuffer cmd) const;
 
     /**
-     * Render the final mesh where for mapping the frame buffer to the screen.
+     * Records the draw of the warp mesh, which maps the offscreen image to the screen,
+     * into \p cmd. A pipeline consuming correction::Buffer::Vertex triangle lists must be
+     * bound.
      */
-    void renderWarpMesh() const;
+    void renderWarpMesh(VkCommandBuffer cmd) const;
 
     /**
-     * Render the final mesh where for mapping the frame buffer to the screen.
+     * Records the draw of the unwarped mesh used for applying the blend masks into
+     * \p cmd. A pipeline consuming correction::Buffer::Vertex triangle lists must be
+     * bound.
      */
-    void renderMaskMesh() const;
+    void renderMaskMesh(VkCommandBuffer cmd) const;
 
 private:
+    /// A mesh uploaded as an indexed triangle list
     struct CorrectionMeshGeometry {
-        CorrectionMeshGeometry(const correction::Buffer& buffer);
+        explicit CorrectionMeshGeometry(const correction::Buffer& buffer);
         CorrectionMeshGeometry(CorrectionMeshGeometry&&) noexcept;
         ~CorrectionMeshGeometry();
 
-        CorrectionMeshGeometry& operator=(CorrectionMeshGeometry&&) noexcept = default;
+        CorrectionMeshGeometry& operator=(CorrectionMeshGeometry&&) noexcept;
 
-        void render() const;
+        void render(VkCommandBuffer cmd) const;
 
-        unsigned int vao = 0;
-        unsigned int vbo = 0;
-        unsigned int ibo = 0;
-        unsigned int nVertices = 0;
-        unsigned int nIndices = 0;
-        unsigned int type = 0x0005; // = GL_TRIANGLE_STRIP;
+        std::unique_ptr<vulkan::Buffer> vertexBuffer;
+        std::unique_ptr<vulkan::Buffer> indexBuffer;
+        uint32_t nIndices = 0;
     };
 
     std::optional<CorrectionMeshGeometry> _quadGeometry;

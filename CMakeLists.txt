@@ -66,13 +66,18 @@ if (PROJECT_IS_TOP_LEVEL)
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 endif ()
 
+# Enable testing before the subdirectories so that add_test calls in any of them
+# (e.g. the calibrator's rendering smoke test) are registered
+if (SGCT_BUILD_TESTS)
+  enable_testing()
+endif ()
+
 add_subdirectory(ext SYSTEM)
 add_subdirectory(src)
 if (SGCT_BUILD_CALIBRATOR)
   add_subdirectory(calibrator)
 endif ()
 if (SGCT_BUILD_TESTS)
-  enable_testing()
   add_subdirectory(tests)
 endif ()
 # CPack configuration for package generation

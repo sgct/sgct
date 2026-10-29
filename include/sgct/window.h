@@ -12,10 +12,19 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/definitions.h>
-#include <sgct/offscreenbuffer.h>
+#include <sgct/profiling.h>
 #include <sgct/screencapture.h>
-#include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
+#include <sgct/vulkan/compositepass.h>
+#include <sgct/vulkan/overlaypass.h>
+#include <sgct/vulkan/buffer.h>
+#include <sgct/vulkan/framebuffer.h>
+#include <sgct/vulkan/offscreenbuffer.h>
+#include <sgct/vulkan/projectionpass.h>
+#include <sgct/vulkan/sceneformat.h>
+#include <sgct/vulkan/swapchain.h>
+#include <vulkan/vulkan.h>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -65,17 +74,12 @@ public:
         TopBottomInverted
     };
 
-    static void makeSharedContextCurrent();
-
     /**
      * Init Nvidia swap groups if supported by hardware. Supported hardware is NVidia
      * Quadro graphics card + sync card or AMD/ATI FireGL graphics card + sync card.
      */
     static void initNvidiaSwapGroups();
 
-    /**
-     * Force a restore of the shared OpenGL context.
-     */
     static void resetSwapGroupFrameNumber();
     static void setBarrier(bool state);
     static bool isBarrierActive();
@@ -86,22 +90,22 @@ public:
     ~Window();
 
     /**
-     * This function is used to open the window.
+     * This function is used to open the window. It creates the GLFW window that backs the
+     * Vulkan surface; the swapchain itself is created later in #initialize, once the
+     * shared Vulkan context exists.
      *
-     * \param share The context that is shared between windows. May be `nullptr`
      * \param isLastWindow Whether this is the last window. This is required to know as we
      *        only want to set the vsync setting once per node
      */
-    void openWindow(GLFWwindow* share, bool isLastWindow);
+    void openWindow(bool isLastWindow);
 
     void closeWindow();
 
     /**
-     * Initialize window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
+     * Initialize the window's Vulkan resources: the swapchain, the offscreen render
+     * targets, and the pipelines that render into them.
      */
     void initialize();
-
-    void initializeContextSpecific();
 
     void updateResolutions();
 
@@ -109,20 +113,26 @@ public:
 
     void draw();
 
-    void renderFBOTexture();
+    /**
+     * Records the composite of the warp meshes (and the masks) into the swapchain
+     * image. Must be called after #draw, while the frame's command buffer is still
+     * being recorded, and before #swapBuffers.
+     */
+    void renderComposite();
 
     /**
      * Swap previous data and current data. This is done at the end of the render loop.
      */
     void swapBuffers(bool takeScreenshot);
 
-    void makeOpenGLContextCurrent();
-
-    // Returns true if this window has any settings that require a fallback on an OpenGL
-    // compatibility profile
-    bool needsCompatibilityProfile() const;
-
     bool shouldTakeScreenshot() const;
+
+    /**
+     * \return The time in seconds that the GPU took to execute the last completed frame of
+     *         this window, or 0 if no frame has completed yet or the device does not
+     *         support timestamps
+     */
+    double gpuFrameTime() const;
     bool isOpenXREnabled() const;
 
     /**
@@ -146,11 +156,52 @@ public:
      */
     GLFWwindow* windowHandle() const;
 
+    /**
+     * \return The render pass of the current framebuffer, or VK_NULL_HANDLE if the
+     *         framebuffer has not been created yet
+     */
+    VkRenderPass renderPass() const;
+
+    /**
+     * \return The color format of the render targets that #renderPass renders into
+     */
+    VkFormat renderTargetFormat() const;
+
+    /**
+     * \return The format of the render targets that #renderPass renders into. Pipelines
+     *         for the draw callbacks have to be created for it (see
+     *         vulkan::Pipeline::Settings::setSceneFormat)
+     */
+    const vulkan::SceneFormat& sceneFormat() const;
+
+    /**
+     * \return The command buffer that is currently being recorded for this window, or
+     *         VK_NULL_HANDLE if the window is not recording. While the draw and draw2D
+     *         callbacks are invoked, it is the same as RenderData::commandBuffer
+     */
+    VkCommandBuffer currentCommandBuffer() const;
+
+    /**
+     * \return The command buffer of the frame that has been recorded by #draw and
+     *         #renderComposite but not yet submitted by #swapBuffers, or VK_NULL_HANDLE
+     *         if there is no such frame. Commands that are recorded into it are executed
+     *         after the composite pass
+     */
+    VkCommandBuffer frameCommandBuffer() const;
+
+    /**
+     * \return The offscreen target that the scene of \p eye is rendered into, or
+     *         `nullptr` if the window is not initialized. The left eye target contains
+     *         both eyes for the split-screen stereo modes, and it is also returned for
+     *         the right eye if the stereo mode has no separate right eye target. The
+     *         color image is in VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL after #draw
+     */
+    const vulkan::OffscreenBuffer* offscreenTarget(Eye eye) const;
+
     void addViewport(std::unique_ptr<Viewport> vpPtr);
     const std::vector<std::unique_ptr<Viewport>>& viewports() const;
 
     void updateFrustums(float nearClip, float farClip);
-    void renderScreenQuad() const;
 
     /**
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
@@ -161,9 +212,9 @@ public:
     void setFramebufferResolution(ivec2 resolution);
 
     /**
-     * Get the dimensions of the final FBO. Regular viewport rendering renders directly to
-     * this FBO but a fisheye renders first a cubemap and then to the final FBO. Post
-     * effects are rendered using these dimensions.
+     * Get the dimensions of the offscreen render target. Regular viewport rendering
+     * renders directly into this target, but a fisheye renders first a cubemap and then
+     * into the target. Post effects are rendered using these dimensions.
      */
     ivec2 framebufferResolution() const;
 
@@ -298,66 +349,65 @@ public:
      */
     bool isStereo() const;
 
-
-    // @TODO: Remove this
-    unsigned int frameBufferTextureEye(Eye eye) const;
-
 private:
-    enum class TextureType { Color, Depth, Normal, Position };
-
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
-    /**
-     * This function creates textures that will act as FBO targets.
-     */
-    void createTextures();
-    void generateTexture(unsigned int& id, TextureType type);
+    // Vulkan swapchain lifecycle
+    void recreateSwapchain();
+    void createCommandBuffers();
+    void freeCommandBuffers();
+    bool shouldRenderFrame() const;
 
-    /**
-     * This function resizes the FBOs when the window is resized to achive 1:1 mapping.
-     */
-    void resizeFBOs();
+    // Recreates the offscreen render targets at the framebuffer resolution and points
+    // the composite pass at them
+    void recreateOffscreen();
 
-    void destroyFBOs();
+    // Whether the stereo mode renders the right eye into a separate offscreen target
+    // that the composite pass combines with the left eye
+    bool needsRightEyeTarget() const;
 
-    /**
-     * Create vertex buffer objects used to render framebuffer quad.
-     */
-    void createVBOs();
-    void loadShaders();
-    bool useRightEyeTexture() const;
+    // The format of the offscreen targets for the window's settings
+    vulkan::SceneFormat chooseSceneFormat() const;
 
-    /**
-     * Causes all of the viewports of the provided \p window be rendered with the
-     * \p frustum into the texture behind the provided \p ti texture index.
-     *
-     * \param frustum The frustum that should be used to render the viewports
-     * \param eye The eye that should be rendered
-     */
-    void renderViewports(FrustumMode frustum, Eye eye) const;
+    // Records the rendering of the provided frustums into the offscreen target: the
+    // scene (through the FXAA target if FXAA is used) followed by the 2D pass
+    void recordTarget(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target,
+        std::initializer_list<FrustumMode> frustums);
 
-    /**
-     * Draw viewport overlays if there are any. This function renders stats, OSD and
-     * overlays of the provided \p window and using the provided \p frustum.
-     *
-     * \param frustum The frustum for which the overlay should be drawn
-     */
-    void render2D(FrustumMode frustum) const;
+    // Records the copy of the intermediate target into the active render pass of the
+    // offscreen target with FXAA
+    void recordFxaa(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target);
 
-    /**
-     * This function copies/render the result from the previous window same viewport (if
-     * it exists) into this window.
-     *
-     * \param prevWindow The source window whose content should be copied into the
-     *        \p window
-     * \param viewport The viewport of the window that should be copied
-     * \param mode The frustum that should be used to copy the window contents
-     *
-     * \pre The \p prevWindow and \p window must be different Window objects
-     */
-    void blitWindowViewport(const Window& prevWindow, const Viewport& viewport,
-        FrustumMode mode) const;
+    // The window whose content is copied into the viewports (see blitWindowId), if it
+    // has rendered the current frame already
+    const Window* blitSource() const;
+
+    // Records the rendering of the cube maps of the viewports with non-linear
+    // projections, for all eyes that the stereo mode renders. Must be recorded outside
+    // of a render pass
+    void renderCubemaps(VkCommandBuffer cmd);
+
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    // Spout/NDI streaming of the composited window. createStreamBuffers allocates the
+    // readback ring (and the temporary RGBA buffer for Spout), recordStreamCopy records
+    // the copy of the composited left-eye image into the ring, and sendStreamFrame sends
+    // the pixels of the previous frame once its copy has finished
+    bool streamingEnabled() const;
+    void createStreamBuffers();
+    void recordStreamCopy(VkCommandBuffer cmd);
+    void sendStreamFrame();
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+
+    // Records the scene of all viewports for the provided frustum into the render pass
+    // that is active on the offscreen render target
+    void recordScene(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target,
+        FrustumMode frustum);
+
+    // Records the overlays, statistics, and draw2D callbacks of all viewports for the
+    // provided frustum into the render pass that is active on the offscreen target
+    void record2D(VkCommandBuffer cmd, const vulkan::OffscreenBuffer& target,
+        FrustumMode frustum);
 
     std::string _name;
     std::vector<std::string> _tags;
@@ -374,6 +424,8 @@ private:
     bool _shouldRenderWhileHidden;
     uint8_t _nAASamples;
     bool _useFXAA;
+    std::optional<config::Window::ColorBitDepth> _bufferBitDepth;
+    bool _isLastWindow = false;
     bool _isDecorated;
     bool _isResizable;
     bool _isMirrored;
@@ -414,44 +466,80 @@ private:
         NDIlib_video_frame_v2_t videoFrame;
         std::string name;
         std::string groups;
-        unsigned int pingPongPbo[3] = { 0, 0, 0 };
-        int currentFrame = 0;
     } _ndi;
 #endif // SGCT_HAS_NDI
 
-    const unsigned int _internalColorFormat;
-    const unsigned int _colorDataType;
-    const int _bytesPerColor = 4;
-
-    struct {
-        unsigned int leftEye = 0;
-        unsigned int rightEye = 0;
-        unsigned int depth = 0;
-        unsigned int intermediate = 0;
-        unsigned int normals = 0;
-        unsigned int positions = 0;
-    } _frameBufferTextures;
+#if defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
+    // Readback ring for Spout/NDI streaming. Each frame, the composited left-eye image
+    // is copied into the next buffer of the ring, and one frame later, once the copy's
+    // fence has been signaled, the pixels are sent. The ring is one buffer deeper than
+    // the number of frames in flight, so the GPU copy of the current frame never
+    // collides with the CPU send of an older frame
+    struct StreamBuffer {
+        std::unique_ptr<vulkan::Buffer> buffer;
+        VkFence fence = VK_NULL_HANDLE;
+        bool hasData = false;
+    };
+    std::array<StreamBuffer, 3> _streamBuffers;
+    // Monotonically increasing counter that indexes the ring
+    uint64_t _streamFrame = 0;
+    // The swapchain format of the readback pixels; it determines the NDI FourCC and
+    // whether the Spout sender needs a BGRA to RGBA conversion
+    VkFormat _streamFormat = VK_FORMAT_UNDEFINED;
+    // Temporary RGBA pixels for the Spout sender, used when the swapchain is BGRA
+    std::vector<uint8_t> _streamRgba;
+#endif // defined(SGCT_HAS_SPOUT) || defined(SGCT_HAS_NDI)
 
     std::unique_ptr<ScreenCapture> _screenCaptureLeftOrMono;
     std::unique_ptr<ScreenCapture> _screenCaptureRight;
 
-
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
-
-    ShaderProgram _fboQuad;
-    ShaderProgram _overlay;
-    ShaderProgram _stereo;
-
-    struct FXAAShader {
-        ShaderProgram shader;
-        int sizeX = -1;
-        int sizeY = -1;
-    };
-    std::optional<FXAAShader> _fxaa;
-
     std::vector<std::unique_ptr<Viewport>> _viewports;
-    std::unique_ptr<OffScreenBuffer> _finalFBO;
+
+    // Vulkan rendering state. The swapchain, command buffers, framebuffer, and offscreen
+    // target are created in initialize (and recreated on resize). Each frame, draw
+    // records the viewports into the offscreen target, renderComposite records the
+    // composite of the warp meshes into the swapchain image, and swapBuffers submits and
+    // presents the command buffer
+    std::unique_ptr<vulkan::Swapchain> _swapchain;
+    std::unique_ptr<vulkan::Framebuffer> _framebuffer;
+    // The left eye (or mono) target; split-screen stereo renders both eyes into it
+    std::unique_ptr<vulkan::OffscreenBuffer> _offscreen;
+    // The right eye target for the stereo modes that combine two images in the composite
+    std::unique_ptr<vulkan::OffscreenBuffer> _offscreenRight;
+    std::unique_ptr<vulkan::CompositePass> _composite;
+    // Draws the viewports' overlay textures into the offscreen targets
+    std::unique_ptr<vulkan::OverlayPass> _overlayPass;
+    // The format of the offscreen targets
+    vulkan::SceneFormat _sceneFormat;
+    // With FXAA, the scene is rendered into the intermediate target first, and the FXAA
+    // pass then renders it into the offscreen target
+    std::unique_ptr<vulkan::OffscreenBuffer> _intermediate;
+    std::unique_ptr<vulkan::ProjectionPass> _fxaaPass;
+    // A linear, clamp-to-edge sampler for the offscreen targets
+    VkSampler _linearSampler = VK_NULL_HANDLE;
+    // Whether the offscreen targets have been rendered in the current frame
+    bool _isOffscreenRendered = false;
+    // The settings that the current swapchain was requested with
+    bool _swapchainStereo = false;
+    bool _swapchainPresentBarrier = false;
+    bool _hasWarnedAboutStereo = false;
+    std::vector<VkCommandBuffer> _commandBuffers;
+    // The Tracy GPU contexts, one per in-flight command buffer (only used when Tracy
+    // is enabled; TracyVkCtx is a void* placeholder otherwise)
+    std::vector<TracyVkCtx> _tracyContexts;
+    // Set when draw has begun recording the frame's command buffer
+    bool _isRecording = false;
+    // Set when the frame's command buffer has been completely recorded and can be
+    // submitted
+    bool _frameRecorded = false;
+    uint32_t _frameIndex = 0;
+    uint32_t _imageIndex = 0;
+
+    // Timestamps at the beginning and end of the command buffer of each in-flight frame,
+    // which are read once the frame's fence has been waited on
+    VkQueryPool _timestampPool = VK_NULL_HANDLE;
+    std::array<bool, vulkan::Swapchain::MaxFramesInFlight> _hasTimestamps = {};
+    double _gpuFrameTime = 0.0;
 
     static GLFWwindow* _sharedHandle;
     static bool _useSwapGroups;

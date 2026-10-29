@@ -37,27 +37,11 @@
       "platform": "!(windows & arm)"
     },
     {
-      "name": "glad",
-      "features": [
-        "extensions",
-        "loader"
-      ]
-    },
-    {
-      "name": "glad",
-      "features": [
-        "wgl"
-      ],
-      "platform": "windows"
-    },
-    {
       "name": "spout2",
       "platform": "windows & !arm64"
     },
-    {
-      "name": "vulkan",
-      "platform": "windows"
-    }
+    "vulkan",
+    "glslang"
   ],
   "features": {
     "ndi": {

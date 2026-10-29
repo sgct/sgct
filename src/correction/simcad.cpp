@@ -12,7 +12,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/tinyxml.h>
 #include <glm/glm.hpp>
@@ -174,7 +173,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
         }
     }
 
-    buf.geometryType = GL_TRIANGLE_STRIP;
+    buf.geometryType = correction::Buffer::GeometryType::TriangleStrip;
     return buf;
 }
 

@@ -33,9 +33,7 @@ BaseViewport::BaseViewport(const Window& parent, FrustumMode eye)
 
 BaseViewport::~BaseViewport() = default;
 
-void BaseViewport::setupViewport(FrustumMode frustum) const {
-    ZoneScoped;
-
+ivec4 BaseViewport::pixelRect(FrustumMode frustum) const {
     const ivec2 res = _parent.framebufferResolution();
     ivec4 vpCoordinates = ivec4 {
         static_cast<int>(_position.x * res.x),
@@ -89,8 +87,7 @@ void BaseViewport::setupViewport(FrustumMode frustum) const {
         }
     }
 
-    glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
-    glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
+    return vpCoordinates;
 }
 
 const Projection& BaseViewport::projection(FrustumMode frustumMode) const {

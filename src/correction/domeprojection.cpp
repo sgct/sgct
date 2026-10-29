@@ -12,7 +12,6 @@
 #include <sgct/error.h>
 #include <sgct/format.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <scn/scan.h>
 #include <algorithm>
@@ -107,7 +106,7 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
         }
     }
 
-    buf.geometryType = GL_TRIANGLES;
+    buf.geometryType = correction::Buffer::GeometryType::Triangles;
     return buf;
 }
 

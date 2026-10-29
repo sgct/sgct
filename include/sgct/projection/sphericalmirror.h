@@ -13,11 +13,12 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
-#include <sgct/shaderprogram.h>
+#include <memory>
 
 namespace sgct {
 
 namespace config { struct SphericalMirrorProjection; }
+namespace vulkan { class ProjectionPass; }
 class BaseViewport;
 class User;
 class Window;
@@ -34,14 +35,10 @@ public:
     void update(const vec2& size) const override;
 
     /**
-     * Render the non linear projection to currently bounded FBO.
+     * Render the non linear projection into the viewport.
      */
-    void render(const BaseViewport& viewport, FrustumMode frustumMode) const override;
-
-    /**
-     * Render the enabled faces of the cubemap.
-     */
-    void renderCubemap(FrustumMode frustumMode) const override;
+    void render(VkCommandBuffer cmd, const BaseViewport& viewport,
+        FrustumMode frustumMode, const VkRect2D& area) const override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
@@ -52,10 +49,8 @@ public:
     void setTilt(float angle);
 
 private:
-    void initTextures(unsigned int internalFormat) override;
-    void initVBO() override;
     void initViewports() override;
-    void initShaders() override;
+    void initPipelines(VkRenderPass renderPass) override;
 
     float _tilt;
     float _diameter = 2.4f;
@@ -70,11 +65,7 @@ private:
     std::string _meshPathRight;
     std::string _meshPathTop;
 
-    // shader locations
-    int _texLoc = -1;
-    int _matrixLoc = -1;
-    ShaderProgram _shader;
-    ShaderProgram _depthCorrectionShader;
+    std::unique_ptr<vulkan::ProjectionPass> _pass;
 };
 
 } // namespace sgct

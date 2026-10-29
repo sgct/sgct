@@ -90,6 +90,10 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.printWaitMessage = true;
             arg.erase(arg.begin() + i);
         }
+        else if (arg[i] == "--vulkan-validation") {
+            config.useVulkanValidation = true;
+            arg.erase(arg.begin() + i);
+        }
         else if (arg[i] == "--wait-timeout") {
             config.waitTimeout = std::stof(arg[i + 1]);
             arg.erase(arg.begin() + 1, arg.begin() + i + 2);
@@ -134,6 +138,8 @@ Parameters:
     If set, screenshots will not contain the name of the window if multiple windows exist
 --number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
+--vulkan-validation
+    Enable the Vulkan validation layer and debug messenger
 )";
 }
 

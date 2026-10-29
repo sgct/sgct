@@ -9,37 +9,71 @@
 #include <sgct/projection/equirectangular.h>
 
 #include <sgct/engine.h>
-#include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
+#include <sgct/vulkan/context.h>
+#include <sgct/vulkan/cubemaptarget.h>
+#include <sgct/vulkan/projectionpass.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <array>
+#include <span>
+#include <string>
+#include <string_view>
 
 namespace {
+    // The quad covering the whole viewport (xy is the position, zw the texture
+    // coordinates), drawn as a triangle strip
+    constexpr std::array<sgct::vec4, 4> FullQuad = {
+        sgct::vec4{ -1.f, -1.f, 0.f, 0.f },
+        sgct::vec4{ -1.f,  1.f, 0.f, 1.f },
+        sgct::vec4{  1.f, -1.f, 1.f, 0.f },
+        sgct::vec4{  1.f,  1.f, 1.f, 1.f }
+    };
+
     constexpr std::string_view FragmentShader = R"(
-  #version 460 core
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 0) out vec4 out_diffuse;
 
-  in Data {
-    vec2 texCoords;
-  } in_data;
-
-  out vec4 out_diffuse;
-
-  uniform samplerCube cubemap;
+  layout (set = 0, binding = 0) uniform samplerCube cubemap;
+#if HAS_NORMALS
+  layout (set = 0, binding = 1) uniform samplerCube normalmap;
+#endif
+#if HAS_POSITIONS
+  layout (set = 0, binding = 2) uniform samplerCube positionmap;
+#endif
+#if HAS_DEPTH
+  layout (set = 0, binding = 3) uniform samplerCube depthmap;
+#endif
 
   const float PI = 3.141592654;
 
+  // Writes the other attachments of the cube map in the (mirrored) direction
+  void writeAttachments(vec3 dir) {
+#if HAS_NORMALS
+    out_normal = texture(normalmap, dir);
+#endif
+#if HAS_POSITIONS
+    out_position = texture(positionmap, dir);
+#endif
+#if HAS_DEPTH
+    gl_FragDepth = texture(depthmap, dir).r;
+#endif
+  }
+
 
   void main() {
-    float phi = PI * (1.0 - in_data.texCoords.t);
-    float theta = 2.0 * PI * (in_data.texCoords.s - 0.5);
+    float phi = PI * (1.0 - in_texCoords.t);
+    float theta = 2.0 * PI * (in_texCoords.s - 0.5);
     float x = sin(phi) * sin(theta);
     float y = sin(phi) * cos(theta);
     float z = cos(phi);
-    out_diffuse = texture(cubemap, vec3(x, y, z));
+    // The cube map is the mirror image of the OpenGL one along the y axis (see
+    // vulkan::CubemapTarget)
+    vec3 dir = vec3(x, -y, z);
+    out_diffuse = texture(cubemap, dir);
+    writeAttachments(dir);
   }
 )";
 } // namespace
@@ -53,92 +87,27 @@ EquirectangularProjection::EquirectangularProjection(
     : NonLinearProjection(parent)
 {
     setUser(user);
-    setUseDepthTransformation(true);
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
 }
 
-EquirectangularProjection::~EquirectangularProjection() {
-    glDeleteBuffers(1, &_vbo);
-    glDeleteVertexArrays(1, &_vao);
-    _shader.deleteProgram();
-}
+EquirectangularProjection::~EquirectangularProjection() = default;
 
-void EquirectangularProjection::render(const BaseViewport& viewport,
-                                       FrustumMode frustumMode) const
+void EquirectangularProjection::render(VkCommandBuffer cmd, const BaseViewport&,
+                                       FrustumMode frustumMode,
+                                       const VkRect2D& area) const
 {
     ZoneScoped;
 
-    glEnable(GL_SCISSOR_TEST);
-    viewport.setupViewport(frustumMode);
-    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
+    clearViewport(cmd, area);
 
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-    glBindTextureUnit(0, _textures.cubeMapColor);
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-
-    _shader.bind();
-
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-
-    ShaderProgram::unbind();
-
-    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-}
-
-void EquirectangularProjection::renderCubemap(FrustumMode frustumMode) const {
-    ZoneScoped;
-
-    renderCubeFace(_subViewports.right, 0, frustumMode);
-    renderCubeFace(_subViewports.left, 1, frustumMode);
-    renderCubeFace(_subViewports.bottom, 2, frustumMode);
-    renderCubeFace(_subViewports.top, 3, frustumMode);
-    renderCubeFace(_subViewports.front, 4, frustumMode);
-    renderCubeFace(_subViewports.back, 5, frustumMode);
+    _pass->bind(cmd, FullQuad.data());
+    _pass->setTextures(cmd, cubeTextures(frustumMode, TextureView::Cube));
+    _pass->drawQuad(cmd);
 }
 
 void EquirectangularProjection::update(const vec2&) const {}
-
-void EquirectangularProjection::initVBO() {
-    struct Vertex {
-        float x;
-        float y;
-        float z;
-        float s;
-        float t;
-    };
-
-    glCreateBuffers(1, &_vbo);
-    constexpr std::array<Vertex, 4> v = {
-        Vertex{ -1.f, -1.f, -1.f, 0.f, 0.f },
-        Vertex{ -1.f,  1.f, -1.f, 0.f, 1.f },
-        Vertex{  1.f, -1.f, -1.f, 1.f, 0.f },
-        Vertex{  1.f,  1.f, -1.f, 1.f, 1.f }
-    };
-    glNamedBufferStorage(_vbo, 4 * sizeof(Vertex), v.data(), GL_NONE_BIT);
-    glCreateVertexArrays(1, &_vao);
-    glVertexArrayVertexBuffer(_vao, 0, _vbo, 0, sizeof(Vertex));
-
-    glEnableVertexArrayAttrib(_vao, 0);
-    glVertexArrayAttribFormat(_vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, 0, 0);
-
-    glEnableVertexArrayAttrib(_vao, 1);
-    glVertexArrayAttribFormat(_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, s));
-    glVertexArrayAttribBinding(_vao, 1, 0);
-}
 
 void EquirectangularProjection::initViewports() {
     // Radius is needed to calculate the distance to all view planes
@@ -280,12 +249,15 @@ void EquirectangularProjection::initViewports() {
     }
 }
 
-void EquirectangularProjection::initShaders() {
-    _shader = ShaderProgram("CylindricalProjectinoShader");
-    _shader.addVertexShader(shaders_fisheye::BaseVert);
-    _shader.addFragmentShader(FragmentShader);
-    _shader.createAndLinkProgram();
-    glProgramUniform1i(_shader.id(), glGetUniformLocation(_shader.id(), "cubemap"), 0);
+void EquirectangularProjection::initPipelines(VkRenderPass renderPass) {
+    vulkan::ProjectionPass::Settings settings = projectionPassSettings();
+    settings.fragmentShader = fragmentShaderHeader() + std::string(FragmentShader);
+    settings.pushConstantSize = sizeof(FullQuad);
+    _pass = std::make_unique<vulkan::ProjectionPass>(
+        vulkan::Context::instance(),
+        renderPass,
+        settings
+    );
 }
 
 } // namespace sgct

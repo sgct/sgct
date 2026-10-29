@@ -51,9 +51,6 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
-      },
-      "cacheVariables": {
-        "OpenGL_GL_PREFERENCE": "GLVND"
       }
     },
 

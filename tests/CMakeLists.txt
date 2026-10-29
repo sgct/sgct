@@ -33,6 +33,17 @@ target_sources(
     test_config_load_window.cpp
 )
 
+# The rendering screenshot comparison needs the calibrator (it compares the screenshots the
+# calibrator's -runTests sequence writes into its own directory against the committed
+# references). It is only compiled when the calibrator is built.
+if (SGCT_BUILD_CALIBRATOR)
+  target_sources(SGCTTest PRIVATE test_render_screenshot.cpp)
+  target_compile_definitions(SGCTTest PRIVATE RENDER_TEST_DIR="$<TARGET_FILE_DIR:calibrator>")
+  # The screenshot comparison uses sgct::Image; the stb_image read implementation it
+  # needs is provided by the sgct target's link interface (see src/CMakeLists.txt)
+  find_package(stbimage CONFIG REQUIRED)
+endif ()
+
 target_compile_features(SGCTTest PRIVATE cxx_std_23)
 target_compile_definitions(SGCTTest PUBLIC BASE_PATH="${PROJECT_SOURCE_DIR}")
 target_compile_definitions(

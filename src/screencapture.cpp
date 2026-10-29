@@ -111,7 +111,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         capSrc == CaptureSource::Texture ?
         _window.framebufferResolution() :
         _window.windowSize();
-    if (_resolution.x != res.x && _resolution.y != res.y) {
+    if (_resolution != res) {
         resize(res);
     }
 

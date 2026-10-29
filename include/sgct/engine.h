@@ -153,7 +153,8 @@ public:
             std::filesystem::path capturePath;
 
             // The number of capture threads
-            int nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
+            int nCaptureThreads =
+                static_cast<int>(std::max(std::thread::hardware_concurrency() / 2, 1u));
 
             /// If set to true, the node name is added to screenshots
             bool addNodeName = false;

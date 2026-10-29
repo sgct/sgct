@@ -167,9 +167,11 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
     uint32_t size = 0;
     deserializeObject<uint32_t>(buffer, pos, size);
 
-    value = std::wstring(
-        reinterpret_cast<const char*>(buffer.data() + pos),
-        reinterpret_cast<const char*>(buffer.data() + pos + size)
+    value.resize(size);
+    std::memcpy(
+        value.data(),
+        buffer.data() + pos,
+        size * sizeof(std::wstring::value_type)
     );
     pos += size * sizeof(std::wstring::value_type);
 }

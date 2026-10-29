@@ -106,6 +106,8 @@ namespace {
         if (config.omitWindowNameInScreenshot) {
             res.capture.addWindowName = !(*config.omitWindowNameInScreenshot);
         }
+        res.printSyncMessage = config.printWaitMessage.value_or(res.printSyncMessage);
+        res.syncTimeout = config.waitTimeout.value_or(res.syncTimeout);
         if (cluster.settings) {
             if (cluster.settings->display) {
                 res.swapInterval = cluster.settings->display->swapInterval.value_or(
@@ -674,6 +676,10 @@ Engine::~Engine() {
     Log::destroy();
 
     Log::Debug("Terminating glfw");
+    // The error callback throws exceptions, which must neither happen in the destructor
+    // nor for GLFW functions that are called after the engine was destroyed, for example
+    // by sgct::time
+    glfwSetErrorCallback(nullptr);
     glfwTerminate();
 
     Log::Debug("Finished cleaning");

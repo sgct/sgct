@@ -217,7 +217,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         vertex.a = 1.f;
     }
 
-    if (fileVersion == '2' && size[0] == 4) {
+    if (fileVersion == 2 && size[0] == 4) {
         buf.geometryType = GL_TRIANGLES;
     }
     else {

@@ -396,63 +396,65 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         const int f1Size = static_cast<int>(20 * _scale);
         const int f2Size = static_cast<int>(12 * _scale);
-        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", f1Size);
-        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", f2Size);
-
-        text::print(
-            window,
-            viewport,
-            f1,
-            mode,
-            penPosition.x, penPosition.y + 9 * penOffset,
-            glm::vec4(1.f, 0.8f, 0.8f, 1.f),
-            std::format("Frame number: {}", Engine::instance().currentFrameNumber())
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 6 * penOffset,
-            ColorFrameTime,
-            std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 5 * penOffset,
-            ColorDrawTime,
-            std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 4 * penOffset,
-            ColorSyncTime,
-            std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 3 * penOffset,
-            ColorLoopTimeMin,
-            std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 2 * penOffset,
-            ColorLoopTimeMax,
-            std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
-        );
+        text::Font* f1 = text::FontManager::instance().font("SGCTFont", f1Size);
+        text::Font* f2 = text::FontManager::instance().font("SGCTFont", f2Size);
+        // The font might be missing if the font file could not be found
+        if (f1 && f2) {
+            text::print(
+                window,
+                viewport,
+                *f1,
+                mode,
+                penPosition.x, penPosition.y + 9 * penOffset,
+                glm::vec4(1.f, 0.8f, 0.8f, 1.f),
+                std::format("Frame number: {}", Engine::instance().currentFrameNumber())
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 6 * penOffset,
+                ColorFrameTime,
+                std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 5 * penOffset,
+                ColorDrawTime,
+                std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 4 * penOffset,
+                ColorSyncTime,
+                std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 3 * penOffset,
+                ColorLoopTimeMin,
+                std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 2 * penOffset,
+                ColorLoopTimeMax,
+                std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
+            );
+        }
 #endif // SGCT_HAS_TEXT
     }
 
@@ -513,31 +515,34 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         constexpr text::Alignment mode = text::Alignment::TopLeft;
 
         const int fontSize = static_cast<int>(8 * _scale);
-        text::Font& f = *text::FontManager::instance().font("SGCTFont", fontSize);
-        text::print(
-            window,
-            viewport,
-            f,
-            mode,
-            penPosition.x, penPosition.y + penOffset,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            std::format(
-                "Histogram Scale (sync time): {:.0f} ms",
-                HistogramScaleSync * 1000.0
-            )
-        );
-        text::print(
-            window,
-            viewport,
-            f,
-            mode,
-            penPosition.x, penPosition.y,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            std::format(
-                "Histogram Scale (frametime, drawtime): {:.0f} ms",
-                HistogramScaleFrame * 1000.0
-            )
-        );
+        text::Font* f = text::FontManager::instance().font("SGCTFont", fontSize);
+        // The font might be missing if the font file could not be found
+        if (f) {
+            text::print(
+                window,
+                viewport,
+                *f,
+                mode,
+                penPosition.x, penPosition.y + penOffset,
+                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+                std::format(
+                    "Histogram Scale (sync time): {:.0f} ms",
+                    HistogramScaleSync * 1000.0
+                )
+            );
+            text::print(
+                window,
+                viewport,
+                *f,
+                mode,
+                penPosition.x, penPosition.y,
+                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+                std::format(
+                    "Histogram Scale (frametime, drawtime): {:.0f} ms",
+                    HistogramScaleFrame * 1000.0
+                )
+            );
+        }
 #endif // SGCT_HAS_TEXT
     }
 }

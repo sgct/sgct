@@ -180,10 +180,11 @@ void validateProjection(const FisheyeProjection& p) {
     if (p.fov && *p.fov <= 0.f) {
         throw Err(1060, "Field of view setting must be positive");
     }
-    if (p.crop && p.crop->left > p.crop->right) {
+    // The crop values are the ratios that are removed from each side of the image
+    if (p.crop && p.crop->left + p.crop->right > 1.f) {
         throw Err(1061, "Left and right crop must not overlap");
     }
-    if (p.crop && p.crop->bottom > p.crop->top) {
+    if (p.crop && p.crop->bottom + p.crop->top > 1.f) {
         throw Err(1062, "Bottom and top crop must not overlap");
     }
     if (p.quality && *p.quality <= 0) {
@@ -215,6 +216,11 @@ void validateProjection(const SphericalMirrorProjection& p) {
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Err(1072, "All background color components have to be positive");
         }
+    }
+    if (p.mesh.bottom.empty() || p.mesh.left.empty() || p.mesh.right.empty() ||
+        p.mesh.top.empty())
+    {
+        throw Err(1073, "All mesh paths must not be empty");
     }
 }
 
@@ -309,7 +315,8 @@ void validateNode(const Node& n) {
         }
         usedIds.push_back(win.id);
 
-        if (win.blitWindowId) {
+        // A blitWindowId of -1 is the documented default value that disables blitting
+        if (win.blitWindowId && *win.blitWindowId != -1) {
             if (*win.blitWindowId < 0) {
                 throw Err(1108, "BlitWindowId must be between 0 and 127");
             }
@@ -328,7 +335,7 @@ void validateNode(const Node& n) {
             }
             if (win.id == *win.blitWindowId) {
                 throw Err(
-                    1110,
+                    1114,
                     std::format(
                         "Window {} tried to blit from itself, which cannot work", win.id
                     )
@@ -376,7 +383,8 @@ void validateCluster(const Cluster& c) {
         std::back_inserter(usernames),
         [](const User& user) { return user.name.value_or(""); }
     );
-    if (std::unique(usernames.begin(), usernames.end()) != usernames.end()) {
+    std::sort(usernames.begin(), usernames.end());
+    if (std::adjacent_find(usernames.begin(), usernames.end()) != usernames.end()) {
         throw Err(1124, "No two users can have the same name");
     }
 
@@ -686,11 +694,12 @@ static void from_json(const nlohmann::json& j, glm::vec4& v) {
 }
 
 static void to_json(nlohmann::json& j, const glm::vec4& v) {
+    // The only vec4s in the configuration are colors, which the schema expects as rgba
     j = nlohmann::json::object();
-    j["x"] = v.x;
-    j["y"] = v.y;
-    j["z"] = v.z;
-    j["w"] = v.w;
+    j["r"] = v.x;
+    j["g"] = v.y;
+    j["b"] = v.z;
+    j["a"] = v.w;
 }
 
 static void from_json(const nlohmann::json& j, glm::mat4& m) {
@@ -1322,7 +1331,7 @@ static void from_json(const nlohmann::json& j, CubemapProjection::Spout& s) {
 static void from_json(const nlohmann::json& j, CubemapProjection::NDI& n) {
     parseValue(j, "enabled", n.enabled);
     parseValue(j, "name", n.name);
-    parseValue(j, "groups", n.groups);
+    parseValue(j, "group", n.groups);
 }
 
 static void from_json(const nlohmann::json& j, CubemapProjection& p) {
@@ -1366,7 +1375,7 @@ static void to_json(nlohmann::json& j, const CubemapProjection::NDI& n) {
         j["name"] = *n.name;
     }
     if (n.groups) {
-        j["groups"] = *n.groups;
+        j["group"] = *n.groups;
     }
 }
 
@@ -1539,6 +1548,8 @@ static void from_json(const nlohmann::json& j, Viewport& v) {
 }
 
 static void to_json(nlohmann::json& j, const Viewport& v) {
+    j = nlohmann::json::object();
+
     if (v.user.has_value()) {
         j["user"] = *v.user;
     }
@@ -1585,7 +1596,7 @@ static void to_json(nlohmann::json& j, const Viewport& v) {
         j["size"] = *v.size;
     }
 
-    j["projection"] = std::visit(overloaded{
+    nlohmann::json projection = std::visit(overloaded{
         [](const config::NoProjection&) {
             return nlohmann::json();
         },
@@ -1630,6 +1641,11 @@ static void to_json(nlohmann::json& j, const Viewport& v) {
             return proj;
         }
         }, v.projection);
+
+    // A missing projection is parsed as NoProjection, but the schema rejects a null value
+    if (!projection.is_null()) {
+        j["projection"] = std::move(projection);
+    }
 }
 
 static void from_json(const nlohmann::json& j, Window::Spout& n) {
@@ -1640,17 +1656,32 @@ static void from_json(const nlohmann::json& j, Window::Spout& n) {
 static void from_json(const nlohmann::json& j, Window::NDI& n) {
     parseValue(j, "enabled", n.enabled);
     parseValue(j, "name", n.name);
-    parseValue(j, "groups", n.groups);
+    parseValue(j, "group", n.groups);
 }
 
 static void from_json(const nlohmann::json& j, Window::OpenXR& o) {
     parseValue(j, "enabled", o.enabled);
 }
 
+static std::optional<int8_t> parseWindowIndex(const nlohmann::json& j,
+                                              std::string_view key, int code)
+{
+    // Window indices are stored as int8_t, so larger values would silently wrap around
+    std::optional<int> v;
+    parseValue(j, key, v);
+    if (!v.has_value()) {
+        return std::nullopt;
+    }
+    if (*v < std::numeric_limits<int8_t>::min() ||
+        *v > std::numeric_limits<int8_t>::max())
+    {
+        throw Err(code, std::format("Value {} for window {} is out of range", *v, key));
+    }
+    return static_cast<int8_t>(*v);
+}
+
 static void from_json(const nlohmann::json& j, Window& w) {
-    std::optional<int8_t> id;
-    parseValue(j, "id", id);
-    w.id = id.value_or(InvalidWindowIndex);
+    w.id = parseWindowIndex(j, "id", 6043).value_or(InvalidWindowIndex);
 
     parseValue(j, "name", w.name);
     parseValue(j, "tags", w.tags);
@@ -1687,7 +1718,7 @@ static void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "border", w.isDecorated);
     parseValue(j, "resizable", w.isResizable);
     parseValue(j, "noerror", w.noError);
-    parseValue(j, "blitwindowid", w.blitWindowId);
+    w.blitWindowId = parseWindowIndex(j, "blitwindowid", 6044);
     parseValue(j, "mirrorx", w.mirrorX);
     parseValue(j, "mirrory", w.mirrorY);
     parseValue(j, "monitor", w.monitor);
@@ -1729,7 +1760,7 @@ static void to_json(nlohmann::json& j, const Window::NDI& n) {
         j["name"] = *n.name;
     }
     if (n.groups) {
-        j["groups"] = *n.groups;
+        j["group"] = *n.groups;
     }
 }
 
@@ -1750,6 +1781,10 @@ static void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.takeScreenshot.has_value()) {
         j["takescreenshot"] = *w.takeScreenshot;
+    }
+
+    if (w.alpha.has_value()) {
+        j["alpha"] = *w.alpha;
     }
 
     if (w.draw2D.has_value()) {
@@ -1877,10 +1912,10 @@ static void to_json(nlohmann::json& j, const Window& w) {
         j["scalablemesh"] = w.scalable->mesh;
 
         if (w.scalable->orthographicQuality.has_value()) {
-            j["scalable_ortho_quality"] = *w.scalable->orthographicQuality;
+            j["scalablemesh_ortho_quality"] = *w.scalable->orthographicQuality;
         }
         if (w.scalable->orthographicResolution.has_value()) {
-            j["scalable_ortho_resolution"] = *w.scalable->orthographicResolution;
+            j["scalablemesh_ortho_res"] = *w.scalable->orthographicResolution;
         }
     }
 

@@ -62,6 +62,15 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const glm::vec2
             );
         }
         const auto& [valX, valY] = r->values();
+        // We need at least a 2x2 grid to create a mesh
+        if (valX < 2 || valY < 2) {
+            throw Error(
+                Error::Component::PaulBourke, 2042,
+                std::format(
+                    "Invalid mesh dimensions {}x{} in file '{}'", valX, valY, path
+                )
+            );
+        }
         buf.vertices.reserve(static_cast<size_t>(valX) * static_cast<size_t>(valY));
         meshSize = glm::ivec2(valX, valY);
     }
@@ -91,6 +100,18 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const glm::vec2
         throw Error(
             Error::Component::PaulBourke, 2041,
             std::format("Error reading mapping type in file '{}'", path)
+        );
+    }
+
+    const size_t nVertices =
+        static_cast<size_t>(meshSize->x) * static_cast<size_t>(meshSize->y);
+    if (buf.vertices.size() != nVertices) {
+        throw Error(
+            Error::Component::PaulBourke, 2043,
+            std::format(
+                "Expected {}x{} vertices but found {} in file '{}'",
+                meshSize->x, meshSize->y, buf.vertices.size(), path
+            )
         );
     }
 

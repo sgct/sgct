@@ -692,7 +692,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         );
         _screenCaptureRight = std::make_unique<ScreenCapture>(
             *this,
-            ScreenCapture::EyeIndex::Mono,
+            ScreenCapture::EyeIndex::StereoRight,
             bytesPerColor,
             colorDataType,
             _hasAlpha
@@ -1183,8 +1183,7 @@ void Window::renderFBOTexture() {
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_BLEND);
 
-        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-        // Render blend masks
+        // Result = Color * BlendMask * BlackLevelMask
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             ZoneScopedN("Render Viewport");
@@ -1337,7 +1336,7 @@ void Window::swapBuffers(bool takeScreenshot) {
                 );
             }
             if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
-                _screenCaptureLeftOrMono->saveScreenCapture(
+                _screenCaptureRight->saveScreenCapture(
                     0,
                     ScreenCapture::CaptureSource::RightBackBuffer
                 );

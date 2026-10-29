@@ -19,6 +19,10 @@ namespace sgct {
 class SGCT_EXPORT Image {
 public:
     Image() = default;
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+    Image(Image&& rhs) noexcept;
+    Image& operator=(Image&& rhs) noexcept;
     ~Image();
 
     void allocateOrResizeData();
@@ -41,6 +45,8 @@ public:
     void setBytesPerChannel(int bpc);
 
 private:
+    void freeData();
+
     int _nChannels = 0;
     glm::ivec2 _size = glm::ivec2(0, 0);
     unsigned int _dataSize = 0;

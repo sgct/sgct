@@ -296,7 +296,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         }
         else if (first == "APPLY_COLOR") {
             data.applyColor = std::stoi(std::string(rest)) != 0;
-            if (data.applyBlackLevel) {
+            if (data.applyColor) {
                 Log::Warning(std::format(
                     "Mesh '{}' requested to apply an overlay image. Currently this is "
                     "handled outside the mesh by specifying an 'overlay' attribute on "
@@ -401,14 +401,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             }
             const std::string_view s = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
-            sep = rest.find(' ');
-            if (sep == std::string_view::npos) {
-                Log::Warning(std::format(
-                    "Illegal formatting of vertex in scalable mesh file '{}' in line {}",
-                    path, line
-                ));
-            }
-            const std::string_view t = rest.substr(0, sep);
+            // The texture coordinate is usually the last value in the line
+            const std::string_view t = rest.substr(0, rest.find(' '));
 
             Data::Vertex vertex;
             vertex.x = std::stof(std::string(x));
@@ -480,7 +474,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         v.b = vertex.intensity / 255.f;
         v.a = 1.f;
         v.s = (1.f - vertex.t) * parent.size().x + parent.position().x;
-        v.t = (1.f - vertex.s) * parent.size().x + parent.position().x;
+        v.t = (1.f - vertex.s) * parent.size().y + parent.position().y;
 
         buf.vertices.push_back(v);
     }

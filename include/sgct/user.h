@@ -29,7 +29,8 @@ public:
     User(const config::User& user);
 
     /**
-     * Sets user's head position.
+     * Sets the user's position, which is a linear offset that is applied after the head
+     * transform.
      */
     void setPos(glm::vec3 pos);
 
@@ -89,20 +90,16 @@ public:
 
 private:
     /**
-     * Recalculates the user's eye positions based on head position and eye separation
-     * (interocular distance).
+     * Recalculates the user's eye positions based on the position, head transform, and
+     * eye separation (interocular distance).
      */
-    void updateEyeSeparation();
-
-    /**
-     * Recalculates the user's eye orientations based on head position and eye separation
-     * (interocular distance).
-     */
-    void updateEyeTransform();
+    void updateEyePositions();
 
     const std::string _name;
     float _eyeSeparation;
 
+    /// The linear offset that is applied to the user's position after the transform
+    glm::vec3 _position = glm::vec3(0.f, 0.f, 0.f);
     glm::vec3 _posMono = glm::vec3(0.f, 0.f, 0.f);
     glm::vec3 _posLeftEye = glm::vec3(0.f, 0.f, 0.f);
     glm::vec3 _posRightEye = glm::vec3(0.f, 0.f, 0.f);

@@ -9,7 +9,28 @@
 #include <sgct/commandline.h>
 
 #include <iostream>
+#include <stdexcept>
 #include <string_view>
+#include <type_traits>
+
+namespace {
+    template <typename T>
+    std::optional<T> parseNumber(std::string_view flag, const std::string& value) {
+        try {
+            if constexpr (std::is_same_v<T, int>) {
+                return std::stoi(value);
+            }
+            else {
+                return std::stof(value);
+            }
+        }
+        catch (const std::logic_error&) {
+            // std::invalid_argument and std::out_of_range
+            std::cerr << "Invalid value for " << flag << ": " << value << '\n';
+            return std::nullopt;
+        }
+    }
+} // namespace
 
 namespace sgct {
 
@@ -36,7 +57,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
         }
         else if ((arg[i] == "--local" || arg[i] == "-l") && arg.size() > (i + 1)) {
             config.isServer = true;
-            config.nodeId = std::stoi(arg[i + 1]);
+            config.nodeId = parseNumber<int>(arg[i], arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "--notify" && arg.size() > (i + 1)) {
@@ -46,7 +67,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
                 else if (l == "info")    { return Log::Level::Info; }
                 else if (l == "debug")   { return Log::Level::Debug; }
                 else {
-                    std::cerr << "Unknown logger level: " << std::string(l);
+                    std::cerr << "Unknown logger level: " << std::string(l) << '\n';
                     return Log::Level::Info;
                 }
             } (arg[i + 1]);
@@ -67,14 +88,17 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--number-capture-threads" && arg.size() > (i + 1)) {
-            config.nCaptureThreads = std::max(std::stoi(arg[i + 1]), 1);
+            const std::optional<int> n = parseNumber<int>(arg[i], arg[i + 1]);
+            if (n.has_value()) {
+                config.nCaptureThreads = std::max(*n, 1);
+            }
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
-        else if (arg[i] == "--screenshot-path") {
+        else if (arg[i] == "--screenshot-path" && arg.size() > (i + 1)) {
             config.screenshotPath = arg[i + 1];
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
-        else if (arg[i] == "--screenshot-prefix") {
+        else if (arg[i] == "--screenshot-prefix" && arg.size() > (i + 1)) {
             config.screenshotPrefix = arg[i + 1];
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
@@ -90,9 +114,9 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.printWaitMessage = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--wait-timeout") {
-            config.waitTimeout = std::stof(arg[i + 1]);
-            arg.erase(arg.begin() + 1, arg.begin() + i + 2);
+        else if (arg[i] == "--wait-timeout" && arg.size() > (i + 1)) {
+            config.waitTimeout = parseNumber<float>(arg[i], arg[i + 1]);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else {
             // Ignore unknown commands
@@ -134,6 +158,10 @@ Parameters:
     If set, screenshots will not contain the name of the window if multiple windows exist
 --number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
+--print-wait-message
+    Print a message while waiting for the synchronization with the other nodes
+--wait-timeout <float>
+    Set the number of seconds to wait for the other nodes before aborting
 )";
 }
 

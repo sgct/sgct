@@ -16,18 +16,17 @@ namespace sgct {
 User::User(const config::User& user)
     : _name(user.name.value_or(std::string("default")))
     , _eyeSeparation(user.eyeSeparation.value_or(0.06f))
-    , _posMono(user.position.value_or(glm::vec3(0.f, 0.f, 0.f)))
+    , _position(user.position.value_or(glm::vec3(0.f, 0.f, 0.f)))
     , _transform(user.transformation.value_or(glm::mat4(1.f)))
     , _headTrackerDeviceName(user.tracking ? user.tracking->device : std::string())
     , _headTrackerName(user.tracking ? user.tracking->tracker : std::string())
 {
-    updateEyeTransform();
-    updateEyeSeparation();
+    updateEyePositions();
 }
 
 void User::setPos(glm::vec3 pos) {
-    _posMono = std::move(pos);
-    updateEyeSeparation();
+    _position = std::move(pos);
+    updateEyePositions();
 }
 
 void User::setHeadTracker(std::string trackerName, std::string deviceName) {
@@ -37,41 +36,33 @@ void User::setHeadTracker(std::string trackerName, std::string deviceName) {
 
 void User::setTransform(glm::mat4 transform) {
     _transform = transform;
-    updateEyeTransform();
+    updateEyePositions();
 }
 
 void User::setOrientation(float x, float y, float z) {
-    const glm::mat4 trans = glm::translate(glm::mat4(1.f), _posMono);
-    _transform = trans * glm::eulerAngleX(x) * glm::eulerAngleY(y) * glm::eulerAngleZ(z);
-    updateEyeTransform();
+    _transform = glm::eulerAngleX(x) * glm::eulerAngleY(y) * glm::eulerAngleZ(z);
+    updateEyePositions();
 }
 
 void User::setOrientation(glm::quat q) {
-    const glm::mat4 trans = glm::translate(glm::mat4(1.f), _posMono);
-    _transform = trans * glm::mat4_cast(q);
-    updateEyeTransform();
+    _transform = glm::mat4_cast(q);
+    updateEyePositions();
 }
 
 void User::setEyeSeparation(float eyeSeparation) {
     _eyeSeparation = eyeSeparation;
-    updateEyeSeparation();
+    updateEyePositions();
 }
 
-void User::updateEyeSeparation() {
-    const glm::vec3 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f);
-    _posLeftEye = _posMono - eyeOffsetVec;
-    _posRightEye = _posMono + eyeOffsetVec;
-}
-
-void User::updateEyeTransform() {
+void User::updateEyePositions() {
+    // The eyes are placed around the origin and transformed by the head transform before
+    // the user's position is applied as a linear offset. Always computing the positions
+    // from scratch prevents repeated calls from accumulating the transform
     const glm::vec4 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f, 0.f);
-    const glm::vec4 posMono = glm::vec4(_posMono, 1.f);
-    const glm::vec4 posLeft = posMono - eyeOffsetVec;
-    const glm::vec4 posRight = posMono + eyeOffsetVec;
-
-    _posMono = glm::vec3(_transform * posMono);
-    _posLeftEye = glm::vec3(_transform * posLeft);
-    _posRightEye = glm::vec3(_transform * posRight);
+    const glm::vec4 origin = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    _posMono = _position + glm::vec3(_transform * origin);
+    _posLeftEye = _position + glm::vec3(_transform * (origin - eyeOffsetVec));
+    _posRightEye = _position + glm::vec3(_transform * (origin + eyeOffsetVec));
 }
 
 const glm::vec3& User::posMono() const {

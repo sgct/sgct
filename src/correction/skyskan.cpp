@@ -55,35 +55,35 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     while (std::getline(meshFile, line)) {
         if (auto r = scn::scan<float>(line, "Dome Azimuth={}");  r) {
             azimuth = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "Dome Elevation={}");  r) {
             elevation = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "Horizontal FOV={}");  r) {
             hFov = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "Vertical FOV={}");  r) {
             vFov = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "Horizontal Tweak={}");  r) {
             fovTweaks.x = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "Vertical Tweak={}");  r) {
             fovTweaks.y = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "U Tweak={}");  r) {
             uvTweaks.x = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<float>(line, "V Tweak={}");  r) {
             uvTweaks.y = r->value();
-            break;
+            continue;
         }
         if (auto r = scn::scan<unsigned int, unsigned int>(line, "{} {}");
             r && !areDimsSet)
@@ -91,11 +91,18 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
             areDimsSet = true;
             std::tie(sizeX, sizeY) = r->values();
             buf.vertices.resize(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
-            break;
+            continue;
         }
         if (auto r = scn::scan<float, float, float, float>(line, "{} {} {} {}");
             r && areDimsSet)
         {
+            if (counter >= buf.vertices.size()) {
+                throw Err(
+                    2092,
+                    std::format("Too many vertices for the mesh size in '{}'", path)
+                );
+            }
+
             auto& [x, y, u, v] = r->values();
             if (uvTweaks.x > -1.f) {
                 u *= uvTweaks.x;
@@ -115,7 +122,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
             buf.vertices[counter].b = 1.f;
             buf.vertices[counter].a = 1.f;
             counter++;
-            break;
+            continue;
         }
     }
 
@@ -123,6 +130,20 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         !hFov.has_value() || *hFov <= 0.f)
     {
         throw Err(2091, std::format("Data reading error in file '{}'", path));
+    }
+
+    if (sizeX < 2 || sizeY < 2) {
+        throw Err(
+            2093,
+            std::format("Mesh size must be at least 2x2 in file '{}'", path)
+        );
+    }
+
+    if (counter != buf.vertices.size()) {
+        throw Err(
+            2092,
+            std::format("Too few vertices for the mesh size in '{}'", path)
+        );
     }
 
     // Create frustums and projection matrices

@@ -223,8 +223,9 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     // Create the font when all error tests are done
     auto font = std::make_unique<Font>(_library, face, height);
 
-    static bool isShaderCreated = false;
-    if (!isShaderCreated) {
+    // The shader is shared between all fonts and has to be created again if the font
+    // manager was destroyed together with a previous engine
+    if (_shader.id() == 0) {
         _shader = ShaderProgram("FontShader");
         _shader.addVertexShader(FontVertShader);
         _shader.addFragmentShader(FontFragShader);
@@ -233,8 +234,6 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         _mvpLocation = glGetUniformLocation(_shader.id(), "mvp");
         _colorLocation = glGetUniformLocation(_shader.id(), "col");
         _textureLocation = glGetUniformLocation(_shader.id(), "tex");
-
-        isShaderCreated = true;
     }
 
     return font;

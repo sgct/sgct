@@ -259,7 +259,7 @@
           "enum": [ "linear", "cubic" ]
         },
         "orientation": { "$ref": "#/$defs/orientation" },
-        "diameter": { "type": "number" },
+        "diameter": { "type": "number", "exclusiveMinimum": 0 },
         "crop": {
           "type": "object",
           "properties": {
@@ -347,10 +347,10 @@
         "geometry": {
           "type": "object",
           "properties": {
-            "bottom": { "type": "string" },
-            "left": { "type": "string" },
-            "right": { "type": "string" },
-            "top": { "type": "string" }
+            "bottom": { "type": "string", "minLength": 1 },
+            "left": { "type": "string", "minLength": 1 },
+            "right": { "type": "string", "minLength": 1 },
+            "top": { "type": "string", "minLength": 1 }
           },
           "required": [ "bottom", "left", "right", "top" ],
           "additionalProperties": false
@@ -421,7 +421,8 @@
         },
         "id": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 127
         },
         "name": {
           "type": "string",
@@ -429,7 +430,8 @@
         },
         "tags": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
         },
         "bufferbitdepth": {
           "type": "string",
@@ -456,7 +458,8 @@
         "noerror": { "type": "boolean" },
         "blitwindowid": {
           "type": "integer",
-          "minimum": -1
+          "minimum": -1,
+          "maximum": 127
         },
         "mirrorx": { "type": "boolean" },
         "mirrory": { "type": "boolean" },
@@ -485,7 +488,23 @@
         },
         "spout": { "$ref": "#/$defs/spout" },
         "ndi": { "$ref": "#/$defs/ndi" },
-        "scalablemesh": { "type": "string" }
+        "openxr": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" }
+          },
+          "required": [ "enabled" ],
+          "additionalProperties": false
+        },
+        "scalablemesh": { "type": "string" },
+        "scalablemesh_ortho_quality": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scalablemesh_ortho_res": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "required": ["size"],
       "additionalProperties": false

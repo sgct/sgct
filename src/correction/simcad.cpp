@@ -21,17 +21,29 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <utility>
+#include <vector>
 
-#define Err(code, msg) Error(Error::Component::SimCAD, code, msg)
+#define Err(code, msg) sgct::Error(sgct::Error::Component::SimCAD, code, msg)
 
 namespace {
-    std::vector<std::string> split(std::string str, char delimiter) {
-        std::vector<std::string> res;
-        std::stringstream ss(std::move(str));
-        std::string part;
-        while (std::getline(ss, part, delimiter)) {
-            res.push_back(part);
+    std::vector<float> parseValues(const std::filesystem::path& path, const char* text,
+                                   float range)
+    {
+        std::vector<float> res;
+        if (text == nullptr) {
+            // An empty element does not have any text
+            return res;
+        }
+
+        std::istringstream ss = std::istringstream(text);
+        float value = 0.f;
+        while (ss >> value) {
+            res.push_back(value / range);
+        }
+        if (!ss.eof()) {
+            throw Err(
+                2085, std::format("Invalid correction value in file '{}'", path)
+            );
         }
         return res;
     }
@@ -86,21 +98,13 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const glm::vec2& po
         if (childVal == "X-FlatParameters") {
             float xrange = 1.f;
             if (child->QueryFloatAttribute("range", &xrange) == XML_SUCCESS) {
-                const std::string xcoordstr(child->GetText());
-                const std::vector<std::string> xcoords = split(xcoordstr, ' ');
-                for (const std::string& x : xcoords) {
-                    xcorrections.push_back(std::stof(x) / xrange);
-                }
+                xcorrections = parseValues(path, child->GetText(), xrange);
             }
         }
         else if (childVal == "Y-FlatParameters") {
             float yrange = 1.f;
             if (child->QueryFloatAttribute("range", &yrange) == XML_SUCCESS) {
-                const std::string ycoordstr(child->GetText());
-                const std::vector<std::string> ycoords = split(ycoordstr, ' ');
-                for (const std::string& y : ycoords) {
-                    ycorrections.push_back(std::stof(y) / yrange);
-                }
+                ycorrections = parseValues(path, child->GetText(), yrange);
             }
         }
 
@@ -114,7 +118,10 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const glm::vec2& po
     const float nColumnsf = std::sqrt(static_cast<float>(xcorrections.size()));
     const float nRowsf = std::sqrt(static_cast<float>(ycorrections.size()));
 
-    if (std::ceil(nColumnsf) != nColumnsf || std::ceil(nRowsf) != nRowsf) {
+    // We need at least a 2x2 matrix to create a mesh
+    if (std::ceil(nColumnsf) != nColumnsf || std::ceil(nRowsf) != nRowsf ||
+        nColumnsf < 2.f)
+    {
         throw Err(2084, "Not a valid squared matrix read from SimCAD file");
     }
 
@@ -171,6 +178,8 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const glm::vec2& po
                 buf.indices.push_back(static_cast<unsigned int>(c + (r + 1) * nCols));
                 buf.indices.push_back(static_cast<unsigned int>(c - 1 + r * nCols));
             }
+            // The first vertex of the lower row completes the last cell of the row
+            buf.indices.push_back(static_cast<unsigned int>((r + 1) * nCols));
         }
     }
 

@@ -15,6 +15,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <string>
 #include <string_view>
@@ -110,7 +111,8 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
         "Type has to be a plain-old data type"
     );
 
-    value = *reinterpret_cast<const T*>(&buffer[pos]);
+    // The value might not be correctly aligned in the buffer, so we can't dereference it
+    std::memcpy(&value, buffer.data() + pos, sizeof(T));
     pos += sizeof(T);
 }
 
@@ -127,11 +129,8 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
         return;
     }
 
-    value.clear();
-    value.assign(
-        reinterpret_cast<const T*>(buffer.data() + pos),
-        reinterpret_cast<const T*>(buffer.data() + pos + size * sizeof(T))
-    );
+    value.resize(size);
+    std::memcpy(value.data(), buffer.data() + pos, size * sizeof(T));
     pos += size * sizeof(T);
 }
 

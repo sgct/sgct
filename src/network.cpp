@@ -790,8 +790,10 @@ void Network::initShutdown() {
     ZoneScoped;
 
     if (_isConnected) {
-        constexpr std::array<char, 9> GameOver = {
-            DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0', DefaultId
+        // The disconnect message has to fill the complete header
+        constexpr std::array<char, HeaderSize> GameOver = {
+            DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0',
+            DefaultId, DefaultId, DefaultId, DefaultId, DefaultId
         };
         sendData(GameOver.data(), HeaderSize);
     }

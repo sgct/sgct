@@ -18,6 +18,7 @@
 #include <chrono>
 #include <csetjmp>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -33,10 +34,36 @@
 
 namespace sgct {
 
-Image::~Image() {
-    if (_data) {
-        stbi_image_free(_data);
+Image::Image(Image&& rhs) noexcept
+    : _nChannels(std::exchange(rhs._nChannels, 0))
+    , _size(std::exchange(rhs._size, glm::ivec2(0, 0)))
+    , _dataSize(std::exchange(rhs._dataSize, 0))
+    , _bytesPerChannel(std::exchange(rhs._bytesPerChannel, 1))
+    , _data(std::exchange(rhs._data, nullptr))
+{}
+
+Image& Image::operator=(Image&& rhs) noexcept {
+    if (this != &rhs) {
+        freeData();
+        _nChannels = std::exchange(rhs._nChannels, 0);
+        _size = std::exchange(rhs._size, glm::ivec2(0, 0));
+        _dataSize = std::exchange(rhs._dataSize, 0);
+        _bytesPerChannel = std::exchange(rhs._bytesPerChannel, 1);
+        _data = std::exchange(rhs._data, nullptr);
     }
+    return *this;
+}
+
+Image::~Image() {
+    freeData();
+}
+
+void Image::freeData() {
+    // The data is either allocated by stb_image or by allocateOrResizeData, both of
+    // which use malloc, so we have to free it with the matching function
+    stbi_image_free(_data);
+    _data = nullptr;
+    _dataSize = 0;
 }
 
 void Image::load(const std::filesystem::path& filename) {
@@ -44,6 +71,7 @@ void Image::load(const std::filesystem::path& filename) {
         throw Err(9000, "Cannot load empty filepath");
     }
 
+    freeData();
     stbi_set_flip_vertically_on_load(1);
     std::string name = filename.string();
     _data = stbi_load(name.c_str(), &_size.x, &_size.y, &_nChannels, 0);
@@ -63,8 +91,12 @@ void Image::load(const std::filesystem::path& filename) {
 }
 
 void Image::load(unsigned char* data, int length) {
+    freeData();
     stbi_set_flip_vertically_on_load(1);
     _data = stbi_load_from_memory(data, length, &_size.x, &_size.y, &_nChannels, 0);
+    if (_data == nullptr) {
+        throw Err(9003, "Could not load image from memory");
+    }
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
 
@@ -107,6 +139,7 @@ void Image::save(const std::filesystem::path& filename) {
         nullptr
     );
     if (!png) {
+        fclose(fp);
         throw Err(9009, "Failed to create PNG struct");
     }
 
@@ -125,11 +158,14 @@ void Image::save(const std::filesystem::path& filename) {
 
     png_infop info = png_create_info_struct(png);
     if (!info) {
+        png_destroy_write_struct(&png, nullptr);
+        fclose(fp);
         throw Err(9010, "Failed to create PNG info struct");
     }
 
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_write_struct(&png, &info);
+        fclose(fp);
         throw Err(9011, "One of the called PNG functions failed");
     }
 
@@ -232,13 +268,14 @@ void Image::allocateOrResizeData() {
 
     if (_data && _dataSize != dataSize) {
         // Reallocate if needed
-        delete[] _data;
-        _data = nullptr;
-        _dataSize = 0;
+        freeData();
     }
 
     if (!_data) {
-        _data = new unsigned char[dataSize];
+        _data = static_cast<unsigned char*>(std::malloc(dataSize));
+        if (!_data) {
+            throw Err(9004, std::format("Failed to allocate {} bytes", dataSize));
+        }
         _dataSize = dataSize;
 
         Log::Debug(std::format(

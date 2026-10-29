@@ -47,6 +47,13 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
     std::getline(meshFile, dims, '\n');
     std::getline(meshFile, endiannessIndicator, '\n');
 
+    if (!fileFormatHeader.starts_with("PF")) {
+        throw Error(
+            Error::Component::Pfm, 2053,
+            std::format("Incorrect file type in file '{}'", path)
+        );
+    }
+
     auto result = scn::scan<unsigned int, unsigned int>(dims, "{} {}");
     if (!result) {
         throw Error(
@@ -62,20 +69,23 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
             std::format("Invalid endianness value in file '{}'", path)
         );
     }
-    if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
+
+    const unsigned int nEyes = textureRenderMode ? 1 : 2;
+    // We need at least two columns per eye and two rows to create a mesh
+    if (nCols < 2 * nEyes || nRows < 2) {
         throw Error(
-            Error::Component::Pfm, 2053,
-            std::format("Incorrect file type in file '{}'", path)
+            Error::Component::Pfm, 2052,
+            std::format("Invalid mesh dimensions {}x{} in file '{}'", nCols, nRows, path)
         );
     }
 
-    const int numCorrectionValues = nCols * nRows;
+    const size_t numCorrectionValues = static_cast<size_t>(nCols) * nRows;
     std::vector<float> xcorrections;
     xcorrections.resize(numCorrectionValues);
     std::vector<float> ycorrections;
     ycorrections.resize(numCorrectionValues);
 
-    for (int i = 0; i < numCorrectionValues; i++) {
+    for (size_t i = 0; i < numCorrectionValues; i++) {
         meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
         meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
         float dumpValue = 0.f;
@@ -89,7 +99,6 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
         }
     }
 
-    const unsigned int nEyes = textureRenderMode ? 1 : 2;
     nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)

@@ -15,6 +15,7 @@
 #include <sgct/correctionmesh.h>
 #include <sgct/glm.h>
 #include <sgct/shaderprogram.h>
+#include <filesystem>
 
 namespace sgct {
 
@@ -65,10 +66,10 @@ private:
     CorrectionMesh _meshLeft;
     CorrectionMesh _meshRight;
     CorrectionMesh _meshTop;
-    std::string _meshPathBottom;
-    std::string _meshPathLeft;
-    std::string _meshPathRight;
-    std::string _meshPathTop;
+    std::filesystem::path _meshPathBottom;
+    std::filesystem::path _meshPathLeft;
+    std::filesystem::path _meshPathRight;
+    std::filesystem::path _meshPathTop;
 
     // shader locations
     int _texLoc = -1;

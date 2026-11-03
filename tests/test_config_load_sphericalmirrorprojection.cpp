@@ -73,10 +73,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -141,10 +141,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -213,10 +213,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 256,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -283,10 +283,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 256,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -353,10 +353,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 512,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -423,10 +423,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 512,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -493,10 +493,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1024,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -563,10 +563,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1024,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -633,10 +633,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1024,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -703,10 +703,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -773,10 +773,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -843,10 +843,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 2048,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -913,10 +913,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 2048,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -983,10 +983,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 4096,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1053,10 +1053,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 4096,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1123,10 +1123,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 8192,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1193,10 +1193,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 8192,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1263,10 +1263,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 16384,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1333,10 +1333,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 16384,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1403,10 +1403,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 32768,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1473,10 +1473,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 32768,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1543,10 +1543,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 65536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1613,10 +1613,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 65536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1684,10 +1684,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Orientation", "[parse]") {
                                 .projection = SphericalMirrorProjection {
                                     .orientation = fromEuler(2.f, 1.f, 3.f),
                                     .mesh = SphericalMirrorProjection::Mesh {
-                                        .bottom = "abc",
-                                        .left = "def",
-                                        .right = "ghi",
-                                        .top = "jkl"
+                                        .bottom = std::filesystem::absolute("abc"),
+                                        .left = std::filesystem::absolute("def"),
+                                        .right = std::filesystem::absolute("ghi"),
+                                        .top = std::filesystem::absolute("jkl")
                                     }
                                 }
                             }
@@ -1755,10 +1755,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .orientation = fromEuler(0.f, -1.f, 0.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1825,10 +1825,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .orientation = fromEuler(0.f, -2.f, 0.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -1897,10 +1897,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1967,10 +1967,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .background = glm::vec4(5.f, 6.f, 7.f, 8.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -2039,10 +2039,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -2109,10 +2109,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
                                     .projection = SphericalMirrorProjection {
                                         .background = glm::vec4(5.f, 6.f, 7.f, 8.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -2184,10 +2184,10 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
                                     .orientation = glm::quat(4.f, 1.f, 2.f, 3.f),
                                     .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                     .mesh = SphericalMirrorProjection::Mesh {
-                                        .bottom = "abc",
-                                        .left = "def",
-                                        .right = "ghi",
-                                        .top = "jkl"
+                                        .bottom = std::filesystem::absolute("abc"),
+                                        .left = std::filesystem::absolute("def"),
+                                        .right = std::filesystem::absolute("ghi"),
+                                        .top = std::filesystem::absolute("jkl")
                                     }
                                 }
                             }

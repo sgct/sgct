@@ -1279,10 +1279,10 @@ static void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
 
     if (auto it = j.find("geometry");  it != j.end()) {
         SphericalMirrorProjection::Mesh mesh;
-        it->at("bottom").get_to(mesh.bottom);
-        it->at("left").get_to(mesh.left);
-        it->at("right").get_to(mesh.right);
-        it->at("top").get_to(mesh.top);
+        mesh.bottom = std::filesystem::absolute(it->at("bottom").get<std::string>());
+        mesh.left = std::filesystem::absolute(it->at("left").get<std::string>());
+        mesh.right = std::filesystem::absolute(it->at("right").get<std::string>());
+        mesh.top = std::filesystem::absolute(it->at("top").get<std::string>());
         p.mesh = mesh;
     }
     else {

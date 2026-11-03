@@ -1124,10 +1124,30 @@ TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
     CHECK(p.background->y == 0.1f);
     CHECK(p.background->z == 0.1f);
     CHECK(p.background->w == 1.f);
-    CHECK(p.mesh.bottom == "mesh/bottom_warp2.obj");
-    CHECK(p.mesh.left == "mesh/left_warp2.obj");
-    CHECK(p.mesh.right == "mesh/right_warp2.obj");
-    CHECK(p.mesh.top == "mesh/top_warp2.obj");
+    CHECK(
+        p.mesh.bottom ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/bottom_warp2.obj"
+        )
+    );
+    CHECK(
+        p.mesh.left ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/left_warp2.obj"
+        )
+    );
+    CHECK(
+        p.mesh.right ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/right_warp2.obj"
+        )
+    );
+    CHECK(
+        p.mesh.top ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/top_warp2.obj"
+        )
+    );
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];

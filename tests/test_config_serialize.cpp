@@ -65,7 +65,12 @@ TEST_CASE("Serialize: SphericalMirrorProjection/Background", "[serialize]") {
     const Cluster cluster = clusterWithProjection(
         SphericalMirrorProjection{
             .background = color,
-            .mesh = { .bottom = "b.obj", .left = "l.obj", .right = "r.obj", .top = "t.obj" }
+            .mesh = {
+                .bottom = std::filesystem::absolute("b.obj"),
+                .left = std::filesystem::absolute("l.obj"),
+                .right = std::filesystem::absolute("r.obj"),
+                .top = std::filesystem::absolute("t.obj")
+            }
         }
     );
     checkColor(serializedViewport(cluster)["projection"]["background"], color);

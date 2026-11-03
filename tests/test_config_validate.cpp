@@ -510,7 +510,7 @@ TEST_CASE("ValidateCluster: Spherical mirror projection", "[validatecluster]") {
         p.mesh = mesh;
         const int empty = GENERATE(0, 1, 2, 3);
         CAPTURE(empty);
-        std::array<std::string*, 4> paths = {
+        std::array<std::filesystem::path*, 4> paths = {
             &p.mesh.bottom, &p.mesh.left, &p.mesh.right, &p.mesh.top
         };
         paths[empty]->clear();

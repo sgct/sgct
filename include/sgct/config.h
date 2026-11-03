@@ -266,10 +266,10 @@ SGCT_EXPORT void validateProjection(const ProjectionPlane& proj);
 
 struct SGCT_EXPORT SphericalMirrorProjection {
     struct Mesh {
-        std::string bottom;
-        std::string left;
-        std::string right;
-        std::string top;
+        std::filesystem::path bottom;
+        std::filesystem::path left;
+        std::filesystem::path right;
+        std::filesystem::path top;
 
         bool operator==(const Mesh&) const noexcept = default;
     };

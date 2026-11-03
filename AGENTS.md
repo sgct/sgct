@@ -3,7 +3,7 @@
 ### Windows
 - Configure: `cmake --preset windows-msvc`
 - Build: `cmake --build --preset windows-msvc-debug`
-- Test: `build/windows-msvc-debug/bin/SGCTTest`
+- Test: `build/windows-msvc/bin/RelWithDebInfo/SGCTTest`
 - Style check: `python support/check_style_guide.py`
 
 ### Linux

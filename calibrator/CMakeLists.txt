@@ -31,17 +31,22 @@ add_custom_command(
     ${CALIBRATOR_TEST_PATTERNS}
     $<TARGET_FILE_DIR:calibrator>
 )
-# The DLLs of the imported SDKs (NDI, Scalable) are not provided by vcpkg, so they are not
-# copied next to the executable, which then fails to start
-if (WIN32)
-  add_custom_command(
-    TARGET calibrator
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      -t $<TARGET_FILE_DIR:calibrator> $<TARGET_RUNTIME_DLLS:calibrator>
-    COMMAND_EXPAND_LISTS
-  )
-endif ()
+
+# The DLLs of the proprietary SDKs are not provided by vcpkg, so they are not copied next
+# to the executable, which then fails to start
+foreach (sdk IN ITEMS ndi scalable)
+  if (TARGET ${sdk})
+    get_target_property(sdk_library ${sdk} IMPORTED_LOCATION)
+    add_custom_command(
+      TARGET calibrator
+      POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${sdk_library}
+        $<TARGET_FILE_DIR:calibrator>
+    )
+  endif ()
+endforeach ()
+
 set_property(TARGET calibrator PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:calibrator>)
 
 # Same condition as the library install in src/CMakeLists.txt: a project that vendors SGCT

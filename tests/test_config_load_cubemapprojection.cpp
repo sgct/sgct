@@ -6,10 +6,13 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
+#include <array>
+#include <format>
 #include <numeric>
 #include "schema.h"
 
@@ -2152,6 +2155,79 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+    }
+}
+
+TEST_CASE("Load: CubemapProjection/Orientation/Quaternion", "[parse]") {
+    // The quaternion is converted into the pitch/yaw/roll values of the cubemap. They
+    // rotate the cubemap as Ry(-pitch) * Rx(yaw) * Rz(-roll), which is the same rotation
+    // that the quaternion has for the other projections
+    struct Test {
+        std::string_view quaternion;
+        glm::vec3 expected;
+    };
+    constexpr std::array<Test, 6> Tests = {
+        Test { R"({ "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 })", glm::vec3(0.f, 0.f, 0.f) },
+        Test {
+            R"({ "x": 0.0, "y": -0.258819, "z": 0.0, "w": 0.9659258 })",
+            glm::vec3(30.f, 0.f, 0.f)
+        },
+        Test {
+            R"({ "x": 0.1736482, "y": 0.0, "z": 0.0, "w": 0.9848078 })",
+            glm::vec3(0.f, 20.f, 0.f)
+        },
+        Test {
+            R"({ "x": 0.0, "y": 0.0, "z": -0.0871557, "w": 0.9961947 })",
+            glm::vec3(0.f, 0.f, 10.f)
+        },
+        Test {
+            R"({ "x": 0.2685358, "y": -0.1448781, "z": -0.0381346, "w": 0.9515485 })",
+            glm::vec3(20.f, 30.f, 10.f)
+        },
+        Test {
+            R"({ "x": -0.5668949, "y": -0.0430516, "z": -0.3677201, "w": 0.7359067 })",
+            glm::vec3(-45.f, -60.f, 80.f)
+        }
+    };
+
+    for (const Test& t : Tests) {
+        const std::string String = std::format(R"(
+{{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {{
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {{
+          "size": {{ "x": 640, "y": 480 }},
+          "viewports": [
+            {{
+              "projection": {{
+                "type": "CubemapProjection",
+                "orientation": {}
+              }}
+            }}
+          ]
+        }}
+      ]
+    }}
+  ]
+}}
+)", t.quaternion);
+
+        const Cluster res = sgct::readJsonConfig(String);
+        REQUIRE(res.nodes.size() == 1);
+        REQUIRE(res.nodes[0].windows.size() == 1);
+        REQUIRE(res.nodes[0].windows[0].viewports.size() == 1);
+        const CubemapProjection& p = std::get<CubemapProjection>(
+            res.nodes[0].windows[0].viewports[0].projection
+        );
+        REQUIRE(p.orientation.has_value());
+        CHECK(p.orientation->x == Catch::Approx(t.expected.x).margin(1e-3));
+        CHECK(p.orientation->y == Catch::Approx(t.expected.y).margin(1e-3));
+        CHECK(p.orientation->z == Catch::Approx(t.expected.z).margin(1e-3));
     }
 }
 

@@ -75,7 +75,14 @@ class Test:
     self.name = parts[-1]
 
     with open(path) as f:
-      self.nodes = len(json.load(f)["nodes"])
+      config = json.load(f)
+    self.nodes = len(config["nodes"])
+    # The calibrator only draws the 2D text if it is started with --show-id. A test that
+    # sets `draw2d` explicitly on any window shows it, so that both the windows with and
+    # without the text can be compared
+    self.show_id = any(
+      "draw2d" in window for node in config["nodes"] for window in node.get("windows", [])
+    )
 
 
 def default_executable():
@@ -166,6 +173,8 @@ def run_test(executable, test, folder):
       "--screenshot-path", str(screenshots),
       "--local", str(node)
     ]
+    if test.show_id:
+      command.append("--show-id")
     if node > 0:
       command.append("--client")
     if test.nodes > 1:

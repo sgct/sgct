@@ -8,6 +8,8 @@ The _Runner_ loads each configuration into the `calibrator` with the `--image-te
 
 The group of a test on the regression server consists of the folders of the configuration file relative to `visualtests`, joined with `-`, and its name is the filename without the extension. A test that creates a single image is submitted under this name, for example `projections/fisheye-crop`. If a test creates multiple images, for example for multiple windows or nodes, the name of each screenshot without its number is appended, for example `capture/two-windows-first` or `cluster/two-nodes-node1_client`.
 
+The calibrator draws the node id and address with the 2D drawing function only if it is started with `--show-id`. The _Runner_ passes this argument to every test that sets the `draw2d` option explicitly on at least one of its windows, so that `draw2d` tests can compare windows that draw the text with windows that do not. All other tests are rendered without the text.
+
 ## Running
 The _Runner_ needs a build of the calibrator, for example created with:
 ```

@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 #include <exception>
 #include <fstream>
@@ -1334,6 +1335,29 @@ static void from_json(const nlohmann::json& j, CubemapProjection::NDI& n) {
     parseValue(j, "group", n.groups);
 }
 
+// The orientation of the cubemap is stored as three angles in degrees that rotate the rig
+// as Ry(-x) * Rx(y) * Rz(-z). This function returns the angles that result in the same
+// rotation as the quaternion, which is interpreted in the same way as for the other
+// projections
+static glm::vec3 cubemapOrientationFromQuaternion(const glm::quat& q) {
+    // Decompose the rotation matrix into Ry(a) * Rx(b) * Rz(c). The matrix is accessed as
+    // m[column][row]
+    const glm::mat3 m = glm::mat3_cast(glm::normalize(q));
+    const float b = std::asin(std::clamp(-m[2][1], -1.f, 1.f));
+    float a;
+    float c;
+    if (std::abs(std::cos(b)) > 1e-6f) {
+        a = std::atan2(m[2][0], m[2][2]);
+        c = std::atan2(m[0][1], m[1][1]);
+    }
+    else {
+        // Gimbal lock, where only the sum or difference of the two angles is defined
+        a = std::atan2(-m[0][2], m[0][0]);
+        c = 0.f;
+    }
+    return glm::vec3(glm::degrees(-a), glm::degrees(b), glm::degrees(-c));
+}
+
 static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
@@ -1345,10 +1369,17 @@ static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     parseValue(j, "channels", p.channels);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        glm::vec3 orientation;
-        parseValue(*it, "pitch", orientation.x);
-        parseValue(*it, "yaw", orientation.y);
-        parseValue(*it, "roll", orientation.z);
+        glm::vec3 orientation = glm::vec3(0.f);
+        if (it->contains("x") && it->contains("y") && it->contains("z") &&
+            it->contains("w"))
+        {
+            orientation = cubemapOrientationFromQuaternion(it->get<glm::quat>());
+        }
+        else {
+            parseValue(*it, "pitch", orientation.x);
+            parseValue(*it, "yaw", orientation.y);
+            parseValue(*it, "roll", orientation.z);
+        }
         p.orientation = orientation;
     }
 }

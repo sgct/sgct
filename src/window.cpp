@@ -1945,9 +1945,13 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
             case FrustumMode::Mono:
                 return prevWindow._frameBufferTextures.leftEye;
             case FrustumMode::StereoLeft:
-                return prevWindow._frameBufferTextures.rightEye;
+                return prevWindow._frameBufferTextures.leftEye;
             case FrustumMode::StereoRight:
-                return prevWindow._frameBufferTextures.intermediate;
+                // A window that does not render in stereo has no right eye texture, so
+                // both eyes show the same image
+                return prevWindow._frameBufferTextures.rightEye != 0 ?
+                    prevWindow._frameBufferTextures.rightEye :
+                    prevWindow._frameBufferTextures.leftEye;
             default:
                 throw std::logic_error("Missing case label");
         }

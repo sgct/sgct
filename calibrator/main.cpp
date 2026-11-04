@@ -744,6 +744,9 @@ int main(int argc, char** argv) {
 
     runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
     runImageTest = std::find(arg.begin(), arg.end(), "--image-test") != arg.end();
+    // Shows the node id and address from the first frame on, without the need for the
+    // key press. The value is synchronized from the master to all clients
+    showId = std::find(arg.begin(), arg.end(), "--show-id") != arg.end();
     if (runImageTest) {
         // The back buffer contains the final image, including the correction meshes, the
         // masks, and the composited stereo image

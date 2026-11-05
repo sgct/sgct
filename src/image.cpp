@@ -72,9 +72,12 @@ void Image::load(const std::filesystem::path& filename) {
     }
 
     freeData();
-    stbi_set_flip_vertically_on_load(1);
     std::string name = filename.string();
+
+    stbi_set_flip_vertically_on_load(1);
     _data = stbi_load(name.c_str(), &_size.x, &_size.y, &_nChannels, 0);
+    stbi_set_flip_vertically_on_load(0);
+    
     if (_data == nullptr) {
         throw Err(
             9001, std::format("Could not open file '{}' for loading image", name));
@@ -92,8 +95,11 @@ void Image::load(const std::filesystem::path& filename) {
 
 void Image::load(unsigned char* data, int length) {
     freeData();
+    
     stbi_set_flip_vertically_on_load(1);
     _data = stbi_load_from_memory(data, length, &_size.x, &_size.y, &_nChannels, 0);
+    stbi_set_flip_vertically_on_load(0);
+
     if (_data == nullptr) {
         throw Err(9003, "Could not load image from memory");
     }

@@ -38,54 +38,6 @@ TEST_CASE("Load: Cluster/Minimal", "[parse]") {
     CHECK(output == Object);
 }
 
-TEST_CASE("Load: Cluster/DebugLog", "[parse]") {
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "debuglog": false
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .debugLog = false
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "debuglog": true
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .debugLog = true
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-}
-
 TEST_CASE("Load: Cluster/ThreadAffinity", "[parse]") {
     {
         constexpr std::string_view String = R"(
@@ -301,16 +253,23 @@ TEST_CASE("Validate: Cluster/Master Address/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Cluster/DebugLog/Wrong Type", "[validate]") {
+TEST_CASE("Validate: Cluster/DebugLog/Removed", "[validate]") {
+    // Replaced by the --loglevel commandline argument
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
+  "version": 2,
   "masteraddress": "localhost",
-  "debuglog": 1
+  "debuglog": true
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost"
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }
 
 TEST_CASE("Validate: Cluster/ThreadAffinity/Wrong Type", "[validate]") {
@@ -349,7 +308,7 @@ TEST_CASE("Validate: Cluster/FirmSync/Wrong Type", "[validate]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "debuglog": 1
+  "firmsync": 1
 }
 )";
 

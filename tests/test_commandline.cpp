@@ -79,12 +79,11 @@ TEST_CASE("CommandLine: Local", "[commandline]") {
 
 TEST_CASE("CommandLine: Flags", "[commandline]") {
     std::vector<std::string> args = {
-        "--debug", "--help", "--firm-sync", "--ignore-sync",
+        "--help", "--firm-sync", "--ignore-sync",
         "--add-node-name-in-screenshot", "--omit-node-name-in-screenshot",
         "--print-wait-message"
     };
     const Configuration config = parseArguments(args);
-    CHECK(config.logLevel == Log::Level::Debug);
     CHECK(config.showHelpText == true);
     CHECK(config.firmSync == true);
     CHECK(config.ignoreSync == true);
@@ -120,7 +119,7 @@ TEST_CASE("CommandLine: Sync", "[commandline]") {
     }
 }
 
-TEST_CASE("CommandLine: Notify", "[commandline]") {
+TEST_CASE("CommandLine: Log level", "[commandline]") {
     struct Test {
         std::string value;
         Log::Level level;
@@ -133,7 +132,7 @@ TEST_CASE("CommandLine: Notify", "[commandline]") {
         { "unknown", Log::Level::Info }
     };
     for (const Test& test : tests) {
-        std::vector<std::string> args = { "--notify", test.value };
+        std::vector<std::string> args = { "--loglevel", test.value };
         const Configuration config = parseArguments(args);
         REQUIRE(config.logLevel.has_value());
         CHECK(*config.logLevel == test.level);
@@ -261,7 +260,7 @@ TEST_CASE("CommandLine: Wait timeout keeps preceding arguments", "[commandline]"
 
 TEST_CASE("CommandLine: Unknown arguments are kept", "[commandline]") {
     std::vector<std::string> args = {
-        "app", "--unknown", "-c", "a.json", "value", "--debug", "--other"
+        "app", "--unknown", "-c", "a.json", "value", "--loglevel", "debug", "--other"
     };
     const Configuration config = parseArguments(args);
     CHECK(config.configFilename == "a.json");
@@ -272,7 +271,7 @@ TEST_CASE("CommandLine: Unknown arguments are kept", "[commandline]") {
 
 TEST_CASE("CommandLine: Missing values", "[commandline]") {
     const std::vector<std::string> flags = {
-        "--config", "-c", "--local", "-l", "--notify", "--number-capture-threads",
+        "--config", "-c", "--local", "-l", "--loglevel", "--number-capture-threads",
         "--screenshot-path", "--screenshot-prefix", "--screenshot-range-begin",
         "--screenshot-range-end", "--screenshot-bit-depth", "--wait-timeout"
     };
@@ -336,9 +335,9 @@ TEST_CASE("CommandLine: Invalid numbers", "[commandline]") {
 
 TEST_CASE("CommandLine: Help message", "[commandline]") {
     const std::string msg = helpMessage();
-    constexpr std::array<std::string_view, 19> Flags = {
-        "--config", "--help", "--local", "--client", "--debug", "--firm-sync",
-        "--loose-sync", "--ignore-sync", "--notify", "--screenshot-path",
+    constexpr std::array<std::string_view, 18> Flags = {
+        "--config", "--help", "--local", "--client", "--firm-sync",
+        "--loose-sync", "--ignore-sync", "--loglevel", "--screenshot-path",
         "--screenshot-prefix", "--screenshot-range-begin", "--screenshot-range-end",
         "--screenshot-bit-depth", "--add-node-name-in-screenshot",
         "--omit-node-name-in-screenshot", "--number-capture-threads",

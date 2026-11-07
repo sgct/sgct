@@ -11,7 +11,6 @@
 #include <sgct/config.h>
 #include <sgct/format.h>
 #include <sgct/glm.h>
-#include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
@@ -63,10 +62,6 @@ ClusterManager::ClusterManager(const config::Cluster& cluster, int clusterID)
     , _masterAddress(cluster.masterAddress)
 {
     ZoneScoped;
-
-    if (cluster.debugLog && *cluster.debugLog) {
-        Log::instance().setNotifyLevel(Log::Level::Debug);
-    }
 
     if (cluster.scene) {
         const glm::mat4 translate = cluster.scene->offset ?

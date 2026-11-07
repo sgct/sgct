@@ -60,10 +60,6 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.isServer = false;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--debug") {
-            config.logLevel = Log::Level::Debug;
-            arg.erase(arg.begin() + i);
-        }
         else if (arg[i] == "--help" || arg[i] == "-h") {
             config.showHelpText = true;
             arg.erase(arg.begin() + i);
@@ -73,7 +69,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.nodeId = parseNumber<int>(arg[i], arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
-        else if (arg[i] == "--notify" && arg.size() > (i + 1)) {
+        else if (arg[i] == "--loglevel" && arg.size() > (i + 1)) {
             const Log::Level level = [](std::string_view l) {
                 if (l == "error")        { return Log::Level::Error; }
                 else if (l == "warning") { return Log::Level::Warning; }
@@ -177,15 +173,13 @@ Parameters:
     Force node in configuration to localhost (index starts at 0)
 --client
     Run the application as client (only available when running as local)
---debug
-    Set the notify level of Log to debug
 --firm-sync
     Enable firm frame sync
 --loose-sync
     Disable firm frame sync
 --ignore-sync
     Disable frame sync
---notify <"error", "warning", "info", or "debug">
+--loglevel <"error", "warning", "info", or "debug">
     Set the notify level used in the Log
 --screenshot-path
     Sets the file path for the screenshots location

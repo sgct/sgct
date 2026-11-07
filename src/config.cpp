@@ -1975,7 +1975,6 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
 
     simplifyIpAddress(c.masterAddress);
 
-    parseValue(j, "debuglog", c.debugLog);
     parseValue(j, "threadaffinity", c.threadAffinity);
     if (c.threadAffinity && *c.threadAffinity < 0) {
         throw Err(6088, "Thread Affinity must be 0 or positive");
@@ -1998,10 +1997,6 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 
     if (c.threadAffinity.has_value()) {
         j["threadaffinity"] = *c.threadAffinity;
-    }
-
-    if (c.debugLog.has_value()) {
-        j["debuglog"] = *c.debugLog;
     }
 
     if (c.firmSync.has_value()) {

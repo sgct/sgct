@@ -755,7 +755,6 @@
       "type": "string",
       "minLength": 1
     },
-    "debuglog": { "type": "boolean" },
     "threadaffinity": {
       "type": "integer",
       "minimum": 0

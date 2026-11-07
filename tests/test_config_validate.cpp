@@ -22,7 +22,7 @@ namespace {
     // Returns the smallest cluster that passes the validation
     Cluster minimalCluster() {
         Cluster cluster;
-        cluster.masterAddress = "localhost";
+        cluster.serverAddress = "localhost";
         cluster.users.emplace_back();
         Node node;
         node.address = "localhost";
@@ -59,9 +59,9 @@ TEST_CASE("ValidateCluster: Minimal cluster", "[validatecluster]") {
 }
 
 TEST_CASE("ValidateCluster: Cluster", "[validatecluster]") {
-    SECTION("1120: Empty master address") {
+    SECTION("1120: Empty server address") {
         Cluster c = minimalCluster();
-        c.masterAddress = "";
+        c.serverAddress = "";
         checkValidateError(c, 1120);
     }
 

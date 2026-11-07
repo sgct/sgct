@@ -19,8 +19,8 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -47,7 +47,7 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -81,8 +81,8 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -109,7 +109,7 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -148,8 +148,8 @@ TEST_CASE("Load: ProjectionPlane", "[parse]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -180,8 +180,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -212,8 +212,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/All/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -247,8 +247,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/X/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -283,8 +283,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -318,8 +318,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/Y/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -354,8 +354,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -389,8 +389,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/Z/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/LowerLeft/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -425,8 +425,8 @@ TEST_CASE("Validate: ProjectionPlane/LowerLeft/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -457,8 +457,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -489,8 +489,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/All/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -524,8 +524,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/X/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -560,8 +560,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -595,8 +595,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/Y/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -631,8 +631,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -666,8 +666,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/Z/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperLeft/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -702,8 +702,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperLeft/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -734,8 +734,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -766,8 +766,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/All/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -801,8 +801,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/X/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -837,8 +837,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -872,8 +872,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/Y/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -908,8 +908,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -943,8 +943,8 @@ TEST_CASE("Validate: ProjectionPlane/UpperRight/Z/Missing", "[validate]") {
 TEST_CASE("Validate: ProjectionPlane/UpperRight/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

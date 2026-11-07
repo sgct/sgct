@@ -713,7 +713,7 @@ void Engine::frameLockPreStage() {
         const Network& c = nm.syncConnection(0);
         if (_settings.printSyncMessage && !c.isUpdated()) {
             Log::Info(std::format(
-                "Waiting for master. frame send {} != recv {}\n\tSwap groups: {}\n\t"
+                "Waiting for server. frame send {} != recv {}\n\tSwap groups: {}\n\t"
                 "Swap barrier: {}\n\tUniversal frame number: {}\n\tSGCT frame number: {}",
                 c.sendFrameCurrent(), c.recvFramePrevious(),
                 Window::isUsingSwapGroups() ? "enabled" : "disabled",
@@ -725,13 +725,13 @@ void Engine::frameLockPreStage() {
         if (glfwGetTime() - t0 > _settings.syncTimeout) {
             throw Err(
                 3004,
-                std::format("No sync signal from master for {} s", _settings.syncTimeout)
+                std::format("No sync signal from server for {} s", _settings.syncTimeout)
             );
         }
     }
 
     // A this point all data needed for rendering a frame is received.
-    // Let's signal that back to the master/server
+    // Let's signal that back to the server
     nm.sync(NetworkManager::SyncMode::Acknowledge);
     if (!nm.isComputerServer()) {
         addValue(_statistics.syncTimes, glfwGetTime() - t0);
@@ -886,7 +886,7 @@ void Engine::exec() {
             _statisticsRenderer->update();
         }
 
-        // Master will wait for nodes render before swapping
+        // Server will wait for nodes render before swapping
         frameLockPostStage();
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : wins) {
@@ -934,7 +934,7 @@ void Engine::exec() {
     glDeleteQueries(1, &timeQueryEnd);
 }
 
-bool Engine::isMaster() const {
+bool Engine::isServer() const {
     return NetworkManager::instance().isComputerServer();
 }
 

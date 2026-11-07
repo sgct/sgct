@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "masteraddress": "127.0.0.1",
+  "serveraddress": "127.0.0.1",
   "firmsync": true,
   "nodes": [
     {

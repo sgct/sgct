@@ -27,7 +27,7 @@ namespace {
 TEST_CASE("Load Example: 3DTV", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/3DTV.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
  
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -77,7 +77,7 @@ TEST_CASE("Load Example: 3DTV", "[parse]") {
 TEST_CASE("Load Example: Kinect", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/Kinect.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.trackers.size() == 1);
     const Tracker& t = res.trackers[0];
@@ -326,7 +326,7 @@ TEST_CASE("Load Example: Kinect", "[parse]") {
 TEST_CASE("Load Example: Multi Window", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/multi_window.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -520,7 +520,7 @@ TEST_CASE("Load Example: Single Cylindrical", "[parse]") {
         std::string(BASE_PATH) + "/config/single_cylindrical.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -563,7 +563,7 @@ TEST_CASE("Load Example: Single Equirectangular", "[parse]") {
         std::string(BASE_PATH) + "/config/single_equirectangular.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -607,7 +607,7 @@ TEST_CASE("Load Example: Single Fisheye FXAA", "[parse]") {
         std::string(BASE_PATH) + "/config/single_fisheye_fxaa.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -660,7 +660,7 @@ TEST_CASE("Load Example: Single Fisheye", "[parse]") {
         std::string(BASE_PATH) + "/config/single_fisheye.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -711,7 +711,7 @@ TEST_CASE("Load Example: Single SBS Stereo", "[parse]") {
         std::string(BASE_PATH) + "/config/single_sbs_stereo.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -765,7 +765,7 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
         std::string(BASE_PATH) + "/config/single_texturemapped.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -829,7 +829,7 @@ TEST_CASE("Load Example: Single Two Win 3D", "[parse]") {
         std::string(BASE_PATH) + "/config/single_two_win_3D.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -931,7 +931,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         std::string(BASE_PATH) + "/config/single_two_win.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1027,7 +1027,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
 TEST_CASE("Load Example: Single", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/single.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1079,7 +1079,7 @@ TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
         std::string(BASE_PATH) + "/config/spherical_mirror_4meshes.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1164,7 +1164,7 @@ TEST_CASE("Load Example: Spherical Mirror", "[parse]") {
         std::string(BASE_PATH) + "/config/spherical_mirror.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1236,7 +1236,7 @@ TEST_CASE("Load Example: Spout Output Cubemap", "[parse]") {
         std::string(BASE_PATH) + "/config/spout_output_cubemap.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
     
     REQUIRE(res.scene.has_value());
     REQUIRE(res.scene->offset.has_value());
@@ -1311,7 +1311,7 @@ TEST_CASE("Load Example: Spout Output Equirectangular", "[parse]") {
         std::string(BASE_PATH) + "/config/spout_output_equirectangular.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
     
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1358,7 +1358,7 @@ TEST_CASE("Load Example: Spout Output Fisheye", "[parse]") {
         std::string(BASE_PATH) + "/config/spout_output_fisheye.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1413,7 +1413,7 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         std::string(BASE_PATH) + "/config/two_nodes.json"
     );
 
-    CHECK(res.masterAddress == "127.0.0.1");
+    CHECK(res.serverAddress == "127.0.0.1");
 
     REQUIRE(res.nodes.size() == 2);
     {
@@ -1507,7 +1507,7 @@ TEST_CASE("Load Example: TextureMappedProjection", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) +
         "/config/single_texturemapped.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];

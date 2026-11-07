@@ -30,8 +30,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -61,7 +61,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -98,8 +98,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -129,7 +129,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -168,8 +168,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -200,7 +200,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -238,8 +238,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -270,7 +270,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -308,8 +308,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -340,7 +340,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -378,8 +378,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -410,7 +410,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -448,8 +448,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -480,7 +480,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -518,8 +518,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -550,7 +550,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -588,8 +588,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -620,7 +620,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -658,8 +658,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -690,7 +690,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -728,8 +728,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -760,7 +760,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -798,8 +798,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -830,7 +830,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -868,8 +868,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -900,7 +900,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -938,8 +938,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -970,7 +970,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1008,8 +1008,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1040,7 +1040,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1078,8 +1078,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1110,7 +1110,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1148,8 +1148,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1180,7 +1180,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1218,8 +1218,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1250,7 +1250,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1288,8 +1288,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1320,7 +1320,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1358,8 +1358,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1390,7 +1390,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1428,8 +1428,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1460,7 +1460,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1498,8 +1498,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1530,7 +1530,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1568,8 +1568,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1600,7 +1600,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1640,7 +1640,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Orientation", "[parse]") {
     constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1671,7 +1671,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Orientation", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -1742,7 +1742,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1812,7 +1812,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1852,8 +1852,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1884,7 +1884,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1922,8 +1922,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1954,7 +1954,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1994,8 +1994,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2026,7 +2026,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2064,8 +2064,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2096,7 +2096,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2136,7 +2136,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2169,7 +2169,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -2209,8 +2209,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
 TEST_CASE("Validate: SphericalMirrorProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2246,8 +2246,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2282,8 +2282,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2320,7 +2320,7 @@ TEST_CASE("Validate: SphericalMirrorProjection/Orientation/Wrong Type", "[valida
     constexpr std::string_view Config = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2392,7 +2392,7 @@ TEST_CASE("Validate: SphericalMirrorProjection/Tilt (Version 2)", "[validate]") 
     constexpr std::string_view Config = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2463,8 +2463,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Tilt/Wrong Type", "[validate]") {
 TEST_CASE("Validate: SphericalMirrorProjection/Background/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2499,8 +2499,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/Wrong Type", "[validat
 TEST_CASE("Validate: SphericalMirrorProjection/Background/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2535,8 +2535,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/All/Missing", "[valida
 TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2575,8 +2575,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2616,8 +2616,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2656,8 +2656,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2697,8 +2697,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2737,8 +2737,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2778,8 +2778,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2818,8 +2818,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2859,8 +2859,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2889,8 +2889,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Wrong Type", "[validate]") {
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2919,8 +2919,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/All/Missing", "[validate]") 
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2953,8 +2953,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Missing", "[validate]
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2988,8 +2988,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Wrong Type", "[valida
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3023,8 +3023,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Illegal Value", "[val
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3057,8 +3057,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Missing", "[validate]")
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3092,8 +3092,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Wrong Type", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3127,8 +3127,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Illegal Value", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3161,8 +3161,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Missing", "[validate]"
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3196,8 +3196,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Wrong Type", "[validat
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3231,8 +3231,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Illegal Value", "[vali
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3265,8 +3265,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Missing", "[validate]") 
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3300,8 +3300,8 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Wrong Type", "[validate]
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

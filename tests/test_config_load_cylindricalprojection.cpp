@@ -18,8 +18,8 @@ using namespace sgct::config;
 TEST_CASE("Load: CylindricalProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -43,7 +43,7 @@ TEST_CASE("Load: CylindricalProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -74,8 +74,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -100,7 +100,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -132,8 +132,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -158,7 +158,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -190,8 +190,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -216,7 +216,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -248,8 +248,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -274,7 +274,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -306,8 +306,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -332,7 +332,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -364,8 +364,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -390,7 +390,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -422,8 +422,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -448,7 +448,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -480,8 +480,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -506,7 +506,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -538,8 +538,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -564,7 +564,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -596,8 +596,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -622,7 +622,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -654,8 +654,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -680,7 +680,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -712,8 +712,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -738,7 +738,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -770,8 +770,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -796,7 +796,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -828,8 +828,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -854,7 +854,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -886,8 +886,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -912,7 +912,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -944,8 +944,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -970,7 +970,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1002,8 +1002,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1028,7 +1028,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1060,8 +1060,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1086,7 +1086,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1118,8 +1118,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1144,7 +1144,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1176,8 +1176,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1202,7 +1202,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1234,8 +1234,8 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1260,7 +1260,7 @@ TEST_CASE("Load: CylindricalProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1294,8 +1294,8 @@ TEST_CASE("Load: CylindricalProjection/Rotation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1320,7 +1320,7 @@ TEST_CASE("Load: CylindricalProjection/Rotation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1352,8 +1352,8 @@ TEST_CASE("Load: CylindricalProjection/Rotation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1378,7 +1378,7 @@ TEST_CASE("Load: CylindricalProjection/Rotation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1412,8 +1412,8 @@ TEST_CASE("Load: CylindricalProjection/HeightOffset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1438,7 +1438,7 @@ TEST_CASE("Load: CylindricalProjection/HeightOffset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1470,8 +1470,8 @@ TEST_CASE("Load: CylindricalProjection/HeightOffset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1496,7 +1496,7 @@ TEST_CASE("Load: CylindricalProjection/HeightOffset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1530,8 +1530,8 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1556,7 +1556,7 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1588,8 +1588,8 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1614,7 +1614,7 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1647,8 +1647,8 @@ TEST_CASE("Load: CylindricalProjection/Radius", "[parse]") {
 TEST_CASE("Load: CylindricalProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1676,7 +1676,7 @@ TEST_CASE("Load: CylindricalProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -1715,8 +1715,8 @@ TEST_CASE("Load: CylindricalProjection/Full", "[parse]") {
 TEST_CASE("Validate: CylindricalProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1746,8 +1746,8 @@ TEST_CASE("Validate: CylindricalProjection/Quality/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1776,8 +1776,8 @@ TEST_CASE("Validate: CylindricalProjection/Quality/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1807,8 +1807,8 @@ TEST_CASE("Validate: CylindricalProjection/Quality/Illegal Value", "[validate]")
 TEST_CASE("Validate: CylindricalProjection/Rotation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1837,8 +1837,8 @@ TEST_CASE("Validate: CylindricalProjection/Rotation/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CylindricalProjection/HeightOffset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1867,8 +1867,8 @@ TEST_CASE("Validate: CylindricalProjection/HeightOffset/Wrong Type", "[validate]
 TEST_CASE("Validate: CylindricalProjection/Radius/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

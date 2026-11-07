@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "scene": { "offset": { "x": 3.0, "y": 2.0, "z": -4.0 } },
   "nodes": [
     {

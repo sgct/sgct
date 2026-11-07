@@ -18,15 +18,15 @@ using namespace sgct::config;
 TEST_CASE("Load: Meta/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {}
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .meta = Meta()
     };
 
@@ -43,8 +43,8 @@ TEST_CASE("Load: Meta/Author", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "author": "abc"
   }
@@ -53,7 +53,7 @@ TEST_CASE("Load: Meta/Author", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .author = "abc"
             }
@@ -71,8 +71,8 @@ TEST_CASE("Load: Meta/Author", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "author": "def"
   }
@@ -81,7 +81,7 @@ TEST_CASE("Load: Meta/Author", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .author = "def"
             }
@@ -101,8 +101,8 @@ TEST_CASE("Load: Meta/Description", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "description": "abc"
   }
@@ -111,7 +111,7 @@ TEST_CASE("Load: Meta/Description", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .description = "abc"
             }
@@ -129,8 +129,8 @@ TEST_CASE("Load: Meta/Description", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "description": "def"
   }
@@ -139,7 +139,7 @@ TEST_CASE("Load: Meta/Description", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .description = "def"
             }
@@ -159,8 +159,8 @@ TEST_CASE("Load: Meta/License", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "license": "abc"
   }
@@ -169,7 +169,7 @@ TEST_CASE("Load: Meta/License", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .license = "abc"
             }
@@ -187,8 +187,8 @@ TEST_CASE("Load: Meta/License", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "license": "def"
   }
@@ -197,7 +197,7 @@ TEST_CASE("Load: Meta/License", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .license = "def"
             }
@@ -217,8 +217,8 @@ TEST_CASE("Load: Meta/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "name": "abc"
   }
@@ -227,7 +227,7 @@ TEST_CASE("Load: Meta/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .name = "abc"
             }
@@ -245,8 +245,8 @@ TEST_CASE("Load: Meta/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "name": "def"
   }
@@ -255,7 +255,7 @@ TEST_CASE("Load: Meta/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .name = "def"
             }
@@ -275,8 +275,8 @@ TEST_CASE("Load: Meta/Version", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "version": "abc"
   }
@@ -285,7 +285,7 @@ TEST_CASE("Load: Meta/Version", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .version = "abc"
             }
@@ -303,8 +303,8 @@ TEST_CASE("Load: Meta/Version", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "version": "def"
   }
@@ -313,7 +313,7 @@ TEST_CASE("Load: Meta/Version", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .meta = Meta {
                 .version = "def"
             }
@@ -336,8 +336,8 @@ TEST_CASE("Load: Meta/Version", "[parse]") {
 TEST_CASE("Validate: Meta/Author/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "name": "abc",
     "description": "abc",
@@ -352,8 +352,8 @@ TEST_CASE("Validate: Meta/Author/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Meta/Description/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "name": "abc",
     "description": 123
@@ -367,8 +367,8 @@ TEST_CASE("Validate: Meta/Description/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Meta/License/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "name": "abc",
     "description": "abc",
@@ -383,8 +383,8 @@ TEST_CASE("Validate: Meta/License/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Meta/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "description": "abc",
     "name": 123
@@ -398,8 +398,8 @@ TEST_CASE("Validate: Meta/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Meta/Version/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": {
     "name": "abc",
     "description": "abc",

@@ -18,8 +18,8 @@ using namespace sgct::config;
 TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -60,7 +60,7 @@ TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -92,8 +92,8 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -135,7 +135,7 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -167,8 +167,8 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -211,7 +211,7 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -245,8 +245,8 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -289,7 +289,7 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -321,8 +321,8 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -365,7 +365,7 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -399,8 +399,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -443,7 +443,7 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -475,8 +475,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -519,7 +519,7 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -552,8 +552,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
 TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -600,7 +600,7 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -635,8 +635,8 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
 TEST_CASE("Validate: TextureMappedProjection/Mesh/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -665,8 +665,8 @@ TEST_CASE("Validate: TextureMappedProjection/Mesh/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -696,8 +696,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Wrong Type", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -727,8 +727,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/All/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -762,8 +762,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -798,8 +798,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -833,8 +833,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -869,8 +869,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -904,8 +904,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -940,8 +940,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Wrong Type", "[validate]"
 TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -975,8 +975,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1011,8 +1011,8 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Wrong Type", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1043,8 +1043,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Wrong Type", "[validate
 TEST_CASE("Validate: TextureMappedProjection/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1075,8 +1075,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/All/Missing", "[validat
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1110,8 +1110,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[valid
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1146,8 +1146,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[va
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1181,8 +1181,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Missing", "[validat
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1217,8 +1217,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Wrong Type", "[vali
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1252,8 +1252,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Missing", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1288,8 +1288,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Wrong Type", "[val
 TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1324,8 +1324,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1361,8 +1361,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1397,8 +1397,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1434,8 +1434,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1470,8 +1470,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1507,8 +1507,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1543,8 +1543,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1580,8 +1580,8 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1612,8 +1612,8 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/All/Missing", "[validate]") 
 TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1647,8 +1647,8 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1683,8 +1683,8 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/X/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1718,8 +1718,8 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1754,8 +1754,8 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1789,8 +1789,8 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

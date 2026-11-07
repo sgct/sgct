@@ -29,8 +29,8 @@ namespace {
 TEST_CASE("Load: FisheyeProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -54,7 +54,7 @@ TEST_CASE("Load: FisheyeProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -85,8 +85,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -111,7 +111,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -143,8 +143,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -169,7 +169,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -201,8 +201,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -227,7 +227,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -259,8 +259,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -285,7 +285,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -317,8 +317,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -343,7 +343,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -375,8 +375,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -401,7 +401,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -433,8 +433,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -459,7 +459,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -491,8 +491,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -517,7 +517,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -549,8 +549,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -575,7 +575,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -607,8 +607,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -633,7 +633,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -665,8 +665,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -691,7 +691,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -723,8 +723,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -749,7 +749,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -781,8 +781,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -807,7 +807,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -839,8 +839,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -865,7 +865,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -897,8 +897,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -923,7 +923,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -955,8 +955,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -981,7 +981,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1013,8 +1013,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1039,7 +1039,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1071,8 +1071,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1097,7 +1097,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1129,8 +1129,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1155,7 +1155,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1187,8 +1187,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1213,7 +1213,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1245,8 +1245,8 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1271,7 +1271,7 @@ TEST_CASE("Load: FisheyeProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1305,8 +1305,8 @@ TEST_CASE("Load: FisheyeProjection/FOV", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1331,7 +1331,7 @@ TEST_CASE("Load: FisheyeProjection/FOV", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1363,8 +1363,8 @@ TEST_CASE("Load: FisheyeProjection/FOV", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1389,7 +1389,7 @@ TEST_CASE("Load: FisheyeProjection/FOV", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1423,8 +1423,8 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1449,7 +1449,7 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1482,8 +1482,8 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1508,7 +1508,7 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1544,7 +1544,7 @@ TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
         constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1569,7 +1569,7 @@ TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1602,7 +1602,7 @@ TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
         constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1627,7 +1627,7 @@ TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1692,7 +1692,7 @@ TEST_CASE("Load: FisheyeProjection/Tilt (Version 1)", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -1730,8 +1730,8 @@ TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1756,7 +1756,7 @@ TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1788,8 +1788,8 @@ TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1814,7 +1814,7 @@ TEST_CASE("Load: FisheyeProjection/Diameter", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1848,8 +1848,8 @@ TEST_CASE("Load: FisheyeProjection/Crop", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1879,7 +1879,7 @@ TEST_CASE("Load: FisheyeProjection/Crop", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1916,8 +1916,8 @@ TEST_CASE("Load: FisheyeProjection/Crop", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1947,7 +1947,7 @@ TEST_CASE("Load: FisheyeProjection/Crop", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1986,8 +1986,8 @@ TEST_CASE("Load: FisheyeProjection/KeepAspectRatio", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2012,7 +2012,7 @@ TEST_CASE("Load: FisheyeProjection/KeepAspectRatio", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2044,8 +2044,8 @@ TEST_CASE("Load: FisheyeProjection/KeepAspectRatio", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2070,7 +2070,7 @@ TEST_CASE("Load: FisheyeProjection/KeepAspectRatio", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2104,8 +2104,8 @@ TEST_CASE("Load: FisheyeProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2130,7 +2130,7 @@ TEST_CASE("Load: FisheyeProjection/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2162,8 +2162,8 @@ TEST_CASE("Load: FisheyeProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2188,7 +2188,7 @@ TEST_CASE("Load: FisheyeProjection/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2222,8 +2222,8 @@ TEST_CASE("Load: FisheyeProjection/Background/XYZW", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2248,7 +2248,7 @@ TEST_CASE("Load: FisheyeProjection/Background/XYZW", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2280,8 +2280,8 @@ TEST_CASE("Load: FisheyeProjection/Background/XYZW", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2306,7 +2306,7 @@ TEST_CASE("Load: FisheyeProjection/Background/XYZW", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2340,8 +2340,8 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2366,7 +2366,7 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2398,8 +2398,8 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2424,7 +2424,7 @@ TEST_CASE("Load: FisheyeProjection/Background/RGBA", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2458,7 +2458,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2496,7 +2496,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -2542,8 +2542,8 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
 TEST_CASE("Validate: FisheyeProjection/FOV/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2572,8 +2572,8 @@ TEST_CASE("Validate: FisheyeProjection/FOV/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/FOV/Illegal value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2602,8 +2602,8 @@ TEST_CASE("Validate: FisheyeProjection/FOV/Illegal value", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2633,8 +2633,8 @@ TEST_CASE("Validate: FisheyeProjection/Quality/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2663,8 +2663,8 @@ TEST_CASE("Validate: FisheyeProjection/Quality/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2694,8 +2694,8 @@ TEST_CASE("Validate: FisheyeProjection/Quality/Illegal Value", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Interpolation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2724,8 +2724,8 @@ TEST_CASE("Validate: FisheyeProjection/Interpolation/Wrong Type", "[validate]") 
 TEST_CASE("Validate: FisheyeProjection/Interpolation/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2755,7 +2755,7 @@ TEST_CASE("Validate: FisheyeProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2815,7 +2815,7 @@ TEST_CASE("Validate: FisheyeProjection/Tilt (Version 2)", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2874,8 +2874,8 @@ TEST_CASE("Validate: FisheyeProjection/Tilt/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Diameter/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2905,8 +2905,8 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2935,8 +2935,8 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2966,8 +2966,8 @@ TEST_CASE("Validate: FisheyeProjection/Diameter/Illegal Value", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2996,8 +2996,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/All/Missing Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3026,8 +3026,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/All/Missing Value", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Left/Missing Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3060,8 +3060,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Left/Missing Value", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3095,8 +3095,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Left/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Right/Missing Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3129,8 +3129,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Right/Missing Value", "[validate]") 
 TEST_CASE("Validate: FisheyeProjection/Crop/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3164,8 +3164,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Right/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Bottom/Missing Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3198,8 +3198,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Bottom/Missing Value", "[validate]")
 TEST_CASE("Validate: FisheyeProjection/Crop/Bottom/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3233,8 +3233,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Bottom/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Top/Missing Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3267,8 +3267,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Top/Missing Value", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Crop/Top/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3302,8 +3302,8 @@ TEST_CASE("Validate: FisheyeProjection/Crop/Top/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/KeepAspectRatio/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3332,8 +3332,8 @@ TEST_CASE("Validate: FisheyeProjection/KeepAspectRatio/Wrong Type", "[validate]"
 TEST_CASE("Validate: FisheyeProjection/Offset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3362,8 +3362,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3392,8 +3392,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/All/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3425,8 +3425,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3459,8 +3459,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3492,8 +3492,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3526,8 +3526,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3559,8 +3559,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3593,8 +3593,8 @@ TEST_CASE("Validate: FisheyeProjection/Offset/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3623,8 +3623,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3653,8 +3653,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/All/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/R/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3687,8 +3687,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/R/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/R/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3722,8 +3722,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/R/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/G/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3756,8 +3756,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/G/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/G/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3791,8 +3791,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/G/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/B/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3825,8 +3825,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/B/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/B/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3860,8 +3860,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/B/Wrong Type", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/A/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3894,8 +3894,8 @@ TEST_CASE("Validate: FisheyeProjection/Background/A/Missing", "[validate]") {
 TEST_CASE("Validate: FisheyeProjection/Background/A/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

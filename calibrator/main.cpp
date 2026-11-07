@@ -559,7 +559,7 @@ void postDraw() {
         Log::Info(std::format("Frame: {}", frameNumber));
     }
 
-    if (Engine::instance().isMaster() && runImageTest) {
+    if (Engine::instance().isServer() && runImageTest) {
         frameNumber++;
         if (frameNumber == ImageTestScreenshotFrame) {
             // The screenshot is taken in the next frame, after the value was synchronized
@@ -572,7 +572,7 @@ void postDraw() {
         }
     }
 
-    if (Engine::instance().isMaster() && runTests) {
+    if (Engine::instance().isServer() && runTests) {
         constexpr int FrameGridFirstScreenshot = 5;
         constexpr int FrameGridSettingBackBuffer = 10;
         constexpr int FrameGridSecondScreenshot = 15;
@@ -745,7 +745,7 @@ int main(int argc, char** argv) {
     runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
     runImageTest = std::find(arg.begin(), arg.end(), "--image-test") != arg.end();
     // Shows the node id and address from the first frame on, without the need for the
-    // key press. The value is synchronized from the master to all clients
+    // key press. The value is synchronized from the server to all clients
     showId = std::find(arg.begin(), arg.end(), "--show-id") != arg.end();
     if (runImageTest) {
         // The back buffer contains the final image, including the correction meshes, the

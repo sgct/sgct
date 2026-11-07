@@ -29,8 +29,8 @@ namespace {
 TEST_CASE("Load: EquirectangularProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -54,7 +54,7 @@ TEST_CASE("Load: EquirectangularProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -85,8 +85,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -111,7 +111,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -143,8 +143,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -169,7 +169,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -201,8 +201,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -227,7 +227,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -259,8 +259,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -285,7 +285,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -317,8 +317,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -343,7 +343,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -375,8 +375,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -401,7 +401,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -433,8 +433,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -459,7 +459,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -491,8 +491,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -517,7 +517,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -549,8 +549,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -575,7 +575,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -607,8 +607,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -633,7 +633,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -665,8 +665,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -691,7 +691,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -723,8 +723,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -749,7 +749,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -781,8 +781,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -807,7 +807,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -839,8 +839,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -865,7 +865,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -897,8 +897,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -923,7 +923,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -955,8 +955,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -981,7 +981,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1013,8 +1013,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1039,7 +1039,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1071,8 +1071,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1097,7 +1097,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1129,8 +1129,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1155,7 +1155,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1187,8 +1187,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1213,7 +1213,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1245,8 +1245,8 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1271,7 +1271,7 @@ TEST_CASE("Load: EquirectangularProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1306,7 +1306,7 @@ TEST_CASE("Load: EquirectangularProjection/Orientation", "[parse]") {
         constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1331,7 +1331,7 @@ TEST_CASE("Load: EquirectangularProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1364,7 +1364,7 @@ TEST_CASE("Load: EquirectangularProjection/Orientation", "[parse]") {
         constexpr std::string_view String = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1389,7 +1389,7 @@ TEST_CASE("Load: EquirectangularProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1427,7 +1427,7 @@ TEST_CASE("Validate: EquirectangularProjection/Orientation/Wrong Type", "[valida
     constexpr std::string_view Config = R"(
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1456,8 +1456,8 @@ TEST_CASE("Validate: EquirectangularProjection/Orientation/Wrong Type", "[valida
 TEST_CASE("Validate: EquirectangularProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1487,8 +1487,8 @@ TEST_CASE("Validate: EquirectangularProjection/Quality/Illegal Value", "[validat
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1517,8 +1517,8 @@ TEST_CASE("Validate: EquirectangularProjection/Quality/Illegal Value", "[validat
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

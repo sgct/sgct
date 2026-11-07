@@ -99,9 +99,9 @@ public:
     int thisNodeId() const;
 
     /**
-     * \return The DNS name or IP of the master in the cluster
+     * \return The DNS name or IP of the server in the cluster
      */
-    const std::string& masterAddress() const;
+    const std::string& serverAddress() const;
 
     /**
      * \param state The state of the firm frame lock sync
@@ -137,7 +137,7 @@ private:
     const int _thisNodeId;
     bool _firmFrameLockSync;
     bool _ignoreSync = false;
-    std::string _masterAddress;
+    std::string _serverAddress;
 
     std::vector<std::unique_ptr<Node>> _nodes;
     std::vector<std::unique_ptr<User>> _users;

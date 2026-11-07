@@ -30,7 +30,7 @@ namespace {
         node.windows.push_back(window);
         Cluster cluster;
         cluster.success = true;
-        cluster.masterAddress = "localhost";
+        cluster.serverAddress = "localhost";
         cluster.users.emplace_back();
         cluster.nodes.push_back(node);
         return cluster;

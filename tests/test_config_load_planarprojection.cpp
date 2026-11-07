@@ -18,8 +18,8 @@ using namespace sgct::config;
 TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -49,7 +49,7 @@ TEST_CASE("Load: PlanarProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -87,8 +87,8 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -119,7 +119,7 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -157,8 +157,8 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -189,7 +189,7 @@ TEST_CASE("Load: PlanarProjection/Distance", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -229,8 +229,8 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -261,7 +261,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -299,8 +299,8 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -331,7 +331,7 @@ TEST_CASE("Load: PlanarProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -371,8 +371,8 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -403,7 +403,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -441,8 +441,8 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -473,7 +473,7 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -512,8 +512,8 @@ TEST_CASE("Load: PlanarProjection/Offset", "[parse]") {
 TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -546,7 +546,7 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -590,8 +590,8 @@ TEST_CASE("Load: PlanarProjection/Full", "[parse]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -620,8 +620,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -650,8 +650,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/All/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Down/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -684,8 +684,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Down/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Down/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -719,8 +719,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Down/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -753,8 +753,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Left/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -788,8 +788,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Left/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -822,8 +822,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Right/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -857,8 +857,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Right/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Up/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -891,8 +891,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Up/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/FOV/Up/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -926,8 +926,8 @@ TEST_CASE("Validate: PlanarProjection/FOV/Up/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -957,8 +957,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -988,8 +988,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/All/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1022,8 +1022,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Missing", "[validate]") 
 TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1057,8 +1057,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Pitch/Wrong Type", "[validate]
 TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1091,8 +1091,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1126,8 +1126,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Yaw/Wrong Type", "[validate]")
 TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1160,8 +1160,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1195,8 +1195,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Roll/Wrong Type", "[validate]"
 TEST_CASE("Validate: PlanarProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1230,8 +1230,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/X/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1266,8 +1266,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1301,8 +1301,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Y/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1337,8 +1337,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1372,8 +1372,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Z/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1408,8 +1408,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/W/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1443,8 +1443,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Orientation/W/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1479,8 +1479,8 @@ TEST_CASE("Validate: PlanarProjection/Orientation/W/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1510,8 +1510,8 @@ TEST_CASE("Validate: PlanarProjection/Offset/All/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1544,8 +1544,8 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1579,8 +1579,8 @@ TEST_CASE("Validate: PlanarProjection/Offset/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1613,8 +1613,8 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1648,8 +1648,8 @@ TEST_CASE("Validate: PlanarProjection/Offset/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1682,8 +1682,8 @@ TEST_CASE("Validate: PlanarProjection/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: PlanarProjection/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

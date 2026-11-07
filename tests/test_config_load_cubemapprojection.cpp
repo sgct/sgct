@@ -22,8 +22,8 @@ using namespace sgct::config;
 TEST_CASE("Load: CubemapProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -47,7 +47,7 @@ TEST_CASE("Load: CubemapProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -78,8 +78,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -104,7 +104,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -136,8 +136,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -162,7 +162,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -194,8 +194,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -220,7 +220,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -252,8 +252,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -278,7 +278,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -310,8 +310,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -336,7 +336,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -368,8 +368,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -394,7 +394,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -426,8 +426,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -452,7 +452,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -484,8 +484,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -510,7 +510,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -542,8 +542,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -568,7 +568,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -600,8 +600,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -626,7 +626,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -658,8 +658,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -684,7 +684,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -716,8 +716,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -742,7 +742,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -774,8 +774,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -800,7 +800,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -832,8 +832,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -858,7 +858,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -890,8 +890,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -916,7 +916,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -948,8 +948,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -974,7 +974,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1006,8 +1006,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1032,7 +1032,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1064,8 +1064,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1090,7 +1090,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1122,8 +1122,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1148,7 +1148,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1180,8 +1180,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1206,7 +1206,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1238,8 +1238,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1264,7 +1264,7 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1298,8 +1298,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1326,7 +1326,7 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1360,8 +1360,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1388,7 +1388,7 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1424,8 +1424,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1453,7 +1453,7 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1488,8 +1488,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1517,7 +1517,7 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1554,8 +1554,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1582,7 +1582,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1618,8 +1618,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1646,7 +1646,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1684,8 +1684,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1713,7 +1713,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1750,8 +1750,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1779,7 +1779,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1818,8 +1818,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1847,7 +1847,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1884,8 +1884,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1913,7 +1913,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1982,8 +1982,8 @@ TEST_CASE("Load: CubemapProjection/Channels", "[parse]") {
 
         std::string String = std::format(R"(
 {{
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {{
       "address": "abc",
@@ -2010,7 +2010,7 @@ string
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2044,8 +2044,8 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2070,7 +2070,7 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2102,8 +2102,8 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2128,7 +2128,7 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -2193,8 +2193,8 @@ TEST_CASE("Load: CubemapProjection/Orientation/Quaternion", "[parse]") {
     for (const Test& t : Tests) {
         const std::string String = std::format(R"(
 {{
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {{
       "address": "abc",
@@ -2234,8 +2234,8 @@ TEST_CASE("Load: CubemapProjection/Orientation/Quaternion", "[parse]") {
 TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2278,7 +2278,7 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -2328,8 +2328,8 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
 TEST_CASE("Validate: CubemapProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2359,8 +2359,8 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2389,8 +2389,8 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2420,8 +2420,8 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Spout/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2450,8 +2450,8 @@ TEST_CASE("Validate: CubemapProjection/Spout/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Spout/Enabled/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2482,8 +2482,8 @@ TEST_CASE("Validate: CubemapProjection/Spout/Enabled/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Spout/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2515,8 +2515,8 @@ TEST_CASE("Validate: CubemapProjection/Spout/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Spout/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2548,8 +2548,8 @@ TEST_CASE("Validate: CubemapProjection/Spout/Name/Illegal Value", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/NDI/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2578,8 +2578,8 @@ TEST_CASE("Validate: CubemapProjection/NDI/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Enabled/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2610,8 +2610,8 @@ TEST_CASE("Validate: CubemapProjection/NDI/Enabled/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2643,8 +2643,8 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2676,8 +2676,8 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Groups/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2709,8 +2709,8 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Groups/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2742,8 +2742,8 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Illegal Value", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Channels/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2772,8 +2772,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/All/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2808,8 +2808,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Right/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2845,8 +2845,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Right/Wrong Type", "[validate]")
 TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2881,8 +2881,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2918,8 +2918,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Wrong Type", "[validate]")
 TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2954,8 +2954,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -2991,8 +2991,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Wrong Type", "[validate]"
 TEST_CASE("Validate: CubemapProjection/Channels/Top/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3027,8 +3027,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Top/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Top/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3064,8 +3064,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Top/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3100,8 +3100,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Left/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3137,8 +3137,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/Left/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Channels/zRight/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3173,8 +3173,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/zRight/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/zRight/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3210,8 +3210,8 @@ TEST_CASE("Validate: CubemapProjection/Channels/zRight/Wrong Type", "[validate]"
 TEST_CASE("Validate: CubemapProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3240,8 +3240,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3270,8 +3270,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/All/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3303,8 +3303,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/X/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3337,8 +3337,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/X/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3370,8 +3370,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Y/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3404,8 +3404,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Y/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -3437,8 +3437,8 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Z/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

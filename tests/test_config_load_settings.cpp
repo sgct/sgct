@@ -18,15 +18,15 @@ using namespace sgct::config;
 TEST_CASE("Load: Settings/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {}
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .settings = Settings()
     };
 
@@ -42,8 +42,8 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": false
   }
@@ -52,7 +52,7 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useDepthTexture = false
             }
@@ -69,8 +69,8 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": true
   }
@@ -79,7 +79,7 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useDepthTexture = true
             }
@@ -98,8 +98,8 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "normaltexture": false
   }
@@ -108,7 +108,7 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useNormalTexture = false
             }
@@ -125,8 +125,8 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "normaltexture": true
   }
@@ -135,7 +135,7 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useNormalTexture = true
             }
@@ -154,8 +154,8 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "positiontexture": false
   }
@@ -164,7 +164,7 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .usePositionTexture = false
             }
@@ -181,8 +181,8 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "positiontexture": true
   }
@@ -191,7 +191,7 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .usePositionTexture = true
             }
@@ -210,8 +210,8 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": 16.0
   }
@@ -220,7 +220,7 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .bufferFloatPrecision = Settings::BufferFloatPrecision::Float16Bit
             }
@@ -237,8 +237,8 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": 32.0
   }
@@ -247,7 +247,7 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .bufferFloatPrecision = Settings::BufferFloatPrecision::Float32Bit
             }
@@ -265,8 +265,8 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
 TEST_CASE("Load: Settings/Display/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {}
   }
@@ -275,7 +275,7 @@ TEST_CASE("Load: Settings/Display/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .settings = Settings {
             .display = Settings::Display()
         }
@@ -293,8 +293,8 @@ TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": 1
@@ -305,7 +305,7 @@ TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .display = Settings::Display {
                     .swapInterval = 1
@@ -324,8 +324,8 @@ TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": 2
@@ -336,7 +336,7 @@ TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .display = Settings::Display {
                     .swapInterval = 2
@@ -357,8 +357,8 @@ TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "refreshrate": 1
@@ -369,7 +369,7 @@ TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .display = Settings::Display {
                     .refreshRate = 1
@@ -388,8 +388,8 @@ TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "refreshrate": 2
@@ -400,7 +400,7 @@ TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .display = Settings::Display {
                     .refreshRate = 2
@@ -420,8 +420,8 @@ TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
 TEST_CASE("Load: Settings/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": true,
     "normaltexture": true,
@@ -437,7 +437,7 @@ TEST_CASE("Load: Settings/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .settings = Settings {
             .useDepthTexture = true,
             .useNormalTexture = true,
@@ -465,8 +465,8 @@ TEST_CASE("Load: Settings/Full", "[parse]") {
 TEST_CASE("Validate: Settings/UseDepthTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": "abc"
   }
@@ -479,8 +479,8 @@ TEST_CASE("Validate: Settings/UseDepthTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/UseNormalTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "normaltexture": "abc"
   }
@@ -493,8 +493,8 @@ TEST_CASE("Validate: Settings/UseNormalTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/UsePositionTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "positiontexture": "abc"
   }
@@ -507,8 +507,8 @@ TEST_CASE("Validate: Settings/UsePositionTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/BufferFloatPrecision/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": "abc"
   }
@@ -522,8 +522,8 @@ TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": -20
   }
@@ -536,8 +536,8 @@ TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": 256
   }
@@ -551,8 +551,8 @@ TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]")
 TEST_CASE("Validate: Settings/Display/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": "abc"
   }
@@ -565,8 +565,8 @@ TEST_CASE("Validate: Settings/Display/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/Display/SwapInterval/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": "abc"
@@ -582,8 +582,8 @@ TEST_CASE("Validate: Settings/Display/SwapInterval/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": -1
@@ -598,8 +598,8 @@ TEST_CASE("Validate: Settings/Display/SwapInterval/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": 1000
@@ -615,8 +615,8 @@ TEST_CASE("Validate: Settings/Display/SwapInterval/Illegal Value", "[validate]")
 TEST_CASE("Validate: Settings/Display/RefreshRate/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "refreshrate": "abc"
@@ -631,8 +631,8 @@ TEST_CASE("Validate: Settings/Display/RefreshRate/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/Display/RefreshRate/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
       "refreshrate": -1

@@ -18,15 +18,15 @@ using namespace sgct::config;
 TEST_CASE("Load: Scene/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {}
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .scene = Scene()
     };
 
@@ -42,8 +42,8 @@ TEST_CASE("Load: Scene/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
   }
@@ -52,7 +52,7 @@ TEST_CASE("Load: Scene/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .scene = Scene {
                 .offset = glm::vec3(0.f, 0.f, 0.f)
             }
@@ -69,8 +69,8 @@ TEST_CASE("Load: Scene/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": { "x": 1.0, "y": 2.0, "z": 3.0 }
   }
@@ -79,7 +79,7 @@ TEST_CASE("Load: Scene/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .scene = Scene {
                 .offset = glm::vec3(1.f, 2.f, 3.f)
             }
@@ -98,8 +98,8 @@ TEST_CASE("Load: Scene/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": { "w": 0.0, "x": 0.0, "y": 0.0, "z": 0.0 }
   }
@@ -108,7 +108,7 @@ TEST_CASE("Load: Scene/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .scene = Scene {
                 .orientation = glm::quat(0.f, 0.f, 0.f, 0.f)
             }
@@ -125,8 +125,8 @@ TEST_CASE("Load: Scene/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": { "w": 1.0, "x": 2.0, "y": 3.0, "z": 4.0 }
   }
@@ -135,7 +135,7 @@ TEST_CASE("Load: Scene/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .scene = Scene {
                 .orientation = glm::quat(1.f, 2.f, 3.f, 4.f)
             }
@@ -154,8 +154,8 @@ TEST_CASE("Load: Scene/Scale", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "scale": 0.0
   }
@@ -164,7 +164,7 @@ TEST_CASE("Load: Scene/Scale", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .scene = Scene {
                 .scale = 0.f
             }
@@ -181,8 +181,8 @@ TEST_CASE("Load: Scene/Scale", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "scale": 1.0
   }
@@ -191,7 +191,7 @@ TEST_CASE("Load: Scene/Scale", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .scene = Scene {
                 .scale = 1.f
             }
@@ -209,8 +209,8 @@ TEST_CASE("Load: Scene/Scale", "[parse]") {
 TEST_CASE("Load: Scene/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": { "x": 1.0, "y": 2.0, "z": 3.0 },
     "orientation": { "w": 4.0, "x": 5.0, "y": 6.0, "z": 7.0 },
@@ -221,7 +221,7 @@ TEST_CASE("Load: Scene/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .scene = Scene {
             .offset = glm::vec3(1.f, 2.f, 3.f),
             .orientation = glm::quat(4.f, 5.f, 6.f, 7.f),
@@ -244,8 +244,8 @@ TEST_CASE("Load: Scene/Full", "[parse]") {
 TEST_CASE("Validate: Scene/Offset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": 1
   }
@@ -258,8 +258,8 @@ TEST_CASE("Validate: Scene/Offset/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {}
   }
@@ -272,8 +272,8 @@ TEST_CASE("Validate: Scene/Offset/All/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {
       "y": 2,
@@ -289,8 +289,8 @@ TEST_CASE("Validate: Scene/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {
       "x": "abc",
@@ -307,8 +307,8 @@ TEST_CASE("Validate: Scene/Offset/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {
       "x": 1,
@@ -324,8 +324,8 @@ TEST_CASE("Validate: Scene/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {
       "x": 1,
@@ -342,8 +342,8 @@ TEST_CASE("Validate: Scene/Offset/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {
       "x": 1,
@@ -359,8 +359,8 @@ TEST_CASE("Validate: Scene/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "offset": {
       "x": 1,
@@ -377,8 +377,8 @@ TEST_CASE("Validate: Scene/Offset/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {}
   }
@@ -391,8 +391,8 @@ TEST_CASE("Validate: Scene/Orientation/All/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": 1
   }
@@ -405,8 +405,8 @@ TEST_CASE("Validate: Scene/Orientation/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Pitch/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "yaw": 2,
@@ -422,8 +422,8 @@ TEST_CASE("Validate: Scene/Orientation/Pitch/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Pitch/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "pitch": "abc",
@@ -440,8 +440,8 @@ TEST_CASE("Validate: Scene/Orientation/Pitch/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Yaw/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "pitch": 1,
@@ -457,8 +457,8 @@ TEST_CASE("Validate: Scene/Orientation/Yaw/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Yaw/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "pitch": 1,
@@ -475,8 +475,8 @@ TEST_CASE("Validate: Scene/Orientation/Yaw/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Roll/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "pitch": 1,
@@ -492,8 +492,8 @@ TEST_CASE("Validate: Scene/Orientation/Roll/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Roll/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "pitch": 1,
@@ -510,8 +510,8 @@ TEST_CASE("Validate: Scene/Orientation/Roll/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "y": 2,
@@ -528,8 +528,8 @@ TEST_CASE("Validate: Scene/Orientation/X/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": "abc",
@@ -547,8 +547,8 @@ TEST_CASE("Validate: Scene/Orientation/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": 1,
@@ -565,8 +565,8 @@ TEST_CASE("Validate: Scene/Orientation/Y/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": 1,
@@ -584,8 +584,8 @@ TEST_CASE("Validate: Scene/Orientation/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": 1,
@@ -602,8 +602,8 @@ TEST_CASE("Validate: Scene/Orientation/Z/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": 1,
@@ -621,8 +621,8 @@ TEST_CASE("Validate: Scene/Orientation/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/W/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": 1,
@@ -639,8 +639,8 @@ TEST_CASE("Validate: Scene/Orientation/W/Missing", "[validate]") {
 TEST_CASE("Validate: Scene/Orientation/W/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "orientation": {
       "x": 1,
@@ -658,8 +658,8 @@ TEST_CASE("Validate: Scene/Orientation/W/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Scene/Scale/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": {
     "scale": "abc"
   }

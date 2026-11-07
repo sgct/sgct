@@ -25,7 +25,7 @@
 namespace sgct {
 
 /**
- * This class shares application data between nodes in a cluster where the master encodes
+ * This class shares application data between nodes in a cluster where the server encodes
  * and transmits the data and the clients receives and decode the data.
  */
 class SGCT_EXPORT SharedData {

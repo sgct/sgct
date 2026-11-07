@@ -19,15 +19,15 @@ TEST_CASE("Load: Node/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": []
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {}
         };
 
@@ -42,8 +42,8 @@ TEST_CASE("Load: Node/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -55,7 +55,7 @@ TEST_CASE("Load: Node/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -77,8 +77,8 @@ TEST_CASE("Load: Node/DataTransferPort", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -91,7 +91,7 @@ TEST_CASE("Load: Node/DataTransferPort", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -112,8 +112,8 @@ TEST_CASE("Load: Node/DataTransferPort", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -126,7 +126,7 @@ TEST_CASE("Load: Node/DataTransferPort", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -149,8 +149,8 @@ TEST_CASE("Load: Node/SwapLock", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -163,7 +163,7 @@ TEST_CASE("Load: Node/SwapLock", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -184,8 +184,8 @@ TEST_CASE("Load: Node/SwapLock", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -198,7 +198,7 @@ TEST_CASE("Load: Node/SwapLock", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -220,8 +220,8 @@ TEST_CASE("Load: Node/SwapLock", "[parse]") {
 TEST_CASE("Load: Node/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -235,7 +235,7 @@ TEST_CASE("Load: Node/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -261,8 +261,8 @@ TEST_CASE("Load: Node/Full", "[parse]") {
 TEST_CASE("Validate: Node/Empty", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {}
   ]
@@ -275,8 +275,8 @@ TEST_CASE("Validate: Node/Empty", "[validate]") {
 TEST_CASE("Validate: Node/Address/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "port": 123
@@ -291,8 +291,8 @@ TEST_CASE("Validate: Node/Address/Missing", "[validate]") {
 TEST_CASE("Validate: Node/Address/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": 123,
@@ -308,8 +308,8 @@ TEST_CASE("Validate: Node/Address/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Node/Port/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost"
@@ -324,8 +324,8 @@ TEST_CASE("Validate: Node/Port/Missing", "[validate]") {
 TEST_CASE("Validate: Node/Port/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -341,8 +341,8 @@ TEST_CASE("Validate: Node/Port/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Node/DataTransferPort/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -359,8 +359,8 @@ TEST_CASE("Validate: Node/DataTransferPort/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Node/SwapLock/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -377,8 +377,8 @@ TEST_CASE("Validate: Node/SwapLock/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Node/Windows/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

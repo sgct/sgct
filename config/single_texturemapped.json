@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "settings": {
     "display": { "swapinterval": 0 }
   },

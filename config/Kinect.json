@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "Kinect0",

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "scene": { "scale": 0.5 },
   "nodes": [
     {

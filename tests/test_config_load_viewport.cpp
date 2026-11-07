@@ -19,8 +19,8 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -38,7 +38,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -64,8 +64,8 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -83,7 +83,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -109,8 +109,8 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -128,7 +128,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -154,8 +154,8 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -173,7 +173,7 @@ TEST_CASE("Load: Viewport/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -201,8 +201,8 @@ TEST_CASE("Load: Viewport/User", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -224,7 +224,7 @@ TEST_CASE("Load: Viewport/User", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -254,8 +254,8 @@ TEST_CASE("Load: Viewport/User", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -277,7 +277,7 @@ TEST_CASE("Load: Viewport/User", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -309,8 +309,8 @@ TEST_CASE("Load: Viewport/OverlayTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -332,7 +332,7 @@ TEST_CASE("Load: Viewport/OverlayTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -362,8 +362,8 @@ TEST_CASE("Load: Viewport/OverlayTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -385,7 +385,7 @@ TEST_CASE("Load: Viewport/OverlayTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -417,8 +417,8 @@ TEST_CASE("Load: Viewport/BlendMaskTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -440,7 +440,7 @@ TEST_CASE("Load: Viewport/BlendMaskTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -470,8 +470,8 @@ TEST_CASE("Load: Viewport/BlendMaskTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -493,7 +493,7 @@ TEST_CASE("Load: Viewport/BlendMaskTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -525,8 +525,8 @@ TEST_CASE("Load: Viewport/BlackLevelMaskTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -548,7 +548,7 @@ TEST_CASE("Load: Viewport/BlackLevelMaskTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -579,8 +579,8 @@ TEST_CASE("Load: Viewport/BlackLevelMaskTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -602,7 +602,7 @@ TEST_CASE("Load: Viewport/BlackLevelMaskTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -635,8 +635,8 @@ TEST_CASE("Load: Viewport/CorrectionMeshTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -658,7 +658,7 @@ TEST_CASE("Load: Viewport/CorrectionMeshTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -689,8 +689,8 @@ TEST_CASE("Load: Viewport/CorrectionMeshTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -712,7 +712,7 @@ TEST_CASE("Load: Viewport/CorrectionMeshTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -745,8 +745,8 @@ TEST_CASE("Load: Viewport/IsTracked", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -768,7 +768,7 @@ TEST_CASE("Load: Viewport/IsTracked", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -798,8 +798,8 @@ TEST_CASE("Load: Viewport/IsTracked", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -821,7 +821,7 @@ TEST_CASE("Load: Viewport/IsTracked", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -853,8 +853,8 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -876,7 +876,7 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -906,8 +906,8 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -929,7 +929,7 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -959,8 +959,8 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -982,7 +982,7 @@ TEST_CASE("Load: Viewport/Eye", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1014,8 +1014,8 @@ TEST_CASE("Load: Viewport/Position", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1037,7 +1037,7 @@ TEST_CASE("Load: Viewport/Position", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1067,8 +1067,8 @@ TEST_CASE("Load: Viewport/Position", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1090,7 +1090,7 @@ TEST_CASE("Load: Viewport/Position", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1122,8 +1122,8 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1145,7 +1145,7 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1175,8 +1175,8 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1198,7 +1198,7 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
@@ -1229,8 +1229,8 @@ TEST_CASE("Load: Viewport/Size", "[parse]") {
 TEST_CASE("Load: Viewport/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1260,7 +1260,7 @@ TEST_CASE("Load: Viewport/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
@@ -1298,8 +1298,8 @@ TEST_CASE("Load: Viewport/Full", "[parse]") {
 TEST_CASE("Validate: Viewport/User/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1325,8 +1325,8 @@ TEST_CASE("Validate: Viewport/User/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/OverlayTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1352,8 +1352,8 @@ TEST_CASE("Validate: Viewport/OverlayTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/BlendMaskTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1379,8 +1379,8 @@ TEST_CASE("Validate: Viewport/BlendMaskTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/BlackLevelMaskTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1406,8 +1406,8 @@ TEST_CASE("Validate: Viewport/BlackLevelMaskTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/CorrectionMeshTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1433,8 +1433,8 @@ TEST_CASE("Validate: Viewport/CorrectionMeshTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/IsTracked/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1460,8 +1460,8 @@ TEST_CASE("Validate: Viewport/IsTracked/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Eye/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1487,8 +1487,8 @@ TEST_CASE("Validate: Viewport/Eye/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Eye/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1514,8 +1514,8 @@ TEST_CASE("Validate: Viewport/Eye/Illegal Value", "[validate]") {
 TEST_CASE("Validate: Viewport/Position/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1541,8 +1541,8 @@ TEST_CASE("Validate: Viewport/Position/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Position/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1568,8 +1568,8 @@ TEST_CASE("Validate: Viewport/Position/All/Missing", "[validate]") {
 TEST_CASE("Validate: Viewport/Position/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1597,8 +1597,8 @@ TEST_CASE("Validate: Viewport/Position/X/Missing", "[validate]") {
 TEST_CASE("Validate: Viewport/Position/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1627,8 +1627,8 @@ TEST_CASE("Validate: Viewport/Position/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Position/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1656,8 +1656,8 @@ TEST_CASE("Validate: Viewport/Position/Y/Missing", "[validate]") {
 TEST_CASE("Validate: Viewport/Position/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1686,8 +1686,8 @@ TEST_CASE("Validate: Viewport/Position/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Size/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1713,8 +1713,8 @@ TEST_CASE("Validate: Viewport/Size/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Size/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1740,8 +1740,8 @@ TEST_CASE("Validate: Viewport/Size/All/Missing", "[validate]") {
 TEST_CASE("Validate: Viewport/Size/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1769,8 +1769,8 @@ TEST_CASE("Validate: Viewport/Size/X/Missing", "[validate]") {
 TEST_CASE("Validate: Viewport/Size/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1799,8 +1799,8 @@ TEST_CASE("Validate: Viewport/Size/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Size/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1828,8 +1828,8 @@ TEST_CASE("Validate: Viewport/Size/Y/Missing", "[validate]") {
 TEST_CASE("Validate: Viewport/Size/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -1858,8 +1858,8 @@ TEST_CASE("Validate: Viewport/Size/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Viewport/Projection/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",

@@ -88,13 +88,13 @@ public:
         /// The amount of time spend rendering the 2D and 3D components of the frame
         std::array<double, HistoryLength> drawTimes = {};
 
-        /// The amount of time spend synchronizing the state between master and clients
+        /// The amount of time spend synchronizing the state between server and clients
         std::array<double, HistoryLength> syncTimes = {};
 
-        /// The lowest time recorded for network communication between master and clients
+        /// The lowest time recorded for network communication between server and clients
         std::array<double, HistoryLength> loopTimeMin = {};
 
-        /// The highest time recorded for network communication between master and clients
+        /// The highest time recorded for network communication between server and clients
         std::array<double, HistoryLength> loopTimeMax = {};
 
         /**
@@ -132,7 +132,7 @@ public:
         int8_t swapInterval = 0;
 
         /// If this is true, a log message is printed to the console while a client is
-        /// waiting for the master to connect or while the master is waiting for one or
+        /// waiting for the server to connect or while the server is waiting for one or
         /// more clients
         bool printSyncMessage = true;
 
@@ -144,7 +144,7 @@ public:
         bool useNormalTexture = false;
         bool usePositionTexture = false;
 
-        /// The number of seconds that SGCT will wait for the master or clients to connect
+        /// The number of seconds that SGCT will wait for the server or clients to connect
         /// before aborting
         float syncTimeout = 60.f;
 
@@ -216,7 +216,7 @@ public:
         /// connected nodes in a clustered setup
         std::vector<std::byte> (*encode)() = nullptr;
 
-        /// This function is called by decode all shared data sent to us from the master.
+        /// This function is called by decode all shared data sent to us from the server.
         /// The parameter is the block of data that contains the data to be decoded
         void (*decode)(const std::vector<std::byte>&) = nullptr;
 
@@ -470,13 +470,13 @@ public:
     static User& defaultUser();
 
     /**
-     * Returns if this Node is the master in a clustered environment. This function will
+     * Returns if this Node is the server in a clustered environment. This function will
      * also return `true` if the Node is not part of a clustered environment.
      *
-     * \return `true` if this Node is the master in a clustered environment or not part of
+     * \return `true` if this Node is the server in a clustered environment or not part of
      *         a cluster; `false` otherwise
      */
-    bool isMaster() const;
+    bool isServer() const;
 
     /**
      * Returns the number of the current frame. The frame number is a monotonically
@@ -539,7 +539,7 @@ private:
     void frameLockPreStage();
 
     /**
-     * Locks the rendering thread for synchronization. Locks master until clients are
+     * Locks the rendering thread for synchronization. Locks server until clients are
      * ready to swap buffers.
      */
     void frameLockPostStage();

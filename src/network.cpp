@@ -383,7 +383,7 @@ bool Network::isUpdated() const {
     bool state = false;
     if (_isServer) {
         state = ClusterManager::instance().firmFrameLockSyncStatus() ?
-            // Master sends first -> so on reply they should be equal
+            // Server sends first -> so on reply they should be equal
             (_currentRecvFrame == _currentSendFrame) :
             // Don't check if loose sync
             true;

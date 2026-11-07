@@ -335,8 +335,8 @@ void validateNode(const Node& n) {
 }
 
 void validateCluster(const Cluster& c) {
-    if (c.masterAddress.empty()) {
-        throw Err(1120, "Cluster master address must not be empty");
+    if (c.serverAddress.empty()) {
+        throw Err(1120, "Cluster server address must not be empty");
     }
     if (c.scene) {
         validateScene(*c.scene);
@@ -1966,14 +1966,14 @@ static void to_json(nlohmann::json& j, const Meta& m) {
 }
 
 static void from_json(const nlohmann::json& j, Cluster& c) {
-    if (auto it = j.find("masteraddress");  it != j.end()) {
-        it->get_to(c.masterAddress);
+    if (auto it = j.find("serveraddress");  it != j.end()) {
+        it->get_to(c.serverAddress);
     }
     else {
-        throw Err(6084, "Cannot find master address");
+        throw Err(6084, "Cannot find server address");
     }
 
-    simplifyIpAddress(c.masterAddress);
+    simplifyIpAddress(c.serverAddress);
 
     parseValue(j, "threadaffinity", c.threadAffinity);
     if (c.threadAffinity && *c.threadAffinity < 0) {
@@ -1993,7 +1993,7 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
 }
 
 static void to_json(nlohmann::json& j, const Cluster& c) {
-    j["masteraddress"] = c.masterAddress;
+    j["serveraddress"] = c.serverAddress;
 
     if (c.threadAffinity.has_value()) {
         j["threadaffinity"] = *c.threadAffinity;
@@ -2037,8 +2037,15 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 namespace {
     constexpr int CurrentConfigVersion = 2;
 
-    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation'
+    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation' and
+    // 'masteraddress' was renamed to 'serveraddress'
     void upgradeConfigV1ToV2(nlohmann::json& j) {
+        if (auto it = j.find("masteraddress");  it != j.end()) {
+            nlohmann::json address = *it;
+            j.erase(it);
+            j["serveraddress"] = address;
+        }
+
         auto nodes = j.find("nodes");
         if (nodes == j.end() || !nodes->is_array()) {
             return;
@@ -2191,7 +2198,7 @@ config::Cluster defaultCluster() {
 
     config::Cluster res = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = { node },
         .users = { user }
     };

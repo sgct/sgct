@@ -59,7 +59,7 @@ void ClusterManager::destroy() {
 ClusterManager::ClusterManager(const config::Cluster& cluster, int clusterID)
     : _thisNodeId(clusterID)
     , _firmFrameLockSync(cluster.firmSync.value_or(false))
-    , _masterAddress(cluster.masterAddress)
+    , _serverAddress(cluster.serverAddress)
 {
     ZoneScoped;
 
@@ -124,8 +124,8 @@ void ClusterManager::setUseIgnoreSync(bool state) {
     _ignoreSync = state;
 }
 
-const std::string& ClusterManager::masterAddress() const {
-    return _masterAddress;
+const std::string& ClusterManager::serverAddress() const {
+    return _serverAddress;
 }
 
 int ClusterManager::numberOfNodes() const {

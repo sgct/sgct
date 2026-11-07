@@ -20,15 +20,15 @@ TEST_CASE("Load: User/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": []
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {}
         };
 
@@ -43,15 +43,15 @@ TEST_CASE("Load: User/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [ {} ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = { User() }
         };
 
@@ -68,8 +68,8 @@ TEST_CASE("Load: User/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "name": "abc"
@@ -80,7 +80,7 @@ TEST_CASE("Load: User/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .name = "abc"
@@ -99,8 +99,8 @@ TEST_CASE("Load: User/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "name": "def"
@@ -111,7 +111,7 @@ TEST_CASE("Load: User/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .name = "def"
@@ -132,8 +132,8 @@ TEST_CASE("Load: User/EyeSeparation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "eyeseparation": 1.0
@@ -144,7 +144,7 @@ TEST_CASE("Load: User/EyeSeparation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .eyeSeparation = 1.f
@@ -163,8 +163,8 @@ TEST_CASE("Load: User/EyeSeparation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "eyeseparation": 2.0
@@ -175,7 +175,7 @@ TEST_CASE("Load: User/EyeSeparation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .eyeSeparation = 2.f
@@ -196,8 +196,8 @@ TEST_CASE("Load: User/Position", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": { "x": 1.0, "y": 2.0, "z": 3.0 }
@@ -208,7 +208,7 @@ TEST_CASE("Load: User/Position", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .position = glm::vec3(1.f, 2.f, 3.f)
@@ -227,8 +227,8 @@ TEST_CASE("Load: User/Position", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": { "x": 4.0, "y": 5.0, "z": 6.0 }
@@ -240,7 +240,7 @@ TEST_CASE("Load: User/Position", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .position = glm::vec3(4.f, 5.f, 6.f)
@@ -261,8 +261,8 @@ TEST_CASE("Load: User/Transformation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "matrix": [
@@ -293,7 +293,7 @@ TEST_CASE("Load: User/Transformation", "[parse]") {
         glm::value_ptr(m)[15] = 16.f;
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .transformation = m
@@ -312,8 +312,8 @@ TEST_CASE("Load: User/Transformation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "matrix": [
@@ -344,7 +344,7 @@ TEST_CASE("Load: User/Transformation", "[parse]") {
         glm::value_ptr(m)[15] = 32.f;
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .transformation = m
@@ -365,8 +365,8 @@ TEST_CASE("Load: User/Tracking", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {
@@ -380,7 +380,7 @@ TEST_CASE("Load: User/Tracking", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .tracking = User::Tracking {
@@ -402,8 +402,8 @@ TEST_CASE("Load: User/Tracking", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {
@@ -417,7 +417,7 @@ TEST_CASE("Load: User/Tracking", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .users = {
                 User {
                     .tracking = User::Tracking {
@@ -440,8 +440,8 @@ TEST_CASE("Load: User/Tracking", "[parse]") {
 TEST_CASE("Load: User/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "name": "abc",
@@ -479,7 +479,7 @@ TEST_CASE("Load: User/Full", "[parse]") {
     glm::value_ptr(m)[15] = 16.f;
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .users = {
             {
                 .name = "abc",
@@ -509,8 +509,8 @@ TEST_CASE("Load: User/Full", "[parse]") {
 TEST_CASE("Validate: User/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "name": 123
@@ -525,8 +525,8 @@ TEST_CASE("Validate: User/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "name": ""
@@ -541,8 +541,8 @@ TEST_CASE("Validate: User/Name/Illegal Value", "[validate]") {
 TEST_CASE("Validate: User/EyeSeparation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "eyeseparation": "abc"
@@ -557,8 +557,8 @@ TEST_CASE("Validate: User/EyeSeparation/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Position/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": "abc"
@@ -573,8 +573,8 @@ TEST_CASE("Validate: User/Position/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Position/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {}
@@ -589,8 +589,8 @@ TEST_CASE("Validate: User/Position/All/Missing", "[validate]") {
 TEST_CASE("Validate: User/Position/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {
@@ -608,8 +608,8 @@ TEST_CASE("Validate: User/Position/X/Missing", "[validate]") {
 TEST_CASE("Validate: User/Position/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {
@@ -628,8 +628,8 @@ TEST_CASE("Validate: User/Position/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Position/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {
@@ -647,8 +647,8 @@ TEST_CASE("Validate: User/Position/Y/Missing", "[validate]") {
 TEST_CASE("Validate: User/Position/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {
@@ -667,8 +667,8 @@ TEST_CASE("Validate: User/Position/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Position/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {
@@ -686,8 +686,8 @@ TEST_CASE("Validate: User/Position/Z/Missing", "[validate]") {
 TEST_CASE("Validate: User/Position/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "pos": {
@@ -706,8 +706,8 @@ TEST_CASE("Validate: User/Position/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Transformation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "matrix": "abc"
@@ -723,8 +723,8 @@ TEST_CASE("Validate: User/Transformation/Missing", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "matrix": []
@@ -739,8 +739,8 @@ TEST_CASE("Validate: User/Transformation/Missing", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
@@ -756,8 +756,8 @@ TEST_CASE("Validate: User/Transformation/Missing", "[validate]") {
 TEST_CASE("Validate: User/Tracking/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": "abc"
@@ -772,8 +772,8 @@ TEST_CASE("Validate: User/Tracking/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Tracking/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {}
@@ -788,8 +788,8 @@ TEST_CASE("Validate: User/Tracking/All/Missing", "[validate]") {
 TEST_CASE("Validate: User/Tracking/Tracker/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {
@@ -806,8 +806,8 @@ TEST_CASE("Validate: User/Tracking/Tracker/Missing", "[validate]") {
 TEST_CASE("Validate: User/Tracking/Tracker/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {
@@ -825,8 +825,8 @@ TEST_CASE("Validate: User/Tracking/Tracker/Wrong Type", "[validate]") {
 TEST_CASE("Validate: User/Tracking/Device/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {
@@ -843,8 +843,8 @@ TEST_CASE("Validate: User/Tracking/Device/Missing", "[validate]") {
 TEST_CASE("Validate: User/Tracking/Device/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": [
     {
       "tracking": {

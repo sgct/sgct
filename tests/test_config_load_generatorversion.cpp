@@ -19,8 +19,8 @@ TEST_CASE("Load: Generator/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": "abc",
     "major": 1,
@@ -31,7 +31,7 @@ TEST_CASE("Load: Generator/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .generator = GeneratorVersion {
                 .name = "abc",
                 .major = 1,
@@ -51,8 +51,8 @@ TEST_CASE("Load: Generator/Minimal", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": "def",
     "major": 3,
@@ -63,7 +63,7 @@ TEST_CASE("Load: Generator/Minimal", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .generator = GeneratorVersion {
                 .name = "def",
                 .major = 3,
@@ -88,8 +88,8 @@ TEST_CASE("Load: Generator/Minimal", "[parse]") {
 TEST_CASE("Validate: GeneratorVersion/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": 123,
     "major": 1,
@@ -104,8 +104,8 @@ TEST_CASE("Validate: GeneratorVersion/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: GeneratorVersion/Major/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": "abc",
     "major": "abc",
@@ -120,8 +120,8 @@ TEST_CASE("Validate: GeneratorVersion/Major/Wrong Type", "[validate]") {
 TEST_CASE("Validate: GeneratorVersion/Major/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": "abc",
     "major": -1,
@@ -136,8 +136,8 @@ TEST_CASE("Validate: GeneratorVersion/Major/Illegal Value", "[validate]") {
 TEST_CASE("Validate: GeneratorVersion/Minor/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": "abc",
     "major": 2,
@@ -152,8 +152,8 @@ TEST_CASE("Validate: GeneratorVersion/Minor/Wrong Type", "[validate]") {
 TEST_CASE("Validate: GeneratorVersion/Minor/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": {
     "name": "abc",
     "major": 2,

@@ -751,7 +751,7 @@
 
   "type": "object",
   "properties": {
-    "masteraddress": {
+    "serveraddress": {
       "type": "string",
       "minLength": 1
     },
@@ -778,6 +778,6 @@
     "meta": { "$ref": "#/$defs/meta" },
     "version": { "type": "integer", "const": 2 }
   },
-  "required": [ "masteraddress", "version" ],
+  "required": [ "serveraddress", "version" ],
   "additionalProperties": false
 }

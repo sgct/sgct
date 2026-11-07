@@ -661,7 +661,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     glfwSwapInterval(isLastWindow ? Engine::instance().settings().swapInterval : 0);
 
     // if client, disable mouse pointer
-    if (_hideMouseCursor || !Engine::instance().isMaster()) {
+    if (_hideMouseCursor || !Engine::instance().isServer()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 

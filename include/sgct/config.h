@@ -437,7 +437,7 @@ struct SGCT_EXPORT Meta {
 struct SGCT_EXPORT Cluster {
     bool success = false;
 
-    std::string masterAddress;
+    std::string serverAddress;
     std::optional<int> threadAffinity;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;

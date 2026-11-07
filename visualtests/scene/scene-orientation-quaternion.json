@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "masteraddress": "localhost",
+  "serveraddress": "localhost",
   "scene": { "orientation": { "x": 0.1893079, "y": -0.2392983, "z": -0.0381346, "w": 0.9515485 } },
   "nodes": [
     {

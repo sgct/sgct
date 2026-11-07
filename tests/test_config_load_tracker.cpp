@@ -19,15 +19,15 @@ using namespace sgct::config;
 TEST_CASE("Load: Tracker/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": []
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .trackers = {}
     };
 
@@ -43,8 +43,8 @@ TEST_CASE("Load: Tracker/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc"
@@ -55,7 +55,7 @@ TEST_CASE("Load: Tracker/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc"
@@ -74,8 +74,8 @@ TEST_CASE("Load: Tracker/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "def"
@@ -86,7 +86,7 @@ TEST_CASE("Load: Tracker/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "def"
@@ -106,8 +106,8 @@ TEST_CASE("Load: Tracker/Name", "[parse]") {
 TEST_CASE("Load: Tracker/Devices/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -119,7 +119,7 @@ TEST_CASE("Load: Tracker/Devices/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .trackers = {
             Tracker {
                 .name = "abc",
@@ -140,8 +140,8 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -157,7 +157,7 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -181,8 +181,8 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -198,7 +198,7 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -222,8 +222,8 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -245,7 +245,7 @@ TEST_CASE("Load: Tracker/Devices/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -277,8 +277,8 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -295,7 +295,7 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -320,8 +320,8 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -343,7 +343,7 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -373,8 +373,8 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -396,7 +396,7 @@ TEST_CASE("Load: Tracker/Devices/Sensors", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -428,8 +428,8 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -446,7 +446,7 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -471,8 +471,8 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -494,7 +494,7 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -524,8 +524,8 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -547,7 +547,7 @@ TEST_CASE("Load: Tracker/Devices/Buttons", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -579,8 +579,8 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -597,7 +597,7 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -622,8 +622,8 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -645,7 +645,7 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -675,8 +675,8 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -698,7 +698,7 @@ TEST_CASE("Load: Tracker/Devices/Axes", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -730,8 +730,8 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -748,7 +748,7 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -773,8 +773,8 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -791,7 +791,7 @@ TEST_CASE("Load: Tracker/Devices/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -818,8 +818,8 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -856,7 +856,7 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
         glm::value_ptr(m)[15] = 16.f;
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -881,8 +881,8 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -919,7 +919,7 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
         glm::value_ptr(m)[15] = 32.f;
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -946,8 +946,8 @@ TEST_CASE("Load: Tracker/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -959,7 +959,7 @@ TEST_CASE("Load: Tracker/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -979,8 +979,8 @@ TEST_CASE("Load: Tracker/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -992,7 +992,7 @@ TEST_CASE("Load: Tracker/Offset", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -1014,8 +1014,8 @@ TEST_CASE("Load: Tracker/Scale", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -1027,7 +1027,7 @@ TEST_CASE("Load: Tracker/Scale", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -1047,8 +1047,8 @@ TEST_CASE("Load: Tracker/Scale", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -1060,7 +1060,7 @@ TEST_CASE("Load: Tracker/Scale", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -1082,8 +1082,8 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -1115,7 +1115,7 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
         glm::value_ptr(m)[15] = 16.f;
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -1135,8 +1135,8 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -1168,7 +1168,7 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
         glm::value_ptr(m)[15] = 32.f;
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .trackers = {
                 Tracker {
                     .name = "abc",
@@ -1189,8 +1189,8 @@ TEST_CASE("Load: Tracker/Transformation", "[parse]") {
 TEST_CASE("Load: Tracker/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": [
     {
       "name": "abc",
@@ -1269,7 +1269,7 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
     glm::value_ptr(m2)[15] = 32.f;
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .trackers = {
             Tracker {
                 .name = "abc",
@@ -1322,8 +1322,8 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
 TEST_CASE("Validate: Tracker/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "name": 123
   }
@@ -1336,8 +1336,8 @@ TEST_CASE("Validate: Tracker/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "name": ""
   }
@@ -1350,8 +1350,8 @@ TEST_CASE("Validate: Tracker/Name/Illegal Value", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": 123
   }
@@ -1364,8 +1364,8 @@ TEST_CASE("Validate: Tracker/Device/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1382,8 +1382,8 @@ TEST_CASE("Validate: Tracker/Device/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1400,8 +1400,8 @@ TEST_CASE("Validate: Tracker/Device/Name/Illegal Value", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Sensors/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1418,8 +1418,8 @@ TEST_CASE("Validate: Tracker/Device/Sensors/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Sensors/Address/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1439,8 +1439,8 @@ TEST_CASE("Validate: Tracker/Device/Sensors/Address/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Sensors/Address/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1460,8 +1460,8 @@ TEST_CASE("Validate: Tracker/Device/Sensors/Address/Illegal Value", "[validate]"
 TEST_CASE("Validate: Tracker/Device/Sensors/Identifier/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1481,8 +1481,8 @@ TEST_CASE("Validate: Tracker/Device/Sensors/Identifier/Wrong Type", "[validate]"
 TEST_CASE("Validate: Tracker/Device/Buttons/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1499,8 +1499,8 @@ TEST_CASE("Validate: Tracker/Device/Buttons/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Buttons/Address/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1520,8 +1520,8 @@ TEST_CASE("Validate: Tracker/Device/Buttons/Address/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Buttons/Address/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1541,8 +1541,8 @@ TEST_CASE("Validate: Tracker/Device/Buttons/Address/Illegal Value", "[validate]"
 TEST_CASE("Validate: Tracker/Device/Buttons/Count/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1562,8 +1562,8 @@ TEST_CASE("Validate: Tracker/Device/Buttons/Count/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Buttons/Count/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1583,8 +1583,8 @@ TEST_CASE("Validate: Tracker/Device/Buttons/Count/Illegal Value", "[validate]") 
 TEST_CASE("Validate: Tracker/Device/Axes/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1601,8 +1601,8 @@ TEST_CASE("Validate: Tracker/Device/Axes/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Axes/Address/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1622,8 +1622,8 @@ TEST_CASE("Validate: Tracker/Device/Axes/Address/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Axes/Address/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1643,8 +1643,8 @@ TEST_CASE("Validate: Tracker/Device/Axes/Address/Illegal Value", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Axes/Count/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1664,8 +1664,8 @@ TEST_CASE("Validate: Tracker/Device/Axes/Count/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Axes/Count/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1685,8 +1685,8 @@ TEST_CASE("Validate: Tracker/Device/Axes/Count/Illegal Value", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1703,8 +1703,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1721,8 +1721,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/All/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1742,8 +1742,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1764,8 +1764,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1785,8 +1785,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1807,8 +1807,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1828,8 +1828,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1850,8 +1850,8 @@ TEST_CASE("Validate: Tracker/Device/Offset/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Device/Transformation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1869,8 +1869,8 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1887,8 +1887,8 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "devices": [
       {
@@ -1906,8 +1906,8 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]")
 TEST_CASE("Validate: Tracker/Offset/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": "abc"
   }
@@ -1920,8 +1920,8 @@ TEST_CASE("Validate: Tracker/Offset/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {}
   }
@@ -1934,8 +1934,8 @@ TEST_CASE("Validate: Tracker/Offset/All/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {
       "y": 2,
@@ -1951,8 +1951,8 @@ TEST_CASE("Validate: Tracker/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {
       "x": "abc",
@@ -1969,8 +1969,8 @@ TEST_CASE("Validate: Tracker/Offset/X/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {
       "x": 1,
@@ -1986,8 +1986,8 @@ TEST_CASE("Validate: Tracker/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {
       "x": 1,
@@ -2004,8 +2004,8 @@ TEST_CASE("Validate: Tracker/Offset/Y/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {
       "x": 1,
@@ -2021,8 +2021,8 @@ TEST_CASE("Validate: Tracker/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: Tracker/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "offset": {
       "x": 1,
@@ -2039,8 +2039,8 @@ TEST_CASE("Validate: Tracker/Offset/Z/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Scale/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "scale": "abc"
   }
@@ -2053,8 +2053,8 @@ TEST_CASE("Validate: Tracker/Scale/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Tracker/Transformation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "matrix": "abc"
   }
@@ -2068,8 +2068,8 @@ TEST_CASE("Validate: Tracker/Transformation/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "matrix": []
   }
@@ -2082,8 +2082,8 @@ TEST_CASE("Validate: Tracker/Transformation/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": {
     "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
   }

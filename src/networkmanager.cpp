@@ -251,7 +251,7 @@ void NetworkManager::initialize() {
 
     _isServer = [&](NetworkMode nm) {
         switch (nm) {
-            case NetworkMode::Remote: return matchesAddress(cm.masterAddress());
+            case NetworkMode::Remote: return matchesAddress(cm.serverAddress());
             case NetworkMode::LocalServer: return true;
             case NetworkMode::LocalClient: return false;
             default: throw std::logic_error("Unhandled case label");
@@ -271,10 +271,10 @@ void NetworkManager::initialize() {
 
     std::string remoteAddress;
     if (_mode == NetworkMode::Remote) {
-        if (cm.masterAddress().empty()) {
-            throw Err(5022, "No address information for master available");
+        if (cm.serverAddress().empty()) {
+            throw Err(5022, "No address information for server available");
         }
-        remoteAddress = cm.masterAddress();
+        remoteAddress = cm.serverAddress();
     }
     else {
         // Local (not remote)

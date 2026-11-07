@@ -606,29 +606,6 @@
       "additionalProperties": false
     },
 
-    "capture": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "rangebegin": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "rangeend": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "bitdepth": {
-          "type": "integer",
-          "enum": [ 8, 16 ]
-        }
-      },
-      "additionalProperties": false
-    },
-
     "device": {
       "type": "object",
       "properties": {
@@ -793,7 +770,6 @@
       "type": "array",
       "items": { "$ref": "#/$defs/user" }
     },
-    "capture": { "$ref": "#/$defs/capture" },
     "trackers": {
       "type": "array",
       "items": {"$ref": "#/$defs/tracker" }

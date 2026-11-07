@@ -21,7 +21,6 @@ target_sources(
     test_error.cpp
     test_image.cpp
     test_log.cpp
-    test_config_load_capture.cpp
     test_config_load_cluster.cpp
     test_config_load_cubemapprojection.cpp
     test_config_load_cylindricalprojection.cpp

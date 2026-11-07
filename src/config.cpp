@@ -115,18 +115,6 @@ void validateUser(const User& u) {
     }
 }
 
-void validateCapture(const Capture& c) {
-    if (c.path && c.path->empty()) {
-        throw Err(1010, "Capture path must not be empty");
-    }
-
-    if (c.range) {
-        if (c.range->first >= c.range->last && c.range->last != -1) {
-            throw Err(1011, "Screenshot ranges beginning has to be before the end");
-        }
-    }
-}
-
 void validateScene(const Scene&) {}
 
 void validateSettings(const Settings& s) {
@@ -352,9 +340,6 @@ void validateCluster(const Cluster& c) {
     }
     if (c.scene) {
         validateScene(*c.scene);
-    }
-    if (c.capture) {
-        validateCapture(*c.capture);
     }
     if (c.settings) {
         validateSettings(*c.settings);
@@ -896,67 +881,6 @@ static void to_json(nlohmann::json& j, const Settings& s) {
             display["refreshrate"] = *s.display->refreshRate;
         }
         j["display"] = display;
-    }
-}
-
-static void from_json(const nlohmann::json& j, Capture& c) {
-    parseValue(j, "path", c.path);
-
-    std::optional<int> rangeBeg;
-    parseValue(j, "rangebegin", rangeBeg);
-    std::optional<int> rangeEnd;
-    parseValue(j, "rangeend", rangeEnd);
-
-    if (rangeBeg || rangeEnd) {
-        c.range = Capture::ScreenShotRange();
-    }
-
-    if (rangeBeg) {
-        c.range->first = *rangeBeg;
-    }
-    if (rangeEnd) {
-        c.range->last = *rangeEnd;
-    }
-
-    if (rangeBeg && rangeEnd && *rangeBeg > *rangeEnd) {
-        throw Err(6051, "End of range must be greater than beginning of range");
-    }
-
-    if (auto it = j.find("bitdepth");  it != j.end()) {
-        const int bitDepth = it->get<int>();
-        if (bitDepth == 8) {
-            c.bitDepth = Capture::BitDepth::Depth8;
-        }
-        else if (bitDepth == 16) {
-            c.bitDepth = Capture::BitDepth::Depth16;
-        }
-        else {
-            throw Err(6052, std::format("Wrong capture bit depth value {}", bitDepth));
-        }
-    }
-}
-
-static void to_json(nlohmann::json& j, const Capture& c) {
-    j = nlohmann::json::object();
-
-    if (c.path.has_value()) {
-        j["path"] = *c.path;
-    }
-
-    if (c.range.has_value()) {
-        j["rangebegin"] = c.range->first;
-        j["rangeend"] = c.range->last;
-    }
-
-    if (c.bitDepth.has_value()) {
-        switch (*c.bitDepth) {
-            case Capture::BitDepth::Depth8:
-                j["bitdepth"] = 8;
-                break;
-            case Capture::BitDepth::Depth16:
-                j["bitdepth"] = 16;
-                break;
-        }
     }
 }
 
@@ -2061,7 +1985,6 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
     parseValue(j, "scene", c.scene);
     parseValue(j, "users", c.users);
     parseValue(j, "settings", c.settings);
-    parseValue(j, "capture", c.capture);
 
     parseValue(j, "trackers", c.trackers);
     parseValue(j, "nodes", c.nodes);
@@ -2095,10 +2018,6 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 
     if (c.settings.has_value()) {
         j["settings"] = *c.settings;
-    }
-
-    if (c.capture.has_value()) {
-        j["capture"] = *c.capture;
     }
 
     if (!c.trackers.empty()) {

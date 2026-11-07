@@ -30,6 +30,9 @@ struct SGCT_EXPORT Configuration {
     std::optional<int> nCaptureThreads;
     std::optional<std::filesystem::path> screenshotPath;
     std::optional<std::string> screenshotPrefix;
+    std::optional<int> screenshotRangeBegin;
+    std::optional<int> screenshotRangeEnd;
+    std::optional<int> screenshotBitDepth;
     std::optional<bool> addNodeNameInScreenshot;
     std::optional<bool> omitWindowNameInScreenshot;
     std::optional<bool> useOpenGLDebugContext;

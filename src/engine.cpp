@@ -28,6 +28,7 @@
 #include <chrono>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <mutex>
 #include <ranges>
@@ -106,6 +107,15 @@ namespace {
         if (config.omitWindowNameInScreenshot) {
             res.capture.addWindowName = !(*config.omitWindowNameInScreenshot);
         }
+        if (config.screenshotRangeBegin || config.screenshotRangeEnd) {
+            res.capture.limits = {
+                static_cast<uint64_t>(config.screenshotRangeBegin.value_or(0)),
+                config.screenshotRangeEnd ?
+                    static_cast<uint64_t>(*config.screenshotRangeEnd) :
+                    std::numeric_limits<uint64_t>::max()
+            };
+        }
+        res.capture.bitDepth = config.screenshotBitDepth.value_or(res.capture.bitDepth);
         res.printSyncMessage = config.printWaitMessage.value_or(res.printSyncMessage);
         res.syncTimeout = config.waitTimeout.value_or(res.syncTimeout);
         if (cluster.settings) {
@@ -120,28 +130,6 @@ namespace {
                 cluster.settings->useNormalTexture.value_or(res.useNormalTexture);
             res.usePositionTexture =
                 cluster.settings->usePositionTexture.value_or(res.usePositionTexture);
-        }
-        if (cluster.capture) {
-            res.capture.capturePath =
-                cluster.capture->path.value_or(res.capture.capturePath);
-
-            if (cluster.capture->range) {
-                res.capture.limits = {
-                    static_cast<uint64_t>(cluster.capture->range->first),
-                    static_cast<uint64_t>(cluster.capture->range->last)
-                };
-            }
-
-            if (cluster.capture->bitDepth) {
-                switch (*cluster.capture->bitDepth) {
-                    case config::Capture::BitDepth::Depth8:
-                        res.capture.bitDepth = 8;
-                        break;
-                    case config::Capture::BitDepth::Depth16:
-                        res.capture.bitDepth = 16;
-                        break;
-                }
-            }
         }
 
         return res;

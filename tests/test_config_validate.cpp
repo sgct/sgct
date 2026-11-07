@@ -271,41 +271,6 @@ TEST_CASE("ValidateCluster: User tracking", "[validatecluster]") {
     }
 }
 
-TEST_CASE("ValidateCluster: Capture", "[validatecluster]") {
-    using Range = Capture::ScreenShotRange;
-
-    SECTION("Valid") {
-        const Range range = GENERATE(
-            Range{ .first = -1, .last = -1 },
-            Range{ .first = 2, .last = 5 },
-            Range{ .first = 5, .last = -1 },
-            Range{ .first = -1, .last = 5 }
-        );
-        CAPTURE(range.first, range.last);
-        Cluster c = minimalCluster();
-        c.capture = Capture{ .path = "screenshots", .range = range };
-        CHECK_NOTHROW(validateCluster(c));
-    }
-
-    SECTION("1010: Empty path") {
-        Cluster c = minimalCluster();
-        c.capture = Capture{ .path = "" };
-        checkValidateError(c, 1010);
-    }
-
-    SECTION("1011: Empty range") {
-        Cluster c = minimalCluster();
-        c.capture = Capture{ .range = Range{ .first = 5, .last = 5 } };
-        checkValidateError(c, 1011);
-    }
-
-    SECTION("1011: Inverted range") {
-        Cluster c = minimalCluster();
-        c.capture = Capture{ .range = Range{ .first = 5, .last = 3 } };
-        checkValidateError(c, 1011);
-    }
-}
-
 TEST_CASE("ValidateCluster: Settings", "[validatecluster]") {
     Cluster c = minimalCluster();
     c.settings = Settings();

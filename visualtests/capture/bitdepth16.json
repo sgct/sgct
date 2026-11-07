@@ -1,7 +1,6 @@
 {
   "version": 2,
   "masteraddress": "localhost",
-  "capture": { "bitdepth": 16 },
   "nodes": [
     {
       "address": "localhost",

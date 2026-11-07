@@ -392,16 +392,26 @@ TEST_CASE("Validate: Cluster/Users/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Cluster/Capture/Wrong Type", "[validate]") {
+TEST_CASE("Validate: Cluster/Capture/Removed", "[validate]") {
+    // The capture settings were replaced by commandline arguments, so the schema rejects
+    // them and loading the configuration ignores them
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
+  "version": 2,
   "masteraddress": "localhost",
-  "capture": "abc"
+  "capture": {
+    "path": "abc"
+  }
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .masterAddress = "localhost"
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }
 
 TEST_CASE("Validate: Cluster/Trackers/Wrong Type", "[validate]") {

@@ -29,6 +29,9 @@ TEST_CASE("CommandLine: Empty", "[commandline]") {
     CHECK(!config.nCaptureThreads.has_value());
     CHECK(!config.screenshotPath.has_value());
     CHECK(!config.screenshotPrefix.has_value());
+    CHECK(!config.screenshotRangeBegin.has_value());
+    CHECK(!config.screenshotRangeEnd.has_value());
+    CHECK(!config.screenshotBitDepth.has_value());
     CHECK(!config.addNodeNameInScreenshot.has_value());
     CHECK(!config.omitWindowNameInScreenshot.has_value());
     CHECK(!config.printWaitMessage.has_value());
@@ -166,6 +169,80 @@ TEST_CASE("CommandLine: Screenshot", "[commandline]") {
     CHECK(args.empty());
 }
 
+TEST_CASE("CommandLine: Screenshot range", "[commandline]") {
+    {
+        std::vector<std::string> args = {
+            "--screenshot-range-begin", "2", "--screenshot-range-end", "5"
+        };
+        const Configuration config = parseArguments(args);
+        CHECK(config.screenshotRangeBegin == 2);
+        CHECK(config.screenshotRangeEnd == 5);
+        CHECK(args.empty());
+    }
+    {
+        std::vector<std::string> args = { "--screenshot-range-begin", "0" };
+        const Configuration config = parseArguments(args);
+        CHECK(config.screenshotRangeBegin == 0);
+        CHECK(!config.screenshotRangeEnd.has_value());
+        CHECK(args.empty());
+    }
+    {
+        std::vector<std::string> args = { "--screenshot-range-end", "3" };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotRangeBegin.has_value());
+        CHECK(config.screenshotRangeEnd == 3);
+        CHECK(args.empty());
+    }
+    {
+        // Screenshot numbers start at 0, so negative values are ignored
+        std::vector<std::string> args = {
+            "--screenshot-range-begin", "-1", "--screenshot-range-end", "-1"
+        };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotRangeBegin.has_value());
+        CHECK(!config.screenshotRangeEnd.has_value());
+        CHECK(args.empty());
+    }
+    {
+        // A range that does not contain any screenshot is ignored
+        std::vector<std::string> args = {
+            "--screenshot-range-begin", "5", "--screenshot-range-end", "5"
+        };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotRangeBegin.has_value());
+        CHECK(!config.screenshotRangeEnd.has_value());
+        CHECK(args.empty());
+    }
+    {
+        std::vector<std::string> args = { "--screenshot-range-end", "0" };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotRangeEnd.has_value());
+        CHECK(args.empty());
+    }
+}
+
+TEST_CASE("CommandLine: Screenshot bit depth", "[commandline]") {
+    {
+        std::vector<std::string> args = { "--screenshot-bit-depth", "8" };
+        const Configuration config = parseArguments(args);
+        CHECK(config.screenshotBitDepth == 8);
+        CHECK(args.empty());
+    }
+    {
+        std::vector<std::string> args = { "--screenshot-bit-depth", "16" };
+        const Configuration config = parseArguments(args);
+        CHECK(config.screenshotBitDepth == 16);
+        CHECK(args.empty());
+    }
+    {
+        // Only 8 and 16 bits per channel are supported
+        std::vector<std::string> args = { "--screenshot-bit-depth", "32" };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotBitDepth.has_value());
+        CHECK(args.empty());
+    }
+}
+
 TEST_CASE("CommandLine: Wait timeout", "[commandline]") {
     std::vector<std::string> args = { "--wait-timeout", "2.5" };
     const Configuration config = parseArguments(args);
@@ -196,7 +273,8 @@ TEST_CASE("CommandLine: Unknown arguments are kept", "[commandline]") {
 TEST_CASE("CommandLine: Missing values", "[commandline]") {
     const std::vector<std::string> flags = {
         "--config", "-c", "--local", "-l", "--notify", "--number-capture-threads",
-        "--screenshot-path", "--screenshot-prefix", "--wait-timeout"
+        "--screenshot-path", "--screenshot-prefix", "--screenshot-range-begin",
+        "--screenshot-range-end", "--screenshot-bit-depth", "--wait-timeout"
     };
     for (const std::string& flag : flags) {
         // A flag that requires a value but is the last argument is ignored and kept
@@ -208,6 +286,9 @@ TEST_CASE("CommandLine: Missing values", "[commandline]") {
         CHECK(!config.nCaptureThreads.has_value());
         CHECK(!config.screenshotPath.has_value());
         CHECK(!config.screenshotPrefix.has_value());
+        CHECK(!config.screenshotRangeBegin.has_value());
+        CHECK(!config.screenshotRangeEnd.has_value());
+        CHECK(!config.screenshotBitDepth.has_value());
         CHECK(!config.waitTimeout.has_value());
         const std::vector<std::string> expected = { "app", flag };
         CHECK(args == expected);
@@ -234,6 +315,18 @@ TEST_CASE("CommandLine: Invalid numbers", "[commandline]") {
         CHECK(args.empty());
     }
     {
+        std::vector<std::string> args = { "--screenshot-range-begin", "abc" };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotRangeBegin.has_value());
+        CHECK(args.empty());
+    }
+    {
+        std::vector<std::string> args = { "--screenshot-bit-depth", "abc" };
+        const Configuration config = parseArguments(args);
+        CHECK(!config.screenshotBitDepth.has_value());
+        CHECK(args.empty());
+    }
+    {
         std::vector<std::string> args = { "--local", "99999999999999999999" };
         const Configuration config = parseArguments(args);
         CHECK(!config.nodeId.has_value());
@@ -243,10 +336,11 @@ TEST_CASE("CommandLine: Invalid numbers", "[commandline]") {
 
 TEST_CASE("CommandLine: Help message", "[commandline]") {
     const std::string msg = helpMessage();
-    constexpr std::array<std::string_view, 16> Flags = {
+    constexpr std::array<std::string_view, 19> Flags = {
         "--config", "--help", "--local", "--client", "--debug", "--firm-sync",
         "--loose-sync", "--ignore-sync", "--notify", "--screenshot-path",
-        "--screenshot-prefix", "--add-node-name-in-screenshot",
+        "--screenshot-prefix", "--screenshot-range-begin", "--screenshot-range-end",
+        "--screenshot-bit-depth", "--add-node-name-in-screenshot",
         "--omit-node-name-in-screenshot", "--number-capture-threads",
         "--print-wait-message", "--wait-timeout"
     };

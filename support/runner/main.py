@@ -83,6 +83,8 @@ class Test:
     self.show_id = any(
       "draw2d" in window for node in config["nodes"] for window in node.get("windows", [])
     )
+    arguments = path.with_suffix(".args")
+    self.arguments = arguments.read_text().split() if arguments.exists() else []
 
 
 def default_executable():
@@ -179,6 +181,7 @@ def run_test(executable, test, folder):
       command.append("--client")
     if test.nodes > 1:
       command.append("--add-node-name-in-screenshot")
+    command += test.arguments
     log = open(folder / f"node{node}.log", "w+", errors="replace")
     # The calibrator loads its test patterns from the working directory
     process = subprocess.Popen(

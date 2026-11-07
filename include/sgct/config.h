@@ -42,26 +42,6 @@ SGCT_EXPORT void validateUser(const User& user);
 
 
 
-struct SGCT_EXPORT Capture {
-    struct ScreenShotRange {
-        int first = -1; // inclusive
-        int last = -1;  // exclusive
-
-        bool operator==(const ScreenShotRange&) const noexcept = default;
-    };
-
-    enum class BitDepth { Depth8, Depth16 };
-
-    std::optional<std::filesystem::path> path;
-    std::optional<ScreenShotRange> range;
-    std::optional<BitDepth> bitDepth;
-
-    bool operator==(const Capture&) const noexcept = default;
-};
-SGCT_EXPORT void validateCapture(const Capture& capture);
-
-
-
 struct SGCT_EXPORT Scene {
     std::optional<glm::vec3> offset;
     std::optional<glm::quat> orientation;
@@ -464,7 +444,6 @@ struct SGCT_EXPORT Cluster {
     std::optional<Scene> scene;
     std::vector<Node> nodes;
     std::vector<User> users;
-    std::optional<Capture> capture;
     std::vector<Tracker> trackers;
     std::optional<Settings> settings;
 

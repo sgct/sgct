@@ -8,6 +8,7 @@
 
 #include <sgct/commandline.h>
 
+#include <format>
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
@@ -29,6 +30,18 @@ namespace {
             std::cerr << "Invalid value for " << flag << ": " << value << '\n';
             return std::nullopt;
         }
+    }
+
+    // Screenshot numbers start at 0, so negative values are invalid
+    std::optional<int> parseScreenshotNumber(std::string_view flag,
+                                             const std::string& value)
+    {
+        const std::optional<int> n = parseNumber<int>(flag, value);
+        if (n.has_value() && *n < 0) {
+            std::cerr << std::format("Invalid value for {}: {}\n", flag, value);
+            return std::nullopt;
+        }
+        return n;
     }
 } // namespace
 
@@ -102,6 +115,24 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.screenshotPrefix = arg[i + 1];
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
+        else if (arg[i] == "--screenshot-range-begin" && arg.size() > (i + 1)) {
+            config.screenshotRangeBegin = parseScreenshotNumber(arg[i], arg[i + 1]);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
+        }
+        else if (arg[i] == "--screenshot-range-end" && arg.size() > (i + 1)) {
+            config.screenshotRangeEnd = parseScreenshotNumber(arg[i], arg[i + 1]);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
+        }
+        else if (arg[i] == "--screenshot-bit-depth" && arg.size() > (i + 1)) {
+            if (arg[i + 1] == "8" || arg[i + 1] == "16") {
+                config.screenshotBitDepth = std::stoi(arg[i + 1]);
+            }
+            else {
+                std::cerr <<
+                    std::format("Invalid value for {}: {}\n", arg[i], arg[i + 1]);
+            }
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
+        }
         else if (arg[i] == "--add-node-name-in-screenshot") {
             config.addNodeNameInScreenshot = true;
             arg.erase(arg.begin() + i);
@@ -122,6 +153,14 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             // Ignore unknown commands
             i++;
         }
+    }
+
+    if (config.screenshotRangeEnd &&
+        config.screenshotRangeBegin.value_or(0) >= *config.screenshotRangeEnd)
+    {
+        std::cerr << "The beginning of the screenshot range has to be before its end\n";
+        config.screenshotRangeBegin = std::nullopt;
+        config.screenshotRangeEnd = std::nullopt;
     }
 
     return config;
@@ -152,6 +191,12 @@ Parameters:
     Sets the file path for the screenshots location
 --screenshot-prefix
     Sets the prefix used for taking screenshots
+--screenshot-range-begin <integer>
+    Sets the number of the first screenshot that is stored
+--screenshot-range-end <integer>
+    Sets the number of the first screenshot that is no longer stored
+--screenshot-bit-depth <8 or 16>
+    Sets the number of bits per color channel of the screenshots
 --add-node-name-in-screenshot
     If set, screenshots will contain the name of the node in multi-node configurations
 --omit-node-name-in-screenshot

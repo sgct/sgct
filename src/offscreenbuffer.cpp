@@ -81,7 +81,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     if (_isMultiSampled) {
         GLint maxSamples = 0;
         glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
-        samples = std::max(samples, maxSamples);
+        samples = std::min(samples, maxSamples);
         if (maxSamples < 2) {
             samples = 0;
         }

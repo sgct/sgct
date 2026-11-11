@@ -1693,17 +1693,29 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 }
 
 void Window::resizeFBOs() {
-    bool updateFBO = !_useFixResolution;
-#ifdef SGCT_HAS_OPENXR
-    if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-        const glm::ivec2 resolution = openXRFramebufferResolution(*this);
-        if (resolution != _framebufferRes) {
-            updateFBO = true;
+    makeSharedContextCurrent();
+
+    // Resizing a window does not change the framebuffer if the window uses a fixed
+    // resolution, in which case the textures and buffers already have the correct size
+    if (_frameBufferTextures.leftEye != 0) {
+        glm::ivec2 size = glm::ivec2(0);
+        glGetTextureLevelParameteriv(
+            _frameBufferTextures.leftEye,
+            0,
+            GL_TEXTURE_WIDTH,
+            &size.x
+        );
+        glGetTextureLevelParameteriv(
+            _frameBufferTextures.leftEye,
+            0,
+            GL_TEXTURE_HEIGHT,
+            &size.y
+        );
+        if (size == _framebufferRes) {
+            return;
         }
     }
-#endif
 
-    makeSharedContextCurrent();
     destroyFBOs();
     createTextures();
 

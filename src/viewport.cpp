@@ -57,14 +57,16 @@ Viewport::Viewport(const config::Viewport& viewport, const Window& parent)
 {
     if (viewport.user) {
         User* user = ClusterManager::instance().user(*viewport.user);
-        if (!user) {
+        if (user) {
+            _user = user;
+        }
+        else {
+            // The viewport keeps the default user that was set by the BaseViewport
             Log::Warning(std::format(
-                "Could not find user with name '{}'", *viewport.user
+                "Could not find user with name '{}'. Using the default user instead",
+                *viewport.user
             ));
         }
-
-        // If the user name is not empty, the User better exists
-        _user = user;
     }
     assert(_user);
 

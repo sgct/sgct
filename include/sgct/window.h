@@ -327,6 +327,11 @@ private:
      */
     void createVBOs();
     void loadShaders();
+
+    /**
+     * Creates the objects that take the screenshots for the current stereo mode.
+     */
+    void createScreenCaptures();
     bool useRightEyeTexture() const;
 
     /**

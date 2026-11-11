@@ -668,37 +668,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
 
-    // OpenGL converts the framebuffer contents to the requested type on readback, so
-    // the screenshot bit depth is independent of the window's buffer format
-    const int bitDepth = Engine::instance().settings().capture.bitDepth;
-    const int bytesPerColor = bitDepth / 8;
-    const unsigned int colorDataType =
-        bitDepth == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
-    if (!useRightEyeTexture()) {
-        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
-            *this,
-            ScreenCapture::EyeIndex::Mono,
-            bytesPerColor,
-            colorDataType,
-            _hasAlpha
-        );
-    }
-    else {
-        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
-            *this,
-            ScreenCapture::EyeIndex::StereoLeft,
-            bytesPerColor,
-            colorDataType,
-            _hasAlpha
-        );
-        _screenCaptureRight = std::make_unique<ScreenCapture>(
-            *this,
-            ScreenCapture::EyeIndex::StereoRight,
-            bytesPerColor,
-            colorDataType,
-            _hasAlpha
-        );
-    }
+    createScreenCaptures();
     _finalFBO = std::make_unique<OffScreenBuffer>(_internalColorFormat);
 
     if (!_isFullScreen) {
@@ -1559,7 +1529,71 @@ void Window::setCallDraw3DFunction(bool state) {
 
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
+    if (!_windowHandle) {
+        // The window has not been opened yet, so everything that depends on the stereo
+        // mode will be created for the new mode
+        return;
+    }
+
+    // The resources were created for the previous stereo mode, which might not have
+    // needed a separate image for the right eye
+    makeSharedContextCurrent();
+    if (_frameBufferTextures.leftEye != 0) {
+        if (useRightEyeTexture() && _frameBufferTextures.rightEye == 0) {
+            generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
+        }
+        else if (!useRightEyeTexture()) {
+            glDeleteTextures(1, &_frameBufferTextures.rightEye);
+            _frameBufferTextures.rightEye = 0;
+        }
+    }
+
+    createScreenCaptures();
+    const glm::ivec2 res =
+        Engine::instance().settings().captureBackBuffer ?
+        _windowSize :
+        framebufferResolution();
+    _screenCaptureLeftOrMono->resize(res);
+    if (_screenCaptureRight) {
+        _screenCaptureRight->resize(res);
+    }
+
     loadShaders();
+}
+
+void Window::createScreenCaptures() {
+    // OpenGL converts the framebuffer contents to the requested type on readback, so
+    // the screenshot bit depth is independent of the window's buffer format
+    const int bitDepth = Engine::instance().settings().capture.bitDepth;
+    const int bytesPerColor = bitDepth / 8;
+    const unsigned int colorDataType =
+        bitDepth == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
+    if (!useRightEyeTexture()) {
+        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::Mono,
+            bytesPerColor,
+            colorDataType,
+            _hasAlpha
+        );
+        _screenCaptureRight = nullptr;
+    }
+    else {
+        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::StereoLeft,
+            bytesPerColor,
+            colorDataType,
+            _hasAlpha
+        );
+        _screenCaptureRight = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::StereoRight,
+            bytesPerColor,
+            colorDataType,
+            _hasAlpha
+        );
+    }
 }
 
 Window::StereoMode Window::stereoMode() const {

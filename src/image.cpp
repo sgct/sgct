@@ -154,7 +154,11 @@ void Image::save(const std::filesystem::path& filename) {
     //    0 = No compression
     //    1 = Best speed
     //    9 = Best compression
-    png_set_compression_level(png, -1);
+    // The images are written while rendering, for example when capturing every frame, so
+    // the time it takes to write an image is more important than the size of the file.
+    // Level 3 is as fast as level 1 for rendered images, but creates slightly smaller
+    // files, while level 6 and above take more than twice as long
+    png_set_compression_level(png, 3);
     png_set_filter(png, 0, PNG_FILTER_NONE);
     png_set_compression_mem_level(png, 8);
     png_set_compression_strategy(png, Z_DEFAULT_STRATEGY);

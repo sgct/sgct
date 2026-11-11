@@ -218,7 +218,8 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
 
         // Setup the TCP listening socket
         const int addrlen = static_cast<int>(res->ai_addrlen);
-        const int bindResult = bind(_listenSocket, res->ai_addr, addrlen);
+        // The global namespace prevents std::bind from being found for the atomic socket
+        const int bindResult = ::bind(_listenSocket, res->ai_addr, addrlen);
         if (bindResult == SOCKET_ERROR) {
 #ifdef WIN32
             closesocket(_listenSocket);
@@ -348,7 +349,10 @@ std::condition_variable& Network::startConnectionConditionVar() {
     return _startConnectionCond;
 }
 
-void Network::closeSocket(SGCT_SOCKET socket) {
+void Network::closeSocket(std::atomic<SGCT_SOCKET>& lSocket) {
+    // Resetting the socket prevents it from being closed a second time, at which point
+    // the operating system might have reused it for a different connection already
+    const SGCT_SOCKET socket = lSocket.exchange(INVALID_SOCKET);
     if (socket == INVALID_SOCKET) {
         return;
     }
@@ -705,8 +709,12 @@ void Network::communicationHandler() {
             }
             // Handle sync communication
             if (_headerId == DataId && iResult > 0) {
-                if (decoderCallback && dataSize > 0) {
-                    decoderCallback(_recvBuffer.data(), dataSize);
+                {
+                    // The callback is removed by the main thread in `initShutdown`
+                    const std::unique_lock lock(_connectionMutex);
+                    if (decoderCallback && dataSize > 0) {
+                        decoderCallback(_recvBuffer.data(), dataSize);
+                    }
                 }
 
                 // The frame only counts as received once its data was handed over
@@ -773,6 +781,10 @@ void Network::communicationHandler() {
 void Network::sendData(const void* data, int length) const {
     ZoneScoped;
 
+    // The connection status is sent from the communication threads while the main thread
+    // sends the sync data. A message must not be interrupted by another message
+    const std::unique_lock lock(_sendMutex);
+
     long sendSize = length;
 
     while (sendSize > 0) {
@@ -793,12 +805,6 @@ void Network::sendData(const void* data, int length) const {
 void Network::closeNetwork(bool forced) {
     ZoneScoped;
 
-    decoderCallback = nullptr;
-    _updateCallback = nullptr;
-    _connectedCallback = nullptr;
-    _acknowledgeCallback = nullptr;
-    _packageDecoderCallback = nullptr;
-
     // Release conditions
     NetworkManager::notifyAll();
     _startConnectionCond.notify_all();
@@ -814,6 +820,14 @@ void Network::closeNetwork(bool forced) {
         _mainThread->join();
     }
     _mainThread = nullptr;
+
+    // The callbacks are used by the threads, so they can only be removed after the
+    // threads have finished
+    decoderCallback = nullptr;
+    _updateCallback = nullptr;
+    _connectedCallback = nullptr;
+    _acknowledgeCallback = nullptr;
+    _packageDecoderCallback = nullptr;
 
     Log::Info(std::format("Connection {} successfully terminated", _id));
 }

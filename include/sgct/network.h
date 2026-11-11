@@ -70,7 +70,11 @@ public:
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
 
     void setConnectedStatus(bool state);
-    void closeSocket(SGCT_SOCKET lSocket);
+    /**
+     * Closes the socket and resets it to an invalid socket, so that it is not closed a
+     * second time.
+     */
+    void closeSocket(std::atomic<SGCT_SOCKET>& lSocket);
 
     ConnectionType type() const;
     int id() const;
@@ -131,8 +135,9 @@ private:
     void communicationHandler();
     void connectionHandler();
 
-    SGCT_SOCKET _socket;
-    SGCT_SOCKET _listenSocket;
+    // The sockets are closed by the main thread while the communication thread uses them
+    std::atomic<SGCT_SOCKET> _socket;
+    std::atomic<SGCT_SOCKET> _listenSocket;
 
     const ConnectionType _connectionType = ConnectionType::SyncConnection;
     std::atomic_bool _isServer;
@@ -145,6 +150,8 @@ private:
     std::atomic_bool _shouldTerminate = false; // set to true upon exit
 
     mutable std::mutex _connectionMutex;
+    // Prevents messages that are sent from different threads from being interleaved
+    mutable std::mutex _sendMutex;
     std::unique_ptr<std::thread> _commThread;
     std::unique_ptr<std::thread> _mainThread;
 

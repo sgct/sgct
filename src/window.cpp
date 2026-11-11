@@ -703,14 +703,16 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
                 win->setFramebufferResolution(glm::ivec2(width, height));
             }
         );
-        glfwSetWindowFocusCallback(
-            _windowHandle,
-            [](GLFWwindow* window, int state) {
-                Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-                win->_hasFocus = (state == GLFW_TRUE);
-            }
-        );
     }
+
+    // The focus has to be tracked for fullscreen windows as well
+    glfwSetWindowFocusCallback(
+        _windowHandle,
+        [](GLFWwindow* window, int state) {
+            Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+            win->_hasFocus = (state == GLFW_TRUE);
+        }
+    );
 
     const std::string title = std::format(
         "SGCT node: {} ({}: {})",

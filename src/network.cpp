@@ -744,7 +744,11 @@ void Network::communicationHandler() {
             }
             //  Handle communication
             else {
-                if (_headerId == DataId && _packageDecoderCallback && dataSize > 0) {
+                // The package must not be decoded if the connection was closed before
+                // all of its data was received
+                if (_headerId == DataId && _packageDecoderCallback && dataSize > 0 &&
+                    iResult > 0)
+                {
                     _packageDecoderCallback(_recvBuffer.data(), dataSize, packageId, _id);
 
                     // Send acknowledge

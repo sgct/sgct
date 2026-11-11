@@ -123,22 +123,21 @@ void FisheyeProjection::render(const BaseViewport& viewport,
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // If for some reson the active texture has been reset
+    // If for some reson the active texture has been reset. The texture units of the
+    // samplers are set once in `initShaders`. Setting them here with glUniform would
+    // change the uniforms of whichever program the draw function left bound
     glBindTextureUnit(0, _textures.cubeMapColor);
 
     if (Engine::instance().settings().useDepthTexture) {
         glBindTextureUnit(1, _textures.cubeMapDepth);
-        glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
     if (Engine::instance().settings().useNormalTexture) {
         glBindTextureUnit(2, _textures.cubeMapNormals);
-        glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
     if (Engine::instance().settings().usePositionTexture) {
         glBindTextureUnit(3, _textures.cubeMapPositions);
-        glUniform1i(_shaderLoc.positionCubemap, 3);
     }
 
     glDisable(GL_CULL_FACE);

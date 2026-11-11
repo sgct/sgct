@@ -236,15 +236,8 @@ NetworkManager::~NetworkManager() {
         connection->initShutdown();
     }
 
-    // Wait for all nodes callbacks to run
-    {
-        // @TODO (abock, 2019-12-20) We can probably remove this waiting altogether. The
-        // node callbacks are run synchronously with this function, and either way, what
-        // if the callbacks take longer and we crash anyway?
-        ZoneScopedN("Sleeping");
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    }
-
+    // Destroying the connections waits for their threads, which run the remaining
+    // callbacks, so no additional waiting is necessary
     _networkConnections.clear();
     _syncConnections.clear();
     _dataTransferConnections.clear();

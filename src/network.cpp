@@ -329,9 +329,11 @@ void Network::connectionHandler() {
                 });
             }
 
-            // Wait for signal until next iteration in loop
+            // Wait for signal until next iteration in loop. The termination is checked
+            // while holding the mutex, as its notification would be lost if it happened
+            // between the check and the wait, and the shutdown would wait forever
+            std::unique_lock lock(_connectionMutex);
             if (!_shouldTerminate) {
-                std::unique_lock lock(_connectionMutex);
                 _startConnectionCond.wait(lock);
             }
         }
@@ -875,7 +877,11 @@ void Network::initShutdown() {
     }
 
     _isConnected = false;
-    _shouldTerminate = true;
+    {
+        // The connection handler checks this value while holding the mutex
+        const std::unique_lock lock(_connectionMutex);
+        _shouldTerminate = true;
+    }
 
     // Wake up the connection handler thread (in order to finish)
     if (_isServer) {

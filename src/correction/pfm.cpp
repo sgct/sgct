@@ -85,18 +85,24 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
     std::vector<float> ycorrections;
     ycorrections.resize(numCorrectionValues);
 
-    for (size_t i = 0; i < numCorrectionValues; i++) {
-        meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
-        meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
-        float dumpValue = 0.f;
-        meshFile.read(reinterpret_cast<char*>(&dumpValue), sizeof(float));
+    // Each pixel consists of the x and y correction values and a third unused value. All
+    // pixels are read at once, as reading the values individually is much slower
+    std::vector<float> pixels;
+    pixels.resize(numCorrectionValues * 3);
+    meshFile.read(
+        reinterpret_cast<char*>(pixels.data()),
+        static_cast<std::streamsize>(pixels.size() * sizeof(float))
+    );
+    if (!meshFile.good()) {
+        throw Error(
+            Error::Component::Pfm, 2054,
+            std::format("Error reading correction values in file '{}'", path)
+        );
+    }
 
-        if (!meshFile.good()) {
-            throw Error(
-                Error::Component::Pfm, 2054,
-                std::format("Error reading correction values in file '{}'", path)
-            );
-        }
+    for (size_t i = 0; i < numCorrectionValues; i++) {
+        xcorrections[i] = pixels[i * 3];
+        ycorrections[i] = pixels[i * 3 + 1];
     }
 
     nCols /= nEyes;

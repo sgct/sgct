@@ -142,14 +142,20 @@ double Engine::Statistics::avgDt() const {
         frametimes.cend(),
         [](double d) { return d != 0.0; }
     ));
-    // We must take the frame counter into account as the history might not be filled yet
-    const unsigned int frameCounter = Engine::instance().currentFrameNumber();
-    const unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
-    return accFT / f;
+    // The history is not filled in the first frames. The entries that have not been set
+    // are 0 and thus do not contribute to the sum
+    return nValues > 0 ? accFT / nValues : 0.0;
 }
 
 double Engine::Statistics::minDt() const {
-    return *std::min_element(frametimes.begin(), frametimes.end());
+    // The entries of the history that have not been set yet are 0 and must be ignored
+    double res = std::numeric_limits<double>::max();
+    for (double d : frametimes) {
+        if (d != 0.0) {
+            res = std::min(res, d);
+        }
+    }
+    return res != std::numeric_limits<double>::max() ? res : 0.0;
 }
 
 double Engine::Statistics::maxDt() const {
@@ -693,7 +699,7 @@ void Engine::frameLockPreStage() {
         addValue(_statistics.loopTimeMax, minMax->second);
     }
     if (nm.isComputerServer()) {
-        addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
+        addValue(_statistics.syncTimes, glfwGetTime() - ts);
     }
 
     // Run only on clients
@@ -850,7 +856,7 @@ void Engine::exec() {
         {
             ZoneScopedN("Statistics update");
             const double startFrameTime = glfwGetTime();
-            const double ft = static_cast<float>(startFrameTime - _statsPrevTimestamp);
+            const double ft = startFrameTime - _statsPrevTimestamp;
             addValue(_statistics.frametimes, ft);
             _statsPrevTimestamp = startFrameTime;
 

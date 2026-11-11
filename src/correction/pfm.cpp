@@ -105,6 +105,16 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
 
     // We assume we loaded side-by-side images if uses 2 eyes, i.e. different warp per eye
     for (unsigned int e = 0; e < nEyes; e++) {
+        // The indices of each eye refer to the vertices of that eye
+        const unsigned int base = static_cast<unsigned int>(buf.vertices.size());
+        if (!buf.indices.empty()) {
+            // Both eyes are part of the same triangle strip. Repeating the last index
+            // of the previous eye and the first index of this eye creates degenerate
+            // triangles, so that nothing is drawn between the meshes of the two eyes
+            buf.indices.push_back(buf.indices.back());
+            buf.indices.push_back(base);
+        }
+
         Buffer::Vertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
@@ -162,15 +172,15 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
             if ((r & 1) == 0) {
                 // Even rows
                 for (unsigned int c = 0; c < nCols; c++) {
-                    buf.indices.push_back(c + r * nCols);
-                    buf.indices.push_back(c + (r + 1) * nCols);
+                    buf.indices.push_back(base + c + r * nCols);
+                    buf.indices.push_back(base + c + (r + 1) * nCols);
                 }
             }
             else {
                 // Odd rows
                 for (unsigned int c = nCols - 1; c > 0; c--) {
-                    buf.indices.push_back(c + (r + 1) * nCols);
-                    buf.indices.push_back(c - 1 + r * nCols);
+                    buf.indices.push_back(base + c + (r + 1) * nCols);
+                    buf.indices.push_back(base + c - 1 + r * nCols);
                 }
             }
         }

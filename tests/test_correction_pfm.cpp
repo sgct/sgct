@@ -182,8 +182,9 @@ TEST_CASE("PFM: Side-by-side stereo", "[correction][pfm]") {
 
         REQUIRE(buf.vertices.size() == 8);
         CHECK(buf.geometryType == GL_TRIANGLE_STRIP);
-        CHECK(buf.indices.size() == 8);
-        CHECK(indicesInRange(buf));
+        // Each eye has its own vertices and the two triangle strips are connected by
+        // repeating the last index of the left and the first index of the right eye
+        CHECK(buf.indices == std::vector<unsigned int>{ 0, 2, 1, 3, 3, 4, 4, 6, 5, 7 });
 
         // Pixel index in the file for each of the vertices
         const int Pixel[] = { 0, 1, 4, 5, 2, 3, 6, 7 };
@@ -223,9 +224,12 @@ TEST_CASE("PFM: Example mesh", "[correction][pfm]") {
         const Buffer buf = generatePerEyeMeshFromPFMImage(path, { 0, 0 }, { 1, 1 });
         // 100x100 pixels split into two 50x100 meshes
         CHECK(buf.vertices.size() == 10000);
-        // Per eye: 50 even rows with 2 * 50 indices and 49 odd rows with 2 * 49 indices
-        CHECK(buf.indices.size() == 2 * (50 * 100 + 49 * 98));
+        // Per eye: 50 even rows with 2 * 50 indices and 49 odd rows with 2 * 49 indices.
+        // Two additional indices connect the triangle strips of the eyes
+        CHECK(buf.indices.size() == 2 * (50 * 100 + 49 * 98) + 2);
         CHECK(indicesInRange(buf));
+        // The second half of the indices has to use the vertices of the right eye
+        CHECK(buf.indices.back() >= 5000);
     }
 
     SECTION("Texture render mode") {

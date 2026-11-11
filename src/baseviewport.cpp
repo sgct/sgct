@@ -236,15 +236,22 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
         return;
     }
 
-    const glm::vec3 upperLeft = _projPlane.coordinateUpperLeft();
-    const glm::vec3 lowerLeft = _projPlane.coordinateLowerLeft();
-    const glm::vec3 upperRight = _projPlane.coordinateUpperRight();
+    // The unrotated view plane has to be used here as the rotation is applied again when
+    // setting the new field of view
+    const glm::vec3 upperLeft = _viewPlane.upperLeft;
+    const glm::vec3 lowerLeft = _viewPlane.lowerLeft;
+    const glm::vec3 upperRight = _viewPlane.upperRight;
 
-    const double ratio = static_cast<double>(hFov) / horizontalFieldOfViewDegrees();
-    const double up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
-    const double down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
-    const double left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
-    const double right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
+    // The view plane is scaled uniformly, which keeps its aspect ratio and asymmetry. Its
+    // size is proportional to the tangent of the field of view, so the ratio of the
+    // tangents is needed and not the ratio of the angles
+    const double dist = std::abs(upperLeft.z);
+    const double halfWidth = (upperRight.x - upperLeft.x) / 2.0;
+    const double ratio = std::tan(glm::radians(hFov) / 2.0) * dist / halfWidth;
+    const double up = glm::degrees(std::atan(ratio * upperLeft.y / dist));
+    const double down = glm::degrees(std::atan(ratio * lowerLeft.y / dist));
+    const double left = glm::degrees(std::atan(ratio * upperLeft.x / dist));
+    const double right = glm::degrees(std::atan(ratio * upperRight.x / dist));
 
     setViewPlaneCoordsUsingFOVs(
         static_cast<float>(up),
@@ -252,7 +259,7 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
         static_cast<float>(left),
         static_cast<float>(right),
         _rotation,
-        std::abs(upperLeft.z)
+        static_cast<float>(dist)
     );
 }
 

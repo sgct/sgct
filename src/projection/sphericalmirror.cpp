@@ -164,7 +164,10 @@ void SphericalMirrorProjection::renderCubemap(FrustumMode frustumMode) const {
                 ClusterManager::instance().sceneTransform(),
             _cubemapResolution
         };
-        Engine::instance().drawFunction()(renderData);
+        // The draw function is optional
+        if (Engine::instance().drawFunction()) [[likely]] {
+            Engine::instance().drawFunction()(renderData);
+        }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

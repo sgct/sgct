@@ -319,7 +319,10 @@ void NonLinearProjection::renderCubeFace(const BaseViewport& vp, int idx,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);
-    Engine::instance().drawFunction()(renderData);
+    // The draw function is optional
+    if (Engine::instance().drawFunction()) [[likely]] {
+        Engine::instance().drawFunction()(renderData);
+    }
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // Blit MSAA fbo to texture

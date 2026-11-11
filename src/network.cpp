@@ -651,11 +651,16 @@ void Network::communicationHandler() {
             Log::Info(std::format("TCP connection {} closed", _id));
         }
         else if (iResult < 0) {
-            setConnectedStatus(false);
-            throw Err(
+            // The error must not skip the cleanup after the loop. Otherwise the number of
+            // active connections would never be updated, which stalls the frame lock
+            // until its timeout, and a client would not be able to reconnect
+            const Error err = Err(
                 5013,
                 std::format("TCP connection {} receive failed: {}", _id, SGCT_ERRNO)
             );
+            setConnectedStatus(false);
+            Log::Error(err.what());
+            break;
         }
 
         if (type() == ConnectionType::SyncConnection) {

@@ -850,7 +850,17 @@ void Network::initShutdown() {
             DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0',
             DefaultId, DefaultId, DefaultId, DefaultId, DefaultId
         };
-        sendData(GameOver.data(), HeaderSize);
+        try {
+            sendData(GameOver.data(), HeaderSize);
+        }
+        catch (const std::runtime_error& e) {
+            // This function is called while destroying the NetworkManager, so the error
+            // must not escape. The other side might have closed the connection already,
+            // in which case the shutdown of this and the other connections continues
+            Log::Warning(std::format(
+                "Could not send disconnect message on connection {}: {}", _id, e.what()
+            ));
+        }
     }
 
     Log::Info(std::format("Closing connection {}", _id));

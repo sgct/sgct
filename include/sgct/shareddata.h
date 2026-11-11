@@ -70,6 +70,10 @@ private:
 
     std::mutex _receivedDataMutex;
     std::vector<std::vector<std::byte>> _receivedData;
+    /// The data that is being decoded by #decodeReceivedData
+    std::vector<std::vector<std::byte>> _decodingData;
+    /// Buffers of previously decoded data, which are reused for newly received data
+    std::vector<std::vector<std::byte>> _unusedBuffers;
 };
 
 template <typename T>

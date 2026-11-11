@@ -56,23 +56,48 @@ void SharedData::storeReceivedData(const char* receivedData, int receivedLength)
 
     const std::byte* begin = reinterpret_cast<const std::byte*>(receivedData);
     const std::unique_lock lock(_receivedDataMutex);
-    _receivedData.emplace_back(begin, begin + receivedLength);
+
+    // Reusing a buffer of a previous frame avoids allocating memory in every frame
+    std::vector<std::byte> buffer;
+    if (!_unusedBuffers.empty()) {
+        buffer = std::move(_unusedBuffers.back());
+        _unusedBuffers.pop_back();
+    }
+    buffer.assign(begin, begin + receivedLength);
+    _receivedData.push_back(std::move(buffer));
 }
 
 void SharedData::decodeReceivedData() {
     ZoneScoped;
 
-    std::vector<std::vector<std::byte>> data;
+    // The list is a member variable to keep its memory between the frames. It is only
+    // used by this function and is always empty outside of it, unless a decode function
+    // threw an exception
+    _decodingData.clear();
     {
         const std::unique_lock lock(_receivedDataMutex);
-        data.swap(_receivedData);
+        _decodingData.swap(_receivedData);
     }
 
     if (_decodeFn) {
-        for (const std::vector<std::byte>& d : data) {
+        for (const std::vector<std::byte>& d : _decodingData) {
             _decodeFn(d);
         }
     }
+
+    // Keep the buffers for the data of the next frames. The number of buffers is limited
+    // as more of them are only needed if this node falls behind the server
+    constexpr size_t MaxUnusedBuffers = 4;
+    {
+        const std::unique_lock lock(_receivedDataMutex);
+        for (std::vector<std::byte>& d : _decodingData) {
+            if (_unusedBuffers.size() >= MaxUnusedBuffers) {
+                break;
+            }
+            _unusedBuffers.push_back(std::move(d));
+        }
+    }
+    _decodingData.clear();
 }
 
 void SharedData::encode() {

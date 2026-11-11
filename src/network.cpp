@@ -192,22 +192,34 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
     if (addrRes != 0) {
         throw Err(5000, "Failed to parse hints for connection");
     }
+    // Frees the address information on all paths out of the constructor
+    struct AddrInfoDeleter {
+        void operator()(addrinfo* info) const {
+            freeaddrinfo(info);
+        }
+    };
+    const std::unique_ptr<addrinfo, AddrInfoDeleter> resGuard(res);
 
     if (_isServer) {
         // Create a SOCKET for the server to listen for client connections
         _listenSocket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (_listenSocket == INVALID_SOCKET) {
-            freeaddrinfo(res);
             throw Err(5001, "Failed to listen init socket");
         }
 
-        setOptions(_listenSocket, type());
+        try {
+            setOptions(_listenSocket, type());
+        }
+        catch (...) {
+            closeSocket(_listenSocket);
+            _listenSocket = INVALID_SOCKET;
+            throw;
+        }
 
         // Setup the TCP listening socket
         const int addrlen = static_cast<int>(res->ai_addrlen);
         const int bindResult = bind(_listenSocket, res->ai_addr, addrlen);
         if (bindResult == SOCKET_ERROR) {
-            freeaddrinfo(res);
 #ifdef WIN32
             closesocket(_listenSocket);
 #else // ^^^^ WIN32 // !WIN32 vvvv
@@ -217,7 +229,6 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
         }
 
         if (listen(_listenSocket, SOMAXCONN) == SOCKET_ERROR) {
-            freeaddrinfo(res);
 #ifdef WIN32
             closesocket(_listenSocket);
 #else // ^^^^ WIN32 // !WIN32 vvvv
@@ -236,11 +247,17 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
             if (_socket == INVALID_SOCKET) {
-                freeaddrinfo(res);
-                throw Err(5004, "Failed to init client socket");
+                    throw Err(5004, "Failed to init client socket");
             }
 
-            setOptions(_socket, type());
+            try {
+                setOptions(_socket, type());
+            }
+            catch (...) {
+                closeSocket(_socket);
+                _socket = INVALID_SOCKET;
+                throw;
+            }
 
             const int r = connect(
                 _socket,
@@ -251,18 +268,27 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
                 break;
             }
 
-            if (SGCT_ERRNO == 10061) {
+            // The error has to be queried before closing the socket, which resets it
+            const int error = SGCT_ERRNO;
+            // Every attempt creates a new socket, so the failed one has to be closed
+            closeSocket(_socket);
+            _socket = INVALID_SOCKET;
+
+#ifdef WIN32
+            constexpr int ConnectionRefused = WSAECONNREFUSED;
+#else // ^^^^ WIN32 // !WIN32 vvvv
+            constexpr int ConnectionRefused = ECONNREFUSED;
+#endif // WIN32
+            if (error == ConnectionRefused) {
                 Log::Debug("Waiting for connection...");
             }
             else {
-                Log::Debug(std::format("Connect error code: {}", SGCT_ERRNO));
+                Log::Debug(std::format("Connect error code: {}", error));
             }
             // Wait for next attempt
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
-
-    freeaddrinfo(res);
 }
 
 Network::~Network() {

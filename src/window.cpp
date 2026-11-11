@@ -1308,6 +1308,14 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     makeOpenGLContextCurrent();
 
+    // Save the screenshot of a previous frame if the GPU has finished copying its image
+    if (_screenCaptureLeftOrMono) {
+        _screenCaptureLeftOrMono->update();
+    }
+    if (_screenCaptureRight) {
+        _screenCaptureRight->update();
+    }
+
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
         if (Engine::instance().settings().captureBackBuffer) {

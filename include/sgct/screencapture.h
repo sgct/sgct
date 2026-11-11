@@ -58,7 +58,9 @@ public:
     void resize(glm::ivec2 resolution);
 
     /**
-     * This function saves the images to disc.
+     * This function starts to copy the image from the GPU. The image is saved to disk by
+     * a later call to #update, by the next screenshot, or when this object is destroyed,
+     * whichever comes first, so that the rendering does not have to wait for the GPU.
      *
      * \param textureId The texture that will be streamed from the GPU if frame buffer
      *        objects are used in the rendering
@@ -67,16 +69,34 @@ public:
     void saveScreenCapture(unsigned int textureId,
         CaptureSource capSrc = CaptureSource::Texture);
 
+    /**
+     * Saves the image of the last screenshot to disk if the GPU has finished copying it.
+     * This function does not wait for the GPU and has to be called once per frame.
+     */
+    void update();
+
 private:
     std::string createFilename(uint64_t frameNumber);
     int availableCaptureThread();
     Image* prepareImage(int index, std::string file);
+
+    /**
+     * Reads the pixels of the pending screenshot from the buffer and starts a thread that
+     * saves them to disk.
+     *
+     * \param wait If this is `true`, the function waits until the GPU has finished
+     *        copying the pixels. Otherwise it returns if the pixels are not available yet
+     */
+    void finishCapture(bool wait);
 
     std::mutex _mutex;
     std::vector<ScreenCaptureThreadInfo> _captureInfos;
 
     const unsigned int _nThreads;
     unsigned int _pbo = 0;
+    /// The OpenGL sync object of the screenshot that has not been read from the GPU yet
+    void* _pendingSync = nullptr;
+    std::string _pendingFilename;
     const unsigned int _downloadType;
     int _dataSize = 0;
     glm::ivec2 _resolution = glm::ivec2(0, 0);

@@ -15,6 +15,7 @@
 #include <sgct/projection.h>
 #include <sgct/glm.h>
 #include <sgct/projection/projectionplane.h>
+#include <memory>
 
 namespace sgct {
 
@@ -56,6 +57,15 @@ public:
     void setUser(User& user);
     User& user() const;
 
+    /**
+     * Sets the position of the user for this viewport only. The user of a viewport might
+     * be shared with other viewports, so this viewport is linked to a copy of its user
+     * instead, which is located at the provided position.
+     *
+     * \param position The position of the user for this viewport
+     */
+    void setUserPosition(glm::vec3 position);
+
     FrustumMode eye() const;
 
     void setHorizontalFieldOfView(float hFov);
@@ -79,6 +89,8 @@ protected:
     glm::vec2 _size = glm::vec2(1.f, 1.f);
 
     User* _user;
+    /// The copy of the user that is used if the position was set for this viewport only
+    std::shared_ptr<User> _ownUser;
 
     struct {
         glm::vec3 lowerLeft = glm::vec3(0.f, 0.f, 0.f);

@@ -181,7 +181,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         }
     }
 
-    parent.user().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
+    parent.setUserPosition(glm::vec3(viewData.x, viewData.y, viewData.z));
     parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
         viewData.fovDown,

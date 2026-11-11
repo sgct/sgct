@@ -222,6 +222,14 @@ void BaseViewport::setUser(User& user) {
     _user = &user;
 }
 
+void BaseViewport::setUserPosition(glm::vec3 position) {
+    // Changing the position of the user directly would also move it for all other
+    // viewports that are linked to the same user
+    _ownUser = std::make_shared<User>(*_user);
+    _ownUser->setPos(std::move(position));
+    _user = _ownUser.get();
+}
+
 User& BaseViewport::user() const {
     return *_user;
 }

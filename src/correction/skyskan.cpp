@@ -168,7 +168,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     rotQuat = glm::rotate(rotQuat, glm::radians(-*azimuth), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(*elevation), glm::vec3(1.f, 0.f, 0.f));
 
-    parent.user().setPos(glm::vec3(0.f, 0.f, 0.f));
+    parent.setUserPosition(glm::vec3(0.f, 0.f, 0.f));
     const float vHalf = *vFov / 2.f;
     const float hHalf = *hFov / 2.f;
     parent.setViewPlaneCoordsUsingFOVs(vHalf, -vHalf, -hHalf, hHalf, rotQuat);

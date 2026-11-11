@@ -54,6 +54,10 @@ Log::Log() {
 }
 
 void Log::printv(Level level, std::string message) {
+    // Messages are logged from the network and screenshot threads as well. The mutex is
+    // recursive to support callbacks that log a message themselves
+    const std::unique_lock lock(_mutex);
+
     if (_showTime) {
         constexpr int TimeBufferSize = 9;
         std::array<char, TimeBufferSize> timeBuffer;

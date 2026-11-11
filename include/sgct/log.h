@@ -78,7 +78,7 @@ private:
     bool _showLevel = true;
     bool _logToConsole = true;
 
-    std::mutex _mutex;
+    std::recursive_mutex _mutex;
 
     std::function<void(Level, std::string_view)> _messageCallback;
 };

@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -177,4 +178,52 @@ TEST_CASE("Log: Show time", "[log]") {
     Log::instance().setShowLogLevel(false);
     Log::Info("info");
     CHECK_THAT(message, Matches(R"(\S+ \| info)"));
+}
+
+TEST_CASE("Log: Multiple threads", "[log]") {
+    constexpr int NThreads = 4;
+    constexpr int NMessages = 250;
+
+    const LogReset reset;
+    const CoutCapture capture;
+    // The callback is not synchronized, so the log has to serialize the messages
+    int nMessages = 0;
+    Log::instance().setLogCallback(
+        [&nMessages](Log::Level, std::string_view) { nMessages++; }
+    );
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < NThreads; i++) {
+        threads.emplace_back([]() {
+            for (int j = 0; j < NMessages; j++) {
+                Log::Info("info");
+            }
+        });
+    }
+    for (std::thread& thread : threads) {
+        thread.join();
+    }
+
+    CHECK(nMessages == NThreads * NMessages);
+    // Every message has to be written completely before the next one starts
+    std::string expected;
+    for (int i = 0; i < NThreads * NMessages; i++) {
+        expected += "(Info) info\n";
+    }
+    CHECK(capture.str() == expected);
+}
+
+TEST_CASE("Log: Callback that logs", "[log]") {
+    const LogReset reset;
+    const CoutCapture capture;
+    Log::instance().setLogCallback(
+        [](Log::Level level, std::string_view) {
+            if (level == Log::Level::Warning) {
+                Log::Info("from callback");
+            }
+        }
+    );
+
+    Log::Warning("warning");
+    CHECK(capture.str() == "(Warning) warning\n(Info) from callback\n");
 }

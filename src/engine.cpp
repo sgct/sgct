@@ -661,9 +661,6 @@ Engine::~Engine() {
     Log::Debug("Destroying cluster manager");
     ClusterManager::destroy();
 
-    Log::Debug("Destroying message handler");
-    Log::destroy();
-
     Log::Debug("Terminating glfw");
     // The error callback throws exceptions, which must neither happen in the destructor
     // nor for GLFW functions that are called after the engine was destroyed, for example
@@ -672,6 +669,10 @@ Engine::~Engine() {
     glfwTerminate();
 
     Log::Debug("Finished cleaning");
+
+    // The log has to be destroyed last, as logging a message would create it again
+    Log::Debug("Destroying message handler");
+    Log::destroy();
 }
 
 void Engine::terminate() {

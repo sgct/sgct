@@ -385,6 +385,13 @@ void NetworkManager::initialize() {
         }
     }
 
+    // Start the threads only now that the list of connections is no longer modified and
+    // all callbacks are set. A connection that is established immediately would otherwise
+    // update the connection status before it is part of the list, which stops a client
+    for (const std::unique_ptr<Network>& connection : _networkConnections) {
+        connection->initialize();
+    }
+
     Log::Debug(
         std::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
     );
@@ -628,8 +635,9 @@ void NetworkManager::addConnection(int port, std::string address,
     net->setUpdateFunction([this](Network& c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
-    // Must be initialized after binding
-    net->initialize();
+    // The threads of the connection are started at the end of `initialize`, when all
+    // connections exist and have their callbacks. Starting them here would let them use
+    // the list of connections while it is still being modified
     _networkConnections.push_back(std::move(net));
 
     // Update the previously existing shortcuts (maybe remove them altogether?)

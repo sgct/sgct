@@ -807,10 +807,16 @@ void Engine::frameLockPostStage() {
 void Engine::exec() {
     Window::makeSharedContextCurrent();
 
-    unsigned int timeQueryBegin = 0;
-    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryBegin);
-    unsigned int timeQueryEnd = 0;
-    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryEnd);
+    // The result of a query is only available once the GPU has executed all commands of
+    // the frame. Instead of waiting for it, two sets of queries are used alternately, so
+    // that the results of the previous frame can be read while this frame is measured
+    std::array<unsigned int, 2> timeQueryBegin = { 0, 0 };
+    glCreateQueries(GL_TIMESTAMP, 2, timeQueryBegin.data());
+    std::array<unsigned int, 2> timeQueryEnd = { 0, 0 };
+    glCreateQueries(GL_TIMESTAMP, 2, timeQueryEnd.data());
+    // Whether both queries of a set were started, as the statistics can be toggled
+    std::array<bool, 2> hasQueries = { false, false };
+    int queryIndex = 0;
 
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
@@ -854,6 +860,7 @@ void Engine::exec() {
         }
 #endif // SGCT_HAS_OPENXR
 
+        bool hasBeginQuery = false;
         {
             ZoneScopedN("Statistics update");
             const double startFrameTime = glfwGetTime();
@@ -861,8 +868,10 @@ void Engine::exec() {
             addValue(_statistics.frametimes, ft);
             _statsPrevTimestamp = startFrameTime;
 
+            hasQueries[queryIndex] = false;
             if (_statisticsRenderer) [[unlikely]] {
-                glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
+                glQueryCounter(timeQueryBegin[queryIndex], GL_TIMESTAMP);
+                hasBeginQuery = true;
             }
         }
 
@@ -874,7 +883,10 @@ void Engine::exec() {
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("glQueryCounter");
-            glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
+            if (hasBeginQuery) {
+                glQueryCounter(timeQueryEnd[queryIndex], GL_TIMESTAMP);
+                hasQueries[queryIndex] = true;
+            }
         }
 
         if (_postDrawFn) [[likely]] {
@@ -891,20 +903,37 @@ void Engine::exec() {
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("Statistics Update");
-            // Wait until the query results are available
+            // Use the queries of the previous frame, whose results are available by now
+            // in most cases. If they are not, the value is skipped instead of waiting
+            const int previous = 1 - queryIndex;
             GLint done = GL_FALSE;
-            while (!done) {
-                glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
+            if (hasQueries[previous]) {
+                glGetQueryObjectiv(
+                    timeQueryEnd[previous],
+                    GL_QUERY_RESULT_AVAILABLE,
+                    &done
+                );
             }
 
-            // Get the query results
-            GLuint64 timerStart = 0;
-            glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
-            GLuint64 timerEnd = 0;
-            glGetQueryObjectui64v(timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
+            if (done) {
+                // Get the query results
+                GLuint64 timerStart = 0;
+                glGetQueryObjectui64v(
+                    timeQueryBegin[previous],
+                    GL_QUERY_RESULT,
+                    &timerStart
+                );
+                GLuint64 timerEnd = 0;
+                glGetQueryObjectui64v(
+                    timeQueryEnd[previous],
+                    GL_QUERY_RESULT,
+                    &timerEnd
+                );
 
-            const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
-            addValue(_statistics.drawTimes, t);
+                const double t =
+                    static_cast<double>(timerEnd - timerStart) / 1000000000.0;
+                addValue(_statistics.drawTimes, t);
+            }
 
             _statisticsRenderer->update();
         }
@@ -944,6 +973,8 @@ void Engine::exec() {
             std::mem_fn(&Window::updateResolutions)
         );
 
+        queryIndex = 1 - queryIndex;
+
         // For all windows
         _frameCounter++;
         if (_shouldTakeScreenshot) {
@@ -953,8 +984,8 @@ void Engine::exec() {
     }
 
     Window::makeSharedContextCurrent();
-    glDeleteQueries(1, &timeQueryBegin);
-    glDeleteQueries(1, &timeQueryEnd);
+    glDeleteQueries(2, timeQueryBegin.data());
+    glDeleteQueries(2, timeQueryEnd.data());
 }
 
 bool Engine::isServer() const {

@@ -309,7 +309,7 @@ void NetworkManager::initialize() {
         if (!_isServer) {
             addConnection(cm.thisNode().syncPort(), remoteAddress);
             _networkConnections.back()->setDecodeFunction(
-                std::bind_front(&SharedData::decode, SharedData::instance())
+                std::bind_front(&SharedData::storeReceivedData, &SharedData::instance())
             );
 
             // Add data transfer connection

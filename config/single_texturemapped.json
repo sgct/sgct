@@ -1,14 +1,12 @@
 {
   "version": 2,
   "serveraddress": "localhost",
-  "settings": {
-    "display": { "swapinterval": 0 }
-  },
   "nodes": [
     {
       "address": "localhost",
       "port": 20401,
       "swaplock": false,
+      "vsync": false,
       "windows": [
         {
           "fullscreen": false,

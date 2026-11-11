@@ -56,18 +56,10 @@ SGCT_EXPORT void validateScene(const Scene& scene);
 struct SGCT_EXPORT Settings {
     enum class BufferFloatPrecision { Float16Bit, Float32Bit};
 
-    struct Display {
-        std::optional<int8_t> swapInterval;
-        std::optional<int> refreshRate;
-
-        bool operator==(const Display&) const noexcept = default;
-    };
-
     std::optional<bool> useDepthTexture;
     std::optional<bool> useNormalTexture;
     std::optional<bool> usePositionTexture;
     std::optional<BufferFloatPrecision> bufferFloatPrecision;
-    std::optional<Display> display;
 
     bool operator==(const Settings&) const noexcept = default;
 };
@@ -399,6 +391,7 @@ struct SGCT_EXPORT Node {
     uint16_t port = 0;
     std::optional<uint16_t> dataTransferPort;
     std::optional<bool> swapLock;
+    std::optional<bool> vsync;
     std::vector<Window> windows;
 
     bool operator==(const Node&) const noexcept = default;

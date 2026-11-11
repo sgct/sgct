@@ -51,32 +51,27 @@ void SharedData::setDecodeFunction(
     _decodeFn = std::move(function);
 }
 
-void SharedData::decode(const char* receivedData, int receivedLength) {
+void SharedData::storeReceivedData(const char* receivedData, int receivedLength) {
     ZoneScoped;
 
+    const std::byte* begin = reinterpret_cast<const std::byte*>(receivedData);
+    const std::unique_lock lock(_receivedDataMutex);
+    _receivedData.emplace_back(begin, begin + receivedLength);
+}
+
+void SharedData::decodeReceivedData() {
+    ZoneScoped;
+
+    std::vector<std::vector<std::byte>> data;
     {
-        const std::unique_lock lock(mutex::DataSync);
-
-        // Reset
-        _dataBlock.clear();
-
-        if (receivedLength > static_cast<int>(_dataBlock.capacity())) {
-            _dataBlock.reserve(receivedLength);
-        }
-        _dataBlock.insert(
-            _dataBlock.end(),
-            reinterpret_cast<const std::byte*>(receivedData),
-            reinterpret_cast<const std::byte*>(receivedData) + receivedLength
-        );
+        const std::unique_lock lock(_receivedDataMutex);
+        data.swap(_receivedData);
     }
 
     if (_decodeFn) {
-        std::vector<std::byte> data;
-        data.assign(
-            reinterpret_cast<const std::byte*>(receivedData),
-            reinterpret_cast<const std::byte*>(receivedData) + receivedLength
-        );
-        _decodeFn(data);
+        for (const std::vector<std::byte>& d : data) {
+            _decodeFn(d);
+        }
     }
 }
 

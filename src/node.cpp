@@ -22,6 +22,7 @@ Node::Node(const config::Node& node, bool initializeWindows)
     , _syncPort(node.port)
     , _dataTransferPort(node.dataTransferPort.value_or(0))
     , _useSwapGroups(node.swapLock.value_or(false))
+    , _useVSync(node.vsync.value_or(false))
 {
     ZoneScoped;
 
@@ -76,6 +77,10 @@ bool Node::closeAllWindows() {
 
 bool Node::isUsingSwapGroups() const {
     return _useSwapGroups;
+}
+
+bool Node::isUsingVSync() const {
+    return _useVSync;
 }
 
 const std::string& Node::address() const {

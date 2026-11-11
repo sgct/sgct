@@ -117,14 +117,7 @@ void validateUser(const User& u) {
 
 void validateScene(const Scene&) {}
 
-void validateSettings(const Settings& s) {
-    if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
-        throw Err(1020, "Swap interval must not be negative");
-    }
-    if (s.display && s.display->refreshRate && *s.display->refreshRate < 0) {
-        throw Err(1021, "Refresh rate must not be negative");
-    }
-}
+void validateSettings(const Settings&) {}
 
 void validateTracker(const Tracker& t) {
     if (t.name.empty()) {
@@ -837,13 +830,6 @@ static void from_json(const nlohmann::json& j, Settings& s) {
             throw Err(6050, std::format("Wrong buffer precision value {}", precision));
         }
     }
-
-    if (auto it = j.find("display");  it != j.end()) {
-        Settings::Display display;
-        parseValue(*it, "swapinterval", display.swapInterval);
-        parseValue(*it, "refreshrate", display.refreshRate);
-        s.display = display;
-    }
 }
 
 static void to_json(nlohmann::json& j, const Settings& s) {
@@ -870,17 +856,6 @@ static void to_json(nlohmann::json& j, const Settings& s) {
                 j["precision"] = 32.0;
                 break;
         }
-    }
-
-    if (s.display.has_value()) {
-        nlohmann::json display = nlohmann::json::object();
-        if (s.display->swapInterval.has_value()) {
-            display["swapinterval"] = *s.display->swapInterval;
-        }
-        if (s.display->refreshRate.has_value()) {
-            display["refreshrate"] = *s.display->refreshRate;
-        }
-        j["display"] = display;
     }
 }
 
@@ -1898,6 +1873,7 @@ static void from_json(const nlohmann::json& j, Node& n) {
 
     parseValue(j, "datatransferport", n.dataTransferPort);
     parseValue(j, "swaplock", n.swapLock);
+    parseValue(j, "vsync", n.vsync);
 
     parseValue(j, "windows", n.windows);
     if (n.windows.size() > std::numeric_limits<int8_t>::max()) {
@@ -1920,6 +1896,10 @@ static void to_json(nlohmann::json& j, const Node& n) {
 
     if (n.swapLock.has_value()) {
         j["swaplock"] = *n.swapLock;
+    }
+
+    if (n.vsync.has_value()) {
+        j["vsync"] = *n.vsync;
     }
 
     if (!n.windows.empty()) {
@@ -2037,8 +2017,9 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 namespace {
     constexpr int CurrentConfigVersion = 2;
 
-    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation' and
-    // 'masteraddress' was renamed to 'serveraddress'
+    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation',
+    // 'masteraddress' was renamed to 'serveraddress', and the 'swapinterval' of the
+    // 'display' settings was replaced by the 'vsync' of every node
     void upgradeConfigV1ToV2(nlohmann::json& j) {
         if (auto it = j.find("masteraddress");  it != j.end()) {
             nlohmann::json address = *it;
@@ -2046,11 +2027,32 @@ namespace {
             j["serveraddress"] = address;
         }
 
+        std::optional<bool> vsync;
+        auto settings = j.find("settings");
+        if (settings != j.end() && settings->is_object()) {
+            auto display = settings->find("display");
+            if (display != settings->end() && display->is_object()) {
+                auto interval = display->find("swapinterval");
+                // Leave invalid values in place so that they are reported later
+                if (interval != display->end() && interval->is_number_integer()) {
+                    vsync = interval->get<int>() > 0;
+                    display->erase(interval);
+                }
+                if (display->empty()) {
+                    settings->erase(display);
+                }
+            }
+        }
+
         auto nodes = j.find("nodes");
         if (nodes == j.end() || !nodes->is_array()) {
             return;
         }
         for (nlohmann::json& node : *nodes) {
+            if (vsync && node.is_object()) {
+                node["vsync"] = *vsync;
+            }
+
             auto windows = node.find("windows");
             if (windows == node.end() || !windows->is_array()) {
                 continue;

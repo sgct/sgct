@@ -197,13 +197,13 @@ TEST_CASE("SharedData: Decode", "[shareddata]") {
     std::vector<std::byte> buffer;
     serializeObject(buffer, std::string("payload"));
     serializeObject(buffer, float(2.5f));
-    data.decode(
+    data.storeReceivedData(
         reinterpret_cast<const char*>(buffer.data()),
         static_cast<int>(buffer.size())
     );
+    data.decodeReceivedData();
 
     CHECK(received == buffer);
-    CHECK(data.dataSize() == static_cast<int>(buffer.size()));
 
     unsigned int pos = 0;
     std::string s;
@@ -212,6 +212,42 @@ TEST_CASE("SharedData: Decode", "[shareddata]") {
     deserializeObject(received, pos, f);
     CHECK(s == "payload");
     CHECK(f == 2.5f);
+
+    SharedData::destroy();
+}
+
+TEST_CASE("SharedData: Decode received data", "[shareddata]") {
+    static std::vector<std::vector<std::byte>> received;
+    received.clear();
+
+    SharedData& data = SharedData::instance();
+    data.setDecodeFunction([](const std::vector<std::byte>& buffer) {
+        received.push_back(buffer);
+    });
+
+    std::vector<std::byte> first;
+    serializeObject(first, int32_t(1));
+    std::vector<std::byte> second;
+    serializeObject(second, std::string("second"));
+    data.storeReceivedData(
+        reinterpret_cast<const char*>(first.data()),
+        static_cast<int>(first.size())
+    );
+    data.storeReceivedData(
+        reinterpret_cast<const char*>(second.data()),
+        static_cast<int>(second.size())
+    );
+
+    // Storing happens on the network thread, so it must not call the decode function
+    CHECK(received.empty());
+
+    data.decodeReceivedData();
+    REQUIRE(received.size() == 2);
+    CHECK(received[0] == first);
+    CHECK(received[1] == second);
+
+    data.decodeReceivedData();
+    CHECK(received.size() == 2);
 
     SharedData::destroy();
 }

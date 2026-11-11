@@ -528,6 +528,7 @@
           "maximum": 65535
         },
         "swaplock": { "type": "boolean" },
+        "vsync": { "type": "boolean" },
         "windows": {
           "type": "array",
           "items": { "$ref": "#/$defs/window" }
@@ -586,21 +587,6 @@
         "precision": {
           "type": "integer",
           "enum": [ 16, 32 ]
-        },
-        "display": {
-          "type": "object",
-          "properties": {
-            "swapinterval": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 255
-            },
-            "refreshrate": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          "additionalProperties": false
         }
       },
       "additionalProperties": false

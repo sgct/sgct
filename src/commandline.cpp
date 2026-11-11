@@ -137,8 +137,8 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.omitWindowNameInScreenshot = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--print-wait-message") {
-            config.printWaitMessage = true;
+        else if (arg[i] == "--no-wait-message") {
+            config.printWaitMessage = false;
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--wait-timeout" && arg.size() > (i + 1)) {
@@ -197,8 +197,8 @@ Parameters:
     If set, screenshots will not contain the name of the window if multiple windows exist
 --number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
---print-wait-message
-    Print a message while waiting for the synchronization with the other nodes
+--no-wait-message
+    Do not print a message while waiting for the synchronization with the other nodes
 --wait-timeout <float>
     Set the number of seconds to wait for the other nodes before aborting
 )";

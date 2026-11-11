@@ -45,6 +45,11 @@ public:
      */
     bool isUsingSwapGroups() const;
 
+    /**
+     * Does the last window of this node wait for the vertical retrace when swapping?
+     */
+    bool isUsingVSync() const;
+
     const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /**
@@ -67,6 +72,7 @@ private:
     const uint16_t _syncPort;
     const uint16_t _dataTransferPort;
     const bool _useSwapGroups;
+    const bool _useVSync;
 
     std::vector<std::unique_ptr<Window>> _windows;
 };

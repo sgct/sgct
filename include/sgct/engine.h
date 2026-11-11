@@ -124,13 +124,6 @@ public:
         /// constructor and the #initialize function
         bool createDebugContext = false;
 
-        /// Sets the swap interval to be used by the application
-        ///   -1 = adaptive sync(Nvidia)
-        ///    0 = vertical sync off
-        ///    1 = wait for vertical sync
-        ///    2..inf = wait for every n-th vertical sync
-        int8_t swapInterval = 0;
-
         /// If this is true, a log message is printed to the console while a client is
         /// waiting for the server to connect or while the server is waiting for one or
         /// more clients

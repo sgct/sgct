@@ -473,7 +473,6 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
             std::memcpy(&dataSize, header + 5, sizeof(dataSize));
             std::memcpy(&uncompressedDataSize, header + 9, sizeof(uncompressedDataSize));
 
-            setRecvFrame(syncFrame);
             if (syncFrame < 0) {
                 throw Err(
                     5010,
@@ -620,13 +619,13 @@ void Network::communicationHandler() {
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
         }
         int32_t packageId = -1;
+        int32_t syncFrameNumber = -1;
         uint32_t dataSize = 0;
         uint32_t uncompressedDataSize = 0;
 
         _headerId = DefaultId;
 
         if (type() == ConnectionType::SyncConnection) {
-            int32_t syncFrameNumber = -1;
             iResult = readSyncMessage(
                 RecvHeader.data(),
                 syncFrameNumber,
@@ -674,11 +673,13 @@ void Network::communicationHandler() {
                 break;
             }
             // Handle sync communication
-            if (_headerId == DataId && decoderCallback) {
-                if (dataSize > 0) {
+            if (_headerId == DataId && iResult > 0) {
+                if (decoderCallback && dataSize > 0) {
                     decoderCallback(_recvBuffer.data(), dataSize);
                 }
 
+                // The frame only counts as received once its data was handed over
+                setRecvFrame(syncFrameNumber);
                 NetworkManager::cond.notify_all();
             }
             else if (_headerId == ConnectedId && _connectedCallback) {

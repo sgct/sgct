@@ -271,28 +271,6 @@ TEST_CASE("ValidateCluster: User tracking", "[validatecluster]") {
     }
 }
 
-TEST_CASE("ValidateCluster: Settings", "[validatecluster]") {
-    Cluster c = minimalCluster();
-    c.settings = Settings();
-    c.settings->display = Settings::Display();
-
-    SECTION("Valid") {
-        c.settings->display->swapInterval = 0;
-        c.settings->display->refreshRate = 0;
-        CHECK_NOTHROW(validateCluster(c));
-    }
-
-    SECTION("1020: Negative swap interval") {
-        c.settings->display->swapInterval = -1;
-        checkValidateError(c, 1020);
-    }
-
-    SECTION("1021: Negative refresh rate") {
-        c.settings->display->refreshRate = -1;
-        checkValidateError(c, 1021);
-    }
-}
-
 TEST_CASE("ValidateCluster: Tracker", "[validatecluster]") {
     Cluster c = minimalCluster();
     Tracker tracker;

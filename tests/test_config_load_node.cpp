@@ -217,6 +217,78 @@ TEST_CASE("Load: Node/SwapLock", "[parse]") {
     }
 }
 
+TEST_CASE("Load: Node/VSync", "[parse]") {
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "vsync": false
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = false
+                }
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "vsync": true
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = true
+                }
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+}
+
 TEST_CASE("Load: Node/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
@@ -227,7 +299,8 @@ TEST_CASE("Load: Node/Full", "[parse]") {
       "address": "abc",
       "port": 2,
       "datatransferport": 3,
-      "swaplock": true
+      "swaplock": true,
+      "vsync": true
     }
   ]
 }
@@ -241,7 +314,8 @@ TEST_CASE("Load: Node/Full", "[parse]") {
                 .address = "abc",
                 .port = 2,
                 .dataTransferPort = 3,
-                .swapLock = true
+                .swapLock = true,
+                .vsync = true
             }
         }
     };
@@ -366,6 +440,24 @@ TEST_CASE("Validate: Node/SwapLock/Wrong Type", "[validate]") {
       "address": "localhost",
       "port": 123,
       "swaplock": "abc"
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: Node/VSync/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "vsync": "abc"
     }
   ]
 }

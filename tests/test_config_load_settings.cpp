@@ -262,158 +262,135 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
     }
 }
 
-TEST_CASE("Load: Settings/Display/Minimal", "[parse]") {
-    constexpr std::string_view String = R"(
-{
-  "version": 2,
-  "serveraddress": "localhost",
-  "settings": {
-    "display": {}
-  }
-}
-)";
-
-    const Cluster Object = {
-        .success = true,
-        .serverAddress = "localhost",
-        .settings = Settings {
-            .display = Settings::Display()
-        }
-    };
-
-    Cluster res = sgct::readJsonConfig(String);
-    CHECK(res == Object);
-
-    const std::string str = serializeConfig(Object);
-    const config::Cluster output = readJsonConfig(str);
-    CHECK(output == Object);
-}
-
-TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
+TEST_CASE("Load: Settings/Display/SwapInterval (Version 1)", "[parse]") {
+    // A positive swap interval enables the V-Sync of all nodes
     {
         constexpr std::string_view String = R"(
 {
-  "version": 2,
-  "serveraddress": "localhost",
+  "version": 1,
+  "masteraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": 1
     }
-  }
+  },
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1
+    },
+    {
+      "address": "def",
+      "port": 2
+    }
+  ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
             .serverAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .swapInterval = 1
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = true
+                },
+                Node {
+                    .address = "def",
+                    .port = 2,
+                    .vsync = true
                 }
-            }
+            },
+            .settings = Settings()
         };
 
+        CHECK_NOTHROW(validate(String));
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
     }
 
     {
         constexpr std::string_view String = R"(
 {
-  "version": 2,
-  "serveraddress": "localhost",
+  "version": 1,
+  "masteraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": 2
     }
-  }
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .serverAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .swapInterval = 2
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-}
-
-TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
+  },
+  "nodes": [
     {
-        constexpr std::string_view String = R"(
-{
-  "version": 2,
-  "serveraddress": "localhost",
-  "settings": {
-    "display": {
-      "refreshrate": 1
+      "address": "abc",
+      "port": 1
     }
-  }
+  ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
             .serverAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .refreshRate = 1
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = true
                 }
-            }
+            },
+            .settings = Settings()
         };
 
+        CHECK_NOTHROW(validate(String));
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
     }
 
     {
         constexpr std::string_view String = R"(
 {
-  "version": 2,
-  "serveraddress": "localhost",
+  "version": 1,
+  "masteraddress": "localhost",
   "settings": {
     "display": {
-      "refreshrate": 2
+      "swapinterval": 0
     }
-  }
+  },
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1
+    },
+    {
+      "address": "def",
+      "port": 2
+    }
+  ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
             .serverAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .refreshRate = 2
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = false
+                },
+                Node {
+                    .address = "def",
+                    .port = 2,
+                    .vsync = false
                 }
-            }
+            },
+            .settings = Settings()
         };
 
+        CHECK_NOTHROW(validate(String));
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
     }
 }
 
@@ -426,11 +403,7 @@ TEST_CASE("Load: Settings/Full", "[parse]") {
     "depthbuffertexture": true,
     "normaltexture": true,
     "positiontexture": true,
-    "precision": 16.0,
-    "display": {
-      "swapinterval": 2,
-      "refreshrate": 3
-    }
+    "precision": 16.0
   }
 }
 )";
@@ -442,11 +415,7 @@ TEST_CASE("Load: Settings/Full", "[parse]") {
             .useDepthTexture = true,
             .useNormalTexture = true,
             .usePositionTexture = true,
-            .bufferFloatPrecision = Settings::BufferFloatPrecision::Float16Bit,
-            .display = Settings::Display {
-                .swapInterval = 2,
-                .refreshRate = 3
-            }
+            .bufferFloatPrecision = Settings::BufferFloatPrecision::Float16Bit
         }
     };
 
@@ -551,8 +520,8 @@ TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]")
 TEST_CASE("Validate: Settings/Display/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 2,
-  "serveraddress": "localhost",
+  "version": 1,
+  "masteraddress": "localhost",
   "settings": {
     "display": "abc"
   }
@@ -565,8 +534,8 @@ TEST_CASE("Validate: Settings/Display/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/Display/SwapInterval/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 2,
-  "serveraddress": "localhost",
+  "version": 1,
+  "masteraddress": "localhost",
   "settings": {
     "display": {
       "swapinterval": "abc"
@@ -578,68 +547,50 @@ TEST_CASE("Validate: Settings/Display/SwapInterval/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Settings/Display/SwapInterval/Illegal Value", "[validate]") {
-    {
-        constexpr std::string_view Config = R"(
-{
-  "version": 2,
-  "serveraddress": "localhost",
-  "settings": {
-    "display": {
-      "swapinterval": -1
-    }
-  }
-}
-)";
-
-        CHECK_THROWS_AS(validate(Config), ParsingError);
-    }
-
-    {
-        constexpr std::string_view Config = R"(
-{
-  "version": 2,
-  "serveraddress": "localhost",
-  "settings": {
-    "display": {
-      "swapinterval": 1000
-    }
-  }
-}
-)";
-
-        CHECK_THROWS_AS(validate(Config), ParsingError);
-    }
-}
-
-TEST_CASE("Validate: Settings/Display/RefreshRate/Wrong Type", "[validate]") {
+TEST_CASE("Validate: Settings/Display/SwapInterval (Version 2)", "[validate]") {
+    // Replaced by the 'vsync' value of the nodes
     constexpr std::string_view Config = R"(
 {
   "version": 2,
   "serveraddress": "localhost",
   "settings": {
     "display": {
-      "refreshrate": "abc"
+      "swapinterval": 1
     }
   }
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost",
+        .settings = Settings()
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }
 
-TEST_CASE("Validate: Settings/Display/RefreshRate/Illegal Value", "[validate]") {
+TEST_CASE("Validate: Settings/Display/RefreshRate/Removed", "[validate]") {
+    // Removed as the value was not applied to the windows anymore
     constexpr std::string_view Config = R"(
 {
   "version": 2,
   "serveraddress": "localhost",
   "settings": {
     "display": {
-      "refreshrate": -1
+      "refreshrate": 60
     }
   }
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost",
+        .settings = Settings()
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }

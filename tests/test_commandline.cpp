@@ -81,7 +81,7 @@ TEST_CASE("CommandLine: Flags", "[commandline]") {
     std::vector<std::string> args = {
         "--help", "--firm-sync", "--ignore-sync",
         "--add-node-name-in-screenshot", "--omit-node-name-in-screenshot",
-        "--print-wait-message"
+        "--no-wait-message"
     };
     const Configuration config = parseArguments(args);
     CHECK(config.showHelpText == true);
@@ -89,7 +89,7 @@ TEST_CASE("CommandLine: Flags", "[commandline]") {
     CHECK(config.ignoreSync == true);
     CHECK(config.addNodeNameInScreenshot == true);
     CHECK(config.omitWindowNameInScreenshot == true);
-    CHECK(config.printWaitMessage == true);
+    CHECK(config.printWaitMessage == false);
     CHECK(args.empty());
 }
 
@@ -341,7 +341,7 @@ TEST_CASE("CommandLine: Help message", "[commandline]") {
         "--screenshot-prefix", "--screenshot-range-begin", "--screenshot-range-end",
         "--screenshot-bit-depth", "--add-node-name-in-screenshot",
         "--omit-node-name-in-screenshot", "--number-capture-threads",
-        "--print-wait-message", "--wait-timeout"
+        "--no-wait-message", "--wait-timeout"
     };
     for (std::string_view flag : Flags) {
         CHECK(msg.find(flag) != std::string::npos);

@@ -773,6 +773,8 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
     CHECK(n.port == 20401);
     REQUIRE(n.swapLock.has_value());
     CHECK(*n.swapLock == false);
+    REQUIRE(n.vsync.has_value());
+    CHECK(*n.vsync == false);
 
     REQUIRE(n.windows.size() == 1);
     const Window& w = n.windows[0];

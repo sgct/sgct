@@ -325,6 +325,12 @@ void Window::setBarrier([[maybe_unused]] bool state) {
     if (_useSwapGroups && state != _isBarrierActive) {
         Log::Info("Enabling Nvidia swap barrier");
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
+        if (!_isBarrierActive) {
+            Log::Error(
+                "Failed to bind the Nvidia swap barrier. The buffer swaps of this node "
+                "are not synchronized with the other nodes"
+            );
+        }
     }
 #endif // WIN32
 }
@@ -648,17 +654,12 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _framebufferRes.y = bufferSize.y;
     }
 
-    // Swap interval:
-    //  -1 = adaptive sync
-    //   0 = vertical sync off
-    //   1 = wait for vertical sync
-    //   2 = fix when using swapgroups in xp and running half the framerate
-
     // If we would set multiple windows to use vsync, we would get a framerate of (monitor
     // refreshrate)/(number of windows), which is something that might really slow down a
-    // multi-monitor application. Setting last window to the requested interval, which
-    // does mean all other windows will respect the last window in the pipeline
-    glfwSwapInterval(isLastWindow ? Engine::instance().settings().swapInterval : 0);
+    // multi-monitor application. Only the last window uses V-Sync if it is requested,
+    // which does mean all other windows will respect the last window in the pipeline
+    const Node& node = ClusterManager::instance().thisNode();
+    glfwSwapInterval(isLastWindow && node.isUsingVSync() ? 1 : 0);
 
     // if client, disable mouse pointer
     if (_hideMouseCursor || !Engine::instance().isServer()) {

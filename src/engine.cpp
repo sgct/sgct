@@ -119,11 +119,6 @@ namespace {
         res.printSyncMessage = config.printWaitMessage.value_or(res.printSyncMessage);
         res.syncTimeout = config.waitTimeout.value_or(res.syncTimeout);
         if (cluster.settings) {
-            if (cluster.settings->display) {
-                res.swapInterval = cluster.settings->display->swapInterval.value_or(
-                    res.swapInterval
-                );
-            }
             res.useDepthTexture =
                 cluster.settings->useDepthTexture.value_or(res.useDepthTexture);
             res.useNormalTexture =
@@ -563,6 +558,12 @@ void Engine::initialize() {
     waitForAllWindowsInSwapGroupToOpen();
     // Init swap group if enabled
     if (thisNode.isUsingSwapGroups()) {
+        if (!thisNode.isUsingVSync()) {
+            Log::Warning(
+                "Swap lock is enabled, but V-Sync is disabled. Without V-Sync, the swap "
+                "barrier does not synchronize the buffer swaps with the vertical retrace"
+            );
+        }
         Window::initNvidiaSwapGroups();
     }
 
@@ -695,13 +696,13 @@ void Engine::frameLockPreStage() {
     }
 
     // Run only on clients
-    if (nm.isComputerServer() && !ClusterManager::instance().ignoreSync()) {
+    if (nm.isComputerServer()) {
         return;
     }
 
-    // Not server
+    const ClusterManager& cm = ClusterManager::instance();
     const double t0 = glfwGetTime();
-    while (nm.isRunning() && !nm.isSyncComplete()) {
+    while (!cm.ignoreSync() && nm.isRunning() && !nm.isSyncComplete()) {
         std::unique_lock lock(FrameSync);
         NetworkManager::cond.wait(lock);
 
@@ -730,20 +731,29 @@ void Engine::frameLockPreStage() {
         }
     }
 
-    // A this point all data needed for rendering a frame is received.
-    // Let's signal that back to the server
-    nm.sync(NetworkManager::SyncMode::Acknowledge);
-    if (!nm.isComputerServer()) {
-        addValue(_statistics.syncTimes, glfwGetTime() - t0);
+    // With firm sync, the frame is acknowledged after drawing it in frameLockPostStage
+    if (!cm.ignoreSync() && !cm.firmFrameLockSyncStatus()) {
+        nm.sync(NetworkManager::SyncMode::Acknowledge);
     }
+    addValue(_statistics.syncTimes, glfwGetTime() - t0);
+
+    // Decoding on this thread keeps the shared data unchanged while the frame is drawn
+    SharedData::instance().decodeReceivedData();
 }
 
 void Engine::frameLockPostStage() {
     ZoneScoped;
 
     const NetworkManager& nm = NetworkManager::instance();
-    // Post stage
-    if (ClusterManager::instance().ignoreSync() || !nm.isComputerServer()) {
+    const ClusterManager& cm = ClusterManager::instance();
+    if (cm.ignoreSync()) {
+        return;
+    }
+
+    if (!nm.isComputerServer()) {
+        if (cm.firmFrameLockSyncStatus()) {
+            nm.sync(NetworkManager::SyncMode::Acknowledge);
+        }
         return;
     }
 

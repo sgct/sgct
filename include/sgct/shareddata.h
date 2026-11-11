@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -42,9 +43,16 @@ public:
     void encode();
 
     /**
-     * This function is called internally by SGCT and shouldn't be used by the user.
+     * Stores received data until the next #decodeReceivedData call. This function is
+     * called internally by SGCT and shouldn't be used by the user.
      */
-    void decode(const char* receivedData, int receivedLength);
+    void storeReceivedData(const char* receivedData, int receivedLength);
+
+    /**
+     * Decodes all stored data in the order it was received. This function is called
+     * internally by SGCT and shouldn't be used by the user.
+     */
+    void decodeReceivedData();
 
     unsigned char* dataBlock();
     int dataSize();
@@ -59,6 +67,9 @@ private:
     static SharedData* _instance;
     std::vector<std::byte> _dataBlock;
     std::array<std::byte, Network::HeaderSize> _headerSpace;
+
+    std::mutex _receivedDataMutex;
+    std::vector<std::vector<std::byte>> _receivedData;
 };
 
 template <typename T>

@@ -52,6 +52,15 @@ namespace {
 
     constexpr int MaxNetworkSyncFrameNumber = 10000;
 
+    // Sending to a connection that was closed by the other side raises SIGPIPE on POSIX
+    // systems, which terminates the application unless the signal is suppressed. The send
+    // then fails with an error instead, which is handled like any other failed send
+#ifdef MSG_NOSIGNAL
+    constexpr int SendFlags = MSG_NOSIGNAL;
+#else // ^^^^ MSG_NOSIGNAL // !MSG_NOSIGNAL vvvv
+    constexpr int SendFlags = 0;
+#endif // MSG_NOSIGNAL
+
     int receiveData(SGCT_SOCKET lsocket, char* buffer, int length, int flags) {
         long iResult = 0;
         int attempts = 1;
@@ -793,7 +802,7 @@ void Network::sendData(const void* data, int length) const {
             _socket,
             reinterpret_cast<const char*>(data) + offset,
             sendSize,
-            0
+            SendFlags
         );
         if (sentLen == SOCKET_ERROR) {
             throw Err(5014, std::format("Send data failed: {}", SGCT_ERRNO));

@@ -15,6 +15,7 @@
 #include <condition_variable>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -41,6 +42,16 @@ public:
     static void destroy();
 
     static std::condition_variable cond;
+
+    /// The mutex that has to be held while checking a condition and waiting on #cond
+    static std::mutex condMutex;
+
+    /**
+     * Wakes up all threads that are waiting on #cond. This function has to be used
+     * instead of notifying #cond directly, as it prevents a notification from being lost
+     * if it happens between a thread checking its condition and starting to wait.
+     */
+    static void notifyAll();
 
     ~NetworkManager();
 

@@ -77,7 +77,7 @@ namespace {
             FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
             FrameSync.unlock();
-            NetworkManager::cond.notify_all();
+            NetworkManager::notifyAll();
             std::this_thread::sleep_for(FrameLockTimeout);
         }
     }
@@ -702,8 +702,10 @@ void Engine::frameLockPreStage() {
 
     const ClusterManager& cm = ClusterManager::instance();
     const double t0 = glfwGetTime();
+    // The mutex has to be held while checking the condition, as a notification between
+    // the check and the wait would be lost otherwise
+    std::unique_lock lock(NetworkManager::condMutex);
     while (!cm.ignoreSync() && nm.isRunning() && !nm.isSyncComplete()) {
-        std::unique_lock lock(FrameSync);
         NetworkManager::cond.wait(lock);
 
         if (glfwGetTime() - t0 <= 1.0) {
@@ -730,6 +732,7 @@ void Engine::frameLockPreStage() {
             );
         }
     }
+    lock.unlock();
 
     // With firm sync, the frame is acknowledged after drawing it in frameLockPostStage
     if (!cm.ignoreSync() && !cm.firmFrameLockSyncStatus()) {
@@ -758,8 +761,10 @@ void Engine::frameLockPostStage() {
     }
 
     const double t0 = glfwGetTime();
+    // The mutex has to be held while checking the condition, as a notification between
+    // the check and the wait would be lost otherwise
+    std::unique_lock lock(NetworkManager::condMutex);
     while (nm.isRunning() && nm.activeConnectionsCount() > 0 && !nm.isSyncComplete()) {
-        std::unique_lock lock(FrameSync);
         NetworkManager::cond.wait(lock);
 
         if (glfwGetTime() - t0 <= 1.0) {

@@ -74,6 +74,7 @@ namespace {
 namespace sgct {
 
 std::condition_variable NetworkManager::cond;
+std::mutex NetworkManager::condMutex;
 
 NetworkManager* NetworkManager::_instance = nullptr;
 
@@ -97,6 +98,16 @@ void NetworkManager::create(NetworkMode nm,
         std::move(dataTransferStatus),
         std::move(dataTransferAcknowledge)
     );
+}
+
+void NetworkManager::notifyAll() {
+    // Acquiring the mutex guarantees that a waiting thread is either already waiting or
+    // has not checked its condition yet. Without it, the notification would be lost if it
+    // happens between the check of the condition and the start of the wait
+    {
+        const std::unique_lock lock(condMutex);
+    }
+    cond.notify_all();
 }
 
 void NetworkManager::destroy() {
@@ -218,7 +229,7 @@ NetworkManager::~NetworkManager() {
     ZoneScoped;
 
     _isRunning = false;
-    cond.notify_all();
+    notifyAll();
 
     // Signal to terminate
     for (const std::unique_ptr<Network>& connection : _networkConnections) {
@@ -578,7 +589,7 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
     }
 
     // Signal done to caller
-    cond.notify_all();
+    notifyAll();
 }
 
 void NetworkManager::setAllNodesConnected() {

@@ -685,11 +685,11 @@ void Network::communicationHandler() {
 
                 // The frame only counts as received once its data was handed over
                 setRecvFrame(syncFrameNumber);
-                NetworkManager::cond.notify_all();
+                NetworkManager::notifyAll();
             }
             else if (_headerId == ConnectedId && _connectedCallback) {
                 _connectedCallback();
-                NetworkManager::cond.notify_all();
+                NetworkManager::notifyAll();
             }
         }
         // Handle data transfer communication
@@ -725,7 +725,7 @@ void Network::communicationHandler() {
                 }
                 else if (_headerId == ConnectedId && _connectedCallback) {
                     _connectedCallback();
-                    NetworkManager::cond.notify_all();
+                    NetworkManager::notifyAll();
                 }
             }
         }
@@ -774,7 +774,7 @@ void Network::closeNetwork(bool forced) {
     _packageDecoderCallback = nullptr;
 
     // Release conditions
-    NetworkManager::cond.notify_all();
+    NetworkManager::notifyAll();
     _startConnectionCond.notify_all();
 
     // Blocking sockets -> cannot wait for thread so just kill it brutally

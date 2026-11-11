@@ -468,7 +468,6 @@ bool Network::isConnected() const {
 }
 
 Network::ConnectionType Network::type() const {
-    const std::unique_lock lock(_connectionMutex);
     return _connectionType;
 }
 

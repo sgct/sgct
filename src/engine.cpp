@@ -821,7 +821,7 @@ void Engine::exec() {
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     while (!_shouldTerminate && !thisNode.closeAllWindows() &&
-           NetworkManager::instance().isRunning()) [[unlikely]]
+           NetworkManager::instance().isRunning())
     {
         {
             ZoneScopedN("GLFW Poll Events");

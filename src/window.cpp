@@ -1123,17 +1123,6 @@ void Window::renderFBOTexture() {
 
         maskShaderSet = true;
 
-        glProgramUniform1i(
-            _fboQuad.id(),
-            glGetUniformLocation(_fboQuad.id(), "flipX"),
-            _mirrorX ? 1 : 0
-        );
-        glProgramUniform1i(
-            _fboQuad.id(),
-            glGetUniformLocation(_fboQuad.id(), "flipY"),
-            _mirrorY ? 1 : 0
-        );
-
         _fboQuad.bind();
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
 
@@ -1157,9 +1146,6 @@ void Window::renderFBOTexture() {
     if (_hasAnyMasks) {
         if (!maskShaderSet) {
             _fboQuad.bind();
-
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), _mirrorX ? 1 : 0);
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), _mirrorY ? 1 : 0);
         }
 
         glDrawBuffer(GL_BACK);
@@ -2087,6 +2073,18 @@ void Window::loadShaders() {
         _fboQuad.addFragmentShader(shaders::BaseFrag);
         _fboQuad.createAndLinkProgram();
         glProgramUniform1i(_fboQuad.id(), glGetUniformLocation(_fboQuad.id(), "tex"), 0);
+        // The mirroring of a window does not change, so the uniforms are only set once
+        // instead of looking up their locations in every frame
+        glProgramUniform1i(
+            _fboQuad.id(),
+            glGetUniformLocation(_fboQuad.id(), "flipX"),
+            _mirrorX ? 1 : 0
+        );
+        glProgramUniform1i(
+            _fboQuad.id(),
+            glGetUniformLocation(_fboQuad.id(), "flipY"),
+            _mirrorY ? 1 : 0
+        );
     }
 
     {

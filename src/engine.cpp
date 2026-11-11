@@ -334,6 +334,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
             Log::Debug(std::format("Running locally as node {}", clusterId));
         }
         else {
+            NetworkManager::destroy();
             throw Err(3002, "When running locally, a node ID needs to be specified");
         }
     }

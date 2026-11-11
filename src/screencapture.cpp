@@ -35,7 +35,8 @@ ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
     , _eyeIndex(ei)
     , _window(window)
 {
-    _captureInfos.resize(_nThreads);
+    // The thread information can neither be copied nor moved, so resize cannot be used
+    _captureInfos = std::vector<ScreenCaptureThreadInfo>(_nThreads);
     for (unsigned int i = 0; i < _nThreads; i++) {
         _captureInfos[i].frameBufferImage = nullptr;
         _captureInfos[i].captureThread = nullptr;

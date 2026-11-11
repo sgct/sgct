@@ -860,6 +860,13 @@ void Window::initialize() {
 
 #ifdef SGCT_HAS_NDI
     if (_ndi.handle) {
+        // The size of the framebuffer is only known after the window was opened
+        _ndi.videoFrame.xres = _framebufferRes.x;
+        _ndi.videoFrame.yres = _framebufferRes.y;
+        _ndi.videoFrame.line_stride_in_bytes = -_framebufferRes.x * 4;
+        _ndi.videoFrame.picture_aspect_ratio =
+            static_cast<float>(_framebufferRes.x) /
+            static_cast<float>(_framebufferRes.y);
         const GLsizeiptr bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
         glCreateBuffers(3, _ndi.pingPongPbo);
         glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
@@ -947,28 +954,6 @@ void Window::updateResolutions() {
             "Resolution changed to {}x{} in window {}", _windowSize.x, _windowSize.y, _id
         ));
         _pendingWindowSize = std::nullopt;
-
-#ifdef SGCT_HAS_NDI
-        if (!_useFixResolution && _ndi.handle) {
-            _ndi.videoFrame.xres = _windowSize.x;
-            _ndi.videoFrame.yres = _windowSize.y;
-            _ndi.videoFrame.picture_aspect_ratio =
-                static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y);
-            // We have a negative stride to account for the fact that OpenGL textures have
-            // their y-axis flipped compared to DirectX textures
-            _ndi.videoFrame.line_stride_in_bytes = -_windowSize.x * 4;
-
-            // We need to send an "empty" frame as otherwise NDI might be in the middle of
-            // sending out one of the buffers that we are resizing. This extra call will
-            // force a synchronization
-            NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
-            const int bufferSize = _windowSize.x * _windowSize.y * 4;
-            glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
-            glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
-            glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
-            _ndi.currentFrame = 0;
-        }
-#endif // SGCT_HAS_NDI
     }
 
     if (_pendingFramebufferRes) {
@@ -980,6 +965,32 @@ void Window::updateResolutions() {
         ));
 
         _pendingFramebufferRes = std::nullopt;
+
+#ifdef SGCT_HAS_NDI
+        // The buffers do not exist yet if the resolution is set before the initialization
+        if (_ndi.handle && _ndi.pingPongPbo[0] != 0) {
+            // The frames are read from the framebuffer texture, whose size differs from
+            // the size of the window on displays that use a content scale
+            _ndi.videoFrame.xres = _framebufferRes.x;
+            _ndi.videoFrame.yres = _framebufferRes.y;
+            _ndi.videoFrame.picture_aspect_ratio =
+                static_cast<float>(_framebufferRes.x) /
+                static_cast<float>(_framebufferRes.y);
+            // We have a negative stride to account for the fact that OpenGL textures have
+            // their y-axis flipped compared to DirectX textures
+            _ndi.videoFrame.line_stride_in_bytes = -_framebufferRes.x * 4;
+
+            // We need to send an "empty" frame as otherwise NDI might be in the middle of
+            // sending out one of the buffers that we are resizing. This extra call will
+            // force a synchronization
+            NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
+            const int bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
+            glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
+            glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
+            glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
+            _ndi.currentFrame = 0;
+        }
+#endif // SGCT_HAS_NDI
     }
 }
 
@@ -1706,6 +1717,8 @@ void Window::destroyFBOs() {
     _frameBufferTextures.depth = 0;
     glDeleteTextures(1, &_frameBufferTextures.intermediate);
     _frameBufferTextures.intermediate = 0;
+    glDeleteTextures(1, &_frameBufferTextures.normals);
+    _frameBufferTextures.normals = 0;
     glDeleteTextures(1, &_frameBufferTextures.positions);
     _frameBufferTextures.positions = 0;
 }

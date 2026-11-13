@@ -233,7 +233,8 @@
           "default": "EquirectangularProjection",
           "readOnly": true
         },
-        "quality": { "$ref": "#/$defs/projectionquality" }
+        "quality": { "$ref": "#/$defs/projectionquality" },
+        "orientation": { "$ref": "#/$defs/orientation" }
       },
       "required": [ "type" ],
       "additionalProperties": false
@@ -257,8 +258,8 @@
           "type": "string",
           "enum": [ "linear", "cubic" ]
         },
-        "tilt": { "type": "number" },
-        "diameter": { "type": "number" },
+        "orientation": { "$ref": "#/$defs/orientation" },
+        "diameter": { "type": "number", "exclusiveMinimum": 0 },
         "crop": {
           "type": "object",
           "properties": {
@@ -341,15 +342,15 @@
         "quality": {
           "$ref": "#/$defs/projectionquality"
         },
-        "tilt": { "type": "number" },
+        "orientation": { "$ref": "#/$defs/orientation" },
         "background": { "$ref": "#/$defs/color" },
         "geometry": {
           "type": "object",
           "properties": {
-            "bottom": { "type": "string" },
-            "left": { "type": "string" },
-            "right": { "type": "string" },
-            "top": { "type": "string" }
+            "bottom": { "type": "string", "minLength": 1 },
+            "left": { "type": "string", "minLength": 1 },
+            "right": { "type": "string", "minLength": 1 },
+            "top": { "type": "string", "minLength": 1 }
           },
           "required": [ "bottom", "left", "right", "top" ],
           "additionalProperties": false
@@ -420,7 +421,8 @@
         },
         "id": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 127
         },
         "name": {
           "type": "string",
@@ -428,7 +430,8 @@
         },
         "tags": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
         },
         "bufferbitdepth": {
           "type": "string",
@@ -455,7 +458,8 @@
         "noerror": { "type": "boolean" },
         "blitwindowid": {
           "type": "integer",
-          "minimum": -1
+          "minimum": -1,
+          "maximum": 127
         },
         "mirrorx": { "type": "boolean" },
         "mirrory": { "type": "boolean" },
@@ -484,7 +488,23 @@
         },
         "spout": { "$ref": "#/$defs/spout" },
         "ndi": { "$ref": "#/$defs/ndi" },
-        "scalablemesh": { "type": "string" }
+        "openxr": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" }
+          },
+          "required": [ "enabled" ],
+          "additionalProperties": false
+        },
+        "scalablemesh": { "type": "string" },
+        "scalablemesh_ortho_quality": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scalablemesh_ortho_res": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "required": ["size"],
       "additionalProperties": false
@@ -508,6 +528,7 @@
           "maximum": 65535
         },
         "swaplock": { "type": "boolean" },
+        "vsync": { "type": "boolean" },
         "windows": {
           "type": "array",
           "items": { "$ref": "#/$defs/window" }
@@ -566,40 +587,6 @@
         "precision": {
           "type": "integer",
           "enum": [ 16, 32 ]
-        },
-        "display": {
-          "type": "object",
-          "properties": {
-            "swapinterval": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 255
-            },
-            "refreshrate": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-
-    "capture": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "rangebegin": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "rangeend": {
-          "type": "integer",
-          "minimum": 1
         }
       },
       "additionalProperties": false
@@ -750,11 +737,10 @@
 
   "type": "object",
   "properties": {
-    "masteraddress": {
+    "serveraddress": {
       "type": "string",
       "minLength": 1
     },
-    "debuglog": { "type": "boolean" },
     "threadaffinity": {
       "type": "integer",
       "minimum": 0
@@ -769,7 +755,6 @@
       "type": "array",
       "items": { "$ref": "#/$defs/user" }
     },
-    "capture": { "$ref": "#/$defs/capture" },
     "trackers": {
       "type": "array",
       "items": {"$ref": "#/$defs/tracker" }
@@ -777,8 +762,8 @@
     "settings": { "$ref": "#/$defs/settings" },
     "generator": { "$ref": "#/$defs/generator" },
     "meta": { "$ref": "#/$defs/meta" },
-    "version": { "type": "integer" }
+    "version": { "type": "integer", "const": 2 }
   },
-  "required": [ "masteraddress", "version" ],
+  "required": [ "serveraddress", "version" ],
   "additionalProperties": false
 }

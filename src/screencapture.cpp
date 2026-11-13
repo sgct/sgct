@@ -35,7 +35,8 @@ ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
     , _eyeIndex(ei)
     , _window(window)
 {
-    _captureInfos.resize(_nThreads);
+    // The thread information can neither be copied nor moved, so resize cannot be used
+    _captureInfos = std::vector<ScreenCaptureThreadInfo>(_nThreads);
     for (unsigned int i = 0; i < _nThreads; i++) {
         _captureInfos[i].frameBufferImage = nullptr;
         _captureInfos[i].captureThread = nullptr;
@@ -46,6 +47,9 @@ ScreenCapture::ScreenCapture(const Window& window, ScreenCapture::EyeIndex ei,
 }
 
 ScreenCapture::~ScreenCapture() {
+    // The last screenshot might not have been read from the GPU yet
+    finishCapture(true);
+
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         // Kill threads that are still running
         if (info.captureThread) {
@@ -61,10 +65,13 @@ ScreenCapture::~ScreenCapture() {
     glDeleteBuffers(1, &_pbo);
 }
 
-void ScreenCapture::resize(ivec2 resolution) {
+void ScreenCapture::resize(glm::ivec2 resolution) {
+    // A pending screenshot still needs the buffer and the previous resolution
+    finishCapture(true);
+
     glDeleteBuffers(1, &_pbo);
 
-    _resolution = std::move(resolution);
+    _resolution = resolution;
 
     const int nChannels = _addAlpha ? 4 : 3;
     _dataSize = _resolution.x * _resolution.y * nChannels * _bytesPerColor;
@@ -107,21 +114,19 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
 
     std::string file = createFilename(number);
 
-    const ivec2 res =
+    const glm::ivec2 res =
         capSrc == CaptureSource::Texture ?
         _window.framebufferResolution() :
         _window.windowSize();
-    if (_resolution.x != res.x && _resolution.y != res.y) {
+    if (_resolution != res) {
         resize(res);
     }
 
-    const int threadIndex = availableCaptureThread();
-    if (threadIndex == -1) {
-        Log::Error("Error finding available capture thread");
-        return;
-    }
+    // The previous screenshot uses the same buffer, so it has to be finished first
+    finishCapture(true);
 
-    Image* imPtr = prepareImage(threadIndex, std::move(file));
+    // The pixels are copied into the buffer asynchronously, so that this function does
+    // not have to wait for the GPU. The data is read in `finishCapture` once it is ready
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
 
@@ -150,12 +155,51 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             default:
                 throw std::logic_error("Unhandled case label");
         }
-        const ivec2& s = imPtr->size();
-        const GLsizei w = static_cast<GLsizei>(s.x);
-        const GLsizei h = static_cast<GLsizei>(s.y);
+        const GLsizei w = static_cast<GLsizei>(_resolution.x);
+        const GLsizei h = static_cast<GLsizei>(_resolution.y);
         glReadPixels(0, 0, w, h, _addAlpha ? GL_BGRA : GL_BGR, _downloadType, nullptr);
     }
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
+    // The fence is signaled as soon as the GPU has copied the pixels into the buffer
+    _pendingSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    glFlush();
+    _pendingFilename = std::move(file);
+}
+
+void ScreenCapture::update() {
+    finishCapture(false);
+}
+
+void ScreenCapture::finishCapture(bool wait) {
+    if (!_pendingSync) {
+        return;
+    }
+
+    ZoneScoped;
+
+    GLsync sync = static_cast<GLsync>(_pendingSync);
+    if (!wait && glClientWaitSync(sync, 0, 0) == GL_TIMEOUT_EXPIRED) {
+        // The GPU has not finished copying the pixels yet
+        return;
+    }
+    glDeleteSync(sync);
+    _pendingSync = nullptr;
+
+    const int threadIndex = availableCaptureThread();
+    if (threadIndex == -1) {
+        Log::Error("Error finding available capture thread");
+        return;
+    }
+
+    Image* imPtr = prepareImage(threadIndex, std::move(_pendingFilename));
+    if (!imPtr) {
+        Log::Error("Could not create image for the frame capture");
+        return;
+    }
+
+    // If the copy is not finished yet, mapping the buffer waits for it
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
     unsigned char* memoryPtr = reinterpret_cast<unsigned char*>(
         glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
     );

@@ -10,10 +10,9 @@
 
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #define JSON_HAS_CPP_11
 #define JSON_HAS_CPP_14
@@ -25,6 +24,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 #include <exception>
 #include <fstream>
@@ -115,28 +115,9 @@ void validateUser(const User& u) {
     }
 }
 
-void validateCapture(const Capture& c) {
-    if (c.path && c.path->empty()) {
-        throw Err(1010, "Capture path must not be empty");
-    }
-
-    if (c.range) {
-        if (c.range->first >= c.range->last && c.range->last != -1) {
-            throw Err(1011, "Screenshot ranges beginning has to be before the end");
-        }
-    }
-}
-
 void validateScene(const Scene&) {}
 
-void validateSettings(const Settings& s) {
-    if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
-        throw Err(1020, "Swap interval must not be negative");
-    }
-    if (s.display && s.display->refreshRate && *s.display->refreshRate < 0) {
-        throw Err(1021, "Refresh rate must not be negative");
-    }
-}
+void validateSettings(const Settings&) {}
 
 void validateTracker(const Tracker& t) {
     if (t.name.empty()) {
@@ -181,10 +162,11 @@ void validateProjection(const FisheyeProjection& p) {
     if (p.fov && *p.fov <= 0.f) {
         throw Err(1060, "Field of view setting must be positive");
     }
-    if (p.crop && p.crop->left > p.crop->right) {
+    // The crop values are the ratios that are removed from each side of the image
+    if (p.crop && p.crop->left + p.crop->right > 1.f) {
         throw Err(1061, "Left and right crop must not overlap");
     }
-    if (p.crop && p.crop->bottom > p.crop->top) {
+    if (p.crop && p.crop->bottom + p.crop->top > 1.f) {
         throw Err(1062, "Bottom and top crop must not overlap");
     }
     if (p.quality && *p.quality <= 0) {
@@ -197,7 +179,7 @@ void validateProjection(const FisheyeProjection& p) {
         throw Err(1065, "Diameter must be positive");
     }
     if (p.background) {
-        const vec4 b = *p.background;
+        const glm::vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Err(1066, "All background color components have to be positive");
         }
@@ -212,10 +194,15 @@ void validateProjection(const SphericalMirrorProjection& p) {
         throw Err(1071, "Quality setting only allows powers of two");
     }
     if (p.background) {
-        const vec4 b = *p.background;
+        const glm::vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Err(1072, "All background color components have to be positive");
         }
+    }
+    if (p.mesh.bottom.empty() || p.mesh.left.empty() || p.mesh.right.empty() ||
+        p.mesh.top.empty())
+    {
+        throw Err(1073, "All mesh paths must not be empty");
     }
 }
 
@@ -310,7 +297,8 @@ void validateNode(const Node& n) {
         }
         usedIds.push_back(win.id);
 
-        if (win.blitWindowId) {
+        // A blitWindowId of -1 is the documented default value that disables blitting
+        if (win.blitWindowId && *win.blitWindowId != -1) {
             if (*win.blitWindowId < 0) {
                 throw Err(1108, "BlitWindowId must be between 0 and 127");
             }
@@ -329,7 +317,7 @@ void validateNode(const Node& n) {
             }
             if (win.id == *win.blitWindowId) {
                 throw Err(
-                    1110,
+                    1114,
                     std::format(
                         "Window {} tried to blit from itself, which cannot work", win.id
                     )
@@ -340,14 +328,11 @@ void validateNode(const Node& n) {
 }
 
 void validateCluster(const Cluster& c) {
-    if (c.masterAddress.empty()) {
-        throw Err(1120, "Cluster master address must not be empty");
+    if (c.serverAddress.empty()) {
+        throw Err(1120, "Cluster server address must not be empty");
     }
     if (c.scene) {
         validateScene(*c.scene);
-    }
-    if (c.capture) {
-        validateCapture(*c.capture);
     }
     if (c.settings) {
         validateSettings(*c.settings);
@@ -377,7 +362,8 @@ void validateCluster(const Cluster& c) {
         std::back_inserter(usernames),
         [](const User& user) { return user.name.value_or(""); }
     );
-    if (std::unique(usernames.begin(), usernames.end()) != usernames.end()) {
+    std::sort(usernames.begin(), usernames.end());
+    if (std::adjacent_find(usernames.begin(), usernames.end()) != usernames.end()) {
         throw Err(1124, "No two users can have the same name");
     }
 
@@ -618,44 +604,45 @@ namespace {
 } // namespace
 
 
-namespace sgct {
+// The serialization functions have to live in the glm namespace to be found through ADL
+namespace glm {
 
-static void from_json(const nlohmann::json& j, sgct::ivec2& v) {
+static void from_json(const nlohmann::json& j, glm::ivec2& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
 }
 
-static void to_json(nlohmann::json& j, const sgct::ivec2& v) {
+static void to_json(nlohmann::json& j, const glm::ivec2& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
 }
 
-static void from_json(const nlohmann::json& j, sgct::vec2& v) {
+static void from_json(const nlohmann::json& j, glm::vec2& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
 }
 
-static void to_json(nlohmann::json& j, const sgct::vec2& v) {
+static void to_json(nlohmann::json& j, const glm::vec2& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
 }
 
-static void from_json(const nlohmann::json& j, sgct::vec3& v) {
+static void from_json(const nlohmann::json& j, glm::vec3& v) {
     j.at("x").get_to(v.x);
     j.at("y").get_to(v.y);
     j.at("z").get_to(v.z);
 }
 
-static void to_json(nlohmann::json& j, const sgct::vec3& v) {
+static void to_json(nlohmann::json& j, const glm::vec3& v) {
     j = nlohmann::json::object();
     j["x"] = v.x;
     j["y"] = v.y;
     j["z"] = v.z;
 }
 
-static void from_json(const nlohmann::json& j, sgct::vec4& v) {
+static void from_json(const nlohmann::json& j, glm::vec4& v) {
     auto itX = j.find("x");
     auto itY = j.find("y");
     auto itZ = j.find("z");
@@ -685,30 +672,33 @@ static void from_json(const nlohmann::json& j, sgct::vec4& v) {
     throw std::runtime_error("Incomplete vec4");
 }
 
-static void to_json(nlohmann::json& j, const sgct::vec4& v) {
+static void to_json(nlohmann::json& j, const glm::vec4& v) {
+    // The only vec4s in the configuration are colors, which the schema expects as rgba
     j = nlohmann::json::object();
-    j["x"] = v.x;
-    j["y"] = v.y;
-    j["z"] = v.z;
-    j["w"] = v.w;
+    j["r"] = v.x;
+    j["g"] = v.y;
+    j["b"] = v.z;
+    j["a"] = v.w;
 }
 
-static void from_json(const nlohmann::json& j, sgct::mat4& m) {
+static void from_json(const nlohmann::json& j, glm::mat4& m) {
     std::array<double, 16> vs = j.get<std::array<double, 16>>();
+    float* values = glm::value_ptr(m);
     for (int i = 0; i < 16; i += 1) {
-        m.values[i] = static_cast<float>(vs[i]);
+        values[i] = static_cast<float>(vs[i]);
     }
 }
 
-static void to_json(nlohmann::json& j, const sgct::mat4& m) {
+static void to_json(nlohmann::json& j, const glm::mat4& m) {
     std::array<double, 16> vs;
+    const float* values = glm::value_ptr(m);
     for (int i = 0; i < 16; i += 1) {
-        vs[i] = m.values[i];
+        vs[i] = values[i];
     }
     j = vs;
 }
 
-static void from_json(const nlohmann::json& j, sgct::quat& q) {
+static void from_json(const nlohmann::json& j, glm::quat& q) {
     auto itPitch = j.find("pitch");
     auto itYaw = j.find("yaw");
     auto itRoll = j.find("roll");
@@ -717,11 +707,10 @@ static void from_json(const nlohmann::json& j, sgct::quat& q) {
         const float y = -itYaw->get<float>();
         const float z = -itRoll->get<float>();
 
-        glm::quat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0, 0.0, 1.0));
-        q = sgct::quat(quat.x, quat.y, quat.z, quat.w);
+        q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
     }
 
     auto itX = j.find("x");
@@ -736,7 +725,7 @@ static void from_json(const nlohmann::json& j, sgct::quat& q) {
     }
 }
 
-static void to_json(nlohmann::json& j, const sgct::quat& q) {
+static void to_json(nlohmann::json& j, const glm::quat& q) {
     j = nlohmann::json::object();
     j["x"] = q.x;
     j["y"] = q.y;
@@ -744,7 +733,7 @@ static void to_json(nlohmann::json& j, const sgct::quat& q) {
     j["w"] = q.w;
 }
 
-} // namespace sgct
+} // namespace glm
 
 namespace sgct::config {
 
@@ -775,11 +764,7 @@ static void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        const quat q = it->get<quat>();
-        glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
-        sgct::mat4 o;
-        std::memcpy(o.values.data(), glm::value_ptr(m), 16 * sizeof(float));
-        u.transformation = o;
+        u.transformation = glm::mat4_cast(it->get<glm::quat>());
     }
 
     if (auto it = j.find("tracking");  it != j.end()) {
@@ -845,13 +830,6 @@ static void from_json(const nlohmann::json& j, Settings& s) {
             throw Err(6050, std::format("Wrong buffer precision value {}", precision));
         }
     }
-
-    if (auto it = j.find("display");  it != j.end()) {
-        Settings::Display display;
-        parseValue(*it, "swapinterval", display.swapInterval);
-        parseValue(*it, "refreshrate", display.refreshRate);
-        s.display = display;
-    }
 }
 
 static void to_json(nlohmann::json& j, const Settings& s) {
@@ -878,54 +856,6 @@ static void to_json(nlohmann::json& j, const Settings& s) {
                 j["precision"] = 32.0;
                 break;
         }
-    }
-
-    if (s.display.has_value()) {
-        nlohmann::json display = nlohmann::json::object();
-        if (s.display->swapInterval.has_value()) {
-            display["swapinterval"] = *s.display->swapInterval;
-        }
-        if (s.display->refreshRate.has_value()) {
-            display["refreshrate"] = *s.display->refreshRate;
-        }
-        j["display"] = display;
-    }
-}
-
-static void from_json(const nlohmann::json& j, Capture& c) {
-    parseValue(j, "path", c.path);
-
-    std::optional<int> rangeBeg;
-    parseValue(j, "rangebegin", rangeBeg);
-    std::optional<int> rangeEnd;
-    parseValue(j, "rangeend", rangeEnd);
-
-    if (rangeBeg || rangeEnd) {
-        c.range = Capture::ScreenShotRange();
-    }
-
-    if (rangeBeg) {
-        c.range->first = *rangeBeg;
-    }
-    if (rangeEnd) {
-        c.range->last = *rangeEnd;
-    }
-
-    if (rangeBeg && rangeEnd && *rangeBeg > *rangeEnd) {
-        throw Err(6051, "End of range must be greater than beginning of range");
-    }
-}
-
-static void to_json(nlohmann::json& j, const Capture& c) {
-    j = nlohmann::json::object();
-
-    if (c.path.has_value()) {
-        j["path"] = *c.path;
-    }
-
-    if (c.range.has_value()) {
-        j["rangebegin"] = c.range->first;
-        j["rangeend"] = c.range->last;
     }
 }
 
@@ -1005,11 +935,7 @@ static void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "matrix", t.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        const quat q = it->get<quat>();
-        glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
-        sgct::mat4 o;
-        std::memcpy(o.values.data(), glm::value_ptr(m), 16 * sizeof(float));
-        t.transformation = o;
+        t.transformation = glm::mat4_cast(it->get<glm::quat>());
     }
 }
 
@@ -1159,7 +1085,7 @@ static void from_json(const nlohmann::json& j, FisheyeProjection& p) {
         p.interpolation = parseInterpolation(interpolation);
     }
     parseValue(j, "diameter", p.diameter);
-    parseValue(j, "tilt", p.tilt);
+    parseValue(j, "orientation", p.orientation);
 
     if (auto it = j.find("crop");  it != j.end()) {
         FisheyeProjection::Crop crop;
@@ -1216,8 +1142,8 @@ static void to_json(nlohmann::json& j, const FisheyeProjection& p) {
         j["diameter"] = *p.diameter;
     }
 
-    if (p.tilt.has_value()) {
-        j["tilt"] = *p.tilt;
+    if (p.orientation.has_value()) {
+        j["orientation"] = *p.orientation;
     }
 
     if (p.crop.has_value()) {
@@ -1248,15 +1174,15 @@ static void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
-    parseValue(j, "tilt", p.tilt);
+    parseValue(j, "orientation", p.orientation);
     parseValue(j, "background", p.background);
 
     if (auto it = j.find("geometry");  it != j.end()) {
         SphericalMirrorProjection::Mesh mesh;
-        it->at("bottom").get_to(mesh.bottom);
-        it->at("left").get_to(mesh.left);
-        it->at("right").get_to(mesh.right);
-        it->at("top").get_to(mesh.top);
+        mesh.bottom = std::filesystem::absolute(it->at("bottom").get<std::string>());
+        mesh.left = std::filesystem::absolute(it->at("left").get<std::string>());
+        mesh.right = std::filesystem::absolute(it->at("right").get<std::string>());
+        mesh.top = std::filesystem::absolute(it->at("top").get<std::string>());
         p.mesh = mesh;
     }
     else {
@@ -1271,8 +1197,8 @@ static void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
         j["quality"] = std::to_string(*p.quality);
     }
 
-    if (p.tilt.has_value()) {
-        j["tilt"] = *p.tilt;
+    if (p.orientation.has_value()) {
+        j["orientation"] = *p.orientation;
     }
 
     if (p.background.has_value()) {
@@ -1305,7 +1231,30 @@ static void from_json(const nlohmann::json& j, CubemapProjection::Spout& s) {
 static void from_json(const nlohmann::json& j, CubemapProjection::NDI& n) {
     parseValue(j, "enabled", n.enabled);
     parseValue(j, "name", n.name);
-    parseValue(j, "groups", n.groups);
+    parseValue(j, "group", n.groups);
+}
+
+// The orientation of the cubemap is stored as three angles in degrees that rotate the rig
+// as Ry(-x) * Rx(y) * Rz(-z). This function returns the angles that result in the same
+// rotation as the quaternion, which is interpreted in the same way as for the other
+// projections
+static glm::vec3 cubemapOrientationFromQuaternion(const glm::quat& q) {
+    // Decompose the rotation matrix into Ry(a) * Rx(b) * Rz(c). The matrix is accessed as
+    // m[column][row]
+    const glm::mat3 m = glm::mat3_cast(glm::normalize(q));
+    const float b = std::asin(std::clamp(-m[2][1], -1.f, 1.f));
+    float a;
+    float c;
+    if (std::abs(std::cos(b)) > 1e-6f) {
+        a = std::atan2(m[2][0], m[2][2]);
+        c = std::atan2(m[0][1], m[1][1]);
+    }
+    else {
+        // Gimbal lock, where only the sum or difference of the two angles is defined
+        a = std::atan2(-m[0][2], m[0][0]);
+        c = 0.f;
+    }
+    return glm::vec3(glm::degrees(-a), glm::degrees(b), glm::degrees(-c));
 }
 
 static void from_json(const nlohmann::json& j, CubemapProjection& p) {
@@ -1319,10 +1268,17 @@ static void from_json(const nlohmann::json& j, CubemapProjection& p) {
     parseValue(j, "channels", p.channels);
 
     if (auto it = j.find("orientation");  it != j.end()) {
-        sgct::vec3 orientation;
-        parseValue(*it, "pitch", orientation.x);
-        parseValue(*it, "yaw", orientation.y);
-        parseValue(*it, "roll", orientation.z);
+        glm::vec3 orientation = glm::vec3(0.f);
+        if (it->contains("x") && it->contains("y") && it->contains("z") &&
+            it->contains("w"))
+        {
+            orientation = cubemapOrientationFromQuaternion(it->get<glm::quat>());
+        }
+        else {
+            parseValue(*it, "pitch", orientation.x);
+            parseValue(*it, "yaw", orientation.y);
+            parseValue(*it, "roll", orientation.z);
+        }
         p.orientation = orientation;
     }
 }
@@ -1349,7 +1305,7 @@ static void to_json(nlohmann::json& j, const CubemapProjection::NDI& n) {
         j["name"] = *n.name;
     }
     if (n.groups) {
-        j["groups"] = *n.groups;
+        j["group"] = *n.groups;
     }
 }
 
@@ -1417,11 +1373,16 @@ static void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
     }
+    parseValue(j, "orientation", p.orientation);
 }
 
 static void to_json(nlohmann::json& j, const EquirectangularProjection& p) {
     if (p.quality.has_value()) {
         j["quality"] = std::to_string(*p.quality);
+    }
+
+    if (p.orientation.has_value()) {
+        j["orientation"] = *p.orientation;
     }
 }
 
@@ -1517,6 +1478,8 @@ static void from_json(const nlohmann::json& j, Viewport& v) {
 }
 
 static void to_json(nlohmann::json& j, const Viewport& v) {
+    j = nlohmann::json::object();
+
     if (v.user.has_value()) {
         j["user"] = *v.user;
     }
@@ -1563,7 +1526,7 @@ static void to_json(nlohmann::json& j, const Viewport& v) {
         j["size"] = *v.size;
     }
 
-    j["projection"] = std::visit(overloaded{
+    nlohmann::json projection = std::visit(overloaded{
         [](const config::NoProjection&) {
             return nlohmann::json();
         },
@@ -1608,6 +1571,11 @@ static void to_json(nlohmann::json& j, const Viewport& v) {
             return proj;
         }
         }, v.projection);
+
+    // A missing projection is parsed as NoProjection, but the schema rejects a null value
+    if (!projection.is_null()) {
+        j["projection"] = std::move(projection);
+    }
 }
 
 static void from_json(const nlohmann::json& j, Window::Spout& n) {
@@ -1618,17 +1586,32 @@ static void from_json(const nlohmann::json& j, Window::Spout& n) {
 static void from_json(const nlohmann::json& j, Window::NDI& n) {
     parseValue(j, "enabled", n.enabled);
     parseValue(j, "name", n.name);
-    parseValue(j, "groups", n.groups);
+    parseValue(j, "group", n.groups);
 }
 
 static void from_json(const nlohmann::json& j, Window::OpenXR& o) {
     parseValue(j, "enabled", o.enabled);
 }
 
+static std::optional<int8_t> parseWindowIndex(const nlohmann::json& j,
+                                              std::string_view key, int code)
+{
+    // Window indices are stored as int8_t, so larger values would silently wrap around
+    std::optional<int> v;
+    parseValue(j, key, v);
+    if (!v.has_value()) {
+        return std::nullopt;
+    }
+    if (*v < std::numeric_limits<int8_t>::min() ||
+        *v > std::numeric_limits<int8_t>::max())
+    {
+        throw Err(code, std::format("Value {} for window {} is out of range", *v, key));
+    }
+    return static_cast<int8_t>(*v);
+}
+
 static void from_json(const nlohmann::json& j, Window& w) {
-    std::optional<int8_t> id;
-    parseValue(j, "id", id);
-    w.id = id.value_or(InvalidWindowIndex);
+    w.id = parseWindowIndex(j, "id", 6043).value_or(InvalidWindowIndex);
 
     parseValue(j, "name", w.name);
     parseValue(j, "tags", w.tags);
@@ -1665,7 +1648,7 @@ static void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "border", w.isDecorated);
     parseValue(j, "resizable", w.isResizable);
     parseValue(j, "noerror", w.noError);
-    parseValue(j, "blitwindowid", w.blitWindowId);
+    w.blitWindowId = parseWindowIndex(j, "blitwindowid", 6044);
     parseValue(j, "mirrorx", w.mirrorX);
     parseValue(j, "mirrory", w.mirrorY);
     parseValue(j, "monitor", w.monitor);
@@ -1707,7 +1690,7 @@ static void to_json(nlohmann::json& j, const Window::NDI& n) {
         j["name"] = *n.name;
     }
     if (n.groups) {
-        j["groups"] = *n.groups;
+        j["group"] = *n.groups;
     }
 }
 
@@ -1728,6 +1711,10 @@ static void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.takeScreenshot.has_value()) {
         j["takescreenshot"] = *w.takeScreenshot;
+    }
+
+    if (w.alpha.has_value()) {
+        j["alpha"] = *w.alpha;
     }
 
     if (w.draw2D.has_value()) {
@@ -1855,10 +1842,10 @@ static void to_json(nlohmann::json& j, const Window& w) {
         j["scalablemesh"] = w.scalable->mesh;
 
         if (w.scalable->orthographicQuality.has_value()) {
-            j["scalable_ortho_quality"] = *w.scalable->orthographicQuality;
+            j["scalablemesh_ortho_quality"] = *w.scalable->orthographicQuality;
         }
         if (w.scalable->orthographicResolution.has_value()) {
-            j["scalable_ortho_resolution"] = *w.scalable->orthographicResolution;
+            j["scalablemesh_ortho_res"] = *w.scalable->orthographicResolution;
         }
     }
 
@@ -1886,6 +1873,7 @@ static void from_json(const nlohmann::json& j, Node& n) {
 
     parseValue(j, "datatransferport", n.dataTransferPort);
     parseValue(j, "swaplock", n.swapLock);
+    parseValue(j, "vsync", n.vsync);
 
     parseValue(j, "windows", n.windows);
     if (n.windows.size() > std::numeric_limits<int8_t>::max()) {
@@ -1908,6 +1896,10 @@ static void to_json(nlohmann::json& j, const Node& n) {
 
     if (n.swapLock.has_value()) {
         j["swaplock"] = *n.swapLock;
+    }
+
+    if (n.vsync.has_value()) {
+        j["vsync"] = *n.vsync;
     }
 
     if (!n.windows.empty()) {
@@ -1954,16 +1946,15 @@ static void to_json(nlohmann::json& j, const Meta& m) {
 }
 
 static void from_json(const nlohmann::json& j, Cluster& c) {
-    if (auto it = j.find("masteraddress");  it != j.end()) {
-        it->get_to(c.masterAddress);
+    if (auto it = j.find("serveraddress");  it != j.end()) {
+        it->get_to(c.serverAddress);
     }
     else {
-        throw Err(6084, "Cannot find master address");
+        throw Err(6084, "Cannot find server address");
     }
 
-    simplifyIpAddress(c.masterAddress);
+    simplifyIpAddress(c.serverAddress);
 
-    parseValue(j, "debuglog", c.debugLog);
     parseValue(j, "threadaffinity", c.threadAffinity);
     if (c.threadAffinity && *c.threadAffinity < 0) {
         throw Err(6088, "Thread Affinity must be 0 or positive");
@@ -1973,7 +1964,6 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
     parseValue(j, "scene", c.scene);
     parseValue(j, "users", c.users);
     parseValue(j, "settings", c.settings);
-    parseValue(j, "capture", c.capture);
 
     parseValue(j, "trackers", c.trackers);
     parseValue(j, "nodes", c.nodes);
@@ -1983,14 +1973,10 @@ static void from_json(const nlohmann::json& j, Cluster& c) {
 }
 
 static void to_json(nlohmann::json& j, const Cluster& c) {
-    j["masteraddress"] = c.masterAddress;
+    j["serveraddress"] = c.serverAddress;
 
     if (c.threadAffinity.has_value()) {
         j["threadaffinity"] = *c.threadAffinity;
-    }
-
-    if (c.debugLog.has_value()) {
-        j["debuglog"] = *c.debugLog;
     }
 
     if (c.firmSync.has_value()) {
@@ -2007,10 +1993,6 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 
     if (c.settings.has_value()) {
         j["settings"] = *c.settings;
-    }
-
-    if (c.capture.has_value()) {
-        j["capture"] = *c.capture;
     }
 
     if (!c.trackers.empty()) {
@@ -2031,6 +2013,108 @@ static void to_json(nlohmann::json& j, const Cluster& c) {
 }
 
 } // namespace sgct::config
+
+namespace {
+    constexpr int CurrentConfigVersion = 2;
+
+    // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation',
+    // 'masteraddress' was renamed to 'serveraddress', and the 'swapinterval' of the
+    // 'display' settings was replaced by the 'vsync' of every node
+    void upgradeConfigV1ToV2(nlohmann::json& j) {
+        if (auto it = j.find("masteraddress");  it != j.end()) {
+            nlohmann::json address = *it;
+            j.erase(it);
+            j["serveraddress"] = address;
+        }
+
+        std::optional<bool> vsync;
+        auto settings = j.find("settings");
+        if (settings != j.end() && settings->is_object()) {
+            auto display = settings->find("display");
+            if (display != settings->end() && display->is_object()) {
+                auto interval = display->find("swapinterval");
+                // Leave invalid values in place so that they are reported later
+                if (interval != display->end() && interval->is_number_integer()) {
+                    vsync = interval->get<int>() > 0;
+                    display->erase(interval);
+                }
+                if (display->empty()) {
+                    settings->erase(display);
+                }
+            }
+        }
+
+        auto nodes = j.find("nodes");
+        if (nodes == j.end() || !nodes->is_array()) {
+            return;
+        }
+        for (nlohmann::json& node : *nodes) {
+            if (vsync && node.is_object()) {
+                node["vsync"] = *vsync;
+            }
+
+            auto windows = node.find("windows");
+            if (windows == node.end() || !windows->is_array()) {
+                continue;
+            }
+            for (nlohmann::json& window : *windows) {
+                auto viewports = window.find("viewports");
+                if (viewports == window.end() || !viewports->is_array()) {
+                    continue;
+                }
+                for (nlohmann::json& viewport : *viewports) {
+                    auto proj = viewport.find("projection");
+                    if (proj == viewport.end() || !proj->is_object()) {
+                        continue;
+                    }
+                    const std::string type = proj->value("type", "");
+                    if (type != "FisheyeProjection" &&
+                        type != "SphericalMirrorProjection")
+                    {
+                        continue;
+                    }
+                    auto tilt = proj->find("tilt");
+                    // Leave invalid values in place so that they are reported later
+                    if (tilt == proj->end() || !tilt->is_number()) {
+                        continue;
+                    }
+                    nlohmann::json orientation = nlohmann::json::object();
+                    orientation["pitch"] = -tilt->get<float>();
+                    orientation["yaw"] = 0.f;
+                    orientation["roll"] = 0.f;
+                    proj->erase(tilt);
+                    (*proj)["orientation"] = orientation;
+                }
+            }
+        }
+    }
+
+    void upgradeConfig(nlohmann::json& j) {
+        auto it = j.find("version");
+        if (it == j.end()) {
+            throw std::runtime_error("Missing 'version' information");
+        }
+        if (!it->is_number_integer()) {
+            throw Err(6090, "The 'version' must be an integer");
+        }
+
+        const int version = it->get<int>();
+        if (version < 1 || version > CurrentConfigVersion) {
+            throw Err(
+                6090,
+                std::format(
+                    "Unsupported configuration version {}. Supported versions are 1-{}",
+                    version, CurrentConfigVersion
+                )
+            );
+        }
+
+        if (version == 1) {
+            upgradeConfigV1ToV2(j);
+        }
+        j["version"] = CurrentConfigVersion;
+    }
+} // namespace
 
 namespace sgct {
 
@@ -2072,11 +2156,7 @@ config::Cluster readConfig(const std::filesystem::path& filename) {
 
 config::Cluster readJsonConfig(std::string_view configuration) {
     nlohmann::json j = nlohmann::json::parse(configuration);
-
-    auto it = j.find("version");
-    if (it == j.end()) {
-        throw std::runtime_error("Missing 'version' information");
-    }
+    upgradeConfig(j);
 
     config::Cluster cluster;
     from_json(j, cluster);
@@ -2101,7 +2181,7 @@ config::Cluster defaultCluster() {
     };
 
     config::Window window = {
-        .size = ivec2{ 1280, 720 },
+        .size = glm::ivec2(1280, 720),
         .viewports = { viewport },
         .id = 0,
         .isFullScreen = false
@@ -2115,12 +2195,12 @@ config::Cluster defaultCluster() {
 
     config::User user = {
         .eyeSeparation = 0.06f,
-        .position = vec3{ 0.f, 0.f, 0.f }
+        .position = glm::vec3(0.f, 0.f, 0.f)
     };
 
     config::Cluster res = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = { node },
         .users = { user }
     };
@@ -2132,7 +2212,7 @@ std::string serializeConfig(const config::Cluster& cluster,
                             std::optional<config::GeneratorVersion> genVersion)
 {
     nlohmann::json res;
-    res["version"] = 1;
+    res["version"] = CurrentConfigVersion;
     if (genVersion) {
         res["generator"] = genVersion.value();
     }
@@ -2180,6 +2260,7 @@ std::string validateConfigAgainstSchema(std::string_view configuration,
 
     json config = json::parse(configuration);
     try {
+        upgradeConfig(config);
         validator.validate(config);
         return "";
     }

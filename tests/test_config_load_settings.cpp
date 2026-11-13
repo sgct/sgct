@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -19,15 +18,15 @@ using namespace sgct::config;
 TEST_CASE("Load: Settings/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {}
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .settings = Settings()
     };
 
@@ -43,8 +42,8 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": false
   }
@@ -53,7 +52,7 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useDepthTexture = false
             }
@@ -70,8 +69,8 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": true
   }
@@ -80,7 +79,7 @@ TEST_CASE("Load: Settings/UseDepthTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useDepthTexture = true
             }
@@ -99,8 +98,8 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "normaltexture": false
   }
@@ -109,7 +108,7 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useNormalTexture = false
             }
@@ -126,8 +125,8 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "normaltexture": true
   }
@@ -136,7 +135,7 @@ TEST_CASE("Load: Settings/UseNormalTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .useNormalTexture = true
             }
@@ -155,8 +154,8 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "positiontexture": false
   }
@@ -165,7 +164,7 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .usePositionTexture = false
             }
@@ -182,8 +181,8 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "positiontexture": true
   }
@@ -192,7 +191,7 @@ TEST_CASE("Load: Settings/UsePositionTexture", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .usePositionTexture = true
             }
@@ -211,8 +210,8 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": 16.0
   }
@@ -221,7 +220,7 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .bufferFloatPrecision = Settings::BufferFloatPrecision::Float16Bit
             }
@@ -238,8 +237,8 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": 32.0
   }
@@ -248,7 +247,7 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .settings = Settings {
                 .bufferFloatPrecision = Settings::BufferFloatPrecision::Float32Bit
             }
@@ -263,34 +262,8 @@ TEST_CASE("Load: Settings/BufferFloatPrecision", "[parse]") {
     }
 }
 
-TEST_CASE("Load: Settings/Display/Minimal", "[parse]") {
-    constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "settings": {
-    "display": {}
-  }
-}
-)";
-
-    const Cluster Object = {
-        .success = true,
-        .masterAddress = "localhost",
-        .settings = Settings {
-            .display = Settings::Display()
-        }
-    };
-
-    Cluster res = sgct::readJsonConfig(String);
-    CHECK(res == Object);
-
-    const std::string str = serializeConfig(Object);
-    const config::Cluster output = readJsonConfig(str);
-    CHECK(output == Object);
-}
-
-TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
+TEST_CASE("Load: Settings/Display/SwapInterval (Version 1)", "[parse]") {
+    // A positive swap interval enables the V-Sync of all nodes
     {
         constexpr std::string_view String = R"(
 {
@@ -300,26 +273,41 @@ TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
     "display": {
       "swapinterval": 1
     }
-  }
+  },
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1
+    },
+    {
+      "address": "def",
+      "port": 2
+    }
+  ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .swapInterval = 1
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = true
+                },
+                Node {
+                    .address = "def",
+                    .port = 2,
+                    .vsync = true
                 }
-            }
+            },
+            .settings = Settings()
         };
 
+        CHECK_NOTHROW(validate(String));
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
     }
 
     {
@@ -331,59 +319,32 @@ TEST_CASE("Load: Settings/Display/SwapInterval", "[parse]") {
     "display": {
       "swapinterval": 2
     }
-  }
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .swapInterval = 2
-                }
-            }
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-}
-
-TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
+  },
+  "nodes": [
     {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "settings": {
-    "display": {
-      "refreshrate": 1
+      "address": "abc",
+      "port": 1
     }
-  }
+  ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .refreshRate = 1
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = true
                 }
-            }
+            },
+            .settings = Settings()
         };
 
+        CHECK_NOTHROW(validate(String));
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
     }
 
     {
@@ -393,61 +354,68 @@ TEST_CASE("Load: Settings/Display/RefreshRate", "[parse]") {
   "masteraddress": "localhost",
   "settings": {
     "display": {
-      "refreshrate": 2
+      "swapinterval": 0
     }
-  }
+  },
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1
+    },
+    {
+      "address": "def",
+      "port": 2
+    }
+  ]
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
-            .settings = Settings {
-                .display = Settings::Display {
-                    .refreshRate = 2
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .vsync = false
+                },
+                Node {
+                    .address = "def",
+                    .port = 2,
+                    .vsync = false
                 }
-            }
+            },
+            .settings = Settings()
         };
 
+        CHECK_NOTHROW(validate(String));
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
     }
 }
 
 TEST_CASE("Load: Settings/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": true,
     "normaltexture": true,
     "positiontexture": true,
-    "precision": 16.0,
-    "display": {
-      "swapinterval": 2,
-      "refreshrate": 3
-    }
+    "precision": 16.0
   }
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .settings = Settings {
             .useDepthTexture = true,
             .useNormalTexture = true,
             .usePositionTexture = true,
-            .bufferFloatPrecision = Settings::BufferFloatPrecision::Float16Bit,
-            .display = Settings::Display {
-                .swapInterval = 2,
-                .refreshRate = 3
-            }
+            .bufferFloatPrecision = Settings::BufferFloatPrecision::Float16Bit
         }
     };
 
@@ -466,8 +434,8 @@ TEST_CASE("Load: Settings/Full", "[parse]") {
 TEST_CASE("Validate: Settings/UseDepthTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "depthbuffertexture": "abc"
   }
@@ -480,8 +448,8 @@ TEST_CASE("Validate: Settings/UseDepthTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/UseNormalTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "normaltexture": "abc"
   }
@@ -494,8 +462,8 @@ TEST_CASE("Validate: Settings/UseNormalTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/UsePositionTexture/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "positiontexture": "abc"
   }
@@ -508,8 +476,8 @@ TEST_CASE("Validate: Settings/UsePositionTexture/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Settings/BufferFloatPrecision/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": "abc"
   }
@@ -523,8 +491,8 @@ TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": -20
   }
@@ -537,8 +505,8 @@ TEST_CASE("Validate: Settings/BufferFloatPrecision/Illegal Value", "[validate]")
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "precision": 256
   }
@@ -579,68 +547,50 @@ TEST_CASE("Validate: Settings/Display/SwapInterval/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Settings/Display/SwapInterval/Illegal Value", "[validate]") {
-    {
-        constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "settings": {
-    "display": {
-      "swapinterval": -1
-    }
-  }
-}
-)";
-
-        CHECK_THROWS_AS(validate(Config), ParsingError);
-    }
-
-    {
-        constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "settings": {
-    "display": {
-      "swapinterval": 1000
-    }
-  }
-}
-)";
-
-        CHECK_THROWS_AS(validate(Config), ParsingError);
-    }
-}
-
-TEST_CASE("Validate: Settings/Display/RefreshRate/Wrong Type", "[validate]") {
+TEST_CASE("Validate: Settings/Display/SwapInterval (Version 2)", "[validate]") {
+    // Replaced by the 'vsync' value of the nodes
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
-      "refreshrate": "abc"
+      "swapinterval": 1
     }
   }
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost",
+        .settings = Settings()
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }
 
-TEST_CASE("Validate: Settings/Display/RefreshRate/Illegal Value", "[validate]") {
+TEST_CASE("Validate: Settings/Display/RefreshRate/Removed", "[validate]") {
+    // Removed as the value was not applied to the windows anymore
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": {
     "display": {
-      "refreshrate": -1
+      "refreshrate": 60
     }
   }
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost",
+        .settings = Settings()
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }

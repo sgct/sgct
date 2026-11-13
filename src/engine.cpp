@@ -28,6 +28,7 @@
 #include <chrono>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <mutex>
 #include <ranges>
@@ -76,7 +77,7 @@ namespace {
             FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
             FrameSync.unlock();
-            NetworkManager::cond.notify_all();
+            NetworkManager::notifyAll();
             std::this_thread::sleep_for(FrameLockTimeout);
         }
     }
@@ -106,29 +107,24 @@ namespace {
         if (config.omitWindowNameInScreenshot) {
             res.capture.addWindowName = !(*config.omitWindowNameInScreenshot);
         }
+        if (config.screenshotRangeBegin || config.screenshotRangeEnd) {
+            res.capture.limits = {
+                static_cast<uint64_t>(config.screenshotRangeBegin.value_or(0)),
+                config.screenshotRangeEnd ?
+                    static_cast<uint64_t>(*config.screenshotRangeEnd) :
+                    std::numeric_limits<uint64_t>::max()
+            };
+        }
+        res.capture.bitDepth = config.screenshotBitDepth.value_or(res.capture.bitDepth);
+        res.printSyncMessage = config.printWaitMessage.value_or(res.printSyncMessage);
+        res.syncTimeout = config.waitTimeout.value_or(res.syncTimeout);
         if (cluster.settings) {
-            if (cluster.settings->display) {
-                res.swapInterval = cluster.settings->display->swapInterval.value_or(
-                    res.swapInterval
-                );
-            }
             res.useDepthTexture =
                 cluster.settings->useDepthTexture.value_or(res.useDepthTexture);
             res.useNormalTexture =
                 cluster.settings->useNormalTexture.value_or(res.useNormalTexture);
             res.usePositionTexture =
                 cluster.settings->usePositionTexture.value_or(res.usePositionTexture);
-        }
-        if (cluster.capture) {
-            res.capture.capturePath =
-                cluster.capture->path.value_or(res.capture.capturePath);
-
-            if (cluster.capture->range) {
-                res.capture.limits = {
-                    static_cast<uint64_t>(cluster.capture->range->first),
-                    static_cast<uint64_t>(cluster.capture->range->last)
-                };
-            }
         }
 
         return res;
@@ -146,14 +142,20 @@ double Engine::Statistics::avgDt() const {
         frametimes.cend(),
         [](double d) { return d != 0.0; }
     ));
-    // We must take the frame counter into account as the history might not be filled yet
-    const unsigned int frameCounter = Engine::instance().currentFrameNumber();
-    const unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
-    return accFT / f;
+    // The history is not filled in the first frames. The entries that have not been set
+    // are 0 and thus do not contribute to the sum
+    return nValues > 0 ? accFT / nValues : 0.0;
 }
 
 double Engine::Statistics::minDt() const {
-    return *std::min_element(frametimes.begin(), frametimes.end());
+    // The entries of the history that have not been set yet are 0 and must be ignored
+    double res = std::numeric_limits<double>::max();
+    for (double d : frametimes) {
+        if (d != 0.0) {
+            res = std::min(res, d);
+        }
+    }
+    return res != std::numeric_limits<double>::max() ? res : 0.0;
 }
 
 double Engine::Statistics::maxDt() const {
@@ -332,6 +334,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
             Log::Debug(std::format("Running locally as node {}", clusterId));
         }
         else {
+            NetworkManager::destroy();
             throw Err(3002, "When running locally, a node ID needs to be specified");
         }
     }
@@ -562,6 +565,12 @@ void Engine::initialize() {
     waitForAllWindowsInSwapGroupToOpen();
     // Init swap group if enabled
     if (thisNode.isUsingSwapGroups()) {
+        if (!thisNode.isUsingVSync()) {
+            Log::Warning(
+                "Swap lock is enabled, but V-Sync is disabled. Without V-Sync, the swap "
+                "barrier does not synchronize the buffer swaps with the vertical retrace"
+            );
+        }
         Window::initNvidiaSwapGroups();
     }
 
@@ -659,13 +668,18 @@ Engine::~Engine() {
     Log::Debug("Destroying cluster manager");
     ClusterManager::destroy();
 
-    Log::Debug("Destroying message handler");
-    Log::destroy();
-
     Log::Debug("Terminating glfw");
+    // The error callback throws exceptions, which must neither happen in the destructor
+    // nor for GLFW functions that are called after the engine was destroyed, for example
+    // by sgct::time
+    glfwSetErrorCallback(nullptr);
     glfwTerminate();
 
     Log::Debug("Finished cleaning");
+
+    // The log has to be destroyed last, as logging a message would create it again
+    Log::Debug("Destroying message handler");
+    Log::destroy();
 }
 
 void Engine::terminate() {
@@ -686,18 +700,20 @@ void Engine::frameLockPreStage() {
         addValue(_statistics.loopTimeMax, minMax->second);
     }
     if (nm.isComputerServer()) {
-        addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
+        addValue(_statistics.syncTimes, glfwGetTime() - ts);
     }
 
     // Run only on clients
-    if (nm.isComputerServer() && !ClusterManager::instance().ignoreSync()) {
+    if (nm.isComputerServer()) {
         return;
     }
 
-    // Not server
+    const ClusterManager& cm = ClusterManager::instance();
     const double t0 = glfwGetTime();
-    while (nm.isRunning() && !nm.isSyncComplete()) {
-        std::unique_lock lock(FrameSync);
+    // The mutex has to be held while checking the condition, as a notification between
+    // the check and the wait would be lost otherwise
+    std::unique_lock lock(NetworkManager::condMutex);
+    while (!cm.ignoreSync() && nm.isRunning() && !nm.isSyncComplete()) {
         NetworkManager::cond.wait(lock);
 
         if (glfwGetTime() - t0 <= 1.0) {
@@ -708,7 +724,7 @@ void Engine::frameLockPreStage() {
         const Network& c = nm.syncConnection(0);
         if (_settings.printSyncMessage && !c.isUpdated()) {
             Log::Info(std::format(
-                "Waiting for master. frame send {} != recv {}\n\tSwap groups: {}\n\t"
+                "Waiting for server. frame send {} != recv {}\n\tSwap groups: {}\n\t"
                 "Swap barrier: {}\n\tUniversal frame number: {}\n\tSGCT frame number: {}",
                 c.sendFrameCurrent(), c.recvFramePrevious(),
                 Window::isUsingSwapGroups() ? "enabled" : "disabled",
@@ -720,31 +736,43 @@ void Engine::frameLockPreStage() {
         if (glfwGetTime() - t0 > _settings.syncTimeout) {
             throw Err(
                 3004,
-                std::format("No sync signal from master for {} s", _settings.syncTimeout)
+                std::format("No sync signal from server for {} s", _settings.syncTimeout)
             );
         }
     }
+    lock.unlock();
 
-    // A this point all data needed for rendering a frame is received.
-    // Let's signal that back to the master/server
-    nm.sync(NetworkManager::SyncMode::Acknowledge);
-    if (!nm.isComputerServer()) {
-        addValue(_statistics.syncTimes, glfwGetTime() - t0);
+    // With firm sync, the frame is acknowledged after drawing it in frameLockPostStage
+    if (!cm.ignoreSync() && !cm.firmFrameLockSyncStatus()) {
+        nm.sync(NetworkManager::SyncMode::Acknowledge);
     }
+    addValue(_statistics.syncTimes, glfwGetTime() - t0);
+
+    // Decoding on this thread keeps the shared data unchanged while the frame is drawn
+    SharedData::instance().decodeReceivedData();
 }
 
 void Engine::frameLockPostStage() {
     ZoneScoped;
 
     const NetworkManager& nm = NetworkManager::instance();
-    // Post stage
-    if (ClusterManager::instance().ignoreSync() || !nm.isComputerServer()) {
+    const ClusterManager& cm = ClusterManager::instance();
+    if (cm.ignoreSync()) {
+        return;
+    }
+
+    if (!nm.isComputerServer()) {
+        if (cm.firmFrameLockSyncStatus()) {
+            nm.sync(NetworkManager::SyncMode::Acknowledge);
+        }
         return;
     }
 
     const double t0 = glfwGetTime();
+    // The mutex has to be held while checking the condition, as a notification between
+    // the check and the wait would be lost otherwise
+    std::unique_lock lock(NetworkManager::condMutex);
     while (nm.isRunning() && nm.activeConnectionsCount() > 0 && !nm.isSyncComplete()) {
-        std::unique_lock lock(FrameSync);
         NetworkManager::cond.wait(lock);
 
         if (glfwGetTime() - t0 <= 1.0) {
@@ -779,15 +807,21 @@ void Engine::frameLockPostStage() {
 void Engine::exec() {
     Window::makeSharedContextCurrent();
 
-    unsigned int timeQueryBegin = 0;
-    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryBegin);
-    unsigned int timeQueryEnd = 0;
-    glCreateQueries(GL_TIMESTAMP, 1, &timeQueryEnd);
+    // The result of a query is only available once the GPU has executed all commands of
+    // the frame. Instead of waiting for it, two sets of queries are used alternately, so
+    // that the results of the previous frame can be read while this frame is measured
+    std::array<unsigned int, 2> timeQueryBegin = { 0, 0 };
+    glCreateQueries(GL_TIMESTAMP, 2, timeQueryBegin.data());
+    std::array<unsigned int, 2> timeQueryEnd = { 0, 0 };
+    glCreateQueries(GL_TIMESTAMP, 2, timeQueryEnd.data());
+    // Whether both queries of a set were started, as the statistics can be toggled
+    std::array<bool, 2> hasQueries = { false, false };
+    int queryIndex = 0;
 
     Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     while (!_shouldTerminate && !thisNode.closeAllWindows() &&
-           NetworkManager::instance().isRunning()) [[unlikely]]
+           NetworkManager::instance().isRunning())
     {
         {
             ZoneScopedN("GLFW Poll Events");
@@ -826,15 +860,18 @@ void Engine::exec() {
         }
 #endif // SGCT_HAS_OPENXR
 
+        bool hasBeginQuery = false;
         {
             ZoneScopedN("Statistics update");
             const double startFrameTime = glfwGetTime();
-            const double ft = static_cast<float>(startFrameTime - _statsPrevTimestamp);
+            const double ft = startFrameTime - _statsPrevTimestamp;
             addValue(_statistics.frametimes, ft);
             _statsPrevTimestamp = startFrameTime;
 
+            hasQueries[queryIndex] = false;
             if (_statisticsRenderer) [[unlikely]] {
-                glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
+                glQueryCounter(timeQueryBegin[queryIndex], GL_TIMESTAMP);
+                hasBeginQuery = true;
             }
         }
 
@@ -846,7 +883,10 @@ void Engine::exec() {
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("glQueryCounter");
-            glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
+            if (hasBeginQuery) {
+                glQueryCounter(timeQueryEnd[queryIndex], GL_TIMESTAMP);
+                hasQueries[queryIndex] = true;
+            }
         }
 
         if (_postDrawFn) [[likely]] {
@@ -863,25 +903,42 @@ void Engine::exec() {
 
         if (_statisticsRenderer) [[unlikely]] {
             ZoneScopedN("Statistics Update");
-            // Wait until the query results are available
+            // Use the queries of the previous frame, whose results are available by now
+            // in most cases. If they are not, the value is skipped instead of waiting
+            const int previous = 1 - queryIndex;
             GLint done = GL_FALSE;
-            while (!done) {
-                glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
+            if (hasQueries[previous]) {
+                glGetQueryObjectiv(
+                    timeQueryEnd[previous],
+                    GL_QUERY_RESULT_AVAILABLE,
+                    &done
+                );
             }
 
-            // Get the query results
-            GLuint64 timerStart = 0;
-            glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
-            GLuint64 timerEnd = 0;
-            glGetQueryObjectui64v(timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
+            if (done) {
+                // Get the query results
+                GLuint64 timerStart = 0;
+                glGetQueryObjectui64v(
+                    timeQueryBegin[previous],
+                    GL_QUERY_RESULT,
+                    &timerStart
+                );
+                GLuint64 timerEnd = 0;
+                glGetQueryObjectui64v(
+                    timeQueryEnd[previous],
+                    GL_QUERY_RESULT,
+                    &timerEnd
+                );
 
-            const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
-            addValue(_statistics.drawTimes, t);
+                const double t =
+                    static_cast<double>(timerEnd - timerStart) / 1000000000.0;
+                addValue(_statistics.drawTimes, t);
+            }
 
             _statisticsRenderer->update();
         }
 
-        // Master will wait for nodes render before swapping
+        // Server will wait for nodes render before swapping
         frameLockPostStage();
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : wins) {
@@ -916,6 +973,8 @@ void Engine::exec() {
             std::mem_fn(&Window::updateResolutions)
         );
 
+        queryIndex = 1 - queryIndex;
+
         // For all windows
         _frameCounter++;
         if (_shouldTakeScreenshot) {
@@ -925,11 +984,11 @@ void Engine::exec() {
     }
 
     Window::makeSharedContextCurrent();
-    glDeleteQueries(1, &timeQueryBegin);
-    glDeleteQueries(1, &timeQueryEnd);
+    glDeleteQueries(2, timeQueryBegin.data());
+    glDeleteQueries(2, timeQueryEnd.data());
 }
 
-bool Engine::isMaster() const {
+bool Engine::isServer() const {
     return NetworkManager::instance().isComputerServer();
 }
 
@@ -1062,13 +1121,13 @@ void Engine::setStatsGraphScale(float scale) {
     }
 }
 
-vec2 Engine::statsGraphOffset() const {
-    return _statisticsRenderer ? _statisticsRenderer->offset() : vec2(-1.f, -1.f);
+glm::vec2 Engine::statsGraphOffset() const {
+    return _statisticsRenderer ? _statisticsRenderer->offset() : glm::vec2(-1.f, -1.f);
 }
 
-void Engine::setStatsGraphOffset(vec2 offset) {
+void Engine::setStatsGraphOffset(glm::vec2 offset) {
     if (_statisticsRenderer) {
-        _statisticsRenderer->setOffset(offset);
+        _statisticsRenderer->setOffset(std::move(offset));
     }
 }
 

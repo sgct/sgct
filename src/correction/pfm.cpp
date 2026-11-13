@@ -11,17 +11,18 @@
 #include <sgct/correction/buffer.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <glm/glm.hpp>
 #include <scn/scan.h>
 #include <fstream>
 
 namespace sgct::correction {
 
-Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-                                      const vec2& size, bool textureRenderMode)
+Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
+                                      const glm::vec2& pos, const glm::vec2& size,
+                                      bool textureRenderMode)
 {
     ZoneScoped;
 
@@ -46,6 +47,13 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     std::getline(meshFile, dims, '\n');
     std::getline(meshFile, endiannessIndicator, '\n');
 
+    if (!fileFormatHeader.starts_with("PF")) {
+        throw Error(
+            Error::Component::Pfm, 2053,
+            std::format("Incorrect file type in file '{}'", path)
+        );
+    }
+
     auto result = scn::scan<unsigned int, unsigned int>(dims, "{} {}");
     if (!result) {
         throw Error(
@@ -61,40 +69,58 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
             std::format("Invalid endianness value in file '{}'", path)
         );
     }
-    if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
+
+    const unsigned int nEyes = textureRenderMode ? 1 : 2;
+    // We need at least two columns per eye and two rows to create a mesh
+    if (nCols < 2 * nEyes || nRows < 2) {
         throw Error(
-            Error::Component::Pfm, 2053,
-            std::format("Incorrect file type in file '{}'", path)
+            Error::Component::Pfm, 2052,
+            std::format("Invalid mesh dimensions {}x{} in file '{}'", nCols, nRows, path)
         );
     }
 
-    const int numCorrectionValues = nCols * nRows;
+    const size_t numCorrectionValues = static_cast<size_t>(nCols) * nRows;
     std::vector<float> xcorrections;
     xcorrections.resize(numCorrectionValues);
     std::vector<float> ycorrections;
     ycorrections.resize(numCorrectionValues);
 
-    for (int i = 0; i < numCorrectionValues; i++) {
-        meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
-        meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
-        float dumpValue = 0.f;
-        meshFile.read(reinterpret_cast<char*>(&dumpValue), sizeof(float));
-
-        if (!meshFile.good()) {
-            throw Error(
-                Error::Component::Pfm, 2054,
-                std::format("Error reading correction values in file '{}'", path)
-            );
-        }
+    // Each pixel consists of the x and y correction values and a third unused value. All
+    // pixels are read at once, as reading the values individually is much slower
+    std::vector<float> pixels;
+    pixels.resize(numCorrectionValues * 3);
+    meshFile.read(
+        reinterpret_cast<char*>(pixels.data()),
+        static_cast<std::streamsize>(pixels.size() * sizeof(float))
+    );
+    if (!meshFile.good()) {
+        throw Error(
+            Error::Component::Pfm, 2054,
+            std::format("Error reading correction values in file '{}'", path)
+        );
     }
 
-    const unsigned int nEyes = textureRenderMode ? 1 : 2;
+    for (size_t i = 0; i < numCorrectionValues; i++) {
+        xcorrections[i] = pixels[i * 3];
+        ycorrections[i] = pixels[i * 3 + 1];
+    }
+
     nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
     // We assume we loaded side-by-side images if uses 2 eyes, i.e. different warp per eye
     for (unsigned int e = 0; e < nEyes; e++) {
+        // The indices of each eye refer to the vertices of that eye
+        const unsigned int base = static_cast<unsigned int>(buf.vertices.size());
+        if (!buf.indices.empty()) {
+            // Both eyes are part of the same triangle strip. Repeating the last index
+            // of the previous eye and the first index of this eye creates degenerate
+            // triangles, so that nothing is drawn between the meshes of the two eyes
+            buf.indices.push_back(buf.indices.back());
+            buf.indices.push_back(base);
+        }
+
         Buffer::Vertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
@@ -152,15 +178,15 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
             if ((r & 1) == 0) {
                 // Even rows
                 for (unsigned int c = 0; c < nCols; c++) {
-                    buf.indices.push_back(c + r * nCols);
-                    buf.indices.push_back(c + (r + 1) * nCols);
+                    buf.indices.push_back(base + c + r * nCols);
+                    buf.indices.push_back(base + c + (r + 1) * nCols);
                 }
             }
             else {
                 // Odd rows
                 for (unsigned int c = nCols - 1; c > 0; c--) {
-                    buf.indices.push_back(c + (r + 1) * nCols);
-                    buf.indices.push_back(c - 1 + r * nCols);
+                    buf.indices.push_back(base + c + (r + 1) * nCols);
+                    buf.indices.push_back(base + c - 1 + r * nCols);
                 }
             }
         }

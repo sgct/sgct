@@ -10,18 +10,28 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
+#include <sgct/glm.h>
 #include "schema.h"
 
 using namespace sgct;
 using namespace sgct::config;
 
+namespace {
+    glm::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
+        return q;
+    }
+} // namespace
+
 TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -51,22 +61,22 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -88,8 +98,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -119,22 +129,22 @@ TEST_CASE("Load: SphericalMirrorProjection/Mesh", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -158,8 +168,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -190,23 +200,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 256,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -228,8 +238,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -260,23 +270,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 256,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -298,8 +308,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -330,23 +340,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 512,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -368,8 +378,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -400,23 +410,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 512,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -438,8 +448,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -470,23 +480,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1024,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -508,8 +518,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -540,23 +550,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1024,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -578,8 +588,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -610,23 +620,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1024,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -648,8 +658,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -680,23 +690,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -718,8 +728,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -750,23 +760,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 1536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -788,8 +798,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -820,23 +830,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 2048,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -858,8 +868,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -890,23 +900,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 2048,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -928,8 +938,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -960,23 +970,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 4096,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -998,8 +1008,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1030,23 +1040,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 4096,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1068,8 +1078,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1100,23 +1110,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 8192,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1138,8 +1148,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1170,23 +1180,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 8192,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1208,8 +1218,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1240,23 +1250,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 16384,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1278,8 +1288,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1310,23 +1320,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 16384,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1348,8 +1358,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1380,23 +1390,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 32768,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1418,8 +1428,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1450,23 +1460,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 32768,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1488,8 +1498,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1520,23 +1530,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 65536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1558,8 +1568,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1590,23 +1600,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
                                         .quality = 65536,
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1626,7 +1636,77 @@ TEST_CASE("Load: SphericalMirrorProjection/Quality", "[parse]") {
     }
 }
 
-TEST_CASE("Load: SphericalMirrorProjection/Tilt", "[parse]") {
+TEST_CASE("Load: SphericalMirrorProjection/Orientation", "[parse]") {
+    constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "def",
+                  "right": "ghi",
+                  "top": "jkl"
+                },
+                "orientation": { "pitch": 1.0, "yaw": 2.0, "roll": 3.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost",
+        .nodes = {
+            Node {
+                .address = "abc",
+                .port = 1,
+                .windows = {
+                    Window {
+                        .size = glm::ivec2(640, 480),
+                        .viewports = {
+                            Viewport {
+                                .projection = SphericalMirrorProjection {
+                                    .orientation = fromEuler(2.f, 1.f, 3.f),
+                                    .mesh = SphericalMirrorProjection::Mesh {
+                                        .bottom = std::filesystem::absolute("abc"),
+                                        .left = std::filesystem::absolute("def"),
+                                        .right = std::filesystem::absolute("ghi"),
+                                        .top = std::filesystem::absolute("jkl")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+
+    const std::string str = serializeConfig(Object);
+    const config::Cluster output = readJsonConfig(str);
+    CHECK(output == Object);
+}
+
+TEST_CASE("Load: SphericalMirrorProjection/Tilt (Version 1)", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
@@ -1662,23 +1742,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .tilt = 1.f,
+                                        .orientation = fromEuler(0.f, -1.f, 0.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1732,23 +1812,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Tilt", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .tilt = 2.f,
+                                        .orientation = fromEuler(0.f, -2.f, 0.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -1772,8 +1852,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1804,23 +1884,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 1.f, 2.f, 3.f, 4.f },
+                                        .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1842,8 +1922,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1874,23 +1954,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/XYZW", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 5.f, 6.f, 7.f, 8.f },
+                                        .background = glm::vec4(5.f, 6.f, 7.f, 8.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -1914,8 +1994,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1946,23 +2026,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 1.f, 2.f, 3.f, 4.f },
+                                        .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "abc",
-                                            .left = "def",
-                                            .right = "ghi",
-                                            .top = "jkl"
+                                            .bottom = std::filesystem::absolute("abc"),
+                                            .left = std::filesystem::absolute("def"),
+                                            .right = std::filesystem::absolute("ghi"),
+                                            .top = std::filesystem::absolute("jkl")
                                         }
                                     }
                                 }
@@ -1984,8 +2064,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2016,23 +2096,23 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = SphericalMirrorProjection {
-                                        .background = vec4{ 5.f, 6.f, 7.f, 8.f },
+                                        .background = glm::vec4(5.f, 6.f, 7.f, 8.f),
                                         .mesh = SphericalMirrorProjection::Mesh {
-                                            .bottom = "123",
-                                            .left = "456",
-                                            .right = "789",
-                                            .top = "101112"
+                                            .bottom = std::filesystem::absolute("123"),
+                                            .left = std::filesystem::absolute("456"),
+                                            .right = std::filesystem::absolute("789"),
+                                            .top = std::filesystem::absolute("101112")
                                         }
                                     }
                                 }
@@ -2055,8 +2135,8 @@ TEST_CASE("Load: SphericalMirrorProjection/Background/RGBA", "[parse]") {
 TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2075,7 +2155,7 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
                   "right": "ghi",
                   "top": "jkl"
                 },
-                "tilt": 1.0,
+                "orientation": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 },
                 "background": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 }
               }
             }
@@ -2089,25 +2169,25 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = SphericalMirrorProjection {
                                     .quality = 256,
-                                    .tilt = 1.f,
-                                    .background = vec4{ 1.f, 2.f, 3.f, 4.f },
+                                    .orientation = glm::quat(4.f, 1.f, 2.f, 3.f),
+                                    .background = glm::vec4(1.f, 2.f, 3.f, 4.f),
                                     .mesh = SphericalMirrorProjection::Mesh {
-                                        .bottom = "abc",
-                                        .left = "def",
-                                        .right = "ghi",
-                                        .top = "jkl"
+                                        .bottom = std::filesystem::absolute("abc"),
+                                        .left = std::filesystem::absolute("def"),
+                                        .right = std::filesystem::absolute("ghi"),
+                                        .top = std::filesystem::absolute("jkl")
                                     }
                                 }
                             }
@@ -2126,33 +2206,32 @@ TEST_CASE("Load: SphericalMirrorProjection/Full", "[parse]") {
     CHECK(output == Object);
 }
 
-
-
-
-
 TEST_CASE("Validate: SphericalMirrorProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2167,26 +2246,29 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2200,26 +2282,29 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2229,6 +2314,114 @@ TEST_CASE("Validate: SphericalMirrorProjection/Quality/Illegal Value", "[validat
 
         CHECK_THROWS_AS(validate(Config), ParsingError);
     }
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Orientation/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "orientation": "abc"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Tilt (Version 1)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "tilt": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_NOTHROW(validate(Config));
+}
+
+TEST_CASE("Validate: SphericalMirrorProjection/Tilt (Version 2)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "tilt": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
 TEST_CASE("Validate: SphericalMirrorProjection/Tilt/Wrong Type", "[validate]") {
@@ -2242,18 +2435,21 @@ TEST_CASE("Validate: SphericalMirrorProjection/Tilt/Wrong Type", "[validate]") {
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "tilt": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "tilt": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2267,26 +2463,29 @@ TEST_CASE("Validate: SphericalMirrorProjection/Tilt/Wrong Type", "[validate]") {
 TEST_CASE("Validate: SphericalMirrorProjection/Background/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2300,326 +2499,29 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/Wrong Type", "[validat
 TEST_CASE("Validate: SphericalMirrorProjection/Background/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {}
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/X/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "y": 1,
-                "z": 1,
-                "w": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {}
               }
             }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/X/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": "abc",
-                "y": 1,
-                "z": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Y/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "z": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Y/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": "abc",
-                "z": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Z/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/Z/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "z": "abc",
-                "w": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/W/Missing", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "z": 1
-              }
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-)";
-
-    CHECK_THROWS_AS(validate(Config), ParsingError);
-}
-
-TEST_CASE("Validate: SphericalMirrorProjection/Background/W/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "nodes": [
-    {
-      "address": "localhost",
-      "port": 123,
-      "windows": [
-        {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": "abc"
-              }
-            }
-          }
+          ]
         }
       ]
     }
@@ -2633,30 +2535,33 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/W/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "g": 1,
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2670,31 +2575,34 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": "abc",
-                "g": 1,
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": "abc",
+                  "g": 1,
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2708,30 +2616,33 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/R/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2745,31 +2656,34 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": "abc",
-                "b": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": "abc",
+                  "b": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2783,30 +2697,33 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/G/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2820,31 +2737,34 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "b": "abc",
-                "a": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "b": "abc",
+                  "a": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2858,30 +2778,33 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/B/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "b": 1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2895,31 +2818,34 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Missing", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
-              },
-              "background": {
-                "r": 1,
-                "g": 1,
-                "b": 1,
-                "a": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                },
+                "background": {
+                  "r": 1,
+                  "g": 1,
+                  "b": 1,
+                  "a": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2933,20 +2859,23 @@ TEST_CASE("Validate: SphericalMirrorProjection/Background/A/Wrong Type", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2960,20 +2889,23 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Wrong Type", "[validate]") {
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2987,24 +2919,27 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/All/Missing", "[validate]") 
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3018,25 +2953,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Missing", "[validate]
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": 123,
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": 123,
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3050,25 +2988,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Wrong Type", "[valida
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "",
-                "left": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3082,24 +3023,27 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Bottom/Illegal Value", "[val
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3113,25 +3057,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Missing", "[validate]")
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": 123,
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": 123,
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3145,25 +3092,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Wrong Type", "[validate
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "",
-                "right": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "",
+                  "right": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3177,24 +3127,27 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Left/Illegal Value", "[valid
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3208,25 +3161,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Missing", "[validate]"
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": 123,
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": 123,
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3240,25 +3196,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Wrong Type", "[validat
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "",
-                "top": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "",
+                  "top": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3272,24 +3231,27 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Right/Illegal Value", "[vali
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3303,25 +3265,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Missing", "[validate]") 
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3335,25 +3300,28 @@ TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Wrong Type", "[validate]
 TEST_CASE("Validate: SphericalMirrorProjection/Mesh/Top/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "SphericalMirrorProjection",
-              "mesh": {
-                "bottom": "abc",
-                "left": "abc",
-                "right": "abc",
-                "top": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "geometry": {
+                  "bottom": "abc",
+                  "left": "abc",
+                  "right": "abc",
+                  "top": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }

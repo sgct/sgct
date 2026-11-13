@@ -11,18 +11,18 @@
 #include <sgct/correction/buffer.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <glm/glm.hpp>
 #include <scn/scan.h>
 #include <fstream>
 #include <string>
 
 namespace sgct::correction {
 
-Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos,
-                              const vec2& size, float aspectRatio)
+Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const glm::vec2& pos,
+                              const glm::vec2& size, float aspectRatio)
 {
     ZoneScoped;
 
@@ -62,6 +62,15 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
             );
         }
         const auto& [valX, valY] = r->values();
+        // We need at least a 2x2 grid to create a mesh
+        if (valX < 2 || valY < 2) {
+            throw Error(
+                Error::Component::PaulBourke, 2042,
+                std::format(
+                    "Invalid mesh dimensions {}x{} in file '{}'", valX, valY, path
+                )
+            );
+        }
         buf.vertices.reserve(static_cast<size_t>(valX) * static_cast<size_t>(valY));
         meshSize = glm::ivec2(valX, valY);
     }
@@ -91,6 +100,18 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
         throw Error(
             Error::Component::PaulBourke, 2041,
             std::format("Error reading mapping type in file '{}'", path)
+        );
+    }
+
+    const size_t nVertices =
+        static_cast<size_t>(meshSize->x) * static_cast<size_t>(meshSize->y);
+    if (buf.vertices.size() != nVertices) {
+        throw Error(
+            Error::Component::PaulBourke, 2043,
+            std::format(
+                "Expected {}x{} vertices but found {} in file '{}'",
+                meshSize->x, meshSize->y, buf.vertices.size(), path
+            )
         );
     }
 

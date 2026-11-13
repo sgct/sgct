@@ -11,10 +11,9 @@
 #include <sgct/fontmanager.h>
 
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <sstream>
 
@@ -145,12 +144,20 @@ FontManager::~FontManager() {
     _shader.deleteProgram();
 }
 
-void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) const {
+void FontManager::bindShader(const glm::mat4& mvp, const glm::vec4& color,
+                             int texture) const
+{
     _shader.bind();
 
-    glProgramUniform4fv(_shader.id(), _colorLocation, 1, &color.x);
+    glProgramUniform4fv(_shader.id(), _colorLocation, 1, glm::value_ptr(color));
     glProgramUniform1i(_shader.id(), _textureLocation, texture);
-    glProgramUniformMatrix4fv(_shader.id(), _mvpLocation, 1, GL_FALSE, mvp.values.data());
+    glProgramUniformMatrix4fv(
+        _shader.id(),
+        _mvpLocation,
+        1,
+        GL_FALSE,
+        glm::value_ptr(mvp)
+    );
 }
 
 bool FontManager::addFont(std::string name, std::string file, bool isAbsolutePath) {
@@ -216,8 +223,9 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     // Create the font when all error tests are done
     auto font = std::make_unique<Font>(_library, face, height);
 
-    static bool isShaderCreated = false;
-    if (!isShaderCreated) {
+    // The shader is shared between all fonts and has to be created again if the font
+    // manager was destroyed together with a previous engine
+    if (_shader.id() == 0) {
         _shader = ShaderProgram("FontShader");
         _shader.addVertexShader(FontVertShader);
         _shader.addFragmentShader(FontFragShader);
@@ -226,8 +234,6 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         _mvpLocation = glGetUniformLocation(_shader.id(), "mvp");
         _colorLocation = glGetUniformLocation(_shader.id(), "col");
         _textureLocation = glGetUniformLocation(_shader.id(), "tex");
-
-        isShaderCreated = true;
     }
 
     return font;

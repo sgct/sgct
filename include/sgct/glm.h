@@ -6,30 +6,27 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/math.h>
+#ifndef __SGCT__GLM__H__
+#define __SGCT__GLM__H__
+
+// All glm includes go through this header so that every translation unit, in SGCT and in
+// applications that consume its headers, sees glm configured the same way
+
+#ifndef GLM_META_PROG_HELPERS
+#define GLM_META_PROG_HELPERS
+#endif // GLM_META_PROG_HELPERS
+
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif // GLM_ENABLE_EXPERIMENTAL
+
+#ifndef GLM_FORCE_CTOR_INIT
+#define GLM_FORCE_CTOR_INIT
+#endif // GLM_FORCE_CTOR_INIT
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <cstring>
 
-namespace sgct {
-
-mat4 operator*(const mat4& m1, const mat4& m2) {
-    const glm::mat4 r =
-        glm::make_mat4(m1.values.data()) * glm::make_mat4(m2.values.data());
-    mat4 res;
-    std::memcpy(res.values.data(), glm::value_ptr(r), sizeof(float[16]));
-    return res;
-}
-
-vec4 operator*(const mat4& m, const vec4& v) {
-    const glm::vec4 r = glm::make_mat4(m.values.data()) * glm::make_vec4(&v.x);
-    return vec4(r.x, r.y, r.z, r.w);
-}
-
-vec3 operator*(const quat& q, const vec3& v) {
-    const glm::vec3 r = glm::make_quat(&q.x) * glm::make_vec3(&v.x);
-    return vec3(r.x, r.y, r.z);
-}
-
-} // namespace sgct
+#endif // __SGCT__GLM__H__

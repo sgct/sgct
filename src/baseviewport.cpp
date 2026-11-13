@@ -9,17 +9,14 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/glm.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <stdexcept>
-#include <utility>
 
 namespace sgct {
 
@@ -36,13 +33,13 @@ BaseViewport::~BaseViewport() = default;
 void BaseViewport::setupViewport(FrustumMode frustum) const {
     ZoneScoped;
 
-    const ivec2 res = _parent.framebufferResolution();
-    ivec4 vpCoordinates = ivec4 {
+    const glm::ivec2 res = _parent.framebufferResolution();
+    glm::ivec4 vpCoordinates = glm::ivec4(
         static_cast<int>(_position.x * res.x),
         static_cast<int>(_position.y * res.y),
         static_cast<int>(_size.x * res.x),
         static_cast<int>(_size.y * res.y)
-    };
+    );
 
     if (frustum == FrustumMode::StereoLeft) {
         switch (_parent.stereoMode()) {
@@ -140,7 +137,7 @@ void BaseViewport::calculateFrustum(FrustumMode mode, float nearClip, float farC
 void BaseViewport::calculateNonLinearFrustum(FrustumMode mode, float nearClip,
                                              float farClip)
 {
-    const vec3& pos = _user->posMono();
+    const glm::vec3& pos = _user->posMono();
 
     switch (mode) {
         case FrustumMode::Mono:
@@ -148,22 +145,13 @@ void BaseViewport::calculateNonLinearFrustum(FrustumMode mode, float nearClip,
             break;
         case FrustumMode::StereoLeft:
         {
-            const vec3 o = vec3 {
-                _user->posLeftEye().x - pos.x,
-                _user->posLeftEye().y - pos.y,
-                _user->posLeftEye().z - pos.z
-            };
+            const glm::vec3 o = _user->posLeftEye() - pos;
             _stereoLeftProj.calculateProjection(pos, _projPlane, nearClip, farClip, o);
             break;
         }
         case FrustumMode::StereoRight:
         {
-            const vec3 o = vec3 {
-                _user->posRightEye().x + pos.x,
-                _user->posRightEye().y + pos.y,
-                _user->posRightEye().z + pos.z
-            };
-
+            const glm::vec3 o = _user->posRightEye() - pos;
             _stereoRightProj.calculateProjection(pos, _projPlane, nearClip, farClip, o);
             break;
         }
@@ -171,7 +159,7 @@ void BaseViewport::calculateNonLinearFrustum(FrustumMode mode, float nearClip,
 }
 
 void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
-                                               float right, quat rot, float dist)
+                                               float right, glm::quat rot, float dist)
 {
     _rotation = std::move(rot);
 
@@ -214,24 +202,32 @@ bool BaseViewport::isEnabled() const {
     return _isEnabled;
 }
 
-void BaseViewport::setPosition(vec2 position) {
+void BaseViewport::setPosition(glm::vec2 position) {
     _position = std::move(position);
 }
 
-const vec2& BaseViewport::position() const {
+const glm::vec2& BaseViewport::position() const {
     return _position;
 }
 
-void BaseViewport::setSize(vec2 size) {
+void BaseViewport::setSize(glm::vec2 size) {
     _size = std::move(size);
 }
 
-const vec2& BaseViewport::size() const {
+const glm::vec2& BaseViewport::size() const {
     return _size;
 }
 
 void BaseViewport::setUser(User& user) {
     _user = &user;
+}
+
+void BaseViewport::setUserPosition(glm::vec3 position) {
+    // Changing the position of the user directly would also move it for all other
+    // viewports that are linked to the same user
+    _ownUser = std::make_shared<User>(*_user);
+    _ownUser->setPos(std::move(position));
+    _user = _ownUser.get();
 }
 
 User& BaseViewport::user() const {
@@ -248,15 +244,22 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
         return;
     }
 
-    const vec3 upperLeft = _projPlane.coordinateUpperLeft();
-    const vec3 lowerLeft = _projPlane.coordinateLowerLeft();
-    const vec3 upperRight = _projPlane.coordinateUpperRight();
+    // The unrotated view plane has to be used here as the rotation is applied again when
+    // setting the new field of view
+    const glm::vec3 upperLeft = _viewPlane.upperLeft;
+    const glm::vec3 lowerLeft = _viewPlane.lowerLeft;
+    const glm::vec3 upperRight = _viewPlane.upperRight;
 
-    const double ratio = static_cast<double>(hFov) / horizontalFieldOfViewDegrees();
-    const double up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
-    const double down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
-    const double left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
-    const double right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
+    // The view plane is scaled uniformly, which keeps its aspect ratio and asymmetry. Its
+    // size is proportional to the tangent of the field of view, so the ratio of the
+    // tangents is needed and not the ratio of the angles
+    const double dist = std::abs(upperLeft.z);
+    const double halfWidth = (upperRight.x - upperLeft.x) / 2.0;
+    const double ratio = std::tan(glm::radians(hFov) / 2.0) * dist / halfWidth;
+    const double up = glm::degrees(std::atan(ratio * upperLeft.y / dist));
+    const double down = glm::degrees(std::atan(ratio * lowerLeft.y / dist));
+    const double left = glm::degrees(std::atan(ratio * upperLeft.x / dist));
+    const double right = glm::degrees(std::atan(ratio * upperRight.x / dist));
 
     setViewPlaneCoordsUsingFOVs(
         static_cast<float>(up),
@@ -264,7 +267,7 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
         static_cast<float>(left),
         static_cast<float>(right),
         _rotation,
-        std::abs(upperLeft.z)
+        static_cast<float>(dist)
     );
 }
 

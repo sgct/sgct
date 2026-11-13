@@ -10,6 +10,7 @@
 
 #include <sgct/openxr.h>
 
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/window.h>
@@ -34,9 +35,6 @@
 #endif // SGCT_HAS_OPENXR_VULKAN_FALLBACK
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 #include <algorithm>
 #include <array>
@@ -526,7 +524,7 @@ namespace {
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
-        const ivec2 dim = window.framebufferResolution();
+        const glm::ivec2 dim = window.framebufferResolution();
         const auto attachSourceTexture = [](GLuint texture) {
             glFramebufferTexture2D(
                 GL_READ_FRAMEBUFFER,
@@ -563,8 +561,8 @@ namespace {
                 continue;
             }
 
-            const vec2& position = viewport->position();
-            const vec2& size = viewport->size();
+            const glm::vec2& position = viewport->position();
+            const glm::vec2& size = viewport->size();
             blitSourceRect(
                 static_cast<int>(position.x * dim.x),
                 static_cast<int>(position.y * dim.y),
@@ -584,8 +582,8 @@ namespace {
                     continue;
                 }
 
-                const vec2& position = viewport->position();
-                const vec2& size = viewport->size();
+                const glm::vec2& position = viewport->position();
+                const glm::vec2& size = viewport->size();
                 const int srcX = static_cast<int>(position.x * dim.x);
                 const int srcY = static_cast<int>(position.y * dim.y);
                 const int srcWidth = static_cast<int>(size.x * dim.x);
@@ -1220,7 +1218,7 @@ namespace {
         glGenFramebuffers(1, &readFramebuffer);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer);
 
-        const ivec2 dim = window.framebufferResolution();
+        const glm::ivec2 dim = window.framebufferResolution();
         const auto attachSourceTexture = [](GLuint texture) {
             glFramebufferTexture2D(
                 GL_READ_FRAMEBUFFER,
@@ -1253,8 +1251,8 @@ namespace {
                 continue;
             }
 
-            const vec2& position = viewport->position();
-            const vec2& size = viewport->size();
+            const glm::vec2& position = viewport->position();
+            const glm::vec2& size = viewport->size();
             const int srcX = static_cast<int>(position.x * dim.x);
             const int srcY = static_cast<int>(position.y * dim.y);
             const int srcWidth = static_cast<int>(size.x * dim.x);
@@ -1273,8 +1271,8 @@ namespace {
                     continue;
                 }
 
-                const vec2& position = vp->position();
-                const vec2& size = vp->size();
+                const glm::vec2& position = vp->position();
+                const glm::vec2& size = vp->size();
                 const int srcX = static_cast<int>(position.x * dim.x);
                 const int srcY = static_cast<int>(position.y * dim.y);
                 const int srcWidth = static_cast<int>(size.x * dim.x);
@@ -1449,16 +1447,16 @@ bool isHMDActive() {
     return isOpenXRInitialized && session != XR_NULL_HANDLE;
 }
 
-ivec2 eyeResolution(FrustumMode eye) {
+glm::ivec2 eyeResolution(FrustumMode eye) {
     if (!isHMDActive()) {
-        return ivec2{ 0, 0 };
+        return glm::ivec2(0, 0);
     }
 
     const XrViewConfigurationView& view = configurationViews[eyeIndex(eye)];
-    return ivec2 {
+    return glm::ivec2(
         static_cast<int>(view.recommendedImageRectWidth),
         static_cast<int>(view.recommendedImageRectHeight)
-    };
+    );
 }
 
 void copyWindowToHMD(Window* win) {    

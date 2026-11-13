@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <sgct/glm.h>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -91,7 +91,7 @@ public:
     /**
      * \return The scene transform specified in the configuration file
      */
-    const mat4& sceneTransform() const;
+    const glm::mat4& sceneTransform() const;
 
     /**
      * \return The id to the node which runs this application
@@ -99,9 +99,9 @@ public:
     int thisNodeId() const;
 
     /**
-     * \return The DNS name or IP of the master in the cluster
+     * \return The DNS name or IP of the server in the cluster
      */
-    const std::string& masterAddress() const;
+    const std::string& serverAddress() const;
 
     /**
      * \param state The state of the firm frame lock sync
@@ -137,11 +137,11 @@ private:
     const int _thisNodeId;
     bool _firmFrameLockSync;
     bool _ignoreSync = false;
-    std::string _masterAddress;
+    std::string _serverAddress;
 
     std::vector<std::unique_ptr<Node>> _nodes;
     std::vector<std::unique_ptr<User>> _users;
-    mat4 _sceneTransform = mat4(1.f);
+    glm::mat4 _sceneTransform = glm::mat4(1.f);
 };
 
 } // namespace sgct

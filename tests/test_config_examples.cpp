@@ -9,29 +9,25 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <sgct/config.h>
+#include <sgct/glm.h>
 #include <filesystem>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace sgct::config;
 
 namespace {
-    sgct::quat fromEuler(float yaw, float pitch, float roll) {
-        glm::quat quat = glm::quat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.0, 0.0, 1.0));
-
-        sgct::quat res;
-        std::memcpy(&res, glm::value_ptr(quat), sizeof(sgct::quat));
-        return res;
+    glm::quat fromEuler(float yaw, float pitch, float roll) {
+        glm::quat q = glm::quat(1.f, 0.f, 0.f, 0.f);
+        q = glm::rotate(q, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
+        q = glm::rotate(q, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
+        q = glm::rotate(q, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
+        return q;
     }
 } // namespace
 
 TEST_CASE("Load Example: 3DTV", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/3DTV.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
  
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -81,7 +77,7 @@ TEST_CASE("Load Example: 3DTV", "[parse]") {
 TEST_CASE("Load Example: Kinect", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/Kinect.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.trackers.size() == 1);
     const Tracker& t = res.trackers[0];
@@ -330,7 +326,7 @@ TEST_CASE("Load Example: Kinect", "[parse]") {
 TEST_CASE("Load Example: Multi Window", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/multi_window.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -524,7 +520,7 @@ TEST_CASE("Load Example: Single Cylindrical", "[parse]") {
         std::string(BASE_PATH) + "/config/single_cylindrical.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -567,7 +563,7 @@ TEST_CASE("Load Example: Single Equirectangular", "[parse]") {
         std::string(BASE_PATH) + "/config/single_equirectangular.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -611,7 +607,7 @@ TEST_CASE("Load Example: Single Fisheye FXAA", "[parse]") {
         std::string(BASE_PATH) + "/config/single_fisheye_fxaa.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -642,8 +638,7 @@ TEST_CASE("Load Example: Single Fisheye FXAA", "[parse]") {
     CHECK(*p.fov == 180.f);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 512);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -665,7 +660,7 @@ TEST_CASE("Load Example: Single Fisheye", "[parse]") {
         std::string(BASE_PATH) + "/config/single_fisheye.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -694,8 +689,7 @@ TEST_CASE("Load Example: Single Fisheye", "[parse]") {
     CHECK(*p.fov == 180.f);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 512);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -717,7 +711,7 @@ TEST_CASE("Load Example: Single SBS Stereo", "[parse]") {
         std::string(BASE_PATH) + "/config/single_sbs_stereo.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -771,7 +765,7 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
         std::string(BASE_PATH) + "/config/single_texturemapped.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -779,6 +773,8 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
     CHECK(n.port == 20401);
     REQUIRE(n.swapLock.has_value());
     CHECK(*n.swapLock == false);
+    REQUIRE(n.vsync.has_value());
+    CHECK(*n.vsync == false);
 
     REQUIRE(n.windows.size() == 1);
     const Window& w = n.windows[0];
@@ -814,7 +810,7 @@ TEST_CASE("Load Example: Single TextureMapped", "[parse]") {
     CHECK(p.fov.up == 78.43599f);
     CHECK(p.fov.down == -78.43599f);
     REQUIRE(p.orientation.has_value());
-    sgct::quat q = fromEuler(301.504967, 40.615664, -47.675061);
+    glm::quat q = fromEuler(301.504967, 40.615664, -47.675061);
     CHECK(p.orientation->w == q.w);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
@@ -835,7 +831,7 @@ TEST_CASE("Load Example: Single Two Win 3D", "[parse]") {
         std::string(BASE_PATH) + "/config/single_two_win_3D.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -937,7 +933,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         std::string(BASE_PATH) + "/config/single_two_win.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -975,7 +971,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1012,7 +1008,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1033,7 +1029,7 @@ TEST_CASE("Load Example: Single Two Win", "[parse]") {
 TEST_CASE("Load Example: Single", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) + "/config/single.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1063,7 +1059,7 @@ TEST_CASE("Load Example: Single", "[parse]") {
     CHECK(p.fov.up == 50.534015846724f / 2.f);
     CHECK(p.fov.down == -50.534015846724f / 2.f);
     REQUIRE(p.orientation.has_value());
-    const sgct::quat q = fromEuler(0.f, 0.f, 0.f);
+    const glm::quat q = fromEuler(0.f, 0.f, 0.f);
     CHECK(p.orientation->x == q.x);
     CHECK(p.orientation->y == q.y);
     CHECK(p.orientation->z == q.z);
@@ -1085,7 +1081,7 @@ TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
         std::string(BASE_PATH) + "/config/spherical_mirror_4meshes.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1124,17 +1120,36 @@ TEST_CASE("Load Example: Spherical Mirror 4 Meshes", "[parse]") {
         std::get<SphericalMirrorProjection>(v.projection);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 2048);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 1.f);
     CHECK(p.background->y == 0.1f);
     CHECK(p.background->z == 0.1f);
     CHECK(p.background->w == 1.f);
-    CHECK(p.mesh.bottom == "mesh/bottom_warp2.obj");
-    CHECK(p.mesh.left == "mesh/left_warp2.obj");
-    CHECK(p.mesh.right == "mesh/right_warp2.obj");
-    CHECK(p.mesh.top == "mesh/top_warp2.obj");
+    CHECK(
+        p.mesh.bottom ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/bottom_warp2.obj"
+        )
+    );
+    CHECK(
+        p.mesh.left ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/left_warp2.obj"
+        )
+    );
+    CHECK(
+        p.mesh.right ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/right_warp2.obj"
+        )
+    );
+    CHECK(
+        p.mesh.top ==
+        std::filesystem::absolute(
+            std::string(BASE_PATH) + "/config/mesh/top_warp2.obj"
+        )
+    );
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];
@@ -1151,7 +1166,7 @@ TEST_CASE("Load Example: Spherical Mirror", "[parse]") {
         std::string(BASE_PATH) + "/config/spherical_mirror.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1201,8 +1216,7 @@ TEST_CASE("Load Example: Spherical Mirror", "[parse]") {
     CHECK(*p.fov == 180.f);
     REQUIRE(p.quality.has_value());
     CHECK(*p.quality == 2048);
-    REQUIRE(p.tilt.has_value());
-    CHECK(*p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -1224,7 +1238,7 @@ TEST_CASE("Load Example: Spout Output Cubemap", "[parse]") {
         std::string(BASE_PATH) + "/config/spout_output_cubemap.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
     
     REQUIRE(res.scene.has_value());
     REQUIRE(res.scene->offset.has_value());
@@ -1232,7 +1246,7 @@ TEST_CASE("Load Example: Spout Output Cubemap", "[parse]") {
     CHECK(res.scene->offset->y == 0.f);
     CHECK(res.scene->offset->z == 0.f);
     REQUIRE(res.scene->orientation.has_value());
-    const sgct::quat q = fromEuler(0.f, -90.f, 0.f);
+    const glm::quat q = fromEuler(0.f, -90.f, 0.f);
     CHECK(res.scene->orientation->x == q.x);
     CHECK(res.scene->orientation->y == q.y);
     CHECK(res.scene->orientation->z == q.z);
@@ -1299,7 +1313,7 @@ TEST_CASE("Load Example: Spout Output Equirectangular", "[parse]") {
         std::string(BASE_PATH) + "/config/spout_output_equirectangular.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
     
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1346,7 +1360,7 @@ TEST_CASE("Load Example: Spout Output Fisheye", "[parse]") {
         std::string(BASE_PATH) + "/config/spout_output_fisheye.json"
     );
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -1379,8 +1393,7 @@ TEST_CASE("Load Example: Spout Output Fisheye", "[parse]") {
     CHECK(p.quality == 512);
     REQUIRE(p.fov.has_value());
     CHECK(p.fov == 180.f);
-    REQUIRE(p.tilt.has_value());
-    CHECK(p.tilt == 0.f);
+    CHECK(!p.orientation.has_value());
     REQUIRE(p.background.has_value());
     CHECK(p.background->x == 0.1f);
     CHECK(p.background->y == 0.1f);
@@ -1402,7 +1415,7 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         std::string(BASE_PATH) + "/config/two_nodes.json"
     );
 
-    CHECK(res.masterAddress == "127.0.0.1");
+    CHECK(res.serverAddress == "127.0.0.1");
 
     REQUIRE(res.nodes.size() == 2);
     {
@@ -1436,7 +1449,7 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(-20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(-20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1474,7 +1487,7 @@ TEST_CASE("Load Example: Two Nodes", "[parse]") {
         CHECK(p.fov.down == -50.534015846724f / 2.f);
         CHECK(p.fov.up == 50.534015846724f / 2.f);
         REQUIRE(p.orientation.has_value());
-        const sgct::quat q = fromEuler(20.f, 0.f, 0.f);
+        const glm::quat q = fromEuler(20.f, 0.f, 0.f);
         CHECK(p.orientation->x == q.x);
         CHECK(p.orientation->y == q.y);
         CHECK(p.orientation->z == q.z);
@@ -1496,7 +1509,7 @@ TEST_CASE("Load Example: TextureMappedProjection", "[parse]") {
     Cluster res = sgct::readConfig(std::string(BASE_PATH) +
         "/config/single_texturemapped.json");
 
-    CHECK(res.masterAddress == "localhost");
+    CHECK(res.serverAddress == "localhost");
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];

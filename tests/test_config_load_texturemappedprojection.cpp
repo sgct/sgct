@@ -10,7 +10,6 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -19,8 +18,8 @@ using namespace sgct::config;
 TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -61,14 +60,14 @@ TEST_CASE("Load: TextureMappedProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = proj,
@@ -93,8 +92,8 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -136,14 +135,14 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = proj,
@@ -168,8 +167,8 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -212,14 +211,14 @@ TEST_CASE("Load: TextureMappedProjection/Distance", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = proj,
@@ -246,8 +245,8 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -286,18 +285,18 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
             .right = 3.f,
             .up = 4.f
         };
-        proj.orientation = quat { 1.f, 2.f, 3.f, 4.f };
+        proj.orientation = glm::quat(4.f, 1.f, 2.f, 3.f);
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = proj,
@@ -322,8 +321,8 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -362,18 +361,18 @@ TEST_CASE("Load: TextureMappedProjection/Orientation", "[parse]") {
             .right = 8.f,
             .up = 9.f
         };
-        proj.orientation = quat { 5.f, 6.f, 7.f, 8.f };
+        proj.orientation = glm::quat(8.f, 5.f, 6.f, 7.f);
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = proj,
@@ -400,8 +399,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -440,18 +439,18 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
             .right = 3.f,
             .up = 4.f
         };
-        proj.offset = vec3 { 1.f, 2.f, 3.f };
+        proj.offset = glm::vec3(1.f, 2.f, 3.f);
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = proj,
@@ -476,8 +475,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -516,18 +515,18 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
             .right = 8.f,
             .up = 9.f
         };
-        proj.offset = vec3 { 5.f, 6.f, 7.f };
+        proj.offset = glm::vec3(5.f, 6.f, 7.f);
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = proj,
@@ -553,8 +552,8 @@ TEST_CASE("Load: TextureMappedProjection/Offset", "[parse]") {
 TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -596,19 +595,19 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
         .up = 4.f,
         .distance = 5.f
     };
-    proj.orientation = quat { 7.f, 8.f, 9.f, 6.f };
-    proj.offset = vec3 { 10.f, 11.f, 12.f };
+    proj.orientation = glm::quat(6.f, 7.f, 8.f, 9.f);
+    proj.offset = glm::vec3(10.f, 11.f, 12.f);
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = proj,
@@ -636,20 +635,23 @@ TEST_CASE("Load: TextureMappedProjection/Full", "[parse]") {
 TEST_CASE("Validate: TextureMappedProjection/Mesh/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -663,21 +665,24 @@ TEST_CASE("Validate: TextureMappedProjection/Mesh/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -691,21 +696,24 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Wrong Type", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -719,25 +727,28 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/All/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "left": 2,
-                "right": 3,
-                "up": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "left": 2,
+                  "right": 3,
+                  "up": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -751,26 +762,29 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": "abc",
-                "left": 2,
-                "right": 3,
-                "up": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": "abc",
+                  "left": 2,
+                  "right": 3,
+                  "up": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -784,25 +798,28 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Down/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": 1,
-                "right": 3,
-                "up": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": 1,
+                  "right": 3,
+                  "up": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -816,26 +833,29 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": 1,
-                "left": "abc",
-                "right": 3,
-                "up": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": 1,
+                  "left": "abc",
+                  "right": 3,
+                  "up": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -849,25 +869,28 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Left/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": 1,
-                "left": 2,
-                "up": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": 1,
+                  "left": 2,
+                  "up": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -881,26 +904,29 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": 1,
-                "left": 2,
-                "right": "abc",
-                "up": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": 1,
+                  "left": 2,
+                  "right": "abc",
+                  "up": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -914,25 +940,28 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Right/Wrong Type", "[validate]"
 TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": 1,
-                "left": 2,
-                "right": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": 1,
+                  "left": 2,
+                  "right": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -946,26 +975,29 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "fov": {
-                "down": 1,
-                "left": 2,
-                "right": 3,
-                "up": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": {
+                  "down": 1,
+                  "left": 2,
+                  "right": 3,
+                  "up": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -979,21 +1011,25 @@ TEST_CASE("Validate: TextureMappedProjection/FOV/Up/Wrong Type", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1007,21 +1043,25 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Wrong Type", "[validate
 TEST_CASE("Validate: TextureMappedProjection/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1035,24 +1075,28 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/All/Missing", "[validat
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "yaw": 2,
-                "roll": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "yaw": 2,
+                  "roll": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1066,25 +1110,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Missing", "[valid
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "pitch": "abc",
-                "yaw": 2,
-                "roll": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "pitch": "abc",
+                  "yaw": 2,
+                  "roll": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1098,24 +1146,28 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Pitch/Wrong Type", "[va
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "pitch": 1,
-                "roll": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "pitch": 1,
+                  "roll": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1129,25 +1181,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Missing", "[validat
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "pitch": 1,
-                "yaw": "abc",
-                "roll": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "pitch": 1,
+                  "yaw": "abc",
+                  "roll": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1161,24 +1217,28 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Yaw/Wrong Type", "[vali
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "pitch": 1,
-                "yaw": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "pitch": 1,
+                  "yaw": 2
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1192,25 +1252,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Missing", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "pitch": 1,
-                "yaw": 2,
-                "roll": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "pitch": 1,
+                  "yaw": 2,
+                  "roll": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1224,25 +1288,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Roll/Wrong Type", "[val
 TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "y": 2,
-                "z": 3,
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "y": 2,
+                  "z": 3,
+                  "w": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1256,26 +1324,30 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": "abc",
-                "y": 2,
-                "z": 3,
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": "abc",
+                  "y": 2,
+                  "z": 3,
+                  "w": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1289,25 +1361,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/X/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": 1,
-                "z": 3,
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": 1,
+                  "z": 3,
+                  "w": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1321,26 +1397,30 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": 1,
-                "y": "abc",
-                "z": 3,
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": 1,
+                  "y": "abc",
+                  "z": 3,
+                  "w": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1354,25 +1434,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Y/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2,
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": 1,
+                  "y": 2,
+                  "w": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1386,26 +1470,30 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2,
-                "z": "abc",
-                "w": 4
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": 1,
+                  "y": 2,
+                  "z": "abc",
+                  "w": 4
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1419,25 +1507,29 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/Z/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": 1,
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1451,26 +1543,30 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Missing", "[validate]
 TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2,
-                "z": 3,
-                "w": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "orientation": {
+                  "x": 1,
+                  "y": 2,
+                  "z": 3,
+                  "w": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1484,21 +1580,25 @@ TEST_CASE("Validate: TextureMappedProjection/Orientation/W/Wrong Type", "[valida
 TEST_CASE("Validate: TextureMappedProjection/Offset/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -1512,24 +1612,28 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/All/Missing", "[validate]") 
 TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1543,25 +1647,29 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/X/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Offset/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {
-                "x": "abc",
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {
+                  "x": "abc",
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1575,24 +1683,28 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/X/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {
-                "x": 1,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {
+                  "x": 1,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1606,25 +1718,29 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {
-                "x": 1,
-                "y": "abc",
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {
+                  "x": 1,
+                  "y": "abc",
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1638,24 +1754,28 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Y/Wrong Type", "[validate]")
 TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {
-                "x": 1,
-                "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {
+                  "x": 1,
+                  "y": 2
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -1669,25 +1789,29 @@ TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Missing", "[validate]") {
 TEST_CASE("Validate: TextureMappedProjection/Offset/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "mesh": "abc",
-            "projection": {
-              "type": "TextureMappedProjection",
-              "offset": {
-                "x": 1,
-                "y": 2,
-                "z": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "mesh": "abc",
+              "projection": {
+                "type": "TextureMappedProjection",
+                "fov": { "hfov": 90.0, "vfov": 60.0 },
+                "offset": {
+                  "x": 1,
+                  "y": 2,
+                  "z": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }

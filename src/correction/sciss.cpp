@@ -13,12 +13,11 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
-#include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <fstream>
 #include <vector>
@@ -182,13 +181,13 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         }
     }
 
-    parent.user().setPos(vec3{ viewData.x, viewData.y, viewData.z });
+    parent.setUserPosition(glm::vec3(viewData.x, viewData.y, viewData.z));
     parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
         viewData.fovDown,
         viewData.fovLeft,
         viewData.fovRight,
-        quat{ viewData.qx, viewData.qy, viewData.qz, viewData.qw }
+        glm::quat(viewData.qw, viewData.qx, viewData.qy, viewData.qz)
     );
 
     Engine::instance().updateFrustums();
@@ -201,8 +200,8 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         scissVertex.tx = std::clamp(scissVertex.tx, 0.f, 1.f);
         scissVertex.ty = std::clamp(scissVertex.ty, 0.f, 1.f);
 
-        const vec2& s = parent.size();
-        const vec2& p = parent.position();
+        const glm::vec2& s = parent.size();
+        const glm::vec2& p = parent.position();
 
         // Convert to [-1, 1]
         Buffer::Vertex& vertex = buf.vertices[i];
@@ -218,7 +217,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         vertex.a = 1.f;
     }
 
-    if (fileVersion == '2' && size[0] == 4) {
+    if (fileVersion == 2 && size[0] == 4) {
         buf.geometryType = GL_TRIANGLES;
     }
     else {

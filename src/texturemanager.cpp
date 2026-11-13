@@ -13,6 +13,8 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <algorithm>
+#include <array>
+#include <bit>
 #include <stdexcept>
 #include <utility>
 
@@ -41,6 +43,12 @@ namespace {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+        // The texture storage can not have more mipmap levels than are needed to reduce
+        // the image to a single pixel, otherwise the texture would not be created at all
+        const unsigned int largestSide =
+            static_cast<unsigned int>(std::max(img.size().x, img.size().y));
+        mipmap = std::min(mipmap, static_cast<int>(std::bit_width(largestSide)));
+
         glTextureParameteri(tex, GL_TEXTURE_BASE_LEVEL, 0);
         glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
 
@@ -62,6 +70,17 @@ namespace {
 
         glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // Images with one or two channels are grayscale images with an optional alpha
+        // channel, so the gray value has to be used for all color channels
+        if (img.channels() == 1) {
+            constexpr std::array<GLint, 4> Swizzle = { GL_RED, GL_RED, GL_RED, GL_ONE };
+            glTextureParameteriv(tex, GL_TEXTURE_SWIZZLE_RGBA, Swizzle.data());
+        }
+        else if (img.channels() == 2) {
+            constexpr std::array<GLint, 4> Swizzle = { GL_RED, GL_RED, GL_RED, GL_GREEN };
+            glTextureParameteriv(tex, GL_TEXTURE_SWIZZLE_RGBA, Swizzle.data());
+        }
 
         glTextureStorage2D(tex, mipmap, internalFormat, img.size().x, img.size().y);
         glTextureSubImage2D(

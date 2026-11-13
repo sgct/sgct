@@ -15,7 +15,6 @@
 #include <sgct/callbackdata.h>
 #include <sgct/config.h>
 #include <sgct/keys.h>
-#include <sgct/math.h>
 #include <sgct/modifiers.h>
 #include <sgct/mouse.h>
 #include <sgct/window.h>
@@ -89,13 +88,13 @@ public:
         /// The amount of time spend rendering the 2D and 3D components of the frame
         std::array<double, HistoryLength> drawTimes = {};
 
-        /// The amount of time spend synchronizing the state between master and clients
+        /// The amount of time spend synchronizing the state between server and clients
         std::array<double, HistoryLength> syncTimes = {};
 
-        /// The lowest time recorded for network communication between master and clients
+        /// The lowest time recorded for network communication between server and clients
         std::array<double, HistoryLength> loopTimeMin = {};
 
-        /// The highest time recorded for network communication between master and clients
+        /// The highest time recorded for network communication between server and clients
         std::array<double, HistoryLength> loopTimeMax = {};
 
         /**
@@ -125,15 +124,8 @@ public:
         /// constructor and the #initialize function
         bool createDebugContext = false;
 
-        /// Sets the swap interval to be used by the application
-        ///   -1 = adaptive sync(Nvidia)
-        ///    0 = vertical sync off
-        ///    1 = wait for vertical sync
-        ///    2..inf = wait for every n-th vertical sync
-        int8_t swapInterval = 1;
-
         /// If this is true, a log message is printed to the console while a client is
-        /// waiting for the master to connect or while the master is waiting for one or
+        /// waiting for the server to connect or while the server is waiting for one or
         /// more clients
         bool printSyncMessage = true;
 
@@ -145,7 +137,7 @@ public:
         bool useNormalTexture = false;
         bool usePositionTexture = false;
 
-        /// The number of seconds that SGCT will wait for the master or clients to connect
+        /// The number of seconds that SGCT will wait for the server or clients to connect
         /// before aborting
         float syncTimeout = 60.f;
 
@@ -154,7 +146,8 @@ public:
             std::filesystem::path capturePath;
 
             // The number of capture threads
-            int nCaptureThreads = std::max(std::thread::hardware_concurrency() / 2, 1u);
+            int nCaptureThreads =
+                static_cast<int>(std::max(std::thread::hardware_concurrency() / 2, 1u));
 
             /// If set to true, the node name is added to screenshots
             bool addNodeName = false;
@@ -164,6 +157,9 @@ public:
 
             /// The prefix to be used for all screenshots
             std::string prefix;
+
+            /// The number of bits per color channel in the saved screenshots (8 or 16)
+            int bitDepth = 8;
 
             /// Information about the screenshot limits. If there is no screenshot limit,
             /// this function returns `std::nullopt`. Otherwise the first component is the
@@ -213,7 +209,7 @@ public:
         /// connected nodes in a clustered setup
         std::vector<std::byte> (*encode)() = nullptr;
 
-        /// This function is called by decode all shared data sent to us from the master.
+        /// This function is called by decode all shared data sent to us from the server.
         /// The parameter is the block of data that contains the data to be decoded
         void (*decode)(const std::vector<std::byte>&) = nullptr;
 
@@ -382,7 +378,7 @@ public:
      *
      * \return The current offset value for the statistics graph
      */
-    vec2 statsGraphOffset() const;
+    glm::vec2 statsGraphOffset() const;
 
     /**
      * Sets the new offet value for the statistics graph rendering. This value determines
@@ -392,7 +388,7 @@ public:
      *
      * \param offset The new offset value for the statistics graph rendering
      */
-    void setStatsGraphOffset(vec2 offset);
+    void setStatsGraphOffset(glm::vec2 offset);
 
     /**
      * Takes an RGBA screenshot and saves it as a PNG file. If stereo rendering is enabled
@@ -467,13 +463,13 @@ public:
     static User& defaultUser();
 
     /**
-     * Returns if this Node is the master in a clustered environment. This function will
+     * Returns if this Node is the server in a clustered environment. This function will
      * also return `true` if the Node is not part of a clustered environment.
      *
-     * \return `true` if this Node is the master in a clustered environment or not part of
+     * \return `true` if this Node is the server in a clustered environment or not part of
      *         a cluster; `false` otherwise
      */
-    bool isMaster() const;
+    bool isServer() const;
 
     /**
      * Returns the number of the current frame. The frame number is a monotonically
@@ -536,7 +532,7 @@ private:
     void frameLockPreStage();
 
     /**
-     * Locks the rendering thread for synchronization. Locks master until clients are
+     * Locks the rendering thread for synchronization. Locks server until clients are
      * ready to swap buffers.
      */
     void frameLockPostStage();

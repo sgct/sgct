@@ -6,11 +6,13 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
+#include <array>
+#include <format>
 #include <numeric>
 #include "schema.h"
 
@@ -20,8 +22,8 @@ using namespace sgct::config;
 TEST_CASE("Load: CubemapProjection/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -45,14 +47,14 @@ TEST_CASE("Load: CubemapProjection/Minimal", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = CubemapProjection()
@@ -76,8 +78,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -102,14 +104,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -134,8 +136,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -160,14 +162,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -192,8 +194,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -218,14 +220,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -250,8 +252,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -276,14 +278,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -308,8 +310,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -334,14 +336,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -366,8 +368,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -392,14 +394,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -424,8 +426,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -450,14 +452,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -482,8 +484,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -508,14 +510,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -540,8 +542,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -566,14 +568,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -598,8 +600,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -624,14 +626,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -656,8 +658,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -682,14 +684,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -714,8 +716,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -740,14 +742,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -772,8 +774,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -798,14 +800,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -830,8 +832,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -856,14 +858,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -888,8 +890,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -914,14 +916,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -946,8 +948,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -972,14 +974,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1004,8 +1006,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1030,14 +1032,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1062,8 +1064,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1088,14 +1090,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1120,8 +1122,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1146,14 +1148,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1178,8 +1180,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1204,14 +1206,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1236,8 +1238,8 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1262,14 +1264,14 @@ TEST_CASE("Load: CubemapProjection/Quality", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1296,8 +1298,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1324,14 +1326,14 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1358,8 +1360,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1386,14 +1388,14 @@ TEST_CASE("Load: CubemapProjection/Spout/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1422,8 +1424,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1451,14 +1453,14 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1486,8 +1488,8 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1515,14 +1517,14 @@ TEST_CASE("Load: CubemapProjection/Spout/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1552,8 +1554,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1580,14 +1582,14 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1605,17 +1607,19 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1642,14 +1646,14 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1667,10 +1671,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Enabled", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -1678,8 +1684,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1707,14 +1713,14 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1733,17 +1739,19 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1771,14 +1779,14 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1797,10 +1805,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Name", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -1808,8 +1818,8 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1823,7 +1833,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
                 "type": "CubemapProjection",
                 "ndi": {
                   "enabled": true,
-                  "groups": "abc,def"
+                  "group": "abc,def"
                 }
               }
             }
@@ -1837,14 +1847,14 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1863,17 +1873,19 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -1887,7 +1899,7 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
                 "type": "CubemapProjection",
                 "ndi": {
                   "enabled": true,
-                  "groups": "123,456"
+                  "group": "123,456"
                 }
               }
             }
@@ -1901,14 +1913,14 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -1927,10 +1939,12 @@ TEST_CASE("Load: CubemapProjection/NDI/Groups", "[parse]") {
 
         Cluster res = sgct::readJsonConfig(String);
         CHECK(res == Object);
+        CHECK_NOTHROW(validate(String));
 
         const std::string str = serializeConfig(Object);
         const config::Cluster output = readJsonConfig(str);
         CHECK(output == Object);
+        CHECK_NOTHROW(validate(str));
     }
 }
 
@@ -1968,8 +1982,8 @@ TEST_CASE("Load: CubemapProjection/Channels", "[parse]") {
 
         std::string String = std::format(R"(
 {{
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {{
       "address": "abc",
@@ -1996,14 +2010,14 @@ string
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
@@ -2030,8 +2044,8 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2056,18 +2070,18 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
-                                        .orientation = vec3 { 1.f, 2.f, 3.f }
+                                        .orientation = glm::vec3(1.f, 2.f, 3.f)
                                     }
                                 }
                             }
@@ -2088,8 +2102,8 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2114,18 +2128,18 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .nodes = {
                 Node {
                     .address = "abc",
                     .port = 1,
                     .windows = {
                         Window {
-                            .size = ivec2{ 640, 480 },
+                            .size = glm::ivec2(640, 480),
                             .viewports = {
                                 Viewport {
                                     .projection = CubemapProjection {
-                                        .orientation = vec3 { 4.f, 5.f, 6.f }
+                                        .orientation = glm::vec3(4.f, 5.f, 6.f)
                                     }
                                 }
                             }
@@ -2144,11 +2158,84 @@ TEST_CASE("Load: CubemapProjection/Orientation", "[parse]") {
     }
 }
 
+TEST_CASE("Load: CubemapProjection/Orientation/Quaternion", "[parse]") {
+    // The quaternion is converted into the pitch/yaw/roll values of the cubemap. They
+    // rotate the cubemap as Ry(-pitch) * Rx(yaw) * Rz(-roll), which is the same rotation
+    // that the quaternion has for the other projections
+    struct Test {
+        std::string_view quaternion;
+        glm::vec3 expected;
+    };
+    constexpr std::array<Test, 6> Tests = {
+        Test { R"({ "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 })", glm::vec3(0.f, 0.f, 0.f) },
+        Test {
+            R"({ "x": 0.0, "y": -0.258819, "z": 0.0, "w": 0.9659258 })",
+            glm::vec3(30.f, 0.f, 0.f)
+        },
+        Test {
+            R"({ "x": 0.1736482, "y": 0.0, "z": 0.0, "w": 0.9848078 })",
+            glm::vec3(0.f, 20.f, 0.f)
+        },
+        Test {
+            R"({ "x": 0.0, "y": 0.0, "z": -0.0871557, "w": 0.9961947 })",
+            glm::vec3(0.f, 0.f, 10.f)
+        },
+        Test {
+            R"({ "x": 0.2685358, "y": -0.1448781, "z": -0.0381346, "w": 0.9515485 })",
+            glm::vec3(20.f, 30.f, 10.f)
+        },
+        Test {
+            R"({ "x": -0.5668949, "y": -0.0430516, "z": -0.3677201, "w": 0.7359067 })",
+            glm::vec3(-45.f, -60.f, 80.f)
+        }
+    };
+
+    for (const Test& t : Tests) {
+        const std::string String = std::format(R"(
+{{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {{
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {{
+          "size": {{ "x": 640, "y": 480 }},
+          "viewports": [
+            {{
+              "projection": {{
+                "type": "CubemapProjection",
+                "orientation": {}
+              }}
+            }}
+          ]
+        }}
+      ]
+    }}
+  ]
+}}
+)", t.quaternion);
+
+        const Cluster res = sgct::readJsonConfig(String);
+        REQUIRE(res.nodes.size() == 1);
+        REQUIRE(res.nodes[0].windows.size() == 1);
+        REQUIRE(res.nodes[0].windows[0].viewports.size() == 1);
+        const CubemapProjection& p = std::get<CubemapProjection>(
+            res.nodes[0].windows[0].viewports[0].projection
+        );
+        REQUIRE(p.orientation.has_value());
+        CHECK(p.orientation->x == Catch::Approx(t.expected.x).margin(1e-3));
+        CHECK(p.orientation->y == Catch::Approx(t.expected.y).margin(1e-3));
+        CHECK(p.orientation->z == Catch::Approx(t.expected.z).margin(1e-3));
+    }
+}
+
 TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "abc",
@@ -2168,7 +2255,7 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
                 "ndi": {
                   "enabled": false,
                   "name": "abc",
-                  "groups": "abc,def"
+                  "group": "abc,def"
                 },
                 "channels": {
                     "right": true,
@@ -2191,14 +2278,14 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost",
+        .serverAddress = "localhost",
         .nodes = {
             Node {
                 .address = "abc",
                 .port = 1,
                 .windows = {
                     Window {
-                        .size = ivec2{ 640, 480 },
+                        .size = glm::ivec2(640, 480),
                         .viewports = {
                             Viewport {
                                 .projection = CubemapProjection {
@@ -2220,7 +2307,7 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
                                         .left = true,
                                         .zRight = true
                                     },
-                                    .orientation = vec3 { 1.f, 2.f, 3.f }
+                                    .orientation = glm::vec3(1.f, 2.f, 3.f)
                                 }
                             }
                         }
@@ -2241,20 +2328,23 @@ TEST_CASE("Load: CubemapProjection/Full", "[parse]") {
 TEST_CASE("Validate: CubemapProjection/Quality/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "quality": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2269,20 +2359,23 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "quality": -1
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": -1
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2296,20 +2389,23 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
     {
         constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "quality": 1111
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "quality": 1111
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2324,20 +2420,23 @@ TEST_CASE("Validate: CubemapProjection/Quality/Illegal Value", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Spout/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2351,22 +2450,25 @@ TEST_CASE("Validate: CubemapProjection/Spout/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Spout/Enabled/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": {
-                "enabled": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": {
+                  "enabled": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2380,23 +2482,26 @@ TEST_CASE("Validate: CubemapProjection/Spout/Enabled/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Spout/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": {
-                "enabled": true,
-                "name": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": {
+                  "enabled": true,
+                  "name": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2410,23 +2515,26 @@ TEST_CASE("Validate: CubemapProjection/Spout/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Spout/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "spout": {
-                "enabled": true,
-                "name": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "spout": {
+                  "enabled": true,
+                  "name": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2440,20 +2548,23 @@ TEST_CASE("Validate: CubemapProjection/Spout/Name/Illegal Value", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/NDI/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2467,22 +2578,25 @@ TEST_CASE("Validate: CubemapProjection/NDI/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Enabled/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2496,23 +2610,26 @@ TEST_CASE("Validate: CubemapProjection/NDI/Enabled/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Name/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "name": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "name": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2526,23 +2643,26 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "name": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "name": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2556,23 +2676,26 @@ TEST_CASE("Validate: CubemapProjection/NDI/Name/Illegal Value", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Groups/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "groups": 123
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "group": 123
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2586,23 +2709,26 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/NDI/Groups/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "ndi": {
-                "enabled": true,
-                "groups": ""
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "ndi": {
+                  "enabled": true,
+                  "group": ""
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2616,20 +2742,23 @@ TEST_CASE("Validate: CubemapProjection/NDI/Groups/Illegal Value", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Channels/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -2643,26 +2772,29 @@ TEST_CASE("Validate: CubemapProjection/Channels/All/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Right/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2676,27 +2808,30 @@ TEST_CASE("Validate: CubemapProjection/Channels/Right/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Right/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": "abc",
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": "abc",
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2710,26 +2845,29 @@ TEST_CASE("Validate: CubemapProjection/Channels/Right/Wrong Type", "[validate]")
 TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2743,27 +2881,30 @@ TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": "abc",
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": "abc",
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2777,26 +2918,29 @@ TEST_CASE("Validate: CubemapProjection/Channels/zLeft/Wrong Type", "[validate]")
 TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2810,27 +2954,30 @@ TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": "abc",
-                "top": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": "abc",
+                  "top": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2844,26 +2991,29 @@ TEST_CASE("Validate: CubemapProjection/Channels/Bottom/Wrong Type", "[validate]"
 TEST_CASE("Validate: CubemapProjection/Channels/Top/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2877,27 +3027,30 @@ TEST_CASE("Validate: CubemapProjection/Channels/Top/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Top/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": "abc",
-                "left": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": "abc",
+                  "left": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2911,26 +3064,29 @@ TEST_CASE("Validate: CubemapProjection/Channels/Top/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Left/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2944,27 +3100,30 @@ TEST_CASE("Validate: CubemapProjection/Channels/Left/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/Left/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": "abc",
-                "zRight": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": "abc",
+                  "zright": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -2978,26 +3137,29 @@ TEST_CASE("Validate: CubemapProjection/Channels/Left/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Channels/zRight/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3011,27 +3173,30 @@ TEST_CASE("Validate: CubemapProjection/Channels/zRight/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Channels/zRight/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "channels": {
-                "right": true,
-                "zLeft": true,
-                "bottom": true,
-                "top": true,
-                "left": true,
-                "zRight": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "channels": {
+                  "right": true,
+                  "zleft": true,
+                  "bottom": true,
+                  "top": true,
+                  "left": true,
+                  "zright": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3045,20 +3210,23 @@ TEST_CASE("Validate: CubemapProjection/Channels/zRight/Wrong Type", "[validate]"
 TEST_CASE("Validate: CubemapProjection/Orientation/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": "abc"
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3072,20 +3240,23 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Wrong Type", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/All/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {}
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {}
+              }
             }
-          }
+          ]
         }
       ]
     }
@@ -3099,23 +3270,26 @@ TEST_CASE("Validate: CubemapProjection/Orientation/All/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/X/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3129,24 +3303,27 @@ TEST_CASE("Validate: CubemapProjection/Orientation/X/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/X/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": "abc",
-                "y": 2,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": "abc",
+                  "y": 2,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3160,23 +3337,26 @@ TEST_CASE("Validate: CubemapProjection/Orientation/X/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Orientation/Y/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3190,24 +3370,27 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Y/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/Y/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "y": "abc",
-                "z": 3
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "y": "abc",
+                  "z": 3
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3221,23 +3404,26 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Y/Wrong Type", "[validate]") 
 TEST_CASE("Validate: CubemapProjection/Orientation/Z/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "y": 2
+                }
               }
             }
-          }
+          ]
         }
       ]
     }
@@ -3251,24 +3437,27 @@ TEST_CASE("Validate: CubemapProjection/Orientation/Z/Missing", "[validate]") {
 TEST_CASE("Validate: CubemapProjection/Orientation/Z/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
       "port": 123,
       "windows": [
         {
-          "viewport": {
-            "projection": {
-              "type": "CubemapProjection",
-              "orientation": {
-                "x": 1,
-                "y": 2,
-                "z": "abc"
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "CubemapProjection",
+                "orientation": {
+                  "x": 1,
+                  "y": 2,
+                  "z": "abc"
+                }
               }
             }
-          }
+          ]
         }
       ]
     }

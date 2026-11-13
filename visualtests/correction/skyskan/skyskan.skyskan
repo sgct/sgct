@@ -1,0 +1,14 @@
+Dome Azimuth=30
+Dome Elevation=10
+Horizontal FOV=90
+Vertical FOV=70
+3 3
+0 0 0 0
+0.5 0 0.5 0
+1 0 1 0
+0 0.5 0 0.5
+0.6 0.4 0.5 0.5
+1 0.5 1 0.5
+0 1 0 1
+0.5 1 0.5 1
+1 1 1 1

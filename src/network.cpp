@@ -52,6 +52,15 @@ namespace {
 
     constexpr int MaxNetworkSyncFrameNumber = 10000;
 
+    // Sending to a connection that was closed by the other side raises SIGPIPE on POSIX
+    // systems, which terminates the application unless the signal is suppressed. The send
+    // then fails with an error instead, which is handled like any other failed send
+#ifdef MSG_NOSIGNAL
+    constexpr int SendFlags = MSG_NOSIGNAL;
+#else // ^^^^ MSG_NOSIGNAL // !MSG_NOSIGNAL vvvv
+    constexpr int SendFlags = 0;
+#endif // MSG_NOSIGNAL
+
     int receiveData(SGCT_SOCKET lsocket, char* buffer, int length, int flags) {
         long iResult = 0;
         int attempts = 1;
@@ -192,22 +201,35 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
     if (addrRes != 0) {
         throw Err(5000, "Failed to parse hints for connection");
     }
+    // Frees the address information on all paths out of the constructor
+    struct AddrInfoDeleter {
+        void operator()(addrinfo* info) const {
+            freeaddrinfo(info);
+        }
+    };
+    const std::unique_ptr<addrinfo, AddrInfoDeleter> resGuard(res);
 
     if (_isServer) {
         // Create a SOCKET for the server to listen for client connections
         _listenSocket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (_listenSocket == INVALID_SOCKET) {
-            freeaddrinfo(res);
             throw Err(5001, "Failed to listen init socket");
         }
 
-        setOptions(_listenSocket, type());
+        try {
+            setOptions(_listenSocket, type());
+        }
+        catch (...) {
+            closeSocket(_listenSocket);
+            _listenSocket = INVALID_SOCKET;
+            throw;
+        }
 
         // Setup the TCP listening socket
         const int addrlen = static_cast<int>(res->ai_addrlen);
-        const int bindResult = bind(_listenSocket, res->ai_addr, addrlen);
+        // The global namespace prevents std::bind from being found for the atomic socket
+        const int bindResult = ::bind(_listenSocket, res->ai_addr, addrlen);
         if (bindResult == SOCKET_ERROR) {
-            freeaddrinfo(res);
 #ifdef WIN32
             closesocket(_listenSocket);
 #else // ^^^^ WIN32 // !WIN32 vvvv
@@ -217,7 +239,6 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
         }
 
         if (listen(_listenSocket, SOMAXCONN) == SOCKET_ERROR) {
-            freeaddrinfo(res);
 #ifdef WIN32
             closesocket(_listenSocket);
 #else // ^^^^ WIN32 // !WIN32 vvvv
@@ -236,11 +257,17 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
             if (_socket == INVALID_SOCKET) {
-                freeaddrinfo(res);
-                throw Err(5004, "Failed to init client socket");
+                    throw Err(5004, "Failed to init client socket");
             }
 
-            setOptions(_socket, type());
+            try {
+                setOptions(_socket, type());
+            }
+            catch (...) {
+                closeSocket(_socket);
+                _socket = INVALID_SOCKET;
+                throw;
+            }
 
             const int r = connect(
                 _socket,
@@ -251,18 +278,27 @@ Network::Network(int port, const std::string& address, bool isServer, Connection
                 break;
             }
 
-            if (SGCT_ERRNO == 10061) {
+            // The error has to be queried before closing the socket, which resets it
+            const int error = SGCT_ERRNO;
+            // Every attempt creates a new socket, so the failed one has to be closed
+            closeSocket(_socket);
+            _socket = INVALID_SOCKET;
+
+#ifdef WIN32
+            constexpr int ConnectionRefused = WSAECONNREFUSED;
+#else // ^^^^ WIN32 // !WIN32 vvvv
+            constexpr int ConnectionRefused = ECONNREFUSED;
+#endif // WIN32
+            if (error == ConnectionRefused) {
                 Log::Debug("Waiting for connection...");
             }
             else {
-                Log::Debug(std::format("Connect error code: {}", SGCT_ERRNO));
+                Log::Debug(std::format("Connect error code: {}", error));
             }
             // Wait for next attempt
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
-
-    freeaddrinfo(res);
 }
 
 Network::~Network() {
@@ -293,9 +329,11 @@ void Network::connectionHandler() {
                 });
             }
 
-            // Wait for signal until next iteration in loop
+            // Wait for signal until next iteration in loop. The termination is checked
+            // while holding the mutex, as its notification would be lost if it happened
+            // between the check and the wait, and the shutdown would wait forever
+            std::unique_lock lock(_connectionMutex);
             if (!_shouldTerminate) {
-                std::unique_lock lock(_connectionMutex);
                 _startConnectionCond.wait(lock);
             }
         }
@@ -322,7 +360,10 @@ std::condition_variable& Network::startConnectionConditionVar() {
     return _startConnectionCond;
 }
 
-void Network::closeSocket(SGCT_SOCKET socket) {
+void Network::closeSocket(std::atomic<SGCT_SOCKET>& lSocket) {
+    // Resetting the socket prevents it from being closed a second time, at which point
+    // the operating system might have reused it for a different connection already
+    const SGCT_SOCKET socket = lSocket.exchange(INVALID_SOCKET);
     if (socket == INVALID_SOCKET) {
         return;
     }
@@ -383,7 +424,7 @@ bool Network::isUpdated() const {
     bool state = false;
     if (_isServer) {
         state = ClusterManager::instance().firmFrameLockSyncStatus() ?
-            // Master sends first -> so on reply they should be equal
+            // Server sends first -> so on reply they should be equal
             (_currentRecvFrame == _currentSendFrame) :
             // Don't check if loose sync
             true;
@@ -429,7 +470,6 @@ bool Network::isConnected() const {
 }
 
 Network::ConnectionType Network::type() const {
-    const std::unique_lock lock(_connectionMutex);
     return _connectionType;
 }
 
@@ -473,7 +513,6 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
             std::memcpy(&dataSize, header + 5, sizeof(dataSize));
             std::memcpy(&uncompressedDataSize, header + 9, sizeof(uncompressedDataSize));
 
-            setRecvFrame(syncFrame);
             if (syncFrame < 0) {
                 throw Err(
                     5010,
@@ -620,13 +659,13 @@ void Network::communicationHandler() {
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
         }
         int32_t packageId = -1;
+        int32_t syncFrameNumber = -1;
         uint32_t dataSize = 0;
         uint32_t uncompressedDataSize = 0;
 
         _headerId = DefaultId;
 
         if (type() == ConnectionType::SyncConnection) {
-            int32_t syncFrameNumber = -1;
             iResult = readSyncMessage(
                 RecvHeader.data(),
                 syncFrameNumber,
@@ -652,11 +691,16 @@ void Network::communicationHandler() {
             Log::Info(std::format("TCP connection {} closed", _id));
         }
         else if (iResult < 0) {
-            setConnectedStatus(false);
-            throw Err(
+            // The error must not skip the cleanup after the loop. Otherwise the number of
+            // active connections would never be updated, which stalls the frame lock
+            // until its timeout, and a client would not be able to reconnect
+            const Error err = Err(
                 5013,
                 std::format("TCP connection {} receive failed: {}", _id, SGCT_ERRNO)
             );
+            setConnectedStatus(false);
+            Log::Error(err.what());
+            break;
         }
 
         if (type() == ConnectionType::SyncConnection) {
@@ -674,16 +718,22 @@ void Network::communicationHandler() {
                 break;
             }
             // Handle sync communication
-            if (_headerId == DataId && decoderCallback) {
-                if (dataSize > 0) {
-                    decoderCallback(_recvBuffer.data(), dataSize);
+            if (_headerId == DataId && iResult > 0) {
+                {
+                    // The callback is removed by the main thread in `initShutdown`
+                    const std::unique_lock lock(_connectionMutex);
+                    if (decoderCallback && dataSize > 0) {
+                        decoderCallback(_recvBuffer.data(), dataSize);
+                    }
                 }
 
-                NetworkManager::cond.notify_all();
+                // The frame only counts as received once its data was handed over
+                setRecvFrame(syncFrameNumber);
+                NetworkManager::notifyAll();
             }
             else if (_headerId == ConnectedId && _connectedCallback) {
                 _connectedCallback();
-                NetworkManager::cond.notify_all();
+                NetworkManager::notifyAll();
             }
         }
         // Handle data transfer communication
@@ -695,7 +745,11 @@ void Network::communicationHandler() {
             }
             //  Handle communication
             else {
-                if (_headerId == DataId && _packageDecoderCallback && dataSize > 0) {
+                // The package must not be decoded if the connection was closed before
+                // all of its data was received
+                if (_headerId == DataId && _packageDecoderCallback && dataSize > 0 &&
+                    iResult > 0)
+                {
                     _packageDecoderCallback(_recvBuffer.data(), dataSize, packageId, _id);
 
                     // Send acknowledge
@@ -719,7 +773,7 @@ void Network::communicationHandler() {
                 }
                 else if (_headerId == ConnectedId && _connectedCallback) {
                     _connectedCallback();
-                    NetworkManager::cond.notify_all();
+                    NetworkManager::notifyAll();
                 }
             }
         }
@@ -741,6 +795,10 @@ void Network::communicationHandler() {
 void Network::sendData(const void* data, int length) const {
     ZoneScoped;
 
+    // The connection status is sent from the communication threads while the main thread
+    // sends the sync data. A message must not be interrupted by another message
+    const std::unique_lock lock(_sendMutex);
+
     long sendSize = length;
 
     while (sendSize > 0) {
@@ -749,7 +807,7 @@ void Network::sendData(const void* data, int length) const {
             _socket,
             reinterpret_cast<const char*>(data) + offset,
             sendSize,
-            0
+            SendFlags
         );
         if (sentLen == SOCKET_ERROR) {
             throw Err(5014, std::format("Send data failed: {}", SGCT_ERRNO));
@@ -761,14 +819,8 @@ void Network::sendData(const void* data, int length) const {
 void Network::closeNetwork(bool forced) {
     ZoneScoped;
 
-    decoderCallback = nullptr;
-    _updateCallback = nullptr;
-    _connectedCallback = nullptr;
-    _acknowledgeCallback = nullptr;
-    _packageDecoderCallback = nullptr;
-
     // Release conditions
-    NetworkManager::cond.notify_all();
+    NetworkManager::notifyAll();
     _startConnectionCond.notify_all();
 
     // Blocking sockets -> cannot wait for thread so just kill it brutally
@@ -783,6 +835,14 @@ void Network::closeNetwork(bool forced) {
     }
     _mainThread = nullptr;
 
+    // The callbacks are used by the threads, so they can only be removed after the
+    // threads have finished
+    decoderCallback = nullptr;
+    _updateCallback = nullptr;
+    _connectedCallback = nullptr;
+    _acknowledgeCallback = nullptr;
+    _packageDecoderCallback = nullptr;
+
     Log::Info(std::format("Connection {} successfully terminated", _id));
 }
 
@@ -790,10 +850,22 @@ void Network::initShutdown() {
     ZoneScoped;
 
     if (_isConnected) {
-        constexpr std::array<char, 9> GameOver = {
-            DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0', DefaultId
+        // The disconnect message has to fill the complete header
+        constexpr std::array<char, HeaderSize> GameOver = {
+            DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0',
+            DefaultId, DefaultId, DefaultId, DefaultId, DefaultId
         };
-        sendData(GameOver.data(), HeaderSize);
+        try {
+            sendData(GameOver.data(), HeaderSize);
+        }
+        catch (const std::runtime_error& e) {
+            // This function is called while destroying the NetworkManager, so the error
+            // must not escape. The other side might have closed the connection already,
+            // in which case the shutdown of this and the other connections continues
+            Log::Warning(std::format(
+                "Could not send disconnect message on connection {}: {}", _id, e.what()
+            ));
+        }
     }
 
     Log::Info(std::format("Closing connection {}", _id));
@@ -805,7 +877,11 @@ void Network::initShutdown() {
     }
 
     _isConnected = false;
-    _shouldTerminate = true;
+    {
+        // The connection handler checks this value while holding the mutex
+        const std::unique_lock lock(_connectionMutex);
+        _shouldTerminate = true;
+    }
 
     // Wake up the connection handler thread (in order to finish)
     if (_isServer) {

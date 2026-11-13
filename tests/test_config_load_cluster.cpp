@@ -10,7 +10,7 @@
 #include <catch2/matchers/catch_matchers_exception.hpp>
 
 #include <sgct/config.h>
-#include <sgct/math.h>
+#include <sgct/error.h>
 #include "schema.h"
 
 using namespace sgct;
@@ -19,14 +19,14 @@ using namespace sgct::config;
 TEST_CASE("Load: Cluster/Minimal", "[parse]") {
     constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost"
+  "version": 2,
+  "serveraddress": "localhost"
 }
 )";
 
     const Cluster Object = {
         .success = true,
-        .masterAddress = "localhost"
+        .serverAddress = "localhost"
     };
 
 
@@ -38,67 +38,19 @@ TEST_CASE("Load: Cluster/Minimal", "[parse]") {
     CHECK(output == Object);
 }
 
-TEST_CASE("Load: Cluster/DebugLog", "[parse]") {
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "debuglog": false
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .debugLog = false
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-
-    {
-        constexpr std::string_view String = R"(
-{
-  "version": 1,
-  "masteraddress": "localhost",
-  "debuglog": true
-}
-)";
-
-        const Cluster Object = {
-            .success = true,
-            .masterAddress = "localhost",
-            .debugLog = true
-        };
-
-        Cluster res = sgct::readJsonConfig(String);
-        CHECK(res == Object);
-
-        const std::string str = serializeConfig(Object);
-        const config::Cluster output = readJsonConfig(str);
-        CHECK(output == Object);
-    }
-}
-
 TEST_CASE("Load: Cluster/ThreadAffinity", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "threadaffinity": 0
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .threadAffinity = 0
         };
 
@@ -113,15 +65,15 @@ TEST_CASE("Load: Cluster/ThreadAffinity", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "threadaffinity": 1
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .threadAffinity = 1
         };
 
@@ -138,15 +90,15 @@ TEST_CASE("Load: Cluster/FirmSync", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "firmsync": false
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .firmSync = false
         };
 
@@ -161,15 +113,15 @@ TEST_CASE("Load: Cluster/FirmSync", "[parse]") {
     {
         constexpr std::string_view String = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "firmsync": true
 }
 )";
 
         const Cluster Object = {
             .success = true,
-            .masterAddress = "localhost",
+            .serverAddress = "localhost",
             .firmSync = true
         };
 
@@ -202,7 +154,7 @@ TEST_CASE("Validate: Cluster/Empty", "[validate]") {
 TEST_CASE("Validate: Cluster/Version/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "masteraddress": "localhost"
+  "serveraddress": "localhost"
 }
 )";
 
@@ -218,7 +170,7 @@ TEST_CASE("Validate: Cluster/Version/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
   "version": "abc",
-  "masteraddress": "localhost"
+  "serveraddress": "localhost"
 }
 )";
 
@@ -230,10 +182,55 @@ TEST_CASE("Validate: Cluster/Version/Wrong Type", "[validate]") {
     //);
 }
 
-TEST_CASE("Validate: Cluster/Master Address/Missing", "[validate]") {
+TEST_CASE("Validate: Cluster/Version/Unsupported", "[validate]") {
+    constexpr std::string_view Config0 = R"(
+{
+  "version": 0,
+  "serveraddress": "localhost"
+}
+)";
+    CHECK_THROWS_AS(validate(Config0), ParsingError);
+    CHECK_THROWS_AS(readJsonConfig(Config0), sgct::Error);
+
+    constexpr std::string_view Config3 = R"(
+{
+  "version": 3,
+  "serveraddress": "localhost"
+}
+)";
+    CHECK_THROWS_AS(validate(Config3), ParsingError);
+    CHECK_THROWS_AS(readJsonConfig(Config3), sgct::Error);
+}
+
+TEST_CASE("Load: Cluster/Version/Supported", "[parse]") {
+    constexpr std::string_view Config1 = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost"
+}
+)";
+    CHECK_NOTHROW(validate(Config1));
+    CHECK_NOTHROW(readJsonConfig(Config1));
+
+    constexpr std::string_view Config2 = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost"
+}
+)";
+    CHECK_NOTHROW(validate(Config2));
+    CHECK_NOTHROW(readJsonConfig(Config2));
+}
+
+TEST_CASE("Load: Cluster/Version/Serialize", "[parse]") {
+    const std::string str = serializeConfig(Cluster{ .serverAddress = "localhost" });
+    CHECK(str.find(R"("version": 2)") != std::string::npos);
+}
+
+TEST_CASE("Validate: Cluster/Server Address/Missing", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1
+  "version": 2
 }
 )";
 
@@ -241,38 +238,79 @@ TEST_CASE("Validate: Cluster/Master Address/Missing", "[validate]") {
     CHECK_THROWS_MATCHES(
         readJsonConfig(Config),
         std::runtime_error,
-        Catch::Matchers::Message("[ReadConfig] (6084): Cannot find master address")
+        Catch::Matchers::Message("[ReadConfig] (6084): Cannot find server address")
     );
 }
 
-TEST_CASE("Validate: Cluster/Master Address/Wrong Type", "[validate]") {
+TEST_CASE("Validate: Cluster/Server Address/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": 1
+  "version": 2,
+  "serveraddress": 1
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Cluster/DebugLog/Wrong Type", "[validate]") {
-    constexpr std::string_view Config = R"(
+TEST_CASE("Load: Cluster/Server Address/Master Address (Version 1)", "[parse]") {
+    constexpr std::string_view String = R"(
 {
   "version": 1,
-  "masteraddress": "localhost",
-  "debuglog": 1
+  "masteraddress": "localhost"
+}
+)";
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost"
+    };
+
+    CHECK_NOTHROW(validate(String));
+    Cluster res = sgct::readJsonConfig(String);
+    CHECK(res == Object);
+}
+
+TEST_CASE("Validate: Cluster/Server Address/Master Address (Version 2)", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "masteraddress": "localhost"
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+    CHECK_THROWS_MATCHES(
+        readJsonConfig(Config),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6084): Cannot find server address")
+    );
+}
+
+TEST_CASE("Validate: Cluster/DebugLog/Removed", "[validate]") {
+    // Replaced by the --loglevel commandline argument
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "debuglog": true
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost"
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }
 
 TEST_CASE("Validate: Cluster/ThreadAffinity/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "threadaffinity": "abc"
 }
 )";
@@ -283,8 +321,8 @@ TEST_CASE("Validate: Cluster/ThreadAffinity/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/ThreadAffinity/Illegal Value", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "threadaffinity": -1
 }
 )";
@@ -302,9 +340,9 @@ TEST_CASE("Validate: Cluster/ThreadAffinity/Illegal Value", "[validate]") {
 TEST_CASE("Validate: Cluster/FirmSync/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
-  "debuglog": 1
+  "version": 2,
+  "serveraddress": "localhost",
+  "firmsync": 1
 }
 )";
 
@@ -314,8 +352,8 @@ TEST_CASE("Validate: Cluster/FirmSync/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/Scene/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "scene": "abc"
 }
 )";
@@ -326,8 +364,8 @@ TEST_CASE("Validate: Cluster/Scene/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/Nodes/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": "abc"
 }
 )";
@@ -338,8 +376,8 @@ TEST_CASE("Validate: Cluster/Nodes/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/Users/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "users": "abc"
 }
 )";
@@ -347,23 +385,33 @@ TEST_CASE("Validate: Cluster/Users/Wrong Type", "[validate]") {
     CHECK_THROWS_AS(validate(Config), ParsingError);
 }
 
-TEST_CASE("Validate: Cluster/Capture/Wrong Type", "[validate]") {
+TEST_CASE("Validate: Cluster/Capture/Removed", "[validate]") {
+    // The capture settings were replaced by commandline arguments, so the schema rejects
+    // them and loading the configuration ignores them
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
-  "capture": "abc"
+  "version": 2,
+  "serveraddress": "localhost",
+  "capture": {
+    "path": "abc"
+  }
 }
 )";
 
     CHECK_THROWS_AS(validate(Config), ParsingError);
+
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost"
+    };
+    CHECK(readJsonConfig(Config) == Object);
 }
 
 TEST_CASE("Validate: Cluster/Trackers/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "trackers": "abc"
 }
 )";
@@ -374,8 +422,8 @@ TEST_CASE("Validate: Cluster/Trackers/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/Settings/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "settings": "abc"
 }
 )";
@@ -386,8 +434,8 @@ TEST_CASE("Validate: Cluster/Settings/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/Generator/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "generator": "abc"
 }
 )";
@@ -398,8 +446,8 @@ TEST_CASE("Validate: Cluster/Generator/Wrong Type", "[validate]") {
 TEST_CASE("Validate: Cluster/Meta/Wrong Type", "[validate]") {
     constexpr std::string_view Config = R"(
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "meta": "abc"
 }
 )";

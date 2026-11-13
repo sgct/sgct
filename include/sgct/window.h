@@ -12,6 +12,7 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/definitions.h>
+#include <sgct/glm.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/screencapture.h>
 #include <sgct/shaderprogram.h>
@@ -130,7 +131,7 @@ public:
      * \return Get the scale value (relation between pixel and point size). Normally this
      *         value is 1.f but 2.f on some retina computers
      */
-    vec2 scale() const;
+    glm::vec2 scale() const;
 
     /**
      * \return The aspect ratio of the window
@@ -140,7 +141,7 @@ public:
     /**
      * \return Get the window size
      */
-    ivec2 windowSize() const;
+    glm::ivec2 windowSize() const;
 
     /**
      * \return The pointer to GLFW window
@@ -159,14 +160,14 @@ public:
      *
      * \param resolution The width and height of the frame buffer in pixels
      */
-    void setFramebufferResolution(ivec2 resolution);
+    void setFramebufferResolution(glm::ivec2 resolution);
 
     /**
      * Get the dimensions of the final FBO. Regular viewport rendering renders directly to
      * this FBO but a fisheye renders first a cubemap and then to the final FBO. Post
      * effects are rendered using these dimensions.
      */
-    ivec2 framebufferResolution() const;
+    glm::ivec2 framebufferResolution() const;
 
     /**
      * \return `true` if this window is resized
@@ -333,6 +334,11 @@ private:
      */
     void createVBOs();
     void loadShaders();
+
+    /**
+     * Creates the objects that take the screenshots for the current stereo mode.
+     */
+    void createScreenCaptures();
     bool useRightEyeTexture() const;
 
     /**
@@ -393,19 +399,19 @@ private:
     bool _isVisible;
     bool _isIconified = false;
     StereoMode _stereoMode;
-    std::optional<ivec2> _windowPos;
-    ivec2 _windowSize;
-    ivec2 _framebufferRes;
+    std::optional<glm::ivec2> _windowPos;
+    glm::ivec2 _windowSize = glm::ivec2(0, 0);
+    glm::ivec2 _framebufferRes = glm::ivec2(0, 0);
 
-    std::optional<ivec2> _pendingWindowSize;
+    std::optional<glm::ivec2> _pendingWindowSize;
     bool _windowResChanged = false;
     bool _hasFocus = false;
     bool _useFixResolution = false;
     bool _hasAnyMasks = false;
-    std::optional<ivec2> _pendingFramebufferRes;
+    std::optional<glm::ivec2> _pendingFramebufferRes;
     GLFWwindow* _windowHandle = nullptr;
     float _aspectRatio = 1.f;
-    vec2 _scale = vec2{ 0.f, 0.f };
+    glm::vec2 _scale = glm::vec2(0.f, 0.f);
 
 #ifdef SGCT_HAS_SPOUT
     struct {
@@ -427,8 +433,6 @@ private:
 #endif // SGCT_HAS_NDI
 
     const unsigned int _internalColorFormat;
-    const unsigned int _colorDataType;
-    const int _bytesPerColor = 4;
 
     struct {
         unsigned int leftEye = 0;

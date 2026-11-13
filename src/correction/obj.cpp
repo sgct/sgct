@@ -17,8 +17,10 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace {
@@ -35,6 +37,29 @@ namespace {
         int f2 = 0;
         int f3 = 0;
     };
+
+    template <typename T>
+    T parseNumber(std::string_view value, const std::filesystem::path& path,
+                  const std::string& line)
+    {
+        try {
+            if constexpr (std::is_same_v<T, int>) {
+                return std::stoi(std::string(value));
+            }
+            else {
+                return std::stof(std::string(value));
+            }
+        }
+        catch (const std::logic_error&) {
+            // std::invalid_argument and std::out_of_range
+            throw sgct::Error(
+                sgct::Error::Component::OBJ, 2036,
+                std::format(
+                    "Invalid number '{}' in OBJ file '{}' in line {}", value, path, line
+                )
+            );
+        }
+    }
 } // namespace
 
 namespace sgct::correction {
@@ -97,7 +122,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             rest = rest.substr(sep + 1);
 
             const std::string_view v3 = rest;
-            const float z = std::stof(std::string(v3));
+            const float z = parseNumber<float>(v3, path, line);
             if (z != 0.f) {
                 Log::Warning(std::format(
                     "Vertex in '{}' was using z coordinate which is not supported", path
@@ -105,8 +130,8 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             }
 
             Position p;
-            p.x = std::stof(std::string(v1));
-            p.y = std::stof(std::string(v2));
+            p.x = parseNumber<float>(v1, path, line);
+            p.y = parseNumber<float>(v2, path, line);
             positions.push_back(p);
         }
         else if (first == "vt") {
@@ -118,8 +143,8 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             const std::string_view v2 = rest.substr(0, sep);
 
             Texture t;
-            t.s = std::stof(std::string(v1));
-            t.t = std::stof(std::string(v2));
+            t.s = parseNumber<float>(v1, path, line);
+            t.t = parseNumber<float>(v2, path, line);
             texCoords.push_back(t);
         }
         else if (first == "f") {
@@ -157,9 +182,9 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             // the f.find method will return npos, which tells substr to "extract" the
             // entire string -> et voila; it still works
             Face f;
-            f.f1 = std::stoi(std::string(f1.substr(0, f1.find('/'))));
-            f.f2 = std::stoi(std::string(f2.substr(0, f2.find('/'))));
-            f.f3 = std::stoi(std::string(f3.substr(0, f3.find('/'))));
+            f.f1 = parseNumber<int>(f1.substr(0, f1.find('/')), path, line);
+            f.f2 = parseNumber<int>(f2.substr(0, f2.find('/')), path, line);
+            f.f3 = parseNumber<int>(f3.substr(0, f3.find('/')), path, line);
             faces.emplace_back(f);
         }
         else if (first == "vn") {
@@ -241,8 +266,10 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
     for (const Face& f : faces) {
         const int nPositions = static_cast<int>(positions.size());
         // OBJ uses 1-based indices, so we need to allow for one bigger than the number
-        // of positions
-        const bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;
+        // of positions, but 0 is not a valid index
+        const bool invalid =
+            f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions ||
+            f.f1 == 0 || f.f2 == 0 || f.f3 == 0;
         if (invalid) {
             throw Error(
                 Error::Component::OBJ, 2032,

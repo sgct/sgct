@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "masteraddress": "localhost",
+  "version": 2,
+  "serveraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -21,7 +21,6 @@
               "projection": {
                 "type": "SphericalMirrorProjection",
                 "quality": "2k",
-                "tilt": 0.0,
                 "background": { "r": 1.0, "g": 0.1, "b": 0.1, "a": 1.0 },
                 "geometry": {
                   "bottom": "mesh/bottom_warp2.obj",

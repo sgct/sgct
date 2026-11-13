@@ -74,6 +74,7 @@ namespace {
 namespace sgct {
 
 std::condition_variable NetworkManager::cond;
+std::mutex NetworkManager::condMutex;
 
 NetworkManager* NetworkManager::_instance = nullptr;
 
@@ -97,6 +98,16 @@ void NetworkManager::create(NetworkMode nm,
         std::move(dataTransferStatus),
         std::move(dataTransferAcknowledge)
     );
+}
+
+void NetworkManager::notifyAll() {
+    // Acquiring the mutex guarantees that a waiting thread is either already waiting or
+    // has not checked its condition yet. Without it, the notification would be lost if it
+    // happens between the check of the condition and the start of the wait
+    {
+        const std::unique_lock lock(condMutex);
+    }
+    cond.notify_all();
 }
 
 void NetworkManager::destroy() {
@@ -218,22 +229,15 @@ NetworkManager::~NetworkManager() {
     ZoneScoped;
 
     _isRunning = false;
-    cond.notify_all();
+    notifyAll();
 
     // Signal to terminate
     for (const std::unique_ptr<Network>& connection : _networkConnections) {
         connection->initShutdown();
     }
 
-    // Wait for all nodes callbacks to run
-    {
-        // @TODO (abock, 2019-12-20) We can probably remove this waiting altogether. The
-        // node callbacks are run synchronously with this function, and either way, what
-        // if the callbacks take longer and we crash anyway?
-        ZoneScopedN("Sleeping");
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-    }
-
+    // Destroying the connections waits for their threads, which run the remaining
+    // callbacks, so no additional waiting is necessary
     _networkConnections.clear();
     _syncConnections.clear();
     _dataTransferConnections.clear();
@@ -251,7 +255,7 @@ void NetworkManager::initialize() {
 
     _isServer = [&](NetworkMode nm) {
         switch (nm) {
-            case NetworkMode::Remote: return matchesAddress(cm.masterAddress());
+            case NetworkMode::Remote: return matchesAddress(cm.serverAddress());
             case NetworkMode::LocalServer: return true;
             case NetworkMode::LocalClient: return false;
             default: throw std::logic_error("Unhandled case label");
@@ -271,10 +275,10 @@ void NetworkManager::initialize() {
 
     std::string remoteAddress;
     if (_mode == NetworkMode::Remote) {
-        if (cm.masterAddress().empty()) {
-            throw Err(5022, "No address information for master available");
+        if (cm.serverAddress().empty()) {
+            throw Err(5022, "No address information for server available");
         }
-        remoteAddress = cm.masterAddress();
+        remoteAddress = cm.serverAddress();
     }
     else {
         // Local (not remote)
@@ -309,7 +313,7 @@ void NetworkManager::initialize() {
         if (!_isServer) {
             addConnection(cm.thisNode().syncPort(), remoteAddress);
             _networkConnections.back()->setDecodeFunction(
-                std::bind_front(&SharedData::decode, SharedData::instance())
+                std::bind_front(&SharedData::storeReceivedData, &SharedData::instance())
             );
 
             // Add data transfer connection
@@ -372,6 +376,13 @@ void NetworkManager::initialize() {
                 }
             }
         }
+    }
+
+    // Start the threads only now that the list of connections is no longer modified and
+    // all callbacks are set. A connection that is established immediately would otherwise
+    // update the connection status before it is part of the list, which stops a client
+    for (const std::unique_ptr<Network>& connection : _networkConnections) {
+        connection->initialize();
     }
 
     Log::Debug(
@@ -578,7 +589,7 @@ void NetworkManager::updateConnectionStatus(Network& connection) {
     }
 
     // Signal done to caller
-    cond.notify_all();
+    notifyAll();
 }
 
 void NetworkManager::setAllNodesConnected() {
@@ -617,8 +628,9 @@ void NetworkManager::addConnection(int port, std::string address,
     net->setUpdateFunction([this](Network& c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
-    // Must be initialized after binding
-    net->initialize();
+    // The threads of the connection are started at the end of `initialize`, when all
+    // connections exist and have their callbacks. Starting them here would let them use
+    // the list of connections while it is still being modified
     _networkConnections.push_back(std::move(net));
 
     // Update the previously existing shortcuts (maybe remove them altogether?)

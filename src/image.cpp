@@ -18,6 +18,7 @@
 #include <chrono>
 #include <csetjmp>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -33,10 +34,36 @@
 
 namespace sgct {
 
-Image::~Image() {
-    if (_data) {
-        stbi_image_free(_data);
+Image::Image(Image&& rhs) noexcept
+    : _nChannels(std::exchange(rhs._nChannels, 0))
+    , _size(std::exchange(rhs._size, glm::ivec2(0, 0)))
+    , _dataSize(std::exchange(rhs._dataSize, 0))
+    , _bytesPerChannel(std::exchange(rhs._bytesPerChannel, 1))
+    , _data(std::exchange(rhs._data, nullptr))
+{}
+
+Image& Image::operator=(Image&& rhs) noexcept {
+    if (this != &rhs) {
+        freeData();
+        _nChannels = std::exchange(rhs._nChannels, 0);
+        _size = std::exchange(rhs._size, glm::ivec2(0, 0));
+        _dataSize = std::exchange(rhs._dataSize, 0);
+        _bytesPerChannel = std::exchange(rhs._bytesPerChannel, 1);
+        _data = std::exchange(rhs._data, nullptr);
     }
+    return *this;
+}
+
+Image::~Image() {
+    freeData();
+}
+
+void Image::freeData() {
+    // The data is either allocated by stb_image or by allocateOrResizeData, both of
+    // which use malloc, so we have to free it with the matching function
+    stbi_image_free(_data);
+    _data = nullptr;
+    _dataSize = 0;
 }
 
 void Image::load(const std::filesystem::path& filename) {
@@ -44,9 +71,13 @@ void Image::load(const std::filesystem::path& filename) {
         throw Err(9000, "Cannot load empty filepath");
     }
 
-    stbi_set_flip_vertically_on_load(1);
+    freeData();
     std::string name = filename.string();
+
+    stbi_set_flip_vertically_on_load_thread(1);
     _data = stbi_load(name.c_str(), &_size.x, &_size.y, &_nChannels, 0);
+    stbi_set_flip_vertically_on_load_thread(0);
+    
     if (_data == nullptr) {
         throw Err(
             9001, std::format("Could not open file '{}' for loading image", name));
@@ -63,8 +94,15 @@ void Image::load(const std::filesystem::path& filename) {
 }
 
 void Image::load(unsigned char* data, int length) {
-    stbi_set_flip_vertically_on_load(1);
+    freeData();
+
+    stbi_set_flip_vertically_on_load_thread(1);
     _data = stbi_load_from_memory(data, length, &_size.x, &_size.y, &_nChannels, 0);
+    stbi_set_flip_vertically_on_load_thread(0);
+
+    if (_data == nullptr) {
+        throw Err(9003, "Could not load image from memory");
+    }
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
 
@@ -107,6 +145,7 @@ void Image::save(const std::filesystem::path& filename) {
         nullptr
     );
     if (!png) {
+        fclose(fp);
         throw Err(9009, "Failed to create PNG struct");
     }
 
@@ -115,7 +154,11 @@ void Image::save(const std::filesystem::path& filename) {
     //    0 = No compression
     //    1 = Best speed
     //    9 = Best compression
-    png_set_compression_level(png, -1);
+    // The images are written while rendering, for example when capturing every frame, so
+    // the time it takes to write an image is more important than the size of the file.
+    // Level 3 is as fast as level 1 for rendered images, but creates slightly smaller
+    // files, while level 6 and above take more than twice as long
+    png_set_compression_level(png, 3);
     png_set_filter(png, 0, PNG_FILTER_NONE);
     png_set_compression_mem_level(png, 8);
     png_set_compression_strategy(png, Z_DEFAULT_STRATEGY);
@@ -125,11 +168,14 @@ void Image::save(const std::filesystem::path& filename) {
 
     png_infop info = png_create_info_struct(png);
     if (!info) {
+        png_destroy_write_struct(&png, nullptr);
+        fclose(fp);
         throw Err(9010, "Failed to create PNG info struct");
     }
 
     if (setjmp(png_jmpbuf(png))) {
         png_destroy_write_struct(&png, &info);
+        fclose(fp);
         throw Err(9011, "One of the called PNG functions failed");
     }
 
@@ -200,12 +246,12 @@ int Image::bytesPerChannel() const {
     return _bytesPerChannel;
 }
 
-ivec2 Image::size() const {
+glm::ivec2 Image::size() const {
     return _size;
 }
 
-void Image::setSize(ivec2 size) {
-    _size = std::move(size);
+void Image::setSize(glm::ivec2 size) {
+    _size = size;
 }
 
 void Image::setChannels(int channels) {
@@ -232,13 +278,14 @@ void Image::allocateOrResizeData() {
 
     if (_data && _dataSize != dataSize) {
         // Reallocate if needed
-        delete[] _data;
-        _data = nullptr;
-        _dataSize = 0;
+        freeData();
     }
 
     if (!_data) {
-        _data = new unsigned char[dataSize];
+        _data = static_cast<unsigned char*>(std::malloc(dataSize));
+        if (!_data) {
+            throw Err(9004, std::format("Failed to allocate {} bytes", dataSize));
+        }
         _dataSize = dataSize;
 
         Log::Debug(std::format(

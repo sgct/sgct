@@ -7,10 +7,8 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/glm.h>
 #include <sgct/opengl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <filesystem>
 #include <numeric>
 #include <thread>
@@ -43,6 +41,13 @@ namespace {
 
     bool runTests = false;
     uint64_t frameNumber = 0;
+
+    // If this is set, the calibrator renders the box, takes a single screenshot of the
+    // back buffer, and terminates
+    bool runImageTest = false;
+    // The frame in which the screenshot is taken. The first frames are skipped so that
+    // all nodes of a cluster are connected and have rendered at least once
+    constexpr uint64_t ImageTestScreenshotFrame = 5;
 
     float phi = glm::pi<float>();
     float theta = 0.f;
@@ -462,7 +467,7 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
-    const mat4 mvp = data.modelViewProjectionMatrix;
+    const glm::mat4& mvp = data.modelViewProjectionMatrix;
 
     glm::vec3 direction = {
         std::cos(theta) * std::sin(phi),
@@ -479,7 +484,7 @@ void draw(const RenderData& data) {
 
     if (renderGrid) {
         ShaderManager::instance().shaderProgram("grid").bind();
-        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
+        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
         glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(grid.vao);
         glDrawElements(GL_LINE_STRIP, grid.nVertLine, GL_UNSIGNED_SHORT, nullptr);
@@ -489,7 +494,7 @@ void draw(const RenderData& data) {
 
     if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
-        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values.data());
+        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
         glUniformMatrix4fv(box.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
 
         glBindTextureUnit(0, box.textureFront);
@@ -527,7 +532,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             offset,
             h / 2.f - s1,
-            vec4{ 0.f, 0.f, 1.f, 1.f },
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
             std::to_string(ClusterManager::instance().thisNodeId())
         );
 
@@ -541,7 +546,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             offset,
             h / 2.f - (s1 + s2) * 1.2f,
-            vec4{ 0.f, 0.f, 1.f, 1.f },
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
             ClusterManager::instance().thisNode().address()
         );
     }
@@ -554,7 +559,20 @@ void postDraw() {
         Log::Info(std::format("Frame: {}", frameNumber));
     }
 
-    if (Engine::instance().isMaster() && runTests) {
+    if (Engine::instance().isServer() && runImageTest) {
+        frameNumber++;
+        if (frameNumber == ImageTestScreenshotFrame) {
+            // The screenshot is taken in the next frame, after the value was synchronized
+            // with all clients. Destroying the engine waits for the screenshot to be
+            // written, and the clients terminate when the server disconnects
+            takeScreenshot = true;
+        }
+        else if (frameNumber == ImageTestScreenshotFrame + 1) {
+            Engine::instance().terminate();
+        }
+    }
+
+    if (Engine::instance().isServer() && runTests) {
         constexpr int FrameGridFirstScreenshot = 5;
         constexpr int FrameGridSettingBackBuffer = 10;
         constexpr int FrameGridSecondScreenshot = 15;
@@ -725,6 +743,15 @@ int main(int argc, char** argv) {
     }
 
     runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
+    runImageTest = std::find(arg.begin(), arg.end(), "--image-test") != arg.end();
+    // Shows the node id and address from the first frame on, without the need for the
+    // key press. The value is synchronized from the server to all clients
+    showId = std::find(arg.begin(), arg.end(), "--show-id") != arg.end();
+    if (runImageTest) {
+        // The back buffer contains the final image, including the correction meshes, the
+        // masks, and the composited stereo image
+        captureBackbuffer = true;
+    }
 
     const Engine::Callbacks callbacks = {
         .initOpenGL = initGL,

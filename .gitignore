@@ -6,3 +6,4 @@ support/config-converter/node_modules/
 vcpkg_installed/
 CMakeUserPresets.json
 Doxyfile
+support/runner/results

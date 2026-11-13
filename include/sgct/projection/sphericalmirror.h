@@ -13,7 +13,9 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
+#include <sgct/glm.h>
 #include <sgct/shaderprogram.h>
+#include <filesystem>
 
 namespace sgct {
 
@@ -31,7 +33,7 @@ public:
         const Window& parent, User& user);
     ~SphericalMirrorProjection() final;
 
-    void update(const vec2& size) const override;
+    void update(const glm::vec2& size) const override;
 
     /**
      * Render the non linear projection to currently bounded FBO.
@@ -44,12 +46,11 @@ public:
     void renderCubemap(FrustumMode frustumMode) const override;
 
     /**
-     * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
-     * from the horizontal.
+     * Set the orientation of the dome used in the spherical mirror renderer.
      *
-     * \param angle The tilt angle in degrees
+     * \param orientation The orientation of the dome
      */
-    void setTilt(float angle);
+    void setOrientation(glm::quat orientation);
 
 private:
     void initTextures(unsigned int internalFormat) override;
@@ -57,7 +58,7 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    float _tilt;
+    glm::quat _orientation;
     float _diameter = 2.4f;
 
     // mesh data
@@ -65,10 +66,10 @@ private:
     CorrectionMesh _meshLeft;
     CorrectionMesh _meshRight;
     CorrectionMesh _meshTop;
-    std::string _meshPathBottom;
-    std::string _meshPathLeft;
-    std::string _meshPathRight;
-    std::string _meshPathTop;
+    std::filesystem::path _meshPathBottom;
+    std::filesystem::path _meshPathLeft;
+    std::filesystem::path _meshPathRight;
+    std::filesystem::path _meshPathTop;
 
     // shader locations
     int _texLoc = -1;

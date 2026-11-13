@@ -12,8 +12,8 @@
 #ifdef SGCT_HAS_OPENXR
 
 #include <sgct/definitions.h>
+#include <sgct/glm.h>
 #include <sgct/sgctexports.h>
-#include <glm/glm.hpp>
 
 namespace sgct { class Window; }
 
@@ -26,7 +26,7 @@ namespace sgct::openxr {
 
     SGCT_EXPORT bool isHMDActive();
 
-    SGCT_EXPORT ivec2 eyeResolution(FrustumMode eye);
+    SGCT_EXPORT glm::ivec2 eyeResolution(FrustumMode eye);
 
     /// Submit a side-by-side stereo SGCT window render target to the OpenXR runtime.
     SGCT_EXPORT void copyWindowToHMD(Window* win);

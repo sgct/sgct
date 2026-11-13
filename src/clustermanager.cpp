@@ -10,15 +10,11 @@
 
 #include <sgct/config.h>
 #include <sgct/format.h>
-#include <sgct/log.h>
+#include <sgct/glm.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
-#include <cstring>
 #include <functional>
 #include <stdexcept>
 #include <utility>
@@ -63,33 +59,22 @@ void ClusterManager::destroy() {
 ClusterManager::ClusterManager(const config::Cluster& cluster, int clusterID)
     : _thisNodeId(clusterID)
     , _firmFrameLockSync(cluster.firmSync.value_or(false))
-    , _masterAddress(cluster.masterAddress)
+    , _serverAddress(cluster.serverAddress)
 {
     ZoneScoped;
 
-    if (cluster.debugLog && *cluster.debugLog) {
-        Log::instance().setNotifyLevel(Log::Level::Debug);
-    }
-
     if (cluster.scene) {
         const glm::mat4 translate = cluster.scene->offset ?
-            glm::translate(
-                glm::mat4(1.f), glm::make_vec3(&cluster.scene->offset->x)
-            ) : glm::mat4(1.f);
+            glm::translate(glm::mat4(1.f), *cluster.scene->offset) : glm::mat4(1.f);
 
         const glm::mat4 rotation = cluster.scene->orientation ?
-            glm::mat4_cast(glm::make_quat(&cluster.scene->orientation->x)) :
+            glm::mat4_cast(*cluster.scene->orientation) :
             glm::mat4(1.f);
 
         const glm::mat4 scale = cluster.scene->scale ?
             glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) : glm::mat4(1.f);
 
-        glm::mat4 complete = rotation * translate * scale;
-        std::memcpy(
-            _sceneTransform.values.data(),
-            glm::value_ptr(complete),
-            sizeof(sgct::mat4)
-        );
+        _sceneTransform = rotation * translate * scale;
     }
 }
 
@@ -139,15 +124,15 @@ void ClusterManager::setUseIgnoreSync(bool state) {
     _ignoreSync = state;
 }
 
-const std::string& ClusterManager::masterAddress() const {
-    return _masterAddress;
+const std::string& ClusterManager::serverAddress() const {
+    return _serverAddress;
 }
 
 int ClusterManager::numberOfNodes() const {
     return static_cast<int>(_nodes.size());
 }
 
-const mat4& ClusterManager::sceneTransform() const {
+const glm::mat4& ClusterManager::sceneTransform() const {
     return _sceneTransform;
 }
 

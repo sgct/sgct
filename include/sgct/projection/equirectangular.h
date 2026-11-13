@@ -12,7 +12,7 @@
 #include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
-#include <sgct/math.h>
+#include <sgct/glm.h>
 #include <sgct/shaderprogram.h>
 
 namespace sgct {
@@ -32,13 +32,22 @@ public:
 
     void renderCubemap(FrustumMode frustumMode) const override;
 
-    void update(const vec2& size) const override;
+    void update(const glm::vec2& size) const override;
+
+    /**
+     * Set the orientation of the equirectangular projection. The identity orientation
+     * corresponds to the default orientation of the projection.
+     *
+     * \param orientation The orientation of the projection
+     */
+    void setOrientation(glm::quat orientation);
 
 private:
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
 
+    glm::quat _orientation;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
     ShaderProgram _shader;

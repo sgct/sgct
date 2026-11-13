@@ -15,7 +15,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -24,7 +26,7 @@
 namespace sgct {
 
 /**
- * This class shares application data between nodes in a cluster where the master encodes
+ * This class shares application data between nodes in a cluster where the server encodes
  * and transmits the data and the clients receives and decode the data.
  */
 class SGCT_EXPORT SharedData {
@@ -41,9 +43,16 @@ public:
     void encode();
 
     /**
-     * This function is called internally by SGCT and shouldn't be used by the user.
+     * Stores received data until the next #decodeReceivedData call. This function is
+     * called internally by SGCT and shouldn't be used by the user.
      */
-    void decode(const char* receivedData, int receivedLength);
+    void storeReceivedData(const char* receivedData, int receivedLength);
+
+    /**
+     * Decodes all stored data in the order it was received. This function is called
+     * internally by SGCT and shouldn't be used by the user.
+     */
+    void decodeReceivedData();
 
     unsigned char* dataBlock();
     int dataSize();
@@ -58,6 +67,13 @@ private:
     static SharedData* _instance;
     std::vector<std::byte> _dataBlock;
     std::array<std::byte, Network::HeaderSize> _headerSpace;
+
+    std::mutex _receivedDataMutex;
+    std::vector<std::vector<std::byte>> _receivedData;
+    /// The data that is being decoded by #decodeReceivedData
+    std::vector<std::vector<std::byte>> _decodingData;
+    /// Buffers of previously decoded data, which are reused for newly received data
+    std::vector<std::vector<std::byte>> _unusedBuffers;
 };
 
 template <typename T>
@@ -110,7 +126,8 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
         "Type has to be a plain-old data type"
     );
 
-    value = *reinterpret_cast<const T*>(&buffer[pos]);
+    // The value might not be correctly aligned in the buffer, so we can't dereference it
+    std::memcpy(&value, buffer.data() + pos, sizeof(T));
     pos += sizeof(T);
 }
 
@@ -127,11 +144,8 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
         return;
     }
 
-    value.clear();
-    value.assign(
-        reinterpret_cast<const T*>(buffer.data() + pos),
-        reinterpret_cast<const T*>(buffer.data() + pos + size * sizeof(T))
-    );
+    value.resize(size);
+    std::memcpy(value.data(), buffer.data() + pos, size * sizeof(T));
     pos += size * sizeof(T);
 }
 

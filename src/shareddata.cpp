@@ -51,33 +51,53 @@ void SharedData::setDecodeFunction(
     _decodeFn = std::move(function);
 }
 
-void SharedData::decode(const char* receivedData, int receivedLength) {
+void SharedData::storeReceivedData(const char* receivedData, int receivedLength) {
     ZoneScoped;
 
+    const std::byte* begin = reinterpret_cast<const std::byte*>(receivedData);
+    const std::unique_lock lock(_receivedDataMutex);
+
+    // Reusing a buffer of a previous frame avoids allocating memory in every frame
+    std::vector<std::byte> buffer;
+    if (!_unusedBuffers.empty()) {
+        buffer = std::move(_unusedBuffers.back());
+        _unusedBuffers.pop_back();
+    }
+    buffer.assign(begin, begin + receivedLength);
+    _receivedData.push_back(std::move(buffer));
+}
+
+void SharedData::decodeReceivedData() {
+    ZoneScoped;
+
+    // The list is a member variable to keep its memory between the frames. It is only
+    // used by this function and is always empty outside of it, unless a decode function
+    // threw an exception
+    _decodingData.clear();
     {
-        const std::unique_lock lock(mutex::DataSync);
-
-        // Reset
-        _dataBlock.clear();
-
-        if (receivedLength > static_cast<int>(_dataBlock.capacity())) {
-            _dataBlock.reserve(receivedLength);
-        }
-        _dataBlock.insert(
-            _dataBlock.end(),
-            reinterpret_cast<const std::byte*>(receivedData),
-            reinterpret_cast<const std::byte*>(receivedData) + receivedLength
-        );
+        const std::unique_lock lock(_receivedDataMutex);
+        _decodingData.swap(_receivedData);
     }
 
     if (_decodeFn) {
-        std::vector<std::byte> data;
-        data.assign(
-            reinterpret_cast<const std::byte*>(receivedData),
-            reinterpret_cast<const std::byte*>(receivedData) + receivedLength
-        );
-        _decodeFn(data);
+        for (const std::vector<std::byte>& d : _decodingData) {
+            _decodeFn(d);
+        }
     }
+
+    // Keep the buffers for the data of the next frames. The number of buffers is limited
+    // as more of them are only needed if this node falls behind the server
+    constexpr size_t MaxUnusedBuffers = 4;
+    {
+        const std::unique_lock lock(_receivedDataMutex);
+        for (std::vector<std::byte>& d : _decodingData) {
+            if (_unusedBuffers.size() >= MaxUnusedBuffers) {
+                break;
+            }
+            _unusedBuffers.push_back(std::move(d));
+        }
+    }
+    _decodingData.clear();
 }
 
 void SharedData::encode() {
@@ -167,9 +187,11 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
     uint32_t size = 0;
     deserializeObject<uint32_t>(buffer, pos, size);
 
-    value = std::wstring(
-        reinterpret_cast<const char*>(buffer.data() + pos),
-        reinterpret_cast<const char*>(buffer.data() + pos + size)
+    value.resize(size);
+    std::memcpy(
+        value.data(),
+        buffer.data() + pos,
+        size * sizeof(std::wstring::value_type)
     );
     pos += size * sizeof(std::wstring::value_type);
 }

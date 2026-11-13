@@ -11,7 +11,7 @@
 
 #include <sgct/sgctexports.h>
 
-#include <sgct/math.h>
+#include <sgct/glm.h>
 #include <filesystem>
 
 namespace sgct {
@@ -19,6 +19,10 @@ namespace sgct {
 class SGCT_EXPORT Image {
 public:
     Image() = default;
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+    Image(Image&& rhs) noexcept;
+    Image& operator=(Image&& rhs) noexcept;
     ~Image();
 
     void allocateOrResizeData();
@@ -34,15 +38,17 @@ public:
     const unsigned char* data() const;
     int channels() const;
     int bytesPerChannel() const;
-    ivec2 size() const;
+    glm::ivec2 size() const;
 
-    void setSize(ivec2 size);
+    void setSize(glm::ivec2 size);
     void setChannels(int channels);
     void setBytesPerChannel(int bpc);
 
 private:
+    void freeData();
+
     int _nChannels = 0;
-    ivec2 _size = ivec2{ 0, 0 };
+    glm::ivec2 _size = glm::ivec2(0, 0);
     unsigned int _dataSize = 0;
     int _bytesPerChannel = 1;
     unsigned char* _data = nullptr;

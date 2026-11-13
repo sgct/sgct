@@ -14,7 +14,7 @@
 #include <sgct/sgctexports.h>
 
 #include <sgct/font.h>
-#include <sgct/math.h>
+#include <sgct/glm.h>
 #include <sgct/shaderprogram.h>
 #include <map>
 #include <memory>
@@ -122,7 +122,7 @@ public:
      * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the
      * texture index at which the font information is stored.
      */
-    void bindShader(const mat4& mvp, const vec4& color, int texture) const;
+    void bindShader(const glm::mat4& mvp, const glm::vec4& color, int texture) const;
 
 private:
     /**

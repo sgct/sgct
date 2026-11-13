@@ -129,7 +129,7 @@ void NonLinearProjection::setUser(User& user) {
     _subViewports.back.setUser(user);
 }
 
-ivec2 NonLinearProjection::cubemapResolution() const {
+glm::ivec2 NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
 }
 
@@ -186,12 +186,12 @@ void NonLinearProjection::initFBO(unsigned int internalFormat, int nSamples) {
 }
 
 void NonLinearProjection::setupViewport(const BaseViewport& vp) const {
-    ivec4 vpCoords = ivec4 {
+    const glm::ivec4 vpCoords = glm::ivec4(
         static_cast<int>(std::floor(vp.position().x * _cubemapResolution.x + 0.5f)),
         static_cast<int>(std::floor(vp.position().y * _cubemapResolution.y + 0.5f)),
         static_cast<int>(std::floor(vp.size().x * _cubemapResolution.x + 0.5f)),
         static_cast<int>(std::floor(vp.size().y * _cubemapResolution.y + 0.5f))
-    };
+    );
 
     glViewport(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
     glScissor(vpCoords.x, vpCoords.y, vpCoords.z, vpCoords.w);
@@ -343,7 +343,10 @@ void NonLinearProjection::renderCubeFace(const BaseViewport& vp, int idx,
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);
-    Engine::instance().drawFunction()(renderData);
+    // The draw function is optional
+    if (Engine::instance().drawFunction()) [[likely]] {
+        Engine::instance().drawFunction()(renderData);
+    }
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // Blit MSAA fbo to texture

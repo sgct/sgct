@@ -86,6 +86,9 @@ ShaderProgram::~ShaderProgram() {
 
 ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
     if (&rhs != this) {
+        // The program and the shaders of this object would be leaked otherwise
+        deleteProgram();
+
         _name = std::move(rhs._name);
         _programId = rhs._programId;
         rhs._programId = 0;

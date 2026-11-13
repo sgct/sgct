@@ -50,12 +50,12 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/font.h
     ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
     ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/glm.h
     ${PROJECT_SOURCE_DIR}/include/sgct/image.h
     ${PROJECT_SOURCE_DIR}/include/sgct/internalshaders.h
     ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
     ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
     ${PROJECT_SOURCE_DIR}/include/sgct/log.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/math.h
     ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
     ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
     ${PROJECT_SOURCE_DIR}/include/sgct/mutexes.h
@@ -108,7 +108,6 @@ target_sources(
     freetype.cpp
     image.cpp
     log.cpp
-    math.cpp
     network.cpp
     networkmanager.cpp
     node.cpp
@@ -146,8 +145,8 @@ target_precompile_headers(sgct PRIVATE
   <sgct/config.h>
   <sgct/engine.h>
   <sgct/format.h>
+  <sgct/glm.h>
   <sgct/opengl.h>
-  <glm/glm.hpp>
 
   <scn/scan.h>
 
@@ -198,6 +197,7 @@ target_link_libraries(sgct
     Freetype::Freetype
     glad::glad
     glfw
+    glm::glm
     OpenGL::GL
     OpenXR::openxr_loader
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:Spout2::SpoutLibrary>
@@ -205,7 +205,6 @@ target_link_libraries(sgct
   PRIVATE
     ZLIB::ZLIB
     $<IF:$<TARGET_EXISTS:MINIZIP::minizip>,MINIZIP::minizip,MINIZIP::minizipstatic>
-    glm::glm
     PNG::PNG
     scn::scn
     $<IF:$<BOOL:${BUILD_SHARED_LIBS}>,unofficial::stbimage::stbimage-read-impl,unofficial::stbimage::stbimage>

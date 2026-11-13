@@ -14,9 +14,9 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/math.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/openxr.h>
@@ -24,12 +24,9 @@
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/statisticsrenderer.h>
 #include <glad/glad.h>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstring>
 #include <functional>
 #include <span>
 #include <stdexcept>
@@ -118,36 +115,6 @@ namespace {
         }
     }
 
-    unsigned int colorBitDepthToDataType(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return GL_UNSIGNED_BYTE;
-            case CBD::Depth16:      return GL_UNSIGNED_SHORT;
-            case CBD::Depth16Float: return GL_HALF_FLOAT;
-            case CBD::Depth32Float: return GL_FLOAT;
-            case CBD::Depth16Int:   return GL_SHORT;
-            case CBD::Depth32Int:   return GL_INT;
-            case CBD::Depth16UInt:  return GL_UNSIGNED_SHORT;
-            case CBD::Depth32UInt:  return GL_UNSIGNED_INT;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    unsigned int colorBitDepthToBytesPerColor(sgct::config::Window::ColorBitDepth cbd) {
-        using CBD = sgct::config::Window::ColorBitDepth;
-        switch (cbd) {
-            case CBD::Depth8:       return 1;
-            case CBD::Depth16:      return 2;
-            case CBD::Depth16Float: return 2;
-            case CBD::Depth32Float: return 4;
-            case CBD::Depth16Int:   return 2;
-            case CBD::Depth32Int:   return 4;
-            case CBD::Depth16UInt:  return 2;
-            case CBD::Depth32UInt:  return 4;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
     enum class BufferMode { BackBufferBlack, RenderToTexture };
     void setAndClearBuffer(const sgct::Window& window, BufferMode buffer,
                            sgct::FrustumMode frustum)
@@ -181,7 +148,7 @@ namespace {
         }
     }
 
-    sgct::ivec2 bakeSize(std::optional<sgct::ivec2> size, int monitorIndex) {
+    glm::ivec2 bakeSize(std::optional<glm::ivec2> size, int monitorIndex) {
         if (size.has_value()) {
             return *size;
         }
@@ -194,72 +161,64 @@ namespace {
         monitorIndex = std::clamp(monitorIndex, 0, count - 1);
 
         const GLFWvidmode* mode = glfwGetVideoMode(monitors[monitorIndex]);
-        return sgct::ivec2(
+        return glm::ivec2(
             static_cast<int>(mode->width * ScaleFactor),
             static_cast<int>((mode->width / AspectRatio) * ScaleFactor)
         );
     }
 
-    sgct::mat4 convert(const glm::mat4& matrix) {
-        sgct::mat4 result;
-        std::memcpy(result.values.data(), glm::value_ptr(matrix), sizeof(float[16]));
-        return result;
-    }
-
-    sgct::mat4 viewMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
-                          sgct::FrustumMode frustum)
+    glm::mat4 viewMatrix(const sgct::Window& window, const sgct::Viewport& viewport,
+                         sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-            return convert(
-                sgct::openxr::eyeToHeadTransform(frustum) * sgct::openxr::poseMatrix()
-            );
+            return sgct::openxr::eyeToHeadTransform(frustum) * sgct::openxr::poseMatrix();
         }
 #endif // SGCT_HAS_OPENXR
         return viewport.projection(frustum).viewMatrix();
     }
 
-    sgct::mat4 projectionMatrix(const sgct::Window& window,
-                                const sgct::Viewport& viewport, sgct::FrustumMode frustum)
+    glm::mat4 projectionMatrix(const sgct::Window& window,
+                               const sgct::Viewport& viewport, sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-            return convert(sgct::openxr::eyeProjectionMatrix(
+            return sgct::openxr::eyeProjectionMatrix(
                 frustum,
                 sgct::Engine::instance().nearClipPlane(),
                 sgct::Engine::instance().farClipPlane()
-            ));
+            );
         }
 #endif // SGCT_HAS_OPENXR
         return viewport.projection(frustum).projectionMatrix();
     }
 
-    sgct::mat4 viewProjectionMatrix(const sgct::Window& window,
-                                    const sgct::Viewport& viewport,
-                                    sgct::FrustumMode frustum)
+    glm::mat4 viewProjectionMatrix(const sgct::Window& window,
+                                   const sgct::Viewport& viewport,
+                                   sgct::FrustumMode frustum)
     {
 #ifdef SGCT_HAS_OPENXR
         if (window.isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-            return convert(sgct::openxr::currentViewProjectionMatrix(frustum));
+            return sgct::openxr::currentViewProjectionMatrix(frustum);
         }
 #endif // SGCT_HAS_OPENXR
         return viewport.projection(frustum).viewProjectionMatrix();
     }
 
-    sgct::ivec2 renderBufferSize(const sgct::Window& window, sgct::FrustumMode) {
+    glm::ivec2 renderBufferSize(const sgct::Window& window, sgct::FrustumMode) {
         return window.framebufferResolution();
     }
 
 #ifdef SGCT_HAS_OPENXR
-    sgct::ivec2 openXRFramebufferResolution(const sgct::Window& window) {
+    glm::ivec2 openXRFramebufferResolution(const sgct::Window& window) {
         if (!window.isOpenXREnabled() || !sgct::openxr::isHMDActive()) {
             return window.framebufferResolution();
         }
 
-        const sgct::ivec2 left = sgct::openxr::eyeResolution(
+        const glm::ivec2 left = sgct::openxr::eyeResolution(
             sgct::FrustumMode::StereoLeft
         );
-        const sgct::ivec2 right = sgct::openxr::eyeResolution(
+        const glm::ivec2 right = sgct::openxr::eyeResolution(
             sgct::FrustumMode::StereoRight
         );
         const int eyeWidth = std::max(left.x, right.x);
@@ -271,27 +230,24 @@ namespace {
         switch (window.stereoMode()) {
             case sgct::Window::StereoMode::SideBySide:
             case sgct::Window::StereoMode::SideBySideInverted:
-                return sgct::ivec2{ eyeWidth * 2, eyeHeight };
+                return glm::ivec2(eyeWidth * 2, eyeHeight);
             case sgct::Window::StereoMode::TopBottom:
             case sgct::Window::StereoMode::TopBottomInverted:
-                return sgct::ivec2{ eyeWidth, eyeHeight * 2 };
+                return glm::ivec2(eyeWidth, eyeHeight * 2);
             case sgct::Window::StereoMode::NoStereo:
                 return left;
             default:
-                return sgct::ivec2{ eyeWidth, eyeHeight };
+                return glm::ivec2(eyeWidth, eyeHeight);
         }
     }
 #endif // SGCT_HAS_OPENXR
 
-    sgct::vec2 viewportRenderSize(const sgct::Window& window,
-                                  const sgct::Viewport& viewport,
-                                  sgct::FrustumMode frustum)
+    glm::vec2 viewportRenderSize(const sgct::Window& window,
+                                 const sgct::Viewport& viewport,
+                                 sgct::FrustumMode frustum)
     {
-        const sgct::ivec2 res = renderBufferSize(window, frustum);
-        return sgct::vec2{
-            res.x * viewport.size().x,
-            res.y * viewport.size().y
-        };
+        const glm::ivec2 res = renderBufferSize(window, frustum);
+        return glm::vec2(res) * viewport.size();
     }
 } // namespace
 
@@ -370,6 +326,12 @@ void Window::setBarrier([[maybe_unused]] bool state) {
     if (_useSwapGroups && state != _isBarrierActive) {
         Log::Info("Enabling Nvidia swap barrier");
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
+        if (!_isBarrierActive) {
+            Log::Error(
+                "Failed to bind the Nvidia swap barrier. The buffer swaps of this node "
+                "are not synchronized with the other nodes"
+            );
+        }
     }
 #endif // WIN32
 }
@@ -422,8 +384,8 @@ config::Window createScalableConfiguration(
     res.isDecorated = res.isDecorated.value_or(false);
     res.draw2D = res.draw2D.value_or(false);
 
-    res.pos = res.pos.value_or(ivec2{ 0, 0 });
-    res.size =  ivec2 { static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres) };
+    res.pos = res.pos.value_or(glm::ivec2(0, 0));
+    res.size = glm::ivec2(static_cast<int>(mesh.Xres), static_cast<int>(mesh.Yres));
     res.scalable = scalable;
 
     if (mesh.Projection == EasyBlendSDK_PROJECTION_Perspective) {
@@ -444,17 +406,16 @@ config::Window createScalableConfiguration(
         EasyBlendSDK_GetHeadingPitchRoll(heading, pitch, roll, &mesh);
         // Inverting some values as EasyBlend and OpenSpace use a different left-handed vs
         // right-handed coordinate system
-        const glm::quat q = glm::quat(glm::vec3(
+        proj.orientation = glm::quat(glm::vec3(
             glm::radians(-pitch),
             glm::radians(-heading),
             glm::radians(roll)
         ));
-        proj.orientation = quat(q.x, q.y, q.z, q.w);
-        proj.offset = vec3 {
+        proj.offset = glm::vec3(
             static_cast<float>(mesh.Frustum.XOffset),
             static_cast<float>(mesh.Frustum.YOffset),
             static_cast<float>(mesh.Frustum.ZOffset)
-        };
+        );
 
         res.viewports = {
             config::Viewport {.projection = proj }
@@ -464,13 +425,13 @@ config::Window createScalableConfiguration(
         // If the projection is orthographic, we need to create a fisheye projection
         // instead
 
-        res.resolution = ivec2 {
+        res.resolution = glm::ivec2(
             scalable.orthographicResolution.value_or(4096),
             scalable.orthographicResolution.value_or(4096)
-        };
+        );
         config::FisheyeProjection proj = {
             .quality = scalable.orthographicQuality.value_or(2048),
-            .background = vec4 { 0.f, 0.f, 0.f, 1.f }
+            .background = glm::vec4(0.f, 0.f, 0.f, 1.f)
         };
 
         res.viewports = {
@@ -537,12 +498,6 @@ Window::Window(const config::Window& window)
     , _internalColorFormat(colorBitDepthToColorFormat(
         window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
     ))
-    , _colorDataType(colorBitDepthToDataType(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
-    , _bytesPerColor(colorBitDepthToBytesPerColor(
-        window.bufferBitDepth.value_or(config::Window::ColorBitDepth::Depth8)
-    ))
 {
     ZoneScoped;
 
@@ -571,7 +526,7 @@ Window::Window(const config::Window& window)
             Log::Error("Error creating NDI sender");
         }
 
-        ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
+        glm::ivec2 res = window.resolution.value_or(bakeSize(window.size, _monitorIndex));
         _ndi.videoFrame.xres = res.x;
         _ndi.videoFrame.yres = res.y;
         _ndi.videoFrame.FourCC = NDIlib_FourCC_type_RGBX;
@@ -651,7 +606,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         }
 
         const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
-        _windowSize = ivec2{ currentMode->width, currentMode->height };
+        _windowSize = glm::ivec2(currentMode->width, currentMode->height);
 
         glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
@@ -700,53 +655,21 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _framebufferRes.y = bufferSize.y;
     }
 
-    // Swap interval:
-    //  -1 = adaptive sync
-    //   0 = vertical sync off
-    //   1 = wait for vertical sync
-    //   2 = fix when using swapgroups in xp and running half the framerate
-
     // If we would set multiple windows to use vsync, we would get a framerate of (monitor
     // refreshrate)/(number of windows), which is something that might really slow down a
-    // multi-monitor application. Setting last window to the requested interval, which
-    // does mean all other windows will respect the last window in the pipeline
-    glfwSwapInterval(isLastWindow ? Engine::instance().settings().swapInterval : 0);
+    // multi-monitor application. Only the last window uses V-Sync if it is requested,
+    // which does mean all other windows will respect the last window in the pipeline
+    const Node& node = ClusterManager::instance().thisNode();
+    glfwSwapInterval(isLastWindow && node.isUsingVSync() ? 1 : 0);
 
     // if client, disable mouse pointer
-    if (_hideMouseCursor || !Engine::instance().isMaster()) {
+    if (_hideMouseCursor || !Engine::instance().isServer()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
 
-    const bool captureBackBuffer = Engine::instance().settings().captureBackBuffer;
-    int bytesPerColor = captureBackBuffer ? 1 : _bytesPerColor;
-    unsigned int colorDataType = captureBackBuffer ? GL_UNSIGNED_BYTE : _colorDataType;
-    if (!useRightEyeTexture()) {
-        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
-            *this,
-            ScreenCapture::EyeIndex::Mono,
-            bytesPerColor,
-            colorDataType,
-            _hasAlpha
-        );
-    }
-    else {
-        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
-            *this,
-            ScreenCapture::EyeIndex::StereoLeft,
-            bytesPerColor,
-            colorDataType,
-            _hasAlpha
-        );
-        _screenCaptureRight = std::make_unique<ScreenCapture>(
-            *this,
-            ScreenCapture::EyeIndex::Mono,
-            bytesPerColor,
-            colorDataType,
-            _hasAlpha
-        );
-    }
+    createScreenCaptures();
     _finalFBO = std::make_unique<OffScreenBuffer>(_internalColorFormat);
 
     if (!_isFullScreen) {
@@ -769,7 +692,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
                 // resolution b, which is undefined behavior. _pendingWindowRes is checked
                 // in Window::updateResolution, which is called from Engine's render loop
                 // after glfwPollEvents
-                win->_pendingWindowSize = ivec2 { width, height };
+                win->_pendingWindowSize = glm::ivec2(width, height);
             }
         );
         glfwSetFramebufferSizeCallback(
@@ -778,17 +701,19 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
                 Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
                 width = std::max(width, 1);
                 height = std::max(height, 1);
-                win->setFramebufferResolution(sgct::ivec2{ width, height });
-            }
-        );
-        glfwSetWindowFocusCallback(
-            _windowHandle,
-            [](GLFWwindow* window, int state) {
-                Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-                win->_hasFocus = (state == GLFW_TRUE);
+                win->setFramebufferResolution(glm::ivec2(width, height));
             }
         );
     }
+
+    // The focus has to be tracked for fullscreen windows as well
+    glfwSetWindowFocusCallback(
+        _windowHandle,
+        [](GLFWwindow* window, int state) {
+            Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+            win->_hasFocus = (state == GLFW_TRUE);
+        }
+    );
 
     const std::string title = std::format(
         "SGCT node: {} ({}: {})",
@@ -900,7 +825,7 @@ void Window::initialize() {
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     ));
 
-    const ivec2 res =
+    const glm::ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
         _windowSize :
         framebufferResolution();
@@ -936,6 +861,13 @@ void Window::initialize() {
 
 #ifdef SGCT_HAS_NDI
     if (_ndi.handle) {
+        // The size of the framebuffer is only known after the window was opened
+        _ndi.videoFrame.xres = _framebufferRes.x;
+        _ndi.videoFrame.yres = _framebufferRes.y;
+        _ndi.videoFrame.line_stride_in_bytes = -_framebufferRes.x * 4;
+        _ndi.videoFrame.picture_aspect_ratio =
+            static_cast<float>(_framebufferRes.x) /
+            static_cast<float>(_framebufferRes.y);
         const GLsizeiptr bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
         glCreateBuffers(3, _ndi.pingPongPbo);
         glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
@@ -986,7 +918,7 @@ void Window::updateResolutions() {
 
 #ifdef SGCT_HAS_OPENXR
     if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-        const ivec2 resolution = openXRFramebufferResolution(*this);
+        const glm::ivec2 resolution = openXRFramebufferResolution(*this);
         if (resolution != _framebufferRes) {
             _framebufferRes = resolution;
             _windowResChanged = true;
@@ -1023,28 +955,6 @@ void Window::updateResolutions() {
             "Resolution changed to {}x{} in window {}", _windowSize.x, _windowSize.y, _id
         ));
         _pendingWindowSize = std::nullopt;
-
-#ifdef SGCT_HAS_NDI
-        if (!_useFixResolution && _ndi.handle) {
-            _ndi.videoFrame.xres = _windowSize.x;
-            _ndi.videoFrame.yres = _windowSize.y;
-            _ndi.videoFrame.picture_aspect_ratio =
-                static_cast<float>(_windowSize.x) / static_cast<float>(_windowSize.y);
-            // We have a negative stride to account for the fact that OpenGL textures have
-            // their y-axis flipped compared to DirectX textures
-            _ndi.videoFrame.line_stride_in_bytes = -_windowSize.x * 4;
-
-            // We need to send an "empty" frame as otherwise NDI might be in the middle of
-            // sending out one of the buffers that we are resizing. This extra call will
-            // force a synchronization
-            NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
-            const int bufferSize = _windowSize.x * _windowSize.y * 4;
-            glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
-            glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
-            glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
-            _ndi.currentFrame = 0;
-        }
-#endif // SGCT_HAS_NDI
     }
 
     if (_pendingFramebufferRes) {
@@ -1056,6 +966,32 @@ void Window::updateResolutions() {
         ));
 
         _pendingFramebufferRes = std::nullopt;
+
+#ifdef SGCT_HAS_NDI
+        // The buffers do not exist yet if the resolution is set before the initialization
+        if (_ndi.handle && _ndi.pingPongPbo[0] != 0) {
+            // The frames are read from the framebuffer texture, whose size differs from
+            // the size of the window on displays that use a content scale
+            _ndi.videoFrame.xres = _framebufferRes.x;
+            _ndi.videoFrame.yres = _framebufferRes.y;
+            _ndi.videoFrame.picture_aspect_ratio =
+                static_cast<float>(_framebufferRes.x) /
+                static_cast<float>(_framebufferRes.y);
+            // We have a negative stride to account for the fact that OpenGL textures have
+            // their y-axis flipped compared to DirectX textures
+            _ndi.videoFrame.line_stride_in_bytes = -_framebufferRes.x * 4;
+
+            // We need to send an "empty" frame as otherwise NDI might be in the middle of
+            // sending out one of the buffers that we are resizing. This extra call will
+            // force a synchronization
+            NDIlib_send_send_video_async_v2(_ndi.handle, nullptr);
+            const int bufferSize = _framebufferRes.x * _framebufferRes.y * 4;
+            glNamedBufferData(_ndi.pingPongPbo[0], bufferSize, nullptr, GL_STREAM_READ);
+            glNamedBufferData(_ndi.pingPongPbo[1], bufferSize, nullptr, GL_STREAM_READ);
+            glNamedBufferData(_ndi.pingPongPbo[2], bufferSize, nullptr, GL_STREAM_READ);
+            _ndi.currentFrame = 0;
+        }
+#endif // SGCT_HAS_NDI
     }
 }
 
@@ -1069,7 +1005,7 @@ void Window::update() {
 
     resizeFBOs();
 
-    const ivec2 res =
+    const glm::ivec2 res =
         Engine::instance().settings().captureBackBuffer ?
         _windowSize :
         framebufferResolution();
@@ -1164,10 +1100,10 @@ void Window::renderFBOTexture() {
         FrustumMode::StereoLeft :
         FrustumMode::Mono;
 
-    const ivec2 size = ivec2{
+    const glm::ivec2 size = glm::ivec2(
         static_cast<int>(std::ceil(scale().x * _windowSize.x)),
         static_cast<int>(std::ceil(scale().y * _windowSize.y))
-    };
+    );
 
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(*this, BufferMode::BackBufferBlack, frustum);
@@ -1187,17 +1123,6 @@ void Window::renderFBOTexture() {
         glBindTextureUnit(0, _frameBufferTextures.leftEye);
 
         maskShaderSet = true;
-
-        glProgramUniform1i(
-            _fboQuad.id(),
-            glGetUniformLocation(_fboQuad.id(), "flipX"),
-            _mirrorX ? 1 : 0
-        );
-        glProgramUniform1i(
-            _fboQuad.id(),
-            glGetUniformLocation(_fboQuad.id(), "flipY"),
-            _mirrorY ? 1 : 0
-        );
 
         _fboQuad.bind();
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
@@ -1222,9 +1147,6 @@ void Window::renderFBOTexture() {
     if (_hasAnyMasks) {
         if (!maskShaderSet) {
             _fboQuad.bind();
-
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipX"), _mirrorX ? 1 : 0);
-            glUniform1i(glGetUniformLocation(_fboQuad.id(), "flipY"), _mirrorY ? 1 : 0);
         }
 
         glDrawBuffer(GL_BACK);
@@ -1232,8 +1154,7 @@ void Window::renderFBOTexture() {
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_BLEND);
 
-        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-        // Render blend masks
+        // Result = Color * BlendMask * BlackLevelMask
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             ZoneScopedN("Render Viewport");
@@ -1374,6 +1295,14 @@ void Window::swapBuffers(bool takeScreenshot) {
 
     makeOpenGLContextCurrent();
 
+    // Save the screenshot of a previous frame if the GPU has finished copying its image
+    if (_screenCaptureLeftOrMono) {
+        _screenCaptureLeftOrMono->update();
+    }
+    if (_screenCaptureRight) {
+        _screenCaptureRight->update();
+    }
+
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot");
         if (Engine::instance().settings().captureBackBuffer) {
@@ -1386,7 +1315,7 @@ void Window::swapBuffers(bool takeScreenshot) {
                 );
             }
             if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
-                _screenCaptureLeftOrMono->saveScreenCapture(
+                _screenCaptureRight->saveScreenCapture(
                     0,
                     ScreenCapture::CaptureSource::RightBackBuffer
                 );
@@ -1444,7 +1373,7 @@ bool Window::isOpenXREnabled() const {
     return _useOpenXR;
 }
 
-vec2 Window::scale() const {
+glm::vec2 Window::scale() const {
     return _scale;
 }
 
@@ -1452,7 +1381,7 @@ float Window::aspectRatio() const {
     return _aspectRatio;
 }
 
-ivec2 Window::windowSize() const {
+glm::ivec2 Window::windowSize() const {
     return _windowSize;
 }
 
@@ -1491,13 +1420,13 @@ void Window::renderScreenQuad() const {
     glBindVertexArray(0);
 }
 
-void Window::setFramebufferResolution(ivec2 resolution) {
+void Window::setFramebufferResolution(glm::ivec2 resolution) {
     if (!_useFixResolution) {
         _pendingFramebufferRes = std::move(resolution);
     }
 }
 
-ivec2 Window::framebufferResolution() const {
+glm::ivec2 Window::framebufferResolution() const {
     return _framebufferRes;
 }
 
@@ -1608,7 +1537,71 @@ void Window::setCallDraw3DFunction(bool state) {
 
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
+    if (!_windowHandle) {
+        // The window has not been opened yet, so everything that depends on the stereo
+        // mode will be created for the new mode
+        return;
+    }
+
+    // The resources were created for the previous stereo mode, which might not have
+    // needed a separate image for the right eye
+    makeSharedContextCurrent();
+    if (_frameBufferTextures.leftEye != 0) {
+        if (useRightEyeTexture() && _frameBufferTextures.rightEye == 0) {
+            generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
+        }
+        else if (!useRightEyeTexture()) {
+            glDeleteTextures(1, &_frameBufferTextures.rightEye);
+            _frameBufferTextures.rightEye = 0;
+        }
+    }
+
+    createScreenCaptures();
+    const glm::ivec2 res =
+        Engine::instance().settings().captureBackBuffer ?
+        _windowSize :
+        framebufferResolution();
+    _screenCaptureLeftOrMono->resize(res);
+    if (_screenCaptureRight) {
+        _screenCaptureRight->resize(res);
+    }
+
     loadShaders();
+}
+
+void Window::createScreenCaptures() {
+    // OpenGL converts the framebuffer contents to the requested type on readback, so
+    // the screenshot bit depth is independent of the window's buffer format
+    const int bitDepth = Engine::instance().settings().capture.bitDepth;
+    const int bytesPerColor = bitDepth / 8;
+    const unsigned int colorDataType =
+        bitDepth == 16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
+    if (!useRightEyeTexture()) {
+        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::Mono,
+            bytesPerColor,
+            colorDataType,
+            _hasAlpha
+        );
+        _screenCaptureRight = nullptr;
+    }
+    else {
+        _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::StereoLeft,
+            bytesPerColor,
+            colorDataType,
+            _hasAlpha
+        );
+        _screenCaptureRight = std::make_unique<ScreenCapture>(
+            *this,
+            ScreenCapture::EyeIndex::StereoRight,
+            bytesPerColor,
+            colorDataType,
+            _hasAlpha
+        );
+    }
 }
 
 Window::StereoMode Window::stereoMode() const {
@@ -1681,23 +1674,35 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         }
     }(type);
 
-    const ivec2 res = _framebufferRes;
+    const glm::ivec2 res = _framebufferRes;
     glTextureStorage2D(id, 1, formats, res.x, res.y);
     Log::Debug(std::format("{}x{} texture generated for window {}", res.x, res.y, id));
 }
 
 void Window::resizeFBOs() {
-    bool updateFBO = !_useFixResolution;
-#ifdef SGCT_HAS_OPENXR
-    if (isOpenXREnabled() && sgct::openxr::isHMDActive()) {
-        const ivec2 resolution = openXRFramebufferResolution(*this);
-        if (resolution != _framebufferRes) {
-            updateFBO = true;
+    makeSharedContextCurrent();
+
+    // Resizing a window does not change the framebuffer if the window uses a fixed
+    // resolution, in which case the textures and buffers already have the correct size
+    if (_frameBufferTextures.leftEye != 0) {
+        glm::ivec2 size = glm::ivec2(0);
+        glGetTextureLevelParameteriv(
+            _frameBufferTextures.leftEye,
+            0,
+            GL_TEXTURE_WIDTH,
+            &size.x
+        );
+        glGetTextureLevelParameteriv(
+            _frameBufferTextures.leftEye,
+            0,
+            GL_TEXTURE_HEIGHT,
+            &size.y
+        );
+        if (size == _framebufferRes) {
+            return;
         }
     }
-#endif
 
-    makeSharedContextCurrent();
     destroyFBOs();
     createTextures();
 
@@ -1719,6 +1724,8 @@ void Window::destroyFBOs() {
     _frameBufferTextures.depth = 0;
     glDeleteTextures(1, &_frameBufferTextures.intermediate);
     _frameBufferTextures.intermediate = 0;
+    glDeleteTextures(1, &_frameBufferTextures.normals);
+    _frameBufferTextures.normals = 0;
     glDeleteTextures(1, &_frameBufferTextures.positions);
     _frameBufferTextures.positions = 0;
 }
@@ -1730,27 +1737,33 @@ bool Window::useRightEyeTexture() const {
 void Window::renderViewports(FrustumMode frustum, Eye eye) const {
     ZoneScoped;
 
+    // With FXAA the scene is rendered into the intermediate texture and the FXAA pass
+    // then resolves it into the eye texture
+    const unsigned int sceneTexture =
+        _useFXAA ? _frameBufferTextures.intermediate : frameBufferTextureEye(eye);
+
     _finalFBO->bind();
-    if (_finalFBO->isMultiSampled()) {
-        return;
-    }
+    if (!_finalFBO->isMultiSampled()) {
+        // Update attachments
+        _finalFBO->attachColorTexture(sceneTexture, GL_COLOR_ATTACHMENT0);
 
-    // Update attachments
-    _finalFBO->attachColorTexture(frameBufferTextureEye(eye), GL_COLOR_ATTACHMENT0);
+        if (Engine::instance().settings().useDepthTexture) {
+            _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
+        }
 
-    if (Engine::instance().settings().useDepthTexture) {
-        _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
-    }
+        if (Engine::instance().settings().useNormalTexture) {
+            _finalFBO->attachColorTexture(
+                _frameBufferTextures.normals,
+                GL_COLOR_ATTACHMENT1
+            );
+        }
 
-    if (Engine::instance().settings().useNormalTexture) {
-        _finalFBO->attachColorTexture(_frameBufferTextures.normals, GL_COLOR_ATTACHMENT1);
-    }
-
-    if (Engine::instance().settings().usePositionTexture) {
-        _finalFBO->attachColorTexture(
-            _frameBufferTextures.positions,
-            GL_COLOR_ATTACHMENT2
-        );
+        if (Engine::instance().settings().usePositionTexture) {
+            _finalFBO->attachColorTexture(
+                _frameBufferTextures.positions,
+                GL_COLOR_ATTACHMENT2
+            );
+        }
     }
 
     const Window::StereoMode sm = stereoMode();
@@ -1863,10 +1876,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
             _finalFBO->bindBlit();
 
             // update attachments
-            _finalFBO->attachColorTexture(
-                frameBufferTextureEye(eye),
-                GL_COLOR_ATTACHMENT0
-            );
+            _finalFBO->attachColorTexture(sceneTexture, GL_COLOR_ATTACHMENT0);
 
             if (Engine::instance().settings().useDepthTexture) {
                 _finalFBO->attachDepthTexture(_frameBufferTextures.depth);
@@ -1899,7 +1909,7 @@ void Window::renderViewports(FrustumMode frustum, Eye eye) const {
                 GL_COLOR_ATTACHMENT0
             );
 
-            const ivec2 framebufferSize = framebufferResolution();
+            const glm::ivec2 framebufferSize = framebufferResolution();
             glViewport(0, 0, framebufferSize.x, framebufferSize.y);
             glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -1992,9 +2002,13 @@ void Window::blitWindowViewport(const Window& prevWindow, const Viewport& viewpo
             case FrustumMode::Mono:
                 return prevWindow._frameBufferTextures.leftEye;
             case FrustumMode::StereoLeft:
-                return prevWindow._frameBufferTextures.rightEye;
+                return prevWindow._frameBufferTextures.leftEye;
             case FrustumMode::StereoRight:
-                return prevWindow._frameBufferTextures.intermediate;
+                // A window that does not render in stereo has no right eye texture, so
+                // both eyes show the same image
+                return prevWindow._frameBufferTextures.rightEye != 0 ?
+                    prevWindow._frameBufferTextures.rightEye :
+                    prevWindow._frameBufferTextures.leftEye;
             default:
                 throw std::logic_error("Missing case label");
         }
@@ -2060,6 +2074,18 @@ void Window::loadShaders() {
         _fboQuad.addFragmentShader(shaders::BaseFrag);
         _fboQuad.createAndLinkProgram();
         glProgramUniform1i(_fboQuad.id(), glGetUniformLocation(_fboQuad.id(), "tex"), 0);
+        // The mirroring of a window does not change, so the uniforms are only set once
+        // instead of looking up their locations in every frame
+        glProgramUniform1i(
+            _fboQuad.id(),
+            glGetUniformLocation(_fboQuad.id(), "flipX"),
+            _mirrorX ? 1 : 0
+        );
+        glProgramUniform1i(
+            _fboQuad.id(),
+            glGetUniformLocation(_fboQuad.id(), "flipY"),
+            _mirrorY ? 1 : 0
+        );
     }
 
     {
@@ -2083,7 +2109,7 @@ void Window::loadShaders() {
 
         const int id = _fxaa->shader.id();
         _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
-        const ivec2 framebufferSize = framebufferResolution();
+        const glm::ivec2 framebufferSize = framebufferResolution();
         glProgramUniform1f(id, _fxaa->sizeX, static_cast<float>(framebufferSize.x));
 
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");

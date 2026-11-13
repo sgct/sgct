@@ -9,6 +9,7 @@
 #include <sgct/statisticsrenderer.h>
 
 #include <sgct/format.h>
+#include <sgct/glm.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/shaderprogram.h>
@@ -20,9 +21,6 @@
 #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
 #include <glad/glad.h>
-#include <glm/fwd.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #include <string_view>
 #include <tuple>
@@ -30,15 +28,15 @@
 
 namespace {
     // Line parameters
-    constexpr sgct::vec4 ColorStaticGrid = sgct::vec4{ 1.f, 1.f, 1.f, 0.2f };
-    constexpr sgct::vec4 ColorStaticFrequency = sgct::vec4{ 1.f, 0.f, 0.f, 1.f };
-    constexpr sgct::vec4 ColorStaticBackground = sgct::vec4{ 0.f, 0.f, 0.f, 0.85f };
+    constexpr glm::vec4 ColorStaticGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
+    constexpr glm::vec4 ColorStaticFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
+    constexpr glm::vec4 ColorStaticBackground = glm::vec4(0.f, 0.f, 0.f, 0.85f);
 
-    constexpr sgct::vec4 ColorFrameTime = sgct::vec4{ 1.f, 1.f, 0.f, 0.8f };
-    constexpr sgct::vec4 ColorDrawTime = sgct::vec4{ 1.f, 0.1f, 1.1f, 0.8f };
-    constexpr sgct::vec4 ColorSyncTime = sgct::vec4{ 0.1f, 1.f, 1.f, 0.8f };
-    constexpr sgct::vec4 ColorLoopTimeMin = sgct::vec4{ 0.4f, 0.4f, 1.f, 0.8f };
-    constexpr sgct::vec4 ColorLoopTimeMax = sgct::vec4{ 0.15f, 0.15f, 0.8f, 0.8f };
+    constexpr glm::vec4 ColorFrameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
+    constexpr glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.1f, 1.1f, 0.8f);
+    constexpr glm::vec4 ColorSyncTime = glm::vec4(0.1f, 1.f, 1.f, 0.8f);
+    constexpr glm::vec4 ColorLoopTimeMin = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
+    constexpr glm::vec4 ColorLoopTimeMax = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
 
     constexpr std::string_view StatsVertShader = R"(
 #version 460 core
@@ -300,7 +298,7 @@ void StatisticsRenderer::update() {
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) const {
     ZoneScoped;
 
-    const ivec2 res = window.framebufferResolution();
+    const glm::ivec2 res = window.framebufferResolution();
     const glm::vec2 scaleOffset = glm::vec2(res.x / 2.f, res.y / 2.f);
 
     glm::mat4 orthoMat = glm::ortho(
@@ -353,39 +351,41 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         glBindVertexArray(_lines.staticDraw.vao);
 
+        const GLuint id = _shader.id();
+
         // Draw background (1024x1024 canvas)
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticBackground.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorStaticBackground));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         // 1 ms lines
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticGrid.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorStaticGrid));
         glDrawArrays(GL_LINES, 4, _lines.staticDraw.nLines * 2);
 
         // Zero line, 60hz & 30hz
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorStaticFrequency.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorStaticFrequency));
         glDrawArrays(GL_LINES, 4 + _lines.staticDraw.nLines * 2, 6);
 
         glBindVertexArray(_lines.dynamicDraw.vao);
 
         // Frametime
         constexpr int StatsLength = Engine::Statistics::HistoryLength;
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorFrameTime.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorFrameTime));
         glDrawArrays(GL_LINE_STRIP, 0 * StatsLength, StatsLength);
 
         // Drawtime
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorDrawTime.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorDrawTime));
         glDrawArrays(GL_LINE_STRIP, 1 * StatsLength, StatsLength);
 
         // Synctime
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorSyncTime.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorSyncTime));
         glDrawArrays(GL_LINE_STRIP, 2 * StatsLength, StatsLength);
 
         // Looptimemin
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorLoopTimeMin.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorLoopTimeMin));
         glDrawArrays(GL_LINE_STRIP, 3 * StatsLength, StatsLength);
 
         // Looptimemax
-        glProgramUniform4fv(_shader.id(), _colorLoc, 1, &ColorLoopTimeMax.x);
+        glProgramUniform4fv(id, _colorLoc, 1, glm::value_ptr(ColorLoopTimeMax));
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 
         glBindVertexArray(0);
@@ -396,63 +396,65 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         const int f1Size = static_cast<int>(20 * _scale);
         const int f2Size = static_cast<int>(12 * _scale);
-        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", f1Size);
-        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", f2Size);
-
-        text::print(
-            window,
-            viewport,
-            f1,
-            mode,
-            penPosition.x, penPosition.y + 9 * penOffset,
-            vec4{ 1.f, 0.8f, 0.8f, 1.f },
-            std::format("Frame number: {}", Engine::instance().currentFrameNumber())
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 6 * penOffset,
-            ColorFrameTime,
-            std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 5 * penOffset,
-            ColorDrawTime,
-            std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 4 * penOffset,
-            ColorSyncTime,
-            std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 3 * penOffset,
-            ColorLoopTimeMin,
-            std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
-        );
-        text::print(
-            window,
-            viewport,
-            f2,
-            mode,
-            penPosition.x, penPosition.y + 2 * penOffset,
-            ColorLoopTimeMax,
-            std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
-        );
+        text::Font* f1 = text::FontManager::instance().font("SGCTFont", f1Size);
+        text::Font* f2 = text::FontManager::instance().font("SGCTFont", f2Size);
+        // The font might be missing if the font file could not be found
+        if (f1 && f2) {
+            text::print(
+                window,
+                viewport,
+                *f1,
+                mode,
+                penPosition.x, penPosition.y + 9 * penOffset,
+                glm::vec4(1.f, 0.8f, 0.8f, 1.f),
+                std::format("Frame number: {}", Engine::instance().currentFrameNumber())
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 6 * penOffset,
+                ColorFrameTime,
+                std::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 5 * penOffset,
+                ColorDrawTime,
+                std::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 4 * penOffset,
+                ColorSyncTime,
+                std::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 3 * penOffset,
+                ColorLoopTimeMin,
+                std::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
+            );
+            text::print(
+                window,
+                viewport,
+                *f2,
+                mode,
+                penPosition.x, penPosition.y + 2 * penOffset,
+                ColorLoopTimeMax,
+                std::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
+            );
+        }
 #endif // SGCT_HAS_TEXT
     }
 
@@ -463,7 +465,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         ZoneScopedN("Histogram");
 
-        auto renderHistogram = [&](int i, const vec4& color) {
+        auto renderHistogram = [&](int i, const glm::vec4& color) {
             const auto [pos, size] = [&](int j) -> std::tuple<glm::vec2, glm::vec2> {
                 const glm::vec2 p = glm::vec2(
                     400.f * _scale + _offset.x * res.x,
@@ -498,7 +500,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             glDrawArrays(GL_LINES, 0, 4);
 
             glBindVertexArray(_histogram.dynamicDraw.vao);
-            glUniform4fv(_colorLoc, 1, &color.x);
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(color));
             glDrawArrays(GL_TRIANGLES, i * 6 * Histogram::Bins, 6 * Histogram::Bins);
         };
 
@@ -513,31 +515,34 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         constexpr text::Alignment mode = text::Alignment::TopLeft;
 
         const int fontSize = static_cast<int>(8 * _scale);
-        text::Font& f = *text::FontManager::instance().font("SGCTFont", fontSize);
-        text::print(
-            window,
-            viewport,
-            f,
-            mode,
-            penPosition.x, penPosition.y + penOffset,
-            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            std::format(
-                "Histogram Scale (sync time): {:.0f} ms",
-                HistogramScaleSync * 1000.0
-            )
-        );
-        text::print(
-            window,
-            viewport,
-            f,
-            mode,
-            penPosition.x, penPosition.y,
-            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            std::format(
-                "Histogram Scale (frametime, drawtime): {:.0f} ms",
-                HistogramScaleFrame * 1000.0
-            )
-        );
+        text::Font* f = text::FontManager::instance().font("SGCTFont", fontSize);
+        // The font might be missing if the font file could not be found
+        if (f) {
+            text::print(
+                window,
+                viewport,
+                *f,
+                mode,
+                penPosition.x, penPosition.y + penOffset,
+                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+                std::format(
+                    "Histogram Scale (sync time): {:.0f} ms",
+                    HistogramScaleSync * 1000.0
+                )
+            );
+            text::print(
+                window,
+                viewport,
+                *f,
+                mode,
+                penPosition.x, penPosition.y,
+                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+                std::format(
+                    "Histogram Scale (frametime, drawtime): {:.0f} ms",
+                    HistogramScaleFrame * 1000.0
+                )
+            );
+        }
 #endif // SGCT_HAS_TEXT
     }
 }
@@ -550,11 +555,11 @@ void StatisticsRenderer::setScale(float scale) {
     _scale = scale;
 }
 
-vec2 StatisticsRenderer::offset() const {
+glm::vec2 StatisticsRenderer::offset() const {
     return _offset;
 }
 
-void StatisticsRenderer::setOffset(vec2 offset) {
+void StatisticsRenderer::setOffset(glm::vec2 offset) {
     _offset = std::move(offset);
 }
 

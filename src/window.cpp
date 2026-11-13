@@ -2187,9 +2187,7 @@ std::vector<glm::mat4> Window::viewProjectionMatrices() const {
                 matrices.insert(matrices.end(), m.begin(), m.end());
             }
             else {
-            matrices.push_back(glm::make_mat4(
-                viewport->projection(mode).viewProjectionMatrix().values.data()
-            ));
+            matrices.push_back(viewport->projection(mode).viewProjectionMatrix());
             }
         }
     }

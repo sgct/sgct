@@ -17,7 +17,6 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <cmath>
 
 namespace sgct {
@@ -95,9 +94,7 @@ std::vector<glm::mat4> NonLinearProjection::viewProjectionMatrices(FrustumMode m
 
     for (const BaseViewport* vp : viewports) {
         if (vp->isEnabled()) {
-            res.push_back(
-                glm::make_mat4(vp->projection(mode).viewProjectionMatrix().values.data())
-            );
+            res.push_back(vp->projection(mode).viewProjectionMatrix());
         }
     }
     return res;

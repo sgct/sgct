@@ -49,6 +49,18 @@ FisheyeProjection::FisheyeProjection(const config::FisheyeProjection& config,
 {
     setUser(user);
 
+    if (config.mapping) {
+        _mapping = [](config::FisheyeProjection::Mapping m) {
+            switch (m) {
+                case config::FisheyeProjection::Mapping::Equidistant:
+                    return FisheyeMapping::Equidistant;
+                case config::FisheyeProjection::Mapping::Equisolid:
+                    return FisheyeMapping::Equisolid;
+                default: throw std::logic_error("Unhandled case label");
+            }
+        }(*config.mapping);
+    }
+
     if (config.quality) {
         setCubemapResolution(*config.quality);
     }
@@ -620,6 +632,14 @@ void FisheyeProjection::initShaders() {
             shaders_fisheye::InterpolateCubicFun :
             shaders_fisheye::InterpolateLinearFun
     );
+    switch (_mapping) {
+        case FisheyeMapping::Equidistant:
+            _shader.addFragmentShader(shaders_fisheye::MappingEquidistantFun);
+            break;
+        case FisheyeMapping::Equisolid:
+            _shader.addFragmentShader(shaders_fisheye::MappingEquisolidFun);
+            break;
+    }
     if (_method == FisheyeMethod::FourFaceCube) {
         _shader.addFragmentShader(shaders_fisheye::RotationFourFaceCubeFun);
     }

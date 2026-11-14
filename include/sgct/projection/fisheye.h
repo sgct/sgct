@@ -28,6 +28,7 @@ class Window;
 class SGCT_EXPORT FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
+    enum class FisheyeMapping { Equidistant = 0, Equisolid };
 
     FisheyeProjection(const config::FisheyeProjection& config, const Window& parent,
         User& user);
@@ -122,6 +123,7 @@ private:
     mutable glm::vec3 _totalOffset = glm::vec3(0.f, 0.f, 0.f);
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
+    FisheyeMapping _mapping = FisheyeMapping::Equidistant;
 
     // shader locations
     struct {

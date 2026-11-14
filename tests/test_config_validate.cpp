@@ -375,6 +375,31 @@ TEST_CASE("ValidateCluster: Fisheye projection", "[validatecluster]") {
         checkValidateError(p, 1060);
     }
 
+    SECTION("Valid equisolid") {
+        FisheyeProjection p;
+        p.mapping = FisheyeProjection::Mapping::Equisolid;
+        p.fov = GENERATE(90.f, 180.f, 220.f, 360.f);
+        CAPTURE(*p.fov);
+        CHECK_NOTHROW(validateProjection(p));
+    }
+
+    SECTION("Equidistant field of view above 360") {
+        FisheyeProjection p;
+        p.mapping = GENERATE(
+            std::optional<FisheyeProjection::Mapping>(),
+            FisheyeProjection::Mapping::Equidistant
+        );
+        p.fov = 370.f;
+        CHECK_NOTHROW(validateProjection(p));
+    }
+
+    SECTION("1067: Equisolid field of view above 360") {
+        FisheyeProjection p;
+        p.mapping = FisheyeProjection::Mapping::Equisolid;
+        p.fov = GENERATE(360.5f, 370.f, 720.f);
+        checkValidateError(p, 1067);
+    }
+
     SECTION("1063: Non-positive quality") {
         FisheyeProjection p;
         p.quality = GENERATE(0, -1024);

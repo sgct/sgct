@@ -706,6 +706,59 @@ TEST_CASE("Load Example: Single Fisheye", "[parse]") {
     CHECK(u.position->z == 0.f);
 }
 
+TEST_CASE("Load Example: Single Fisheye Equisolid", "[parse]") {
+    Cluster res = sgct::readConfig(
+        std::string(BASE_PATH) + "/config/single_fisheye_equisolid.json"
+    );
+
+    CHECK(res.serverAddress == "localhost");
+
+    REQUIRE(res.nodes.size() == 1);
+    const Node& n = res.nodes[0];
+    CHECK(n.address == "localhost");
+    CHECK(n.port == 20401);
+
+    REQUIRE(n.windows.size() == 1);
+    const Window& w = n.windows[0];
+    REQUIRE(w.isFullScreen.has_value());
+    CHECK(*w.isFullScreen == false);
+    CHECK(w.size->x == 512);
+    CHECK(w.size->y == 512);
+
+    REQUIRE(w.viewports.size() == 1);
+    const Viewport& v = w.viewports[0];
+    REQUIRE(v.position.has_value());
+    CHECK(v.position->x == 0.f);
+    CHECK(v.position->y == 0.f);
+    REQUIRE(v.size.has_value());
+    CHECK(v.size->x == 1.f);
+    CHECK(v.size->y == 1.f);
+
+    REQUIRE(std::holds_alternative<FisheyeProjection>(v.projection));
+    const FisheyeProjection& p = std::get<FisheyeProjection>(v.projection);
+    REQUIRE(p.fov.has_value());
+    CHECK(*p.fov == 180.f);
+    REQUIRE(p.mapping.has_value());
+    CHECK(*p.mapping == FisheyeProjection::Mapping::Equisolid);
+    REQUIRE(p.quality.has_value());
+    CHECK(*p.quality == 512);
+    CHECK(!p.orientation.has_value());
+    REQUIRE(p.background.has_value());
+    CHECK(p.background->x == 0.1f);
+    CHECK(p.background->y == 0.1f);
+    CHECK(p.background->z == 0.1f);
+    CHECK(p.background->w == 1.f);
+
+    REQUIRE(res.users.size() == 1);
+    const User& u = res.users[0];
+    REQUIRE(u.eyeSeparation.has_value());
+    CHECK(*u.eyeSeparation == 0.06f);
+    REQUIRE(u.position.has_value());
+    CHECK(u.position->x == 0.f);
+    CHECK(u.position->y == 0.f);
+    CHECK(u.position->z == 0.f);
+}
+
 TEST_CASE("Load Example: Single SBS Stereo", "[parse]") {
     Cluster res = sgct::readConfig(
         std::string(BASE_PATH) + "/config/single_sbs_stereo.json"

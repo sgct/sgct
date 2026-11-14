@@ -539,19 +539,38 @@ constexpr std::string_view RotationFun = R"(
   }
 )";
 
+// Returns the angle from the fisheye center for the normalized radius `r` in [0, 1], such
+// that r = 1 maps to `halfFov`
+constexpr std::string_view MappingEquidistantFun = R"(
+  #version 460 core
+
+  float angleFromRadius(float r, float halfFov) {
+    return r * halfFov;
+  }
+)";
+
+constexpr std::string_view MappingEquisolidFun = R"(
+  #version 460 core
+
+  float angleFromRadius(float r, float halfFov) {
+    return 2.0 * asin(min(r * sin(0.5 * halfFov), 1.0));
+  }
+)";
+
 constexpr std::string_view SampleFun = R"(
   #version 460 core
 
   uniform float halfFov;
 
   vec3 rotate(vec3 dir);
+  float angleFromRadius(float r, float halfFov);
 
   vec4 sampleCubeTexture(vec2 texel, samplerCube map, vec4 background) {
     float s = 2.0 * (texel.s - 0.5);
     float t = 2.0 * (texel.t - 0.5);
     float r2 = s * s + t * t;
     if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
+      float phi = angleFromRadius(sqrt(r2), halfFov);
       float theta = atan(s, t);
       vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
       return texture(map, rotate(dir));
@@ -584,13 +603,14 @@ constexpr std::string_view SampleOffsetFun = R"(
   uniform vec3 offset;
 
   vec3 rotate(vec3 dir);
+  float angleFromRadius(float r, float halfFov);
 
   vec4 sampleCubeTexture(vec2 texel, samplerCube map, vec4 background) {
     float s = 2.0 * (texel.s - 0.5);
     float t = 2.0 * (texel.t - 0.5);
     float r2 = s * s + t * t;
     if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
+      float phi = angleFromRadius(sqrt(r2), halfFov);
       float theta = atan(s, t);
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;

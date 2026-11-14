@@ -162,6 +162,10 @@ void validateProjection(const FisheyeProjection& p) {
     if (p.fov && *p.fov <= 0.f) {
         throw Err(1060, "Field of view setting must be positive");
     }
+    if (p.mapping == FisheyeProjection::Mapping::Equisolid && p.fov && *p.fov > 360.f) {
+        // The equisolid mapping is only invertible up to a field of view of 360 degrees
+        throw Err(1067, "Field of view of an equisolid fisheye must not exceed 360");
+    }
     // The crop values are the ratios that are removed from each side of the image
     if (p.crop && p.crop->left + p.crop->right > 1.f) {
         throw Err(1061, "Left and right crop must not overlap");
@@ -555,6 +559,14 @@ namespace {
         if (i == "linear") { return FisheyeProjection::Interpolation::Linear; }
 
         throw Err(6023, "Unregnozed interpolation");
+    }
+
+    sgct::config::FisheyeProjection::Mapping parseMapping(std::string_view m) {
+        using namespace sgct::config;
+        if (m == "equidistant") { return FisheyeProjection::Mapping::Equidistant; }
+        if (m == "equisolid") { return FisheyeProjection::Mapping::Equisolid; }
+
+        throw Err(6024, "Unrecognized fisheye mapping");
     }
 
     std::string stringifyJsonFile(const std::filesystem::path& filename) {
@@ -1075,6 +1087,11 @@ static void to_json(nlohmann::json& j, const TextureMappedProjection& p) {
 static void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     parseValue(j, "fov", p.fov);
 
+    if (auto it = j.find("mapping");  it != j.end()) {
+        const std::string mapping = it->get<std::string>();
+        p.mapping = parseMapping(mapping);
+    }
+
     if (auto it = j.find("quality");  it != j.end()) {
         const std::string quality = it->get<std::string>();
         p.quality = cubeMapResolutionForQuality(quality);
@@ -1121,6 +1138,17 @@ static void to_json(nlohmann::json& j, const FisheyeProjection& p) {
 
     if (p.fov.has_value()) {
         j["fov"] = *p.fov;
+    }
+
+    if (p.mapping.has_value()) {
+        switch (*p.mapping) {
+            case FisheyeProjection::Mapping::Equidistant:
+                j["mapping"] = "equidistant";
+                break;
+            case FisheyeProjection::Mapping::Equisolid:
+                j["mapping"] = "equisolid";
+                break;
+        }
     }
 
     if (p.quality.has_value()) {

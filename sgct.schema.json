@@ -253,6 +253,10 @@
           "type": "number",
           "minimum": 0.0
         },
+        "mapping": {
+          "type": "string",
+          "enum": [ "equidistant", "equisolid" ]
+        },
         "quality": { "$ref": "#/$defs/projectionquality" },
         "interpolation": {
           "type": "string",

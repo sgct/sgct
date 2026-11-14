@@ -1539,6 +1539,125 @@ TEST_CASE("Load: FisheyeProjection/Interpolation", "[parse]") {
     }
 }
 
+TEST_CASE("Load: FisheyeProjection/Mapping", "[parse]") {
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "mapping": "equidistant"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .windows = {
+                        Window {
+                            .size = glm::ivec2(640, 480),
+                            .viewports = {
+                                Viewport {
+                                    .projection = FisheyeProjection {
+                                        .mapping =
+                                            FisheyeProjection::Mapping::Equidistant
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+
+    {
+        constexpr std::string_view String = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "abc",
+      "port": 1,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "mapping": "equisolid"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+        const Cluster Object = {
+            .success = true,
+            .serverAddress = "localhost",
+            .nodes = {
+                Node {
+                    .address = "abc",
+                    .port = 1,
+                    .windows = {
+                        Window {
+                            .size = glm::ivec2(640, 480),
+                            .viewports = {
+                                Viewport {
+                                    .projection = FisheyeProjection {
+                                        .mapping = FisheyeProjection::Mapping::Equisolid
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        Cluster res = sgct::readJsonConfig(String);
+        CHECK(res == Object);
+
+        const std::string str = serializeConfig(Object);
+        const config::Cluster output = readJsonConfig(str);
+        CHECK(output == Object);
+    }
+}
+
 TEST_CASE("Load: FisheyeProjection/Orientation", "[parse]") {
     {
         constexpr std::string_view String = R"(
@@ -2472,6 +2591,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                 "type": "FisheyeProjection",
                 "quality": "low",
                 "fov": 1.0,
+                "mapping": "equisolid",
                 "interpolation": "linear",
                 "orientation": { "x": 1.0, "y": 2.0, "z": 3.0, "w": 4.0 },
                 "diameter": 3.0,
@@ -2508,6 +2628,7 @@ TEST_CASE("Load: FisheyeProjection/Full", "[parse]") {
                             Viewport {
                                 .projection = FisheyeProjection {
                                     .fov = 1.f,
+                                    .mapping = FisheyeProjection::Mapping::Equisolid,
                                     .quality = 256,
                                     .interpolation =
                                         FisheyeProjection::Interpolation::Linear,
@@ -2738,6 +2859,66 @@ TEST_CASE("Validate: FisheyeProjection/Interpolation/Illegal Value", "[validate]
               "projection": {
                 "type": "FisheyeProjection",
                 "interpolation": "abc"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Mapping/Wrong Type", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "mapping": 123
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    CHECK_THROWS_AS(validate(Config), ParsingError);
+}
+
+TEST_CASE("Validate: FisheyeProjection/Mapping/Illegal Value", "[validate]") {
+    constexpr std::string_view Config = R"(
+{
+  "version": 2,
+  "serveraddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 123,
+      "windows": [
+        {
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "projection": {
+                "type": "FisheyeProjection",
+                "mapping": "abc"
               }
             }
           ]

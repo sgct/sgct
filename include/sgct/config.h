@@ -179,6 +179,9 @@ SGCT_EXPORT void validateProjection(const EquirectangularProjection& proj);
 
 struct SGCT_EXPORT FisheyeProjection {
     enum class Interpolation { Linear, Cubic };
+    // The function that maps the angle from the fisheye center to the image radius:
+    // Equidistant: r = f * theta, Equisolid (equal-area): r = 2f * sin(theta / 2)
+    enum class Mapping { Equidistant, Equisolid };
     struct Crop {
         // Crop values are measured as [0,1] from the respective side, which is why right
         // and top are 0 and not 1 as one might expect
@@ -190,6 +193,7 @@ struct SGCT_EXPORT FisheyeProjection {
         bool operator==(const Crop&) const noexcept = default;
     };
     std::optional<float> fov;
+    std::optional<Mapping> mapping;
     std::optional<int> quality;
     std::optional<Interpolation> interpolation;
     std::optional<glm::quat> orientation;

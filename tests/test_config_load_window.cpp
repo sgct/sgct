@@ -4336,7 +4336,7 @@ TEST_CASE("Validate: Window/Empty", "[validate]") {
 }
 )";
 
-    CHECK_THROWS_AS(validate(Config), ParsingError);
+    CHECK_NOTHROW(validate(Config));
 }
 
 TEST_CASE("Validate: Window/ID/Wrong Type", "[validate]") {

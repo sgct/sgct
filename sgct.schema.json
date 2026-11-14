@@ -506,7 +506,6 @@
           "minimum": 1
         }
       },
-      "required": ["size"],
       "additionalProperties": false
     },
 

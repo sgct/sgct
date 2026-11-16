@@ -37,6 +37,7 @@ target_sources(
     test_config_load_texturemappedprojection.cpp
     test_config_load_tracker.cpp
     test_config_load_user.cpp
+    test_config_load_version1.cpp
     test_config_load_viewport.cpp
     test_config_load_window.cpp
     test_config_roundtrip.cpp

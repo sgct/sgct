@@ -913,7 +913,7 @@ static void from_json(const nlohmann::json& j, Tracker::Device& d) {
     parseValue(j, "buttons", d.buttons);
     parseValue(j, "axes", d.axes);
     parseValue(j, "offset", d.offset);
-    parseValue(j, "matrix", d.transformation);
+    parseValue(j, "transformation", d.transformation);
 }
 
 static void to_json(nlohmann::json& j, const Tracker::Device& d) {
@@ -929,7 +929,7 @@ static void to_json(nlohmann::json& j, const Tracker::Device& d) {
     }
 
     if (d.transformation.has_value()) {
-        j["matrix"] = *d.transformation;
+        j["transformation"] = *d.transformation;
     }
 }
 

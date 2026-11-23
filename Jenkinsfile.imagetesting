@@ -50,25 +50,29 @@ def build_and_run(platform, testId, commit) {
   deleteDir()
 
   stage(platform + " - SCM") {
-    if (commit) {
-      // A shallow clone only contains the tip of the branch, so the commit is fetched
-      // directly instead
-      withEnv(["COMMIT=${commit}"]) {
-        bat(
-          script: """
-            git init SGCT
-            git -C SGCT fetch --depth 1 https://github.com/sgct/sgct %COMMIT%
-            git -C SGCT checkout FETCH_HEAD
-          """,
-          label: "Checkout SGCT at ${commit}"
-        )
+    // Use the git plugin's checkout step instead of a raw git command: it honors the
+    // proxy and credentials configured in Jenkins, suppresses interactive prompts, and
+    // times out, while a plain git in a bat step hangs indefinitely on nodes without a
+    // direct connection to GitHub
+    dir("SGCT") {
+      if (commit) {
+        // A shallow clone only contains the tip of the branch, so the commit is fetched
+        // directly instead
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: commit]],
+          extensions: [[$class: 'CloneOption', depth: 1, noTags: true, shallow: true, honorRefspec: true]],
+          userRemoteConfigs: [[url: 'https://github.com/sgct/sgct', refspec: "+${commit}:refs/remotes/origin/${commit}"]]
+        ])
       }
-    }
-    else {
-      bat(
-        script: "git clone --depth 1 https://github.com/sgct/sgct SGCT --single-branch",
-        label: "Checkout SGCT"
-      )
+      else {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/master']],
+          extensions: [[$class: 'CloneOption', depth: 1, noTags: true, shallow: true]],
+          userRemoteConfigs: [[url: 'https://github.com/sgct/sgct']]
+        ])
+      }
     }
   }
 

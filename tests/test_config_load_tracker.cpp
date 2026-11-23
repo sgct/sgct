@@ -826,7 +826,7 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
       "devices": [
         {
           "name": "def",
-          "matrix": [
+          "transformation": [
             1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
             9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0
           ]
@@ -889,7 +889,7 @@ TEST_CASE("Load: Tracker/Devices/Transformation", "[parse]") {
       "devices": [
         {
           "name": "def",
-          "matrix": [
+          "transformation": [
             17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0,
             25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0
           ]
@@ -1216,7 +1216,7 @@ TEST_CASE("Load: Tracker/Full", "[parse]") {
             }
           ],
           "offset": { "x": 5.0, "y": 6.0, "z": 7.0 },
-          "matrix": [
+          "transformation": [
             1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
             9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0
           ]
@@ -1855,7 +1855,7 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Wrong Type", "[validate]") {
   "trackers": {
     "devices": [
       {
-        "matrix": "abc"
+        "transformation": "abc"
       }
     ]
   }
@@ -1874,7 +1874,7 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]")
   "trackers": {
     "devices": [
       {
-        "matrix": []
+        "transformation": []
       }
     ]
   }
@@ -1892,7 +1892,7 @@ TEST_CASE("Validate: Tracker/Device/Transformation/Illegal Value", "[validate]")
   "trackers": {
     "devices": [
       {
-        "matrix": [ 1.0, 2.0, 3.0, 4.0 ]
+        "transformation": [ 1.0, 2.0, 3.0, 4.0 ]
       }
     ]
   }

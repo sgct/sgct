@@ -142,6 +142,86 @@ TEST_CASE("Load: Version 1/VSync", "[parse]") {
     }
 }
 
+TEST_CASE("Load: Version 1/Tracker Device Matrix", "[parse]") {
+    // The 'matrix' of a tracker device was renamed to 'transformation' in version 2
+    constexpr std::string_view ConfigV1 = R"({
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": [
+    {
+      "name": "abc",
+      "devices": [
+        {
+          "name": "def",
+          "matrix": [
+            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
+            9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+    constexpr std::string_view ConfigV2 = R"({
+  "version": 2,
+  "serveraddress": "localhost",
+  "trackers": [
+    {
+      "name": "abc",
+      "devices": [
+        {
+          "name": "def",
+          "transformation": [
+            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
+            9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0
+          ]
+        }
+      ]
+    }
+  ]
+}
+)";
+
+    glm::mat4 m;
+    glm::value_ptr(m)[0] = 1.f;
+    glm::value_ptr(m)[1] = 2.f;
+    glm::value_ptr(m)[2] = 3.f;
+    glm::value_ptr(m)[3] = 4.f;
+    glm::value_ptr(m)[4] = 5.f;
+    glm::value_ptr(m)[5] = 6.f;
+    glm::value_ptr(m)[6] = 7.f;
+    glm::value_ptr(m)[7] = 8.f;
+    glm::value_ptr(m)[8] = 9.f;
+    glm::value_ptr(m)[9] = 10.f;
+    glm::value_ptr(m)[10] = 11.f;
+    glm::value_ptr(m)[11] = 12.f;
+    glm::value_ptr(m)[12] = 13.f;
+    glm::value_ptr(m)[13] = 14.f;
+    glm::value_ptr(m)[14] = 15.f;
+    glm::value_ptr(m)[15] = 16.f;
+    const Cluster Object = {
+        .success = true,
+        .serverAddress = "localhost",
+        .trackers = {
+            Tracker {
+                .name = "abc",
+                .devices = {
+                    Tracker::Device {
+                        .name = "def",
+                        .transformation = m
+                    }
+                }
+            }
+        }
+    };
+
+    const Cluster v1 = sgct::readJsonConfig(ConfigV1);
+    const Cluster v2 = sgct::readJsonConfig(ConfigV2);
+    CHECK(v1 == v2);
+    CHECK(v1 == Object);
+}
+
 TEST_CASE("Load: Version 1/Fisheye Tilt", "[parse]") {
     constexpr std::string_view ConfigV1 = R"(
 {

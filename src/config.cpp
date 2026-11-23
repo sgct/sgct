@@ -2046,13 +2046,38 @@ namespace {
     constexpr int CurrentConfigVersion = 2;
 
     // Version 1 -> 2: Fisheye and SphericalMirror 'tilt' was replaced by 'orientation',
-    // 'masteraddress' was renamed to 'serveraddress', and the 'swapinterval' of the
-    // 'display' settings was replaced by the 'vsync' of every node
+    // 'masteraddress' was renamed to 'serveraddress', the 'swapinterval' of the
+    // 'display' settings was replaced by the 'vsync' of every node, and the
+    // 'matrix' of every tracker device was renamed to 'transformation'
     void upgradeConfigV1ToV2(nlohmann::json& j) {
         if (auto it = j.find("masteraddress");  it != j.end()) {
             nlohmann::json address = *it;
             j.erase(it);
             j["serveraddress"] = address;
+        }
+
+        // The 'matrix' of every tracker device was renamed to 'transformation'
+        auto trackers = j.find("trackers");
+        if (trackers != j.end() && trackers->is_array()) {
+            for (nlohmann::json& tracker : *trackers) {
+                if (!tracker.is_object()) {
+                    continue;
+                }
+                auto devices = tracker.find("devices");
+                if (devices == tracker.end() || !devices->is_array()) {
+                    continue;
+                }
+                for (nlohmann::json& device : *devices) {
+                    if (!device.is_object()) {
+                        continue;
+                    }
+                    auto matrix = device.find("matrix");
+                    if (matrix != device.end()) {
+                        device["transformation"] = *matrix;
+                        device.erase(matrix);
+                    }
+                }
+            }
         }
 
         std::optional<bool> vsync;

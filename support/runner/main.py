@@ -60,6 +60,15 @@ SUBMISSION_ERRORS = {
   429: "Too many failed attempts, the server is rejecting requests for a while"
 }
 
+# The status codes with which the proxy in front of the regression server reports that it
+# could not get a response from the server. Submissions that fail with one of these, or
+# because the connection failed, are tried again, as the failure is usually temporary
+RETRY_STATUS_CODES = {502, 503, 504}
+
+# The number of times a submission is attempted and the seconds to wait between attempts
+SUBMISSION_ATTEMPTS = 3
+RETRY_DELAY = 5
+
 
 class Test:
   """
@@ -246,7 +255,9 @@ def submit_image(url, runner, hardware, group, name, timestamp, timing, commit, 
                  log):
   """
   Submits an image to the regression server. Returns None if it was accepted and a short
-  description of the error otherwise
+  description of the error otherwise. Submissions that fail because the server could not
+  be reached are tried again. Resubmitting is safe, as the server rejects a second test
+  run with the same timestamp, which means that an earlier attempt was stored
   """
   # Only imported here so that the images can be stored locally without the package
   import requests
@@ -260,58 +271,75 @@ def submit_image(url, runner, hardware, group, name, timestamp, timing, commit, 
     print(f"    Image: {image_size:.1f} KiB, log: {log_size:.1f} KiB")
     print(f"    Time until the failure: {elapsed:.2f} seconds")
 
-  start = time.perf_counter()
-  try:
-    with open(image, "rb") as f:
-      res = requests.post(
-        url,
-        # The runner id is sent first, so that the server can reject an unknown
-        # runner before the image is uploaded
-        data={
-          "runnerID": runner,
-          "application": APPLICATION,
-          "group": group,
-          "name": name,
-          "hardware": hardware,
-          "timestamp": timestamp,
-          "timing": timing,
-          "commitHash": commit
-        },
-        files={
-          "file": f,
-          "log": log
-        },
-        # Seconds to wait for the connection and for the server to process the
-        # image
-        timeout=(30, 600)
-      )
-  except requests.RequestException as e:
-    print(f"  Submitting {group}/{name} failed with {type(e).__name__}: {e}")
-    print_details(time.perf_counter() - start)
-    # Only the type of the exception, as its message is too long for the summary
-    return type(e).__name__
+  for attempt in range(1, SUBMISSION_ATTEMPTS + 1):
+    start = time.perf_counter()
+    try:
+      with open(image, "rb") as f:
+        res = requests.post(
+          url,
+          # The runner id is sent first, so that the server can reject an unknown
+          # runner before the image is uploaded
+          data={
+            "runnerID": runner,
+            "application": APPLICATION,
+            "group": group,
+            "name": name,
+            "hardware": hardware,
+            "timestamp": timestamp,
+            "timing": timing,
+            "commitHash": commit
+          },
+          files={
+            "file": f,
+            "log": log
+          },
+          # Seconds to wait for the connection and for the server to process the
+          # image
+          timeout=(30, 600)
+        )
+    except requests.RequestException as e:
+      print(f"  Submitting {group}/{name} failed with {type(e).__name__}: {e}")
+      print_details(time.perf_counter() - start)
+      # Only the type of the exception, as its message is too long for the summary
+      error = type(e).__name__
+      # A timeout while waiting for the response is not retried, as the server might
+      # still be busy with the submission
+      retry = isinstance(e, requests.ConnectionError)
+    else:
+      if res.status_code == 200:
+        print(f"  Submitted {group}/{name}")
+        return None
 
-  if res.status_code == 200:
-    print(f"  Submitted {group}/{name}")
-    return None
+      if res.status_code == 409 and attempt > 1:
+        # An earlier attempt reached the server and was stored, but its response was lost
+        print(f"  Submitted {group}/{name} (stored by an earlier attempt)")
+        return None
 
-  # The regression server returns its errors as JSON with an 'error' key. Any other
-  # response, for example an HTML page, comes from a proxy in front of the server
-  try:
-    body = res.json()
-    message = body.get("error", res.text) if isinstance(body, dict) else res.text
-  except ValueError:
-    message = res.text
-  message = message.strip()
-  if len(message) > 1000:
-    message = f"{message[:1000]}... ({len(message)} characters in total)"
-  error = f"HTTP {res.status_code} {res.reason}"
-  print(f"  Submitting {group}/{name} failed with {error}: {message}")
-  if res.status_code in SUBMISSION_ERRORS:
-    print(f"    {SUBMISSION_ERRORS[res.status_code]}")
-  print_details(res.elapsed.total_seconds())
-  print(f"    Response content type: {res.headers.get('Content-Type', 'unknown')}")
-  return error
+      # The regression server returns its errors as JSON with an 'error' key. Any other
+      # response, for example an HTML page, comes from a proxy in front of the server
+      try:
+        body = res.json()
+        message = body.get("error", res.text) if isinstance(body, dict) else res.text
+      except ValueError:
+        message = res.text
+      message = message.strip()
+      if len(message) > 1000:
+        message = f"{message[:1000]}... ({len(message)} characters in total)"
+      error = f"HTTP {res.status_code} {res.reason}"
+      print(f"  Submitting {group}/{name} failed with {error}: {message}")
+      if res.status_code in SUBMISSION_ERRORS:
+        print(f"    {SUBMISSION_ERRORS[res.status_code]}")
+      print_details(res.elapsed.total_seconds())
+      print(f"    Response content type: {res.headers.get('Content-Type', 'unknown')}")
+      retry = res.status_code in RETRY_STATUS_CODES
+
+    if not retry or attempt == SUBMISSION_ATTEMPTS:
+      return error
+    print(
+      f"    Trying again in {RETRY_DELAY} seconds "
+      f"(attempt {attempt + 1} of {SUBMISSION_ATTEMPTS})"
+    )
+    time.sleep(RETRY_DELAY)
 
 
 def store_image(results, group, name, image):

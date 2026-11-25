@@ -245,11 +245,22 @@ def submission_log(passed, output):
 def submit_image(url, runner, hardware, group, name, timestamp, timing, commit, image,
                  log):
   """
-  Submits an image to the regression server and returns whether it was accepted
+  Submits an image to the regression server. Returns None if it was accepted and a short
+  description of the error otherwise
   """
   # Only imported here so that the images can be stored locally without the package
   import requests
 
+  # Information about the request that is printed if the submission fails, to tell apart
+  # whether the server rejected it, it took too long, or the connection failed
+  def print_details(elapsed):
+    image_size = image.stat().st_size / 1024
+    log_size = len(log.encode()) / 1024
+    print(f"    URL: {url}")
+    print(f"    Image: {image_size:.1f} KiB, log: {log_size:.1f} KiB")
+    print(f"    Time until the failure: {elapsed:.2f} seconds")
+
+  start = time.perf_counter()
   try:
     with open(image, "rb") as f:
       res = requests.post(
@@ -275,21 +286,32 @@ def submit_image(url, runner, hardware, group, name, timestamp, timing, commit, 
         timeout=(30, 600)
       )
   except requests.RequestException as e:
-    print(f"  Submitting {group}/{name} failed: {e}")
-    return False
+    print(f"  Submitting {group}/{name} failed with {type(e).__name__}: {e}")
+    print_details(time.perf_counter() - start)
+    # Only the type of the exception, as its message is too long for the summary
+    return type(e).__name__
 
   if res.status_code == 200:
     print(f"  Submitted {group}/{name}")
-    return True
+    return None
 
+  # The regression server returns its errors as JSON with an 'error' key. Any other
+  # response, for example an HTML page, comes from a proxy in front of the server
   try:
-    message = res.json().get("error", res.text)
+    body = res.json()
+    message = body.get("error", res.text) if isinstance(body, dict) else res.text
   except ValueError:
     message = res.text
-  print(f"  Submitting {group}/{name} failed with error {res.status_code}: {message}")
+  message = message.strip()
+  if len(message) > 1000:
+    message = f"{message[:1000]}... ({len(message)} characters in total)"
+  error = f"HTTP {res.status_code} {res.reason}"
+  print(f"  Submitting {group}/{name} failed with {error}: {message}")
   if res.status_code in SUBMISSION_ERRORS:
     print(f"    {SUBMISSION_ERRORS[res.status_code]}")
-  return False
+  print_details(res.elapsed.total_seconds())
+  print(f"    Response content type: {res.headers.get('Content-Type', 'unknown')}")
+  return error
 
 
 def store_image(results, group, name, image):
@@ -420,14 +442,14 @@ def main():
         found.add(test_id)
         if not NAME_PATTERN.match(name):
           print(f"  Skipping {test_id} as it is not a valid name")
-          failed_submissions.append(test_id)
+          failed_submissions.append((test_id, "invalid name"))
         elif submit:
-          accepted = submit_image(
+          error = submit_image(
             submit_url, runner_id, hardware, test.group, name, timestamp,
             timing, commit, image, log
           )
-          if not accepted:
-            failed_submissions.append(test_id)
+          if error is not None:
+            failed_submissions.append((test_id, error))
         else:
           store_image(args.results, test.group, name, image)
 
@@ -441,8 +463,8 @@ def main():
     success = False
   if failed_submissions:
     print(f"{len(failed_submissions)} images could not be submitted:")
-    for test_id in failed_submissions:
-      print(f"  {test_id}")
+    for test_id, error in failed_submissions:
+      print(f"  {test_id} ({error})")
     success = False
   if wanted is not None and wanted - found:
     print(f"No test created the images: {sorted(wanted - found)}")
